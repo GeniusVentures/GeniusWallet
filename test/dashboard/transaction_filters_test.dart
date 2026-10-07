@@ -185,6 +185,7 @@ void main() {
           Filters.received,
           Filters.mint,
           Filters.jobs,
+          Filters.purchase,
         ]),
       );
     });
@@ -317,7 +318,11 @@ void main() {
       // "Buy GNUS" was the shipped action on a state that is not an empty
       // wallet. The filtered branch offers "Show all" instead.
       expect(filteredEmptyMessage(8).toLowerCase(), isNot(contains('buy')));
-      for (final f in Filters.values.where((f) => f != Filters.all)) {
+      // Buy orders never reaches this branch: its empty state is the one
+      // place that does offer to buy.
+      for (final f in Filters.values.where(
+        (f) => f != Filters.all && f != Filters.purchase,
+      )) {
         expect(filteredEmptyTitle(f).toLowerCase(), isNot(contains('buy')));
       }
     });
@@ -492,13 +497,15 @@ void main() {
       // reason that does not exist on screen. The number that IS
       // font-independent — and the one real headroom depends on — is the bar's
       // own width, pinned below at every width.
-      for (final width in <double>[419, 420, 700]) {
+      // 328 is a 360px phone's content box (16px gutters); the five-chip bar
+      // has to fit it.
+      for (final width in <double>[328, 419, 420, 700]) {
         testWidgets('${width.toInt()}px (${mode.name})', (tester) async {
           await tester.pumpWidget(host(width, gwFor(mode)));
           expect(tester.takeException(), isNull);
 
           final bar = tester.getSize(barFinder);
-          // 52 and 243, raised from 40 and 183 in the 2026-08-07 merge with
+          // 52 and 289, raised from 40 and 183 in the 2026-08-07 merge with
           // develop, and the reason is a real improvement rather than drift.
           //
           // Develop's 260806-hfe gave the NARROW page its own branch in
@@ -512,15 +519,15 @@ void main() {
           // So the numbers below are the SAME arithmetic this group always
           // used, with 44 substituted for 32:
           //   height 44 + 3px track padding + 1px border, each side       = 52
-          //   width  4x44 + 3x2 inter-chip + space2 + 1px rule + space2
-          //          + 44 trigger + the 3px/1px shell                     = 243
+          //   width  5x44 + 4x2 inter-chip + space2 + 1px rule + space2
+          //          + 44 trigger + the 3px/1px shell                     = 289
           //
           // Still PINNED rather than bounded, but the thing it now protects is
           // different: not the title row's headroom, which this surface no
           // longer has to share, but the touch target itself. A drift back
           // toward 40/183 means the phone page has quietly lost 44pt targets.
           expect(bar.height, 52);
-          expect(bar.width, 243);
+          expect(bar.width, 289);
         });
       }
     }
@@ -669,10 +676,10 @@ void main() {
 
       expect(find.text('Sent'), findsNothing);
       expect(tester.takeException(), isNull);
-      // Same 243 as the resting bar: selecting changes no geometry at all.
+      // Same 289 as the resting bar: selecting changes no geometry at all.
       // Was 183 before the 2026-08-07 merge raised the phone page's chips to
       // the 44pt touch minimum; the invariant this asserts is unchanged.
-      expect(tester.getSize(barFinder).width, 243);
+      expect(tester.getSize(barFinder).width, 289);
     });
 
     // Run in both appearances: the selected menu label goes through a

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>082 · Buy order tracking</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  /* Status tones = the app's txStatusColors: fg is the *Text token, wash is the fill at 14-16%. */
+  :root, [data-theme="light"] {
+    --tone-ok:#065F46; --tone-warn:#92400E; --tone-err:#991B1B; --tone-neutral:var(--text-secondary);
+    --wash-ok:rgba(7,135,95,.14); --wash-warn:rgba(255,196,46,.16); --wash-err:rgba(217,45,45,.14); --wash-neutral:var(--surface-menu);
+    --fill-ok:#07875F; --fill-warn:#FFC42E; --fill-err:#D92D2D; --fill-slate:#64748B;
+    --scrim:rgba(16,19,26,.45);
+    --sheet:#FFFFFF;
+  }
+  [data-theme="dark"] {
+    --tone-ok:#0AD89C; --tone-warn:#FFC42E; --tone-err:#FF4D4D;
+    --wash-ok:rgba(10,216,156,.14); --wash-err:rgba(255,77,77,.14);
+    --fill-ok:#0AD89C; --fill-err:#FF4D4D;
+    --scrim:rgba(0,0,0,.6);
+    --sheet:#171A21;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); }
+  button { font-family:inherit; }
+  button, a, .row, .tracker, .toast { transition:all .15s ease; }
+
+  /* ── sketch chrome ── */
+  #topbar { position:fixed; top:0; left:0; right:0; z-index:100; background:var(--surface-elevated); border-bottom:1px solid var(--border-subtle); padding:10px 16px; display:flex; flex-direction:column; gap:8px; }
+  #topbar .r { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  #topbar h1 { font:600 14px/20px var(--font); margin-right:8px; }
+  .variant-tab { font:500 13px var(--font); color:var(--text-primary-70); background:transparent; border:1px solid var(--border-subtle); border-radius:var(--radius-pill); padding:6px 14px; cursor:pointer; }
+  .variant-tab:hover { color:var(--text-primary); border-color:var(--border-strong); transform:translateY(-1px); }
+  .variant-tab.active { color:var(--text-on-brand); background:var(--brand-primary); border-color:var(--brand-primary); }
+  .lbl { font:700 10px/1 var(--font); letter-spacing:.08em; text-transform:uppercase; color:var(--text-secondary); margin-left:6px; }
+  .seg { display:inline-flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 12px/16px var(--font); padding:5px 11px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button:hover { color:var(--text-primary); }
+  .seg button.on { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .ctl { font:500 12px/16px var(--font); padding:6px 11px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:transparent; color:var(--text-primary); cursor:pointer; }
+  .ctl:hover { background:var(--surface-menu); }
+  .ctl.go { background:linear-gradient(90deg,var(--brand-cta-b),var(--brand-cta-a)); color:var(--text-on-brand); border-color:transparent; font-weight:600; }
+  select.ctl { padding:5px 8px; background:var(--surface-menu); }
+  .now { font:500 12px/16px var(--font); color:var(--text-secondary); }
+  .now code { font:500 12px/16px var(--font-mono); color:var(--text-primary); }
+
+  #sketch-tools { position:fixed; bottom:12px; right:12px; z-index:200; font:12px system-ui; background:rgba(0,0,0,.78); color:#fff; padding:8px 10px; border-radius:8px; opacity:.45; display:flex; gap:6px; align-items:center; }
+  #sketch-tools:hover { opacity:1; }
+  #sketch-tools button { font:600 11px system-ui; background:transparent; color:#cfd3dc; border:1px solid rgba(255,255,255,.3); border-radius:6px; padding:4px 8px; cursor:pointer; }
+  #sketch-tools button.on { background:#fff; color:#000; }
+
+  main { padding:112px 24px 80px; }
+  #holder { margin:0 auto; position:relative; }
+  #frame { transform-origin:top left; position:absolute; top:0; left:0; overflow:hidden; border:1px solid var(--border-strong); box-shadow:0 20px 60px rgba(0,0,0,.35); background:var(--surface-base); }
+  #frame.desktop { width:1280px; height:800px; border-radius:12px; }
+  #frame.mobile { width:390px; height:844px; border-radius:44px; }
+  .caption { text-align:center; font:400 12px/18px var(--font); color:var(--text-secondary); margin:10px auto 0; max-width:900px; }
+
+  /* ── app shell ── */
+  .app { position:absolute; inset:0; display:flex; flex-direction:column; }
+  .nav { height:68px; flex:none; display:flex; align-items:center; gap:28px; padding:0 28px; background:var(--surface-elevated); border-bottom:1px solid var(--border-subtle); }
+  .brand { display:flex; align-items:center; gap:10px; font:700 15px/1 var(--font); }
+  .mark { width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .tabs { display:flex; gap:4px; height:100%; }
+  .tabs button { position:relative; background:none; border:0; color:var(--text-secondary); font:500 14px/1 var(--font); padding:0 14px; cursor:pointer; }
+  .tabs button:hover { color:var(--text-primary); }
+  .tabs button.on { color:var(--text-primary); font-weight:700; }
+  .tabs button.on::after { content:""; position:absolute; left:14px; right:14px; bottom:0; height:3px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navr { margin-left:auto; display:flex; gap:10px; align-items:center; }
+  .chip { height:40px; display:inline-flex; align-items:center; gap:8px; padding:0 14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:var(--surface-menu); font:500 13px/1 var(--font); color:var(--text-primary); cursor:pointer; }
+  .chip:hover { border-color:var(--border-strong); }
+  .chip .dot { width:8px; height:8px; border-radius:50%; background:var(--fill-warn); }
+  .cta { height:40px; padding:0 16px; border:0; border-radius:var(--radius-md); background:linear-gradient(90deg,var(--brand-cta-b),var(--brand-cta-a)); color:var(--text-on-brand); font:600 13px/1 var(--font); cursor:pointer; }
+  .cta:hover { filter:brightness(1.06); transform:translateY(-1px); }
+
+  .statusbar { height:44px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 28px; font:600 14px/1 var(--font); }
+  .mhead { height:60px; flex:none; display:flex; align-items:center; gap:10px; padding:0 12px; border-bottom:1px solid var(--border-subtle); }
+  .mhead .ttl { font:600 17px/1 var(--font); }
+  .dock { position:absolute; left:0; right:0; bottom:0; height:84px; padding-bottom:24px; background:var(--surface-elevated); border-top:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-around; z-index:5; }
+  .dock button { background:none; border:0; color:var(--text-secondary); font:500 10px/1 var(--font); display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; width:64px; }
+  .dock button.on { color:var(--text-primary); font-weight:700; }
+  .dock svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .dock .fab { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); display:grid; place-items:center; color:var(--text-on-brand); margin-top:-18px; }
+  .dock .fab svg { width:22px; height:22px; }
+
+  .page { flex:1; overflow-y:auto; padding:32px 40px 40px; }
+  .mobile .page { padding:12px 6px 110px; }
+  .pagein { max-width:980px; margin:0 auto; display:flex; flex-direction:column; gap:16px; }
+  .ptitle { font:600 28px/34px var(--font); letter-spacing:-.3px; }
+  .mobile .ptitle { display:none; }
+
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:16px; }
+  .mobile .card { padding:12px 8px; }
+  .chead { display:flex; align-items:center; gap:8px; min-height:44px; padding:0 4px 8px; }
+  .chead h3 { font:600 18px/24px var(--font); margin-right:auto; }
+  .hr { height:1px; background:var(--border-subtle); border:0; }
+  .day { padding:16px 12px 4px; font:600 11px/14px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.7px; }
+
+  /* ── the shipped TransactionRow ── */
+  .row { display:flex; align-items:center; gap:12px; padding:12px; border-radius:var(--radius-md); cursor:pointer; }
+  .mobile .row { gap:8px; padding:12px 8px; }
+  .row:hover { background:var(--surface-menu); }
+  .row .tm { width:44px; flex:none; font:400 13px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .mobile .row .tm { display:none; }
+  .id { position:relative; width:38px; height:38px; flex:none; }
+  .coin { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font:700 10px/1 var(--font); color:#fff; }
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-sheen-b); }
+  .badge svg { width:9px; height:9px; fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 16px/22px var(--font); }
+  .row .s { display:flex; gap:4px; font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:4px; }
+  .row .s .txt { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .s .lead { font-weight:600; color:var(--text-primary-70); }
+  .row .s .tail { flex:none; max-width:76px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:999px; font:600 13px/18px var(--font); white-space:nowrap; }
+  .pill i { width:6px; height:6px; border-radius:50%; background:currentColor; flex:none; }
+  .pill.lg { padding:8px 14px; gap:8px; }
+  .t-ok { color:var(--tone-ok); } .t-warn { color:var(--tone-warn); } .t-err { color:var(--tone-err); } .t-neutral { color:var(--tone-neutral); }
+  .w-ok { background:var(--wash-ok); } .w-warn { background:var(--wash-warn); } .w-err { background:var(--wash-err); } .w-neutral { background:var(--wash-neutral); }
+  .amt { text-align:right; white-space:nowrap; flex:none; }
+  .wide .amt { width:184px; }
+  .amt .v { font:600 16px/22px var(--font); font-variant-numeric:tabular-nums; }
+  .amt .v.none { color:var(--text-secondary); }
+  .amt .f { display:block; font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:4px; }
+  .amt .f.err { color:var(--tone-err); }
+  @keyframes flash { 0%,40% { background:var(--brand-primary-subtle); } 100% { background:transparent; } }
+  .row.flash { animation:flash 1.8s ease; }
+
+  /* ── variant B: pinned tracker ── */
+  .tracker { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:14px 16px 12px; cursor:pointer; overflow:hidden; }
+  .tracker:hover { border-color:var(--border-strong); }
+  .tracker .top { display:flex; align-items:center; gap:12px; }
+  .tracker .k { font:700 10px/14px var(--font); letter-spacing:.08em; text-transform:uppercase; color:var(--text-secondary); }
+  .tracker .h { font:600 15px/20px var(--font); }
+  .tracker .st { font:500 13px/18px var(--font); margin-top:2px; }
+  .tracker .main { flex:1; min-width:0; }
+  .tracker .right { display:flex; align-items:center; gap:8px; flex:none; }
+  .chev { width:32px; height:32px; display:grid; place-items:center; color:var(--text-secondary); }
+  .chev svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .bar { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; margin-top:12px; }
+  .bar span { height:4px; border-radius:2px; background:var(--border-subtle); }
+  .bar span.done { background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .bar span.cur { background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); opacity:.45; animation:pulse 1.4s ease-in-out infinite; }
+  .bar span.stop-err { background:var(--fill-err); } .bar span.stop-neutral { background:var(--fill-slate); }
+  @keyframes pulse { 50% { opacity:1; } }
+  .steps { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; margin-top:6px; font:500 11px/14px var(--font); color:var(--text-secondary); }
+  .steps .on { color:var(--text-primary); font-weight:700; }
+  .mobile .steps { display:none; }
+  .steptxt { display:none; font:500 12px/16px var(--font); color:var(--text-secondary); margin-top:6px; }
+  .mobile .steptxt { display:block; }
+  @keyframes collapse { from { max-height:160px; opacity:1; } to { max-height:0; opacity:0; padding-top:0; padding-bottom:0; margin-bottom:-16px; border-width:0; } }
+  .tracker.collapsing { animation:collapse .45s ease forwards; }
+  .sbtn { height:34px; padding:0 14px; border-radius:var(--radius-pill); border:0; font:600 13px/1 var(--font); cursor:pointer; white-space:nowrap; }
+  .sbtn.grad { background:linear-gradient(90deg,var(--brand-cta-b),var(--brand-cta-a)); color:var(--text-on-brand); }
+  .sbtn.out { background:transparent; color:var(--text-primary); border:1px solid var(--border-strong); }
+  .sbtn:hover { transform:translateY(-1px); filter:brightness(1.05); }
+
+  /* ── variant C: filter chips (014 F1 language) ── */
+  .fc { display:inline-flex; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:3px; gap:2px; }
+  .fc button { display:inline-flex; align-items:center; justify-content:center; gap:0; font:600 12px/1 var(--font); height:30px; min-width:34px; padding:0 9px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; position:relative; }
+  .fc button svg { width:15px; height:15px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .fc button .fl { max-width:0; overflow:hidden; white-space:nowrap; transition:max-width .18s; }
+  .fc button.on { background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); gap:6px; }
+  .fc button.on .fl { max-width:90px; }
+  .mobile .fc button.on { gap:0; } .mobile .fc button.on .fl { max-width:0; }
+  .fc button:hover:not(.on) { color:var(--text-primary); }
+  .fc .sep { width:1px; background:var(--border-subtle); margin:4px 3px; }
+  .fc .cnt { position:absolute; top:-5px; right:-5px; min-width:16px; height:16px; padding:0 4px; border-radius:8px; background:var(--fill-warn); color:#3A2A00; font:700 10px/16px var(--font); text-align:center; }
+  .fc button.orders { border:1px dashed transparent; }
+
+  /* ── buy page ── */
+  .buygrid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:start; }
+  .mobile .buygrid { grid-template-columns:minmax(0,1fr); }
+  .kv b { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-left:12px; }
+  .field { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px; margin-top:10px; }
+  .field .k { font:500 12px/16px var(--font); color:var(--text-secondary); }
+  .field .v { font:600 22px/30px var(--font); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .field .v small { font:500 14px var(--font); color:var(--text-secondary); }
+  .kv { display:flex; justify-content:space-between; font:400 13px/20px var(--font); color:var(--text-secondary); padding:3px 2px; }
+  .kv b { color:var(--text-primary); font-weight:500; font-variant-numeric:tabular-nums; }
+  .bigbtn { width:100%; height:48px; border:0; border-radius:var(--radius-pill); background:linear-gradient(90deg,var(--brand-cta-b),var(--brand-cta-a)); color:var(--text-on-brand); font:600 15px var(--font); cursor:pointer; margin-top:14px; }
+  .bigbtn:hover { filter:brightness(1.05); transform:translateY(-1px); }
+  .bigbtn.out { background:transparent; color:var(--text-primary); border:1px solid var(--border-strong); }
+  .mkt { display:flex; align-items:center; gap:12px; padding:12px; }
+  .mkt .n { flex:1; font:600 15px/20px var(--font); } .mkt .n small { display:block; font:400 13px/18px var(--font); color:var(--text-secondary); }
+  .mkt .p { text-align:right; font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .mkt .p small { display:block; font:500 13px/18px var(--font); }
+
+  /* ── drawer: ResponsiveDrawer, 030-B1 shell ── */
+  .scrim { position:absolute; inset:0; background:var(--scrim); z-index:20; }
+  .drawer { position:absolute; top:0; right:0; bottom:0; width:420px; background:var(--sheet); z-index:21; display:flex; flex-direction:column; box-shadow:-24px 0 60px rgba(0,0,0,.35); }
+  .mobile .drawer { top:auto; left:0; width:auto; max-height:88%; border-radius:24px 24px 0 0; box-shadow:0 -12px 40px rgba(0,0,0,.35); }
+  @keyframes inR { from { transform:translateX(100%); } } @keyframes inU { from { transform:translateY(100%); } } @keyframes fade { from { opacity:0; } }
+  .drawer.anim { animation:inR .25s ease; } .mobile .drawer.anim { animation:inU .25s ease; } .scrim.anim { animation:fade .2s ease; }
+  .grab { display:none; width:36px; height:4px; border-radius:2px; background:var(--border-strong); margin:8px auto 0; }
+  .mobile .grab { display:block; }
+  .dh { height:60px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:0 12px 0 20px; border-bottom:1px solid var(--border-subtle); position:relative; }
+  .dh::after { content:""; position:absolute; left:20px; right:20px; bottom:-1px; height:1px; background:var(--brand-primary-subtle); }
+  .dh .tt { font:600 18px/24px var(--font); }
+  .x { width:40px; height:40px; display:grid; place-items:center; border-radius:var(--radius-md); color:var(--text-primary-70); cursor:pointer; background:none; border:0; }
+  .x:hover { background:var(--border-subtle); color:var(--text-primary); }
+  .x svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+  .db { flex:1; overflow-y:auto; padding:8px 20px 20px; }
+  .df { flex:none; padding:16px 20px; border-top:1px solid var(--border-subtle); display:flex; flex-direction:column; gap:10px; }
+  .mobile .df { padding-bottom:34px; }
+  .head { text-align:center; padding:16px 0 4px; }
+  .head .ic { width:60px; height:60px; margin:0 auto; position:relative; }
+  .head .ic .coin { width:60px; height:60px; font-size:13px; }
+  .head .ic .badge { width:24px; height:24px; border-color:var(--sheet); } .head .ic .badge svg { width:12px; height:12px; }
+  .head .big { width:60px; height:60px; margin:0 auto; border-radius:50%; display:grid; place-items:center; }
+  .head .big svg { width:34px; height:34px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .head .amt2 { font:600 24px/32px var(--font); font-variant-numeric:tabular-nums; margin-top:12px; }
+  .head .sub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:2px; }
+  .head .pillwrap { margin-top:12px; }
+  .head .msg { font:400 15px/22px var(--font); color:var(--text-secondary); margin:12px auto 0; max-width:320px; }
+  .sec { font:500 11px var(--font); letter-spacing:.06em; text-transform:uppercase; color:var(--text-secondary); margin:20px 0 8px; }
+  .rows { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:2px 16px; }
+  .kvr { display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding:12px 0; font:400 14px/20px var(--font); }
+  .kvr + .kvr { border-top:1px solid var(--border-subtle); }
+  .kvr .k { color:var(--text-primary-70); flex:none; }
+  .kvr .v { text-align:right; font-variant-numeric:tabular-nums; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .kvr .v.strong { font-weight:600; }
+  .kvr .v small { display:block; color:var(--text-secondary); font-size:12px; }
+  .mono { font-family:var(--font-mono); font-size:13px; }
+  .copy { cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
+  .copy svg { width:14px; height:14px; fill:none; stroke:var(--text-secondary); stroke-width:2; flex:none; }
+  .copy:hover { color:var(--brand-primary-strong); }
+  .note { display:flex; gap:10px; padding:12px 14px; border-radius:var(--radius-md); font:400 13px/19px var(--font); margin-top:16px; }
+  .note svg { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; margin-top:1px; }
+  .note .body { color:var(--text-primary); }
+  .support { display:inline-flex; align-items:center; gap:6px; font:600 14px/20px var(--font); color:var(--text-primary); text-decoration:underline; text-underline-offset:3px; margin-top:6px; }
+  .support:hover { color:var(--brand-primary-strong); }
+  .support svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; }
+
+  /* timeline */
+  .tl { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:14px 16px; }
+  .tli { display:grid; grid-template-columns:22px 1fr auto; gap:10px; position:relative; padding-bottom:14px; }
+  .tli:last-child { padding-bottom:0; }
+  .tli::before { content:""; position:absolute; left:10px; top:22px; bottom:0; width:2px; background:var(--border-subtle); }
+  .tli.done::before { background:linear-gradient(var(--brand-cta-a),var(--brand-cta-b)); }
+  .tli:last-child::before { display:none; }
+  .tdot { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--border-strong); background:var(--sheet); z-index:1; }
+  .tdot svg { width:11px; height:11px; fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .tli.done .tdot { border:0; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .tli.done .tdot svg { stroke:var(--text-on-brand); }
+  .tli.cur .tdot { border-color:var(--tone-warn); } .tli.cur .tdot i { width:8px; height:8px; border-radius:50%; background:var(--tone-warn); animation:pulse 1.4s ease-in-out infinite; opacity:.5; }
+  .tli.stop .tdot { border:0; }
+  .tli .tl1 { font:500 14px/20px var(--font); }
+  .tli.todo .tl1 { color:var(--text-secondary); }
+  .tli .tl2 { font:400 12px/16px var(--font); color:var(--text-secondary); margin-top:1px; }
+  .tli .ttm { font:400 12px/20px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+
+  /* toast: 079 card density */
+  .toasts { position:absolute; z-index:30; left:50%; transform:translateX(-50%); top:76px; width:420px; display:flex; flex-direction:column; gap:8px; }
+  .mobile .toasts { left:6px; right:6px; width:auto; transform:none; top:112px; }
+  .toast { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:12px; padding:12px; display:flex; gap:12px; align-items:flex-start; box-shadow:0 8px 24px rgba(0,0,0,.38); cursor:pointer; }
+  .toast:hover { border-color:var(--border-strong); }
+  .toast.anim { animation:drop .3s ease; } @keyframes drop { from { transform:translateY(-16px); opacity:0; } }
+  .toast .edge { width:4px; align-self:stretch; border-radius:2px; flex:none; }
+  .toast .ti svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .toast .tb { flex:1; min-width:0; }
+  .toast .t1 { font:700 14px/19px var(--font); } .toast .t2 { font:400 13px/18px var(--font); color:var(--text-secondary); margin-top:2px; }
+  .toast .t3 { font:600 13px/18px var(--font); color:var(--text-primary); margin-top:6px; text-decoration:underline; text-underline-offset:3px; }
+  .toast .tx { width:44px; height:44px; margin:-11px -11px -11px 0; display:grid; place-items:center; color:var(--text-secondary); background:none; border:0; cursor:pointer; flex:none; }
+  .toast .tx svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+  .toast.compact { align-self:center; border-radius:999px; padding:9px 16px; align-items:center; gap:9px; font:600 13px/18px var(--font); width:auto; }
+  .toast.compact .ti svg { width:16px; height:16px; }
+
+  /* ── below-frame panels ── */
+  .below { max-width:1280px; margin:28px auto 0; display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:20px; }
+  @media (max-width:1000px) { .below { grid-template-columns:1fr; } }
+  .panel { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:18px 20px; }
+  .panel h2 { font:600 16px/22px var(--font); margin-bottom:4px; }
+  .panel p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:10px; }
+  .panel p b { color:var(--text-primary); }
+  .panel ul { padding-left:18px; } .panel li { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:6px; } .panel li b { color:var(--text-primary); }
+  table.leg { width:100%; border-collapse:collapse; font:400 13px/18px var(--font); }
+  table.leg th { text-align:left; font:600 11px/14px var(--font); letter-spacing:.05em; text-transform:uppercase; color:var(--text-secondary); padding:6px 8px; border-bottom:1px solid var(--border-subtle); }
+  table.leg td { padding:7px 8px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; }
+  table.leg tr { cursor:pointer; } table.leg tbody tr:hover { background:var(--surface-menu); }
+  table.leg tr.cur { background:var(--brand-primary-subtle); }
+  table.leg code { font:500 12px/16px var(--font-mono); }
+  .ratio { font:500 12px/16px var(--font-mono); color:var(--text-secondary); white-space:nowrap; }
+  .ratio.bad { color:var(--tone-err); font-weight:700; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"></svg>
+
+<div id="topbar">
+  <div class="r">
+    <h1>082 · Buy order tracking</h1>
+    <button class="variant-tab active" data-variant="a">A · Row + drawer</button>
+    <button class="variant-tab" data-variant="b">B · Pinned tracker</button>
+    <button class="variant-tab" data-variant="c">C · Buy orders filter ★</button>
+  </div>
+  <div class="r">
+    <span class="lbl">Order path</span>
+    <select class="ctl" id="path">
+      <option value="happy">Happy path</option>
+      <option value="verify">Needs more ID, then done</option>
+      <option value="declined">Payment declined</option>
+      <option value="expired">Never paid, expired</option>
+      <option value="cancelled">Cancelled in checkout</option>
+      <option value="refunded">Refunded after payment</option>
+    </select>
+    <button class="ctl go" id="next">Next status</button>
+    <button class="ctl" id="auto">Auto-play</button>
+    <button class="ctl" id="restart">Restart</button>
+    <span class="now" id="now"></span>
+    <span class="lbl">Jump to</span>
+    <select class="ctl" id="jump"></select>
+    <span class="lbl">Page</span>
+    <span class="seg" id="pageSeg"><button data-v="tx" class="on">Transactions</button><button data-v="buy">Buy GNUS</button><button data-v="mkt">Markets (elsewhere)</button></span>
+  </div>
+</div>
+
+<div id="sketch-tools">
+  <button data-theme="dark" class="on">Dark</button><button data-theme="light">Light</button>
+  <span style="width:6px"></span>
+  <button data-vp="desktop" class="on">Desktop 1280</button><button data-vp="mobile">Mobile 390</button>
+</div>
+
+<main>
+  <div id="holder"><div id="frame" class="desktop"></div></div>
+  <p class="caption" id="caption"></p>
+
+  <div class="below">
+    <div class="panel">
+      <h2>Status legend</h2>
+      <p>Every status Banxa actually sends, the words the user sees, and the tone. Tone foregrounds are the app's
+        <b>*Text</b> tokens on their wash, as <code>txStatusColors</code> paints them. Contrast is measured live for both
+        modes: pill text on its wash, and the narrow-row status tail on the bare panel. Click a row to jump the order there.</p>
+      <table class="leg"><thead><tr><th>Banxa status</th><th>User copy</th><th>Phone tail</th><th>Tone</th><th>Row shows</th><th>Action</th><th>Dark</th><th>Light</th></tr></thead><tbody id="legend"></tbody></table>
+    </div>
+    <div class="panel" id="notes"></div>
+  </div>
+</main>
+
+<script>
+const P = {
+  up:'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
+  down:'<line x1="17" y1="7" x2="7" y2="17"/><polyline points="16 17 7 17 7 8"/>',
+  pickaxe:'<path d="M14.5 9.5 4 20"/><path d="M3 6.5c4-3 10-3 14 1"/><path d="M17.5 3.5c-3 4-3 10 1 14"/><path d="M12.5 7.5l4 4"/>',
+  server:'<rect x="3" y="4" width="18" height="6" rx="1.6"/><rect x="3" y="14" width="18" height="6" rx="1.6"/>',
+  card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/>',
+  x:'<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>',
+  check:'<polyline points="5 12.5 10 17.5 19 7"/>',
+  checkc:'<circle cx="12" cy="12" r="9.5"/><polyline points="7.5 12.5 10.5 15.5 16.5 9"/>',
+  xc:'<circle cx="12" cy="12" r="9.5"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  alert:'<circle cx="12" cy="12" r="9.5"/><line x1="12" y1="7.5" x2="12" y2="12.5"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  idc:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4"/><line x1="14.5" y1="10" x2="18" y2="10"/><line x1="14.5" y1="13.5" x2="17" y2="13.5"/>',
+  copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  ext:'<path d="M14 4h6v6"/><line x1="20" y1="4" x2="11" y2="13"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  chev:'<polyline points="9 6 15 12 9 18"/>',
+  home:'<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+  list:'<line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+  chart:'<polyline points="3 17 9 11 13 15 21 7"/>',
+  menu:'<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  dots:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+};
+const svg = (p, extra='') => `<svg viewBox="0 0 24 24" ${extra}>${p}</svg>`;
+
+/* Banxa's real order statuses. stage: 0 payment, 1 received, 2 buying, 3 sending, 4 done. */
+const ST = {
+  pendingPayment:   { copy:'Waiting for payment', short:'Unpaid',    tone:'warn',    stage:0, action:'Complete payment',
+                      why:'Finish paying in Banxa checkout. Unpaid orders expire.' },
+  waitingPayment:   { copy:'Confirming payment', short:'Confirming',     tone:'warn',    stage:0,
+                      why:'Banxa is waiting for your bank or card to confirm the payment.' },
+  extraVerification:{ copy:'Banxa needs more ID', short:'Needs ID',    tone:'warn',    stage:0, action:'Continue verification', support:true,
+                      why:'Banxa asked for another document before it can take your payment. Nothing has been charged yet.' },
+  paymentReceived:  { copy:'Payment received', short:'Paid',       tone:'warn',    stage:1,
+                      why:'Banxa has your payment. Your GNUS is not bought yet, so this is not final.' },
+  inProgress:       { copy:'Buying your GNUS', short:'Buying',       tone:'warn',    stage:2, why:'Banxa is buying GNUS at the quoted rate.' },
+  coinTransferred:  { copy:'Sending to your wallet', short:'Sending', tone:'warn',    stage:3, why:'GNUS is on its way to your wallet. This usually takes a few minutes.' },
+  cryptoTransferred:{ copy:'Sending to your wallet', short:'Sending', tone:'warn',    stage:3, why:'GNUS is on its way to your wallet. This usually takes a few minutes.' },
+  complete:         { copy:'Done',                   tone:'ok',      stage:4, final:true },
+  cancelled:        { copy:'Cancelled', short:'Cancelled',              tone:'neutral', final:true, value:'Not charged', retry:true,
+                      why:'You left checkout before paying. You were not charged.' },
+  declined:         { copy:'Payment declined', short:'Declined',       tone:'err',     final:true, value:'Not charged', retry:true, support:true,
+                      why:'Your bank or card declined the payment. You were not charged.' },
+  expired:          { copy:'Order expired', short:'Expired',          tone:'neutral', final:true, value:'Not charged', retry:true, support:true,
+                      why:'The payment was not completed in time. You were not charged.' },
+  refunded:         { copy:'Refunded', short:'Refunded',               tone:'neutral', final:true, value:'100.00 EUR refunded', support:true,
+                      why:'Banxa returned 100.00 EUR to your card. Refunds take 3 to 10 business days to show.' },
+};
+const PATHS = {
+  happy:['pendingPayment','waitingPayment','paymentReceived','inProgress','cryptoTransferred','complete'],
+  verify:['pendingPayment','waitingPayment','extraVerification','paymentReceived','inProgress','coinTransferred','complete'],
+  declined:['pendingPayment','waitingPayment','declined'],
+  expired:['pendingPayment','expired'],
+  cancelled:['pendingPayment','cancelled'],
+  refunded:['pendingPayment','waitingPayment','paymentReceived','inProgress','refunded'],
+};
+const STAGES = ['Payment','Payment received','Buying your GNUS','Sending to your wallet','GNUS in your wallet'];
+const STEP_SHORT = ['Pay','Received','Buying','Sending','Done'];
+const MINUTES = [0,1,2,4,7,9,11];
+
+const GNUS_BG = 'linear-gradient(160deg,#3AD9C0,#1FA9C8)';
+const WALLET = { name:'Main wallet', short:'0x7a3f…9c21', full:'0x7a3f5B2c9E14d0A8b6F3c1D2e4A5b6C7d8E99c21' };
+
+function mkOrder(id, fiat, gnus, status, day, time, date, hist) {
+  return { id, fiat, gnus, status, day, time, date, hist: hist || [{ s:status, t:time }],
+           fee: (fiat*0.0399).toFixed(2), net:'0.62', method:'Visa ending 4417' };
+}
+const LIVE = mkOrder('a3f9c2e1b7d04e5f8a61c9b2d3e4f501', 100, '1,235.62', 'pendingPayment', 'Today', '14:32', 'Sep 30, 2026 at 2:32 PM');
+const OLD = [
+  mkOrder('7c1e04b9a2f34d8e9b10c6d5e4f3a212', 50, '617.30', 'complete', '24 Sep', '10:15', 'Sep 24, 2026 at 10:15 AM',
+    [{s:'pendingPayment',t:'10:15'},{s:'paymentReceived',t:'10:17'},{s:'inProgress',t:'10:18'},{s:'cryptoTransferred',t:'10:21'},{s:'complete',t:'10:24'}]),
+  mkOrder('e52d9f7a1c3b48e6a0d4b8c2f1e9d733', 200, '2,471.24', 'expired', '19 Sep', '18:40', 'Sep 19, 2026 at 6:40 PM',
+    [{s:'pendingPayment',t:'18:40'},{s:'expired',t:'19:10'}]),
+];
+const ORDERS = () => [LIVE, ...OLD];
+const byId = id => ORDERS().find(o => o.id === id);
+
+const TXS = [
+  { day:'Today', tm:'11:08', sym:'GNUS', bg:GNUS_BG, badge:'received', title:'GNUS', lead:'Received', base:'· 0x1d9b…4a87', amt:'+ 250.00 GNUS', val:'$19.25', f:'received' },
+  { day:'Today', tm:'09:41', sym:'ETH', bg:'linear-gradient(160deg,#8A9DF5,#5B72D8)', badge:'sent', title:'ETH', lead:'Sent', base:'· 0x9fF8…2e2b', amt:'− 0.05 ETH', val:'$96.01', f:'sent' },
+  { day:'Yesterday', tm:'21:55', sym:'GNUS', bg:GNUS_BG, badge:'mint', title:'GNUS', lead:'Earned', base:'', amt:'+ 12.40 GNUS', val:'$0.95', f:'earned' },
+  { day:'Yesterday', tm:'16:20', sym:'USDC', bg:'linear-gradient(160deg,#4A90E2,#2A6FC9)', badge:'received', title:'USDC', lead:'Received', base:'· 0x4c7a…9910', amt:'+ 40.00 USDC', val:'$40.00', f:'received' },
+];
+
+const BADGES = {
+  sent:{ fill:'#64748B', g:P.up }, received:{ fill:'var(--fill-ok)', g:P.down }, mint:{ fill:'#C28FFF', g:P.pickaxe },
+  purchase:{ fill:'var(--fill-ok)', g:P.card }, pending:{ fill:'var(--fill-warn)', g:P.clock },
+  failed:{ fill:'var(--fill-err)', g:P.x }, purchaseSlate:{ fill:'#64748B', g:P.card },
+};
+/* badgeGlyphColor(): white or textOnBrand, whichever contrasts more with the fill. */
+const glyphFor = k => ({ sent:'#FFFFFF', purchaseSlate:'#FFFFFF', mint:'#000B18', pending:'#000B18' }[k] ||
+  (S.theme === 'light' && (k === 'failed' || k === 'purchase' || k === 'received') ? '#FFFFFF' : '#000B18'));
+const badge = k => `<span class="badge" style="background:${BADGES[k].fill}">${svg(BADGES[k].g, `stroke="${glyphFor(k)}"`)}</span>`;
+
+const S = { variant:'a', theme:'dark', vp:'desktop', page:'tx', path:'happy', idx:0, drawer:null, drawerMode:'detail',
+            anim:false, filter:'all', toasts:[], tracker:'open', flash:null, auto:null, gen:0 };
+
+const isFinal = o => !!ST[o.status].final;
+const fmtFiat = n => n.toFixed(2) + ' EUR';
+
+function orderRowContent(o) {
+  const st = ST[o.status];
+  const badgeKind = st.tone === 'warn' ? 'pending' : st.tone === 'err' ? 'failed' : st.tone === 'ok' ? 'purchase' : 'purchaseSlate';
+  const dead = st.final && o.status !== 'complete';
+  return {
+    badgeKind,
+    amt: (st.final ? '+ ' : '≈ ') + o.gnus + ' GNUS',
+    amtNone: dead,
+    val: st.value ? st.value.replace('100.00 EUR', fmtFiat(o.fiat)) : fmtFiat(o.fiat),
+    valErr: st.tone === 'err',
+    status: o.status === 'complete' ? null : st,
+  };
+}
+
+function orderRow(o, wide) {
+  const c = orderRowContent(o);
+  const pill = c.status ? `<span class="pill t-${c.status.tone} w-${c.status.tone}"><i></i>${c.status.copy}</span>` : '';
+  const tail = c.status && !wide ? `<span class="tail t-${c.status.tone}" title="${c.status.copy}">${c.status.short}</span>` : '';
+  return `<div class="row ${S.flash===o.id?'flash':''}" data-order="${o.id}">
+    <span class="tm">${o.time}</span>
+    <div class="id"><span class="coin" style="background:${GNUS_BG}">GNUS</span>${badge(c.badgeKind)}</div>
+    <div class="main"><div class="t">GNUS</div>
+      <div class="s"><span class="txt"><span class="lead">Card purchase</span> · Banxa</span>${tail}</div></div>
+    ${wide ? pill : ''}
+    <div class="amt"><span class="v ${c.amtNone?'none':''}">${c.amt}</span><span class="f ${c.valErr?'err':''}">${c.val}</span></div>
+  </div>`;
+}
+function txRow(t) {
+  return `<div class="row"><span class="tm">${t.tm}</span>
+    <div class="id"><span class="coin" style="background:${t.bg}">${t.sym}</span>${badge(t.badge)}</div>
+    <div class="main"><div class="t">${t.title}</div><div class="s"><span class="txt"><span class="lead">${t.lead}</span> ${t.base}</span></div></div>
+    <div class="amt"><span class="v">${t.amt}</span><span class="f">${t.val}</span></div></div>`;
+}
+
+function listItems() {
+  const items = [];
+  const hideLive = S.variant === 'b' && S.tracker !== 'gone';
+  if (!hideLive) items.push({ day:LIVE.day, tm:LIVE.time, order:LIVE });
+  TXS.forEach(t => items.push({ day:t.day, tm:t.tm, tx:t }));
+  OLD.forEach(o => items.push({ day:o.day, tm:o.time, order:o }));
+  if (S.filter === 'all') return items;
+  if (S.filter === 'orders') return items.filter(i => i.order);
+  return items.filter(i => i.tx && i.tx.f === S.filter);
+}
+
+function filterChips() {
+  const openCount = ORDERS().filter(o => !isFinal(o)).length;
+  const chip = (k, n, g, extra='') => `<button class="${S.filter===k?'on':''} ${extra}" data-filter="${k}" title="${n}">${svg(g)}<span class="fl">${n}</span>${k==='orders'&&openCount?`<span class="cnt">${openCount}</span>`:''}</button>`;
+  return `<div class="fc">${chip('sent','Sent',P.up)}${chip('received','Received',P.down)}${chip('earned','Earned',P.pickaxe)}${chip('computing','Computing',P.server)}
+    ${S.variant==='c' ? `<span class="sep"></span>${chip('orders','Buy orders',P.card,'orders')}` : ''}
+    <span class="sep"></span><button title="More filters">${svg(P.dots)}</button></div>`;
+}
+
+function listCard(wide) {
+  const items = listItems();
+  let html = '';
+  if (!items.length) {
+    html = `<div style="text-align:center;padding:40px 12px;color:var(--text-secondary);font:400 14px/20px var(--font)">No ${S.filter} transactions.<br><button class="sbtn out" style="margin-top:12px" data-filter="all">Show all</button></div>`;
+  } else {
+    const days = [...new Set(items.map(i => i.day))];
+    html = days.map(d => {
+      const rs = items.filter(i => i.day === d);
+      return `<div class="day">${d}</div>` + rs.map((i, n) => (i.order ? orderRow(i.order, wide) : txRow(i.tx)) + (n < rs.length - 1 ? '<hr class="hr">' : '')).join('');
+    }).join('');
+  }
+  const sub = S.variant === 'c' && S.filter === 'orders'
+    ? `<p style="font:400 13px/18px var(--font);color:var(--text-secondary);padding:0 4px 4px">Banxa card purchases, newest first. Open orders refresh every 10 seconds.</p>` : '';
+  return `<div class="card ${wide?'wide':''}"><div class="chead"><h3>Transactions</h3>${filterChips()}</div>${sub}<hr class="hr">${html}</div>`;
+}
+
+function stageOf(o) {
+  if (o.status === 'complete') return 5;
+  if (!isFinal(o)) return ST[o.status].stage;
+  return Math.max(0, ...o.hist.filter(h => !ST[h.s].final).map(h => ST[h.s].stage));
+}
+
+function tracker(where) {
+  const o = LIVE;
+  if (S.variant !== 'b' || S.tracker === 'gone') return '';
+  const st = ST[o.status];
+  const cur = stageOf(o);
+  const failed = isFinal(o) && o.status !== 'complete';
+  const bar = [0,1,2,3,4].map(i => {
+    if (o.status === 'complete' || i < cur) return '<span class="done"></span>';
+    if (i === cur) return failed ? `<span class="stop-${st.tone==='err'?'err':'neutral'}"></span>` : '<span class="cur"></span>';
+    return '<span></span>';
+  }).join('');
+  const steps = STEP_SHORT.map((s, i) => `<span class="${i===Math.min(cur,4)?'on':''}">${s}</span>`).join('');
+  const head = o.status === 'complete' ? `${o.gnus} GNUS is in your wallet` : failed ? `Buy ${o.gnus} GNUS` : `Buying ${o.gnus} GNUS`;
+  const btn = st.action ? `<button class="sbtn grad" data-act="${o.status}">${st.action}</button>` : '';
+  const stepTxt = o.status === 'complete' ? 'Step 5 of 5' : failed ? 'Stopped' : `Step ${cur + 1} of 5`;
+  return `<div class="tracker ${S.tracker==='collapsing'?'collapsing':''}" data-order="${o.id}">
+    <div class="top">
+      <div class="id"><span class="coin" style="background:${GNUS_BG}">GNUS</span>${badge(orderRowContent(o).badgeKind)}</div>
+      <div class="main"><div class="k">Buy order · ${fmtFiat(o.fiat)}${where==='buy'?' · '+WALLET.name:''}</div>
+        <div class="h">${head}</div><div class="st t-${st.tone}">${st.copy}</div></div>
+      <div class="right">${btn}<span class="chev">${svg(P.chev)}</span></div>
+    </div>
+    <div class="bar">${bar}</div><div class="steps">${steps}</div><div class="steptxt">${stepTxt} · ${STEP_SHORT[Math.min(cur,4)]}</div>
+  </div>`;
+}
+
+function pageTx(wide) {
+  return `<div class="pagein"><div class="ptitle">Transactions</div>${tracker('tx')}${listCard(wide)}</div>`;
+}
+function pageBuy(wide) {
+  const rail = [LIVE, ...OLD].filter(o => !(S.variant === 'b' && o === LIVE && S.tracker !== 'gone'));
+  return `<div class="pagein"><div class="ptitle">Buy GNUS</div>${tracker('buy')}
+    <div class="buygrid">
+      <div class="card"><div class="chead"><h3>Buy with card</h3></div>
+        <div class="field"><div class="k">You pay</div><div class="v">100.00 <small>EUR</small></div></div>
+        <div class="field"><div class="k">You get</div><div class="v">1,235.62 <small>GNUS</small></div></div>
+        <div style="padding:10px 4px 0"><div class="kv"><span>Processing fee</span><b>3.99 EUR</b></div><div class="kv"><span>Network fee</span><b>0.62 EUR</b></div>
+        <div class="kv"><span>Receiving wallet</span><b>${WALLET.name} · ${WALLET.short}</b></div></div>
+        <button class="bigbtn" id="buyNow">Buy GNUS</button></div>
+      <div class="card"><div class="chead"><h3>Your orders</h3></div><hr class="hr">
+        ${rail.map((o, n) => orderRow(o, false) + (n < rail.length - 1 ? '<hr class="hr">' : '')).join('')}</div>
+    </div></div>`;
+}
+function pageMkt() {
+  const m = [['BTC','Bitcoin','$63,412.08','+1.84%','linear-gradient(160deg,#F9A03C,#E87B10)'],['ETH','Ethereum','$1,920.25','-0.62%','linear-gradient(160deg,#8A9DF5,#5B72D8)'],
+             ['GNUS','Genius AI','$0.0770','+4.10%',GNUS_BG],['SOL','Solana','$142.77','+0.35%','linear-gradient(160deg,#9945FF,#14F195)']];
+  return `<div class="pagein"><div class="ptitle">Markets</div><div class="card"><div class="chead"><h3>Top coins</h3></div><hr class="hr">
+    ${m.map((r, n) => `<div class="mkt"><span class="coin" style="background:${r[4]}">${r[0]}</span><div class="n">${r[1]}<small>${r[0]}</small></div>
+      <div class="p">${r[2]}<small class="${r[3][0]==='+'?'t-ok':'t-err'}">${r[3]}</small></div></div>${n<3?'<hr class="hr">':''}`).join('')}
+    </div><p style="font:400 13px/20px var(--font);color:var(--text-secondary);text-align:center">You are elsewhere in the app. Step the order to a final status to see how it reaches you here.</p></div>`;
+}
+
+function timeline(o) {
+  const cur = stageOf(o);
+  const st = ST[o.status];
+  const failed = isFinal(o) && o.status !== 'complete';
+  const timeAt = i => { const h = o.hist.find(x => !ST[x.s].final && ST[x.s].stage === i) || (i === 4 && o.hist.find(x => x.s === 'complete')); return h ? h.t : ''; };
+  return `<div class="tl">` + STAGES.map((label, i) => {
+    let cls = 'todo', dot = '', l1 = label, l2 = '', tm = '';
+    if (o.status === 'complete' || i < cur) { cls = 'done'; dot = svg(P.check); tm = timeAt(i); }
+    else if (i === cur && failed) {
+      cls = 'stop'; const col = st.tone === 'err' ? 'var(--fill-err)' : 'var(--fill-slate)';
+      dot = `<span style="width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:${col}">${svg(P.x,'stroke="#fff" style="width:11px;height:11px;fill:none;stroke-width:3;stroke-linecap:round"')}</span>`;
+      l1 = st.copy; l2 = label; tm = o.hist[o.hist.length-1].t;
+    }
+    else if (i === cur) { cls = 'cur'; dot = '<i></i>'; l1 = i === 0 ? st.copy : label; l2 = 'Now'; tm = timeAt(i); }
+    else if (failed) { l2 = 'Not reached'; }
+    return `<div class="tli ${cls}"><span class="tdot">${dot}</span><div><div class="tl1">${l1}</div>${l2?`<div class="tl2">${l2}</div>`:''}</div><span class="ttm">${tm}</span></div>`;
+  }).join('') + `</div>`;
+}
+
+function drawer() {
+  if (!S.drawer) return '';
+  const o = byId(S.drawer);
+  const st = ST[o.status];
+  const final = isFinal(o), ok = o.status === 'complete', dead = final && !ok;
+  const result = S.drawerMode === 'result' && final;
+  const title = result ? (ok ? 'Purchase complete' : o.status === 'refunded' ? 'Purchase refunded' : o.status === 'declined' ? 'Payment declined' : o.status === 'expired' ? 'Order expired' : 'Purchase cancelled') : 'Buy order';
+  const shortId = o.id.slice(0,6) + '…' + o.id.slice(-4);
+  let head;
+  if (result) {
+    const ic = ok ? P.checkc : o.status === 'refunded' ? P.undo : P.xc;
+    head = `<div class="head"><div class="big t-${st.tone} w-${st.tone}">${svg(ic)}</div>
+      <div class="pillwrap"><span class="pill lg t-${st.tone} w-${st.tone}"><i></i>${st.copy}</span></div>
+      <div class="amt2 ${dead?'t-neutral':''}">${ok ? '+ ' + o.gnus + ' GNUS' : fmtFiat(o.fiat) + ' order'}</div>
+      <p class="msg">${ok ? `GNUS is in your wallet. It arrived in ${WALLET.name}, ${WALLET.short}.` : st.why}</p></div>`;
+  } else {
+    const c = orderRowContent(o);
+    head = `<div class="head"><div class="ic"><span class="coin" style="background:${GNUS_BG}">GNUS</span>${badge(c.badgeKind)}</div>
+      <div class="amt2">${c.amt}</div><div class="sub">${c.val}</div>
+      <div class="pillwrap"><span class="pill lg t-${st.tone} w-${st.tone}"><i></i>${st.copy}</span></div>
+      ${st.why ? `<p class="msg">${st.why}</p>` : ''}</div>`;
+  }
+  const noteTone = st.tone === 'err' ? 'err' : st.tone === 'warn' ? 'warn' : 'neutral';
+  const support = st.support ? `<div class="note w-${noteTone}"><span class="t-${noteTone}">${svg(o.status==='extraVerification'?P.idc:P.alert)}</span>
+    <div class="body">${o.status === 'extraVerification' ? 'Banxa runs this check, not Genius Wallet. If the upload fails, Banxa support can help.' : 'Questions about this order? Banxa support will ask for the order ID below.'}
+    <br><a class="support" href="https://support.banxa.com" target="_blank" rel="noopener">Contact Banxa support ${svg(P.ext)}</a></div></div>` : '';
+  const hashRow = (stageOf(o) >= 4 || ok) ? `<div class="kvr"><span class="k">Hash</span><span class="v mono copy" data-copy="Hash">0x5e21…a9c4 ${svg(P.copy)}</span></div>` : '';
+  const body = `${head}${support}
+    <div class="sec">Progress</div>${timeline(o)}
+    <div class="sec">Order</div><div class="rows">
+      <div class="kvr"><span class="k">You paid</span><span class="v strong">${o.status==='refunded'?fmtFiat(o.fiat)+' (refunded)':dead?'Not charged':fmtFiat(o.fiat)}</span></div>
+      <div class="kvr"><span class="k">${ok?'GNUS received':'GNUS to receive'}</span><span class="v strong">${ok?'':'≈ '}${o.gnus} GNUS</span></div>
+      <div class="kvr"><span class="k">Processing fee</span><span class="v">${o.fee} EUR</span></div>
+      <div class="kvr"><span class="k">Network fee</span><span class="v">${o.net} EUR</span></div>
+      <div class="kvr"><span class="k">Payment method</span><span class="v">${o.method}</span></div>
+      <div class="kvr"><span class="k">Receiving wallet</span><span class="v">${WALLET.name}<small class="mono copy" data-copy="Address">${WALLET.short} ${svg(P.copy)}</small></span></div>
+      <div class="kvr"><span class="k">Banxa order ID</span><span class="v mono copy" data-copy="Order ID">${shortId} ${svg(P.copy)}</span></div>
+      <div class="kvr"><span class="k">Date</span><span class="v">${o.date}</span></div>
+    </div>
+    <div class="sec">Network</div><div class="rows"><div class="kvr"><span class="k">Chain</span><span class="v">Base</span></div>${hashRow}</div>`;
+  let foot = '';
+  if (st.action) foot += `<button class="bigbtn" style="margin:0" data-act="${o.status}">${st.action}</button>`;
+  if (result && ok) foot += `<button class="bigbtn" style="margin:0" data-go="wallet">View in wallet</button><button class="bigbtn out" style="margin:0" data-close>Close</button>`;
+  else if (final && st.retry) foot += `<button class="bigbtn" style="margin:0" data-retry>Try again</button><button class="bigbtn out" style="margin:0" data-close>Close</button>`;
+  else if (ok || hashRow) foot += `<button class="bigbtn out" style="margin:0" data-copy="Explorer link">View on Explorer</button>`;
+  else if (!st.action) foot += `<button class="bigbtn out" style="margin:0" data-close>Close</button>`;
+  return `<div class="scrim ${S.anim?'anim':''}" data-close></div>
+    <div class="drawer ${S.anim?'anim':''}" role="dialog" aria-label="${title}"><div class="grab"></div>
+      <div class="dh"><span class="tt">${title}</span><button class="x" data-close aria-label="Close">${svg(P.x)}</button></div>
+      <div class="db">${body}</div><div class="df">${foot}</div></div>`;
+}
+
+function toasts() {
+  return `<div class="toasts" aria-live="polite">${S.toasts.map(t => t.compact
+    ? `<div class="toast compact ${t.fresh?'anim':''}" data-toast="${t.id}"><span class="ti t-${t.tone}">${svg(t.icon)}</span>${t.title}</div>`
+    : `<div class="toast ${t.fresh?'anim':''}" data-toast="${t.id}" data-open="${t.order||''}" role="${t.tone==='err'?'alert':'status'}">
+      <span class="edge" style="background:var(--fill-${t.tone==='neutral'?'slate':t.tone})"></span>
+      <span class="ti t-${t.tone}">${svg(t.icon)}</span>
+      <div class="tb"><div class="t1">${t.title}</div><div class="t2">${t.msg}</div>${t.order?'<div class="t3">View order</div>':''}</div>
+      <button class="tx" data-dismiss="${t.id}" aria-label="Dismiss">${svg(P.x)}</button></div>`).join('')}</div>`;
+}
+
+function shell() {
+  const wide = S.vp === 'desktop';
+  const pg = S.page === 'tx' ? pageTx(wide) : S.page === 'buy' ? pageBuy(wide) : pageMkt();
+  const openDot = ORDERS().some(o => !isFinal(o)) ? '<span class="dot" title="An order is in progress"></span>' : '';
+  if (wide) {
+    return `<div class="app"><div class="nav"><div class="brand"><span class="mark"></span>Genius Wallet</div>
+      <div class="tabs">${[['home','Home'],['tx','Transactions'],['mkt','Markets'],['news','News']].map(([k,n]) => `<button class="${S.page===k?'on':''}" data-page="${k}">${n}</button>`).join('')}</div>
+      <div class="navr"><span class="chip">${WALLET.name} · ${WALLET.short}</span><button class="cta" data-page="buy">Buy GNUS</button></div></div>
+      <div class="page">${pg}</div>${toasts()}${drawer()}</div>`;
+  }
+  const title = { tx:'Transactions', buy:'Buy GNUS', mkt:'Markets' }[S.page];
+  return `<div class="app"><div class="statusbar"><span>9:41</span><span>5G</span></div>
+    <div class="mhead"><span class="mark"></span><span class="ttl">${title}</span><span style="margin-left:auto" class="chip">${WALLET.name}</span></div>
+    <div class="page">${pg}</div>
+    <div class="dock">
+      <button data-page="home">${svg(P.home)}Home</button>
+      <button data-page="tx" class="${S.page==='tx'?'on':''}">${svg(P.list)}Activity</button>
+      <button data-page="buy"><span class="fab">${svg(P.plus)}</span></button>
+      <button data-page="mkt" class="${S.page==='mkt'?'on':''}">${svg(P.chart)}Markets</button>
+      <button>${svg(P.menu)}Menu</button>
+    </div>${toasts()}${drawer()}</div>`;
+}
+
+/* ── contrast, both modes, measured ── */
+const hex = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+const lum = c => { const f = v => (v/=255) <= .03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); return .2126*f(c[0]) + .7152*f(c[1]) + .0722*f(c[2]); };
+const over = (fg, a, bg) => fg.map((v,i) => Math.round(v*a + bg[i]*(1-a)));
+const ratio = (a, b) => { const [x,y] = [lum(a),lum(b)].sort((p,q) => q-p); return (x+.05)/(y+.05); };
+const PAL = {
+  dark:  { panel:'#0C0E14', ok:['#0AD89C','#0AD89C',.14], warn:['#FFC42E','#FFC42E',.16], err:['#FF4D4D','#FF4D4D',.14], neutral:['#8A8F9D','#171A21',1] },
+  light: { panel:'#FFFFFF', ok:['#065F46','#07875F',.14], warn:['#92400E','#FFC42E',.16], err:['#991B1B','#D92D2D',.14], neutral:['#5A606E','#EFF2F6',1] },
+};
+function contrast(mode, tone) {
+  const p = PAL[mode], [fg, wash, a] = p[tone], panel = hex(p.panel);
+  return { pill: ratio(hex(fg), over(hex(wash), a, panel)), tail: ratio(hex(fg), panel) };
+}
+['dark','light'].forEach(m => ['ok','warn','err','neutral'].forEach(t => {
+  const c = contrast(m, t);
+  console.assert(c.pill >= 4.5 && c.tail >= 4.5, `AA fails: ${m} ${t}`, c);
+}));
+
+function legend() {
+  const order = ['pendingPayment','waitingPayment','extraVerification','paymentReceived','inProgress','coinTransferred','cryptoTransferred','complete','declined','expired','cancelled','refunded'];
+  const cell = (m, t) => { const c = contrast(m, t); const bad = c.pill < 4.5 || c.tail < 4.5;
+    return `<span class="ratio ${bad?'bad':''}">${c.pill.toFixed(1)} / ${c.tail.toFixed(1)}</span>`; };
+  document.getElementById('legend').innerHTML = order.map(k => {
+    const st = ST[k];
+    const rowShows = k === 'complete' ? 'Nothing (happy path is silent)' : st.final ? `${st.copy}, ${st.value}` : st.copy;
+    return `<tr class="${LIVE.status===k?'cur':''}" data-jump="${k}"><td><code>${k}</code></td><td>${st.copy}${st.final?' <span style="color:var(--text-secondary)">(final)</span>':''}</td>
+      <td class="t-${st.tone}">${k==='complete'?'':st.short}</td><td><span class="pill t-${st.tone} w-${st.tone}"><i></i>${st.tone==='ok'?'success':st.tone==='warn'?'pending':st.tone==='err'?'error':'slate'}</span></td>
+      <td style="color:var(--text-secondary)">${rowShows}</td><td>${st.action || (st.retry ? 'Try again' : '')}${st.support ? '<br><span style="color:var(--text-secondary)">+ support link</span>' : ''}</td>
+      <td>${cell('dark', st.tone)}</td><td>${cell('light', st.tone)}</td></tr>`;
+  }).join('');
+}
+
+const NOTES = {
+  a: `<h2>A · Row + drawer</h2><p>The order is just another row in Transactions, painted by the shipped <b>TransactionRow</b>
+      with <b>orderRowContent</b>. Tapping opens the shared transaction drawer with the order rows added. When an order
+      finishes, a card toast says so wherever you are; tapping it opens the result drawer.</p>
+      <ul><li><b>Cheapest.</b> Row, drawer and rail mapping all ship today. The Buy page's orders rail already renders this exact row.</li>
+      <li><b>Weakest while waiting.</b> One amber word in a list is easy to miss, and nothing tells you how far along the order is.</li>
+      <li>Open the drawer, then press Next status: the drawer updates in place, and at a final status it becomes the result view instead of a toast.</li></ul>`,
+  b: `<h2>B · Pinned tracker</h2><p>While an order is open, a tracker card sits above the list and at the top of the Buy page:
+      five stages, a progress bar, and the one action the status needs. At a final status it shows the outcome for two
+      seconds, then collapses and the order drops into the list as a normal row.</p>
+      <ul><li><b>Best at "where is my GNUS".</b> The stage and step count answer it without opening anything.</li>
+      <li><b>Cost:</b> one new widget (tracker) and a place for it on two pages. Several open orders stack a tracker each.</li>
+      <li>The bar is not the only signal: the stage word and "Step 3 of 5" carry the same fact, so the gradient's low light-mode contrast does not hide it.</li></ul>`,
+  c: `<h2>C · Buy orders filter</h2><p>Same row and drawer as A, plus a <b>Buy orders</b> chip in the filter row with a count of
+      open orders. It lists every Banxa order, open or finished, in the transaction list's own language.</p>
+      <ul><li><b>Overlaps a filter that exists.</b> <code>Filters.purchase</code> ("Purchased") already lives in the More menu. The chip should promote that value, not add a new one.</li>
+      <li><b>Makes the Buy page's orders rail and <code>/buy/orders</code> redundant.</b> Worth deciding whether that is the point.</li>
+      <li>The count badge is the only open-order signal outside the list; it is small on a phone.</li></ul>`,
+};
+
+function fit() {
+  const f = document.getElementById('frame'), h = document.getElementById('holder');
+  const w = S.vp === 'desktop' ? 1280 : 390, ht = S.vp === 'desktop' ? 800 : 844;
+  document.querySelector('main').style.paddingTop = (document.getElementById('topbar').offsetHeight + 20) + 'px';
+  const sc = Math.min(1, (window.innerWidth - 48) / w);
+  f.style.transform = `scale(${sc})`;
+  h.style.width = (w * sc) + 'px'; h.style.height = (ht * sc) + 'px';
+}
+
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  const f = document.getElementById('frame');
+  f.className = S.vp;
+  f.innerHTML = shell();
+  S.anim = false;
+  S.toasts.forEach(t => t.fresh = false);
+  const st = ST[LIVE.status];
+  document.getElementById('now').innerHTML = `Now: <code>${LIVE.status}</code> "${st.copy}"`;
+  document.getElementById('jump').value = LIVE.status;
+  document.getElementById('path').value = S.path;
+  document.querySelectorAll('.variant-tab').forEach(b => b.classList.toggle('active', b.dataset.variant === S.variant));
+  document.querySelectorAll('#pageSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === S.page));
+  document.querySelectorAll('#sketch-tools [data-theme]').forEach(b => b.classList.toggle('on', b.dataset.theme === S.theme));
+  document.querySelectorAll('#sketch-tools [data-vp]').forEach(b => b.classList.toggle('on', b.dataset.vp === S.vp));
+  document.getElementById('caption').textContent = S.vp === 'desktop'
+    ? 'Desktop app shell at 1280. Rows are wide (720px and up), so status is a pill beside the amount.'
+    : 'Mobile at 390. Rows are narrow, so status is a coloured tail on the subtitle; the drawer is a bottom sheet.';
+  document.getElementById('notes').innerHTML = NOTES[S.variant];
+  legend();
+  fit();
+}
+
+/* ── order engine ── */
+function clock(i) { const m = 32 + MINUTES[Math.min(i, MINUTES.length-1)]; return `14:${String(m).padStart(2,'0')}`; }
+function setStatus(s) {
+  const wasFinal = isFinal(LIVE);
+  LIVE.status = s;
+  LIVE.hist.push({ s, t: clock(LIVE.hist.length) });
+  if (isFinal(LIVE) && !wasFinal) onFinal();
+  render();
+}
+function next() {
+  const p = PATHS[S.path];
+  if (S.idx >= p.length - 1) { stopAuto(); return; }
+  S.idx++; setStatus(p[S.idx]);
+  if (S.idx >= p.length - 1) stopAuto();
+}
+function restart() {
+  stopAuto();
+  S.gen++;
+  S.idx = 0; LIVE.status = 'pendingPayment'; LIVE.hist = [{ s:'pendingPayment', t:'14:32' }];
+  S.tracker = 'open'; S.flash = null; S.toasts = [];
+  if (S.drawer === LIVE.id) S.drawerMode = 'detail';
+  render();
+}
+function onFinal() {
+  const s = LIVE.status, st = ST[s];
+  const drawerOnIt = S.drawer === LIVE.id;
+  if (drawerOnIt) { S.drawerMode = 'result'; }
+  const trackerVisible = S.variant === 'b' && (S.page === 'tx' || S.page === 'buy');
+  if (!drawerOnIt && !trackerVisible) pushToast(s);
+  if (S.variant === 'b') {
+    S.tracker = 'final';
+    const gen = S.gen;
+    setTimeout(() => { if (gen !== S.gen) { return; } S.tracker = 'collapsing'; render();
+      setTimeout(() => { if (gen !== S.gen) { return; } S.tracker = 'gone'; S.flash = LIVE.id; render(); setTimeout(() => { S.flash = null; }, 1800); }, 450); }, 2200);
+  }
+}
+let toastSeq = 0;
+function pushToast(s) {
+  const st = ST[s];
+  const T = {
+    complete:{ title:'GNUS is in your wallet', msg:`${LIVE.gnus} GNUS from your Banxa order arrived in ${WALLET.name}.`, icon:P.checkc },
+    declined:{ title:'Payment declined', msg:'Your bank or card declined it. You were not charged.', icon:P.xc },
+    expired:{ title:'Order expired', msg:'Payment was not completed in time. You were not charged.', icon:P.clock },
+    cancelled:{ title:'Order cancelled', msg:'You left checkout before paying. You were not charged.', icon:P.xc },
+    refunded:{ title:'Order refunded', msg:`Banxa refunded ${fmtFiat(LIVE.fiat)} to your card.`, icon:P.undo },
+  }[s];
+  const t = { id:++toastSeq, tone:st.tone, order:LIVE.id, fresh:true, ...T };
+  S.toasts = [...S.toasts, t].slice(-3);
+  setTimeout(() => { S.toasts = S.toasts.filter(x => x.id !== t.id); render(); }, 6000);
+}
+function compactToast(title, icon='checkc', tone='ok') {
+  const t = { id:++toastSeq, compact:true, title, icon:P[icon], tone, fresh:true };
+  S.toasts = [...S.toasts, t].slice(-3);
+  setTimeout(() => { S.toasts = S.toasts.filter(x => x.id !== t.id); render(); }, 2000);
+}
+function stopAuto() { if (S.auto) { clearInterval(S.auto); S.auto = null; } document.getElementById('auto').textContent = 'Auto-play'; }
+function openDrawer(id, mode='detail') { S.drawer = id; S.drawerMode = mode; S.anim = true; render(); }
+
+/* ── events ── */
+document.getElementById('jump').innerHTML = Object.entries(ST).map(([k, v]) => `<option value="${k}">${k} · ${v.copy}</option>`).join('');
+document.getElementById('next').onclick = next;
+document.getElementById('restart').onclick = restart;
+document.getElementById('auto').onclick = e => {
+  if (S.auto) { stopAuto(); return; }
+  S.auto = setInterval(next, 1700); e.target.textContent = 'Stop';
+};
+document.getElementById('path').onchange = e => { S.path = e.target.value; restart(); };
+document.getElementById('jump').onchange = e => { stopAuto(); setStatus(e.target.value); };
+document.querySelectorAll('.variant-tab').forEach(b => b.onclick = () => { S.variant = b.dataset.variant; S.filter = 'all'; S.tracker = isFinal(LIVE) ? 'gone' : 'open'; render(); });
+document.querySelectorAll('#pageSeg button').forEach(b => b.onclick = () => { S.page = b.dataset.v; render(); });
+document.querySelectorAll('#sketch-tools [data-theme]').forEach(b => b.onclick = () => { S.theme = b.dataset.theme; render(); });
+document.querySelectorAll('#sketch-tools [data-vp]').forEach(b => b.onclick = () => { S.vp = b.dataset.vp; render(); });
+document.getElementById('legend').addEventListener('click', e => { const r = e.target.closest('[data-jump]'); if (r) { stopAuto(); setStatus(r.dataset.jump); } });
+
+document.getElementById('frame').addEventListener('click', e => {
+  const q = s => e.target.closest(s);
+  let el;
+  if ((el = q('[data-dismiss]'))) { S.toasts = S.toasts.filter(t => t.id != el.dataset.dismiss); render(); return; }
+  if ((el = q('[data-toast]'))) { const t = S.toasts.find(x => x.id == el.dataset.toast); S.toasts = S.toasts.filter(x => x !== t); if (t && t.order) { openDrawer(t.order, 'result'); } else { render(); } return; }
+  if ((el = q('[data-act]'))) {
+    e.stopPropagation(); S.drawer = null;
+    compactToast(el.dataset.act === 'extraVerification' ? 'Banxa verification opened in your browser' : 'Banxa checkout opened in your browser', 'ext', 'neutral');
+    render(); return;
+  }
+  if ((el = q('[data-copy]'))) { compactToast(`${el.dataset.copy} copied`); render(); return; }
+  if (q('[data-retry]')) { S.drawer = null; S.page = 'buy'; compactToast('Buy form filled from your last order', 'checkc'); render(); return; }
+  if ((el = q('[data-go]'))) { S.drawer = null; S.page = 'tx'; S.flash = LIVE.id; render(); setTimeout(() => S.flash = null, 1800); return; }
+  if (q('[data-close]')) { S.drawer = null; render(); return; }
+  if ((el = q('[data-filter]'))) { const k = el.dataset.filter; S.filter = S.filter === k ? 'all' : k; render(); return; }
+  if ((el = q('[data-page]'))) { if (el.dataset.page !== 'home') { S.page = el.dataset.page; render(); } return; }
+  if (q('#buyNow')) { S.path = document.getElementById('path').value; restart(); compactToast('Banxa checkout opened in your browser', 'ext', 'neutral'); render(); return; }
+  if ((el = q('[data-order]'))) { const o = byId(el.dataset.order); openDrawer(o.id, isFinal(o) && S.drawerMode === 'result' && S.drawer === o.id ? 'result' : 'detail'); return; }
+});
+window.addEventListener('resize', fit);
+render();
+</script>
+</body>
+</html>

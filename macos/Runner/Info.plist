@@ -31,7 +31,9 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
 	<key>NSCameraUsageDescription</key>
-	<string>GeniusWallet uses the camera to scan a recipient's QR code.</string>
+	<string>GeniusWallet uses the camera to scan a recipient's QR code and, when Banxa asks, to check your ID.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Banxa may record a short video to check your ID.</string>
 	<key>CFBundleURLTypes</key>
     <array>
     <dict>

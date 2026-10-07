@@ -30,6 +30,22 @@ void main() {
     expect(find.byTooltip('Copy address'), findsNothing);
   });
 
+  testWidgets('a subtitle renders under the label', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        GWMenuItem(
+          icon: Icons.copy,
+          label: 'Copy address',
+          subtitle: 'To the clipboard',
+          onPressed: () {},
+        ),
+      ),
+    );
+
+    expect(find.text('Copy address'), findsOneWidget);
+    expect(find.text('To the clipboard'), findsOneWidget);
+  });
+
   testWidgets('color overrides both icon and label, for a destructive item', (
     tester,
   ) async {

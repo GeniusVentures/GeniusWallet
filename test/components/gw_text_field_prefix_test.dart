@@ -27,7 +27,7 @@ import '../banxa/gw_pump.dart';
 /// three lines and already the repo's shared two-mode pump wrapper, and a
 /// second copy would be the thing that drifts.
 void main() {
-  /// The hero field as `BanxaBuyForm` builds it, minus the screen: the
+  /// The hero field as the Buy card builds it, minus the screen: the
   /// `numericHeadline` type step, a seeded amount, and a BARE `Text` in the
   /// prefix slot. Bare is load-bearing - the component supplies the type step
   /// and the colour now, so a restated `style:` here would test the call site

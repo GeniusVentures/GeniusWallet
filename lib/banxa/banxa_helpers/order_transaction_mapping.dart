@@ -1,7 +1,7 @@
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
-import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:intl/intl.dart';
@@ -27,57 +27,17 @@ import 'package:intl/intl.dart';
 /// formatter is private to the file that owns the drawer.
 final DateFormat _orderDateFormat = DateFormat("MMMM d, y 'at' h:mm a");
 
-/// The Banxa status string as a [TransactionStatus], routed THROUGH
-/// [orderStatusTone] rather than around it.
-///
-/// The two colour ladders are already the same four paints - `orderStatusPaint`
-/// is a verbatim copy of `txStatusColors` and says so in its own doc - so the
-/// tone buckets and the transaction statuses are in exact bijection. Going
-/// through the tone function makes two things structural instead of a promise:
-/// not one order changes colour, and there stays exactly ONE census of Banxa
-/// status strings in the repo.
-///
-/// The switch is exhaustive over [OrderStatusTone] with no `default` arm, so a
-/// future tone is a compile error rather than a silent fallback.
-///
-/// Two results look odd in isolation and are correct for that reason:
-/// `cancelled` and `expired` map to `failed` because they are RED today (and
-/// the rail's Issues chip counts them). [TransactionStatus.cancelled] is
-/// reached ONLY by the unrecognised-status fallback, which is slate today.
-///
-/// Nothing is lost by the 8-into-4 fold: the LABEL never comes from the enum
-/// (see [orderRowContent]'s `statusLabel`), so an expired order still reads
-/// "Expired" in the error paint.
-TransactionStatus orderTransactionStatus(String status) {
-  switch (orderStatusTone(status)) {
-    case OrderStatusTone.success:
-      return TransactionStatus.completed;
-    case OrderStatusTone.warning:
-      return TransactionStatus.pending;
-    case OrderStatusTone.error:
-      return TransactionStatus.failed;
-    case OrderStatusTone.neutral:
-      return TransactionStatus.cancelled;
-  }
-}
-
-/// The display label for a Banxa status, or NULL when the status is blank.
-///
-/// `BanxaHelpers.getOrderStatusLabel` already renders `pendingPayment` as
-/// "Pending Payment" and `inProgress` as "In Progress"; when it passes a string
-/// through unchanged (an unrecognised future status) the raw value takes a
-/// capital letter so it reads as a word rather than as a wire value.
-String? _orderStatusLabel(String status) {
-  final raw = status.trim();
-  if (raw.isEmpty) {
-    return null;
-  }
-  final mapped = BanxaHelpers.getOrderStatusLabel(raw);
-  if (mapped != raw) {
-    return mapped;
-  }
-  return raw[0].toUpperCase() + raw.substring(1);
-}
+/// The shared row and drawer only know [TransactionStatus], so expired and
+/// cancelled share its neutral paint; the enum label keeps them distinct.
+TransactionStatus orderTransactionStatus(String status) =>
+    switch (BanxaOrderStatus.parse(status)) {
+      BanxaOrderStatus.complete => TransactionStatus.completed,
+      BanxaOrderStatus.declined => TransactionStatus.failed,
+      BanxaOrderStatus.cancelled ||
+      BanxaOrderStatus.expired => TransactionStatus.cancelled,
+      BanxaOrderStatus.refunded => TransactionStatus.refunded,
+      _ => TransactionStatus.pending,
+    };
 
 /// A `<amount> <currency>` fiat string, or BLANK when the source is blank.
 ///
@@ -94,47 +54,45 @@ String _fiatText(String raw, String currency) {
 }
 
 /// The row record for one order, built here rather than derived by
-/// `txRowContent` (D-03).
+/// `txRowContent`.
 ///
-/// The value line is the fiat actually PAID, which is a different FACT from
-/// the price map's estimate rather than an override of it - for a card purchase
-/// the fiat IS the value.
-///
-/// Tone and value line follow the TONE, not the mapped enum, and this is the
-/// one place the mapping deliberately diverges from `txRowContent`'s `isDead`
-/// rule. `txRowContent` treats failed and cancelled alike as dead; here `error`
-/// is exactly the set of statuses where we KNOW no money moved, so it takes the
-/// tab's own `Not charged` treatment verbatim, while `neutral` is the
-/// UNRECOGNISED bucket, where printing `Not charged` would be a fabricated
-/// claim - it keeps the order's own fiat and drops only the green.
-///
-/// [now] is injectable so the day label is testable without wall-clock
-/// dependence.
+/// Declined, expired and cancelled orders read `Not charged`; an unrecognised
+/// status keeps its fiat, since nothing is known about the money.
+/// [now] is injectable so the day label is testable.
 TxRowContent orderRowContent(Order order, {DateTime? now}) {
-  final tone = orderStatusTone(order.status);
-  final statusLabel = _orderStatusLabel(order.status);
+  final banxa = order.banxaStatus;
+  final statusLabel = order.status.trim().isEmpty ? null : banxa.shortLabel;
   final status = orderTransactionStatus(order.status);
 
-  // Badge mirrors `txRowContent`'s "status wins over type" rule.
-  final TransactionBadgeKind badge;
-  switch (tone) {
-    case OrderStatusTone.warning:
-      badge = TransactionBadgeKind.pending;
-    case OrderStatusTone.error:
-      badge = TransactionBadgeKind.failed;
-    case OrderStatusTone.success:
-    case OrderStatusTone.neutral:
-      badge = TransactionBadgeKind.purchase;
-  }
+  final TransactionBadgeKind badge = switch (banxa) {
+    BanxaOrderStatus.declined => TransactionBadgeKind.failed,
+    BanxaOrderStatus.complete ||
+    BanxaOrderStatus.cancelled ||
+    BanxaOrderStatus.expired ||
+    BanxaOrderStatus.refunded ||
+    BanxaOrderStatus.unknown => TransactionBadgeKind.purchase,
+    _ => TransactionBadgeKind.pending,
+  };
 
-  final TxAmountTone amountTone = switch (tone) {
+  final TxAmountTone amountTone = switch (banxa.tone) {
     OrderStatusTone.success || OrderStatusTone.warning => TxAmountTone.incoming,
     OrderStatusTone.error || OrderStatusTone.neutral => TxAmountTone.none,
   };
 
-  final valueLine = tone == OrderStatusTone.error
-      ? 'Not charged'
-      : _fiatText(order.fiatAmount, order.fiat);
+  final fiatPaid = _fiatText(order.fiatAmount, order.fiat);
+  final valueLine = switch (banxa) {
+    BanxaOrderStatus.declined ||
+    BanxaOrderStatus.expired ||
+    BanxaOrderStatus.cancelled => 'Not charged',
+    BanxaOrderStatus.refunded => fiatPaid.isEmpty ? '' : '$fiatPaid refunded',
+    _ => fiatPaid,
+  };
+
+  final sign = banxa.deliversNothing
+      ? ''
+      : banxa.isFinal
+      ? '+ '
+      : '+ ≈';
 
   // The rail renders at most four rows and orders arrive one at a time on
   // different days, so it does NOT group by day the way the tab does - eight
@@ -143,12 +101,12 @@ TxRowContent orderRowContent(Order order, {DateTime? now}) {
   // `txDayLabel` the tab's headers use, so nothing is lost to `time` being
   // `HH:mm` only.
   final dayLabel = txDayLabel(order.createdAt, now ?? DateTime.now());
-  // The literal 'Card purchase' is `txRowContent`'s own purchase-arm string,
-  // so the row is the tab's anatomy verbatim. The payment method is a detail
-  // and gets its own drawer row.
-  final subtitleBase = '$dayLabel · Card purchase';
-  final subtitle =
-      (status == TransactionStatus.completed || statusLabel == null)
+  // Banxa's own method name; 'Card purchase' is only the fallback for an order
+  // that carries none.
+  final method = order.paymentMethodName.trim();
+  final subtitleBase =
+      '$dayLabel · ${method.isEmpty ? 'Card purchase' : method}';
+  final subtitle = (banxa == BanxaOrderStatus.complete || statusLabel == null)
       ? subtitleBase
       : '$subtitleBase · $statusLabel';
 
@@ -159,7 +117,7 @@ TxRowContent orderRowContent(Order order, {DateTime? now}) {
     subtitle: subtitle,
     subtitleBase: subtitleBase,
     status: status,
-    amount: '+ ${formatTxAmount(order.cryptoAmount)} ${order.crypto.id}',
+    amount: '$sign${formatTxAmount(order.cryptoAmount)} ${order.crypto.id}',
     tone: amountTone,
     exactAmount: exactTxAmount(order.cryptoAmount),
     valueLine: valueLine.isEmpty ? null : valueLine,

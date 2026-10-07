@@ -1,17 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:go_router/go_router.dart';
 
 class TransactionsScreen extends StatelessWidget {
-  const TransactionsScreen({super.key});
+  /// The filter chip to open on, from the route's `?filter=` query.
+  final Filters? initialFilter;
+
+  const TransactionsScreen({super.key, this.initialFilter});
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +32,7 @@ class TransactionsScreen extends StatelessWidget {
         onRefresh: () async {
           context.read<WalletDetailsCubit>().getCoins();
           context.read<AppBloc>().add(SettlePendingSends());
+          unawaited(context.read<OrdersCubit>().fetchOrders());
         },
         child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
           builder: (context, walletState) {
@@ -113,13 +123,27 @@ class TransactionsScreen extends StatelessWidget {
                         // "Transactions" on screen means the flag did not reach
                         // the slim view — check the two pass-throughs below
                         // before touching anything here.
-                        const GWPageHeader(title: 'Transactions'),
+                        GWPageHeader(
+                          title: 'Transactions',
+                          trailing: GWButton(
+                            variant: GWButtonVariant.gradientOutline,
+                            size: GWButtonSize.sm,
+                            label: 'Buy GNUS',
+                            onPressed: () => context.push('/buy'),
+                          ),
+                        ),
                         // No Expanded: it would demand a bounded height the
                         // enclosing scroll view cannot give, and "fill the
                         // window" is exactly the behaviour sketch 023 removed.
                         isSgnusWallet
-                            ? const SgnusTransactionsScreen(page: true)
-                            : const TransactionsStream(page: true),
+                            ? SgnusTransactionsScreen(
+                                page: true,
+                                initialFilter: initialFilter,
+                              )
+                            : TransactionsStream(
+                                page: true,
+                                initialFilter: initialFilter,
+                              ),
                       ],
                     ),
                   ),

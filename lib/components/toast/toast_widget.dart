@@ -35,12 +35,18 @@ class ToastWidget extends StatelessWidget {
   final ToastType type;
   final VoidCallback onDismiss;
 
+  /// A link under the message of a card toast; ignored on a compact one.
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
   const ToastWidget({
     super.key,
     required this.message,
     required this.type,
     required this.onDismiss,
     this.title,
+    this.actionLabel,
+    this.onAction,
   });
 
   ToastDensity get density =>
@@ -99,6 +105,8 @@ class ToastWidget extends StatelessWidget {
                 title: title!,
                 message: message,
                 onDismiss: onDismiss,
+                actionLabel: actionLabel,
+                onAction: onAction,
                 gw: gw,
               ),
       ),
@@ -162,6 +170,8 @@ class _Card extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback onDismiss;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   final GWColors gw;
 
   const _Card({
@@ -170,6 +180,8 @@ class _Card extends StatelessWidget {
     required this.title,
     required this.message,
     required this.onDismiss,
+    required this.actionLabel,
+    required this.onAction,
     required this.gw,
   });
 
@@ -219,6 +231,24 @@ class _Card extends StatelessWidget {
               color: gw.textSecondary,
             ),
           ),
+          if (actionLabel != null && onAction != null)
+            TextButton(
+              onPressed: onAction,
+              style: TextButton.styleFrom(
+                foregroundColor: gw.brandPrimaryOnSurface,
+                minimumSize: const Size(44, 44),
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                alignment: Alignment.centerLeft,
+              ),
+              child: Text(
+                actionLabel!,
+                style: GeniusWalletTypography.labelMd.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: gw.brandPrimaryOnSurface,
+                ),
+              ),
+            ),
         ],
       ),
     );

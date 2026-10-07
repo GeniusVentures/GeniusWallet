@@ -23,65 +23,77 @@ void main() {
   final today = txDayLabel(DateTime.utc(2026, 1, 1, 12), now);
 
   group('orderTransactionStatus', () {
-    test('completed maps to completed', () {
-      expect(orderTransactionStatus('completed'), TransactionStatus.completed);
+    test('complete maps to completed, in any case', () {
+      expect(orderTransactionStatus('complete'), TransactionStatus.completed);
+      expect(orderTransactionStatus('COMPLETE'), TransactionStatus.completed);
     });
 
-    test('every warning-tone status maps to pending', () {
-      for (final status in ['pendingPayment', 'pending', 'inProgress']) {
+    test('every in-flight status maps to pending', () {
+      for (final status in [
+        'pendingPayment',
+        'waitingPayment',
+        'extraVerification',
+        'paymentReceived',
+        'inProgress',
+        'cryptoTransferred',
+      ]) {
         expect(
           orderTransactionStatus(status),
           TransactionStatus.pending,
-          reason: '$status is amber today and must stay amber',
+          reason: status,
         );
       }
     });
 
-    test('every error-tone status maps to failed', () {
-      for (final status in ['declined', 'cancelled', 'expired', 'failed']) {
+    test('declined is failed; expired and cancelled are neutral', () {
+      expect(orderTransactionStatus('declined'), TransactionStatus.failed);
+      expect(orderTransactionStatus('expired'), TransactionStatus.cancelled);
+      expect(orderTransactionStatus('cancelled'), TransactionStatus.cancelled);
+    });
+
+    test('refunded maps to refunded', () {
+      expect(orderTransactionStatus('refunded'), TransactionStatus.refunded);
+    });
+
+    test('an order that only looks paid is never completed', () {
+      for (final status in ['paymentReceived', 'inProgress', 'completed', '']) {
         expect(
           orderTransactionStatus(status),
-          TransactionStatus.failed,
-          reason: '$status is red today and must stay red',
+          isNot(TransactionStatus.completed),
+          reason: status,
         );
       }
-    });
-
-    test('blank and unrecognised map to cancelled, the neutral paint', () {
-      expect(orderTransactionStatus(''), TransactionStatus.cancelled);
-      expect(
-        orderTransactionStatus('someFutureBanxaStatus'),
-        TransactionStatus.cancelled,
-      );
-    });
-
-    test('is case-insensitive, because orderStatusTone lowercases', () {
-      expect(orderTransactionStatus('COMPLETED'), TransactionStatus.completed);
-      expect(
-        orderTransactionStatus('PendingPayment'),
-        TransactionStatus.pending,
-      );
-      expect(orderTransactionStatus('DECLINED'), TransactionStatus.failed);
     });
   });
 
   group('orderRowContent', () {
-    test('a completed order carries the crypto amount and the fiat paid', () {
-      final content = orderRowContent(testOrder(), now: now);
+    test('a complete order carries the exact crypto amount and the fiat', () {
+      final content = orderRowContent(testOrder(status: 'complete'), now: now);
 
       expect(content.amount, '+ 0.0025 BTC');
       expect(content.tone, TxAmountTone.incoming);
       expect(content.valueLine, '100.00 USD');
       expect(content.action, 'Purchased');
       expect(content.title, 'BTC');
-      expect(content.statusLabel, 'Completed');
+      expect(content.statusLabel, 'Done');
+      expect(content.statusTail, isNull);
       expect(content.badge, TransactionBadgeKind.purchase);
       expect(content.status, TransactionStatus.completed);
       expect(content.iconSymbols, ['btc']);
       expect(content.subtitle, startsWith(today));
-      expect(content.subtitle, contains('Card purchase'));
-      // A completed order has no status suffix, so subtitle == subtitleBase.
+      expect(content.subtitle, contains('Credit Card'));
       expect(content.subtitle, content.subtitleBase);
+    });
+
+    test('the row names the payment method Banxa reports', () {
+      final pix = orderRowContent(
+        testOrder(paymentMethodName: 'PIX'),
+        now: now,
+      );
+      final none = orderRowContent(testOrder(paymentMethodName: ''), now: now);
+
+      expect(pix.subtitleBase, endsWith(' · PIX'));
+      expect(none.subtitleBase, endsWith(' · Card purchase'));
     });
 
     test('a declined order reads Not charged and drops the green', () {
@@ -90,12 +102,12 @@ void main() {
       expect(content.valueLine, 'Not charged');
       expect(content.tone, TxAmountTone.none);
       expect(content.badge, TransactionBadgeKind.failed);
-      expect(content.statusLabel, 'Declined');
+      expect(content.statusTail, 'Declined');
       expect(content.subtitle, endsWith(' · Declined'));
       expect(content.subtitleBase, isNot(contains('Declined')));
     });
 
-    test('a pendingPayment order keeps its fiat and reads Pending Payment', () {
+    test('an unpaid order keeps its fiat and shows an approximate amount', () {
       final content = orderRowContent(
         testOrder(status: 'pendingPayment'),
         now: now,
@@ -103,16 +115,58 @@ void main() {
 
       expect(content.valueLine, '100.00 USD');
       expect(content.badge, TransactionBadgeKind.pending);
-      expect(content.statusLabel, 'Pending Payment');
+      expect(content.statusTail, 'Unpaid');
       expect(content.tone, TxAmountTone.incoming);
+      expect(content.amount, '+ ≈0.0025 BTC');
     });
 
-    test('an expired order keeps its own label under the failed enum', () {
-      final content = orderRowContent(testOrder(status: 'expired'), now: now);
+    test('every in-flight status uses its short tail and an approx amount', () {
+      const tails = {
+        'pendingPayment': 'Unpaid',
+        'waitingPayment': 'Confirming',
+        'extraVerification': 'Needs ID',
+        'paymentReceived': 'Paid',
+        'inProgress': 'Buying',
+        'cryptoTransferred': 'Sending',
+      };
+      tails.forEach((wire, tail) {
+        final content = orderRowContent(testOrder(status: wire), now: now);
+        expect(content.statusTail, tail, reason: wire);
+        expect(content.amount, startsWith('+ ≈'), reason: wire);
+        expect(content.status, TransactionStatus.pending, reason: wire);
+      });
+    });
 
-      expect(content.status, TransactionStatus.failed);
-      expect(content.statusLabel, 'Expired');
-      expect(content.valueLine, 'Not charged');
+    test('expired and cancelled read Not charged in the neutral paint', () {
+      for (final entry in {
+        'expired': 'Expired',
+        'cancelled': 'Cancelled',
+      }.entries) {
+        final content = orderRowContent(testOrder(status: entry.key), now: now);
+
+        expect(content.status, TransactionStatus.cancelled);
+        expect(content.statusTail, entry.value);
+        expect(content.valueLine, 'Not charged');
+        expect(content.tone, TxAmountTone.none);
+        expect(content.amount, isNot(contains('≈')));
+      }
+    });
+
+    test('an order that delivered nothing shows no incoming sign', () {
+      for (final wire in ['declined', 'expired', 'cancelled', 'refunded']) {
+        final content = orderRowContent(testOrder(status: wire), now: now);
+
+        expect(content.amount, '0.0025 BTC', reason: wire);
+      }
+    });
+
+    test('a refunded order says how much came back', () {
+      final content = orderRowContent(testOrder(status: 'refunded'), now: now);
+
+      expect(content.status, TransactionStatus.refunded);
+      expect(content.statusTail, 'Refunded');
+      expect(content.valueLine, '100.00 USD refunded');
+      expect(content.tone, TxAmountTone.none);
     });
 
     test('an unrecognised status makes no claim about settlement', () {
@@ -121,10 +175,9 @@ void main() {
         now: now,
       );
 
-      // Never `Not charged`: we do not know that no money moved.
       expect(content.valueLine, '100.00 USD');
       expect(content.tone, TxAmountTone.none);
-      expect(content.statusLabel, 'SomeFutureBanxaStatus');
+      expect(content.statusLabel, 'Unknown');
       expect(content.badge, TransactionBadgeKind.purchase);
     });
 
@@ -132,7 +185,6 @@ void main() {
       final content = orderRowContent(testOrder(status: ''), now: now);
 
       expect(content.statusLabel, isNull);
-      // Nothing to append, so the subtitle stays the context alone.
       expect(content.subtitle, content.subtitleBase);
     });
 
@@ -168,7 +220,7 @@ void main() {
     });
 
     test('carries the order identity across', () {
-      final order = testOrder(transactionHash: '0xabc123');
+      final order = testOrder(status: 'complete', transactionHash: '0xabc123');
       final tx = orderAsTransaction(order);
 
       expect(tx.hash, '0xabc123');

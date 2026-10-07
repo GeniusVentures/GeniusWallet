@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show GeniusApi;
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
@@ -15,6 +16,8 @@ import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+
+import '../banxa/fake_banxa_api.dart';
 
 /// The `/transactions` PAGE FRAME: `GWPageHeader` + the `xl` width cap + the
 /// gutter, as [TransactionsScreen] actually builds them.
@@ -96,6 +99,7 @@ Widget _host({List<Transaction>? txs}) => MultiBlocProvider(
       ),
     ),
     BlocProvider(create: (_) => TransactionsCubit(initial: txs ?? _some())),
+    BlocProvider(create: (_) => OrdersCubit(api: FakeBanxaApi())),
   ],
   child: MaterialApp(
     theme: ThemeData(extensions: [GWColors.dark()]),

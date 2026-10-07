@@ -109,113 +109,6 @@ class OrderResponse {
   }
 }
 
-class OrderStatus {
-  final String orderId;
-  final String? externalId;
-  final String? externalCustomerId;
-  final String? country;
-  final String? orderStatusUrl;
-  final String orderType;
-  final String status;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  final String fiatCurrency;
-  final double fiatAmount;
-
-  final String cryptoCurrency;
-  final String blockchain;
-  final String? walletAddress;
-  final String? walletAddressTag;
-  final double? cryptoAmount;
-
-  final String? paymentMethodId;
-  final String? paymentMethodName;
-  final double? processingFee;
-  final double? networkFee;
-  final String? transactionHash;
-  final String? metadata;
-
-  OrderStatus({
-    required this.orderId,
-    this.externalId,
-    this.externalCustomerId,
-    this.country,
-    this.orderStatusUrl,
-    required this.orderType,
-    required this.status,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.fiatCurrency,
-    required this.fiatAmount,
-    required this.cryptoCurrency,
-    required this.blockchain,
-    this.walletAddress,
-    this.walletAddressTag,
-    this.cryptoAmount,
-    this.paymentMethodId,
-    this.paymentMethodName,
-    this.processingFee,
-    this.networkFee,
-    this.transactionHash,
-    this.metadata,
-  });
-
-  factory OrderStatus.fromJson(Map<String, dynamic> json) {
-    return OrderStatus(
-      orderId: json['id'] ?? '',
-      externalId: json['externalId'],
-      externalCustomerId: json['externalCustomerId'],
-      country: json['country'],
-      orderStatusUrl: json['orderStatusUrl'],
-      orderType: json['orderType'] ?? '',
-      status: json['status'] ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
-      fiatCurrency: json['fiat'] ?? '',
-      fiatAmount: double.tryParse(json['fiatAmount']?.toString() ?? '') ?? 0.0,
-      cryptoCurrency: (json['crypto'] as Map<String, dynamic>?)?['id'] ?? '',
-      blockchain:
-          (json['crypto'] as Map<String, dynamic>?)?['blockchain'] ?? '',
-      walletAddress: json['walletAddress'],
-      walletAddressTag: json['walletAddressTag'],
-      cryptoAmount: double.tryParse(json['cryptoAmount']?.toString() ?? ''),
-      paymentMethodId: json['paymentMethodId'],
-      paymentMethodName: json['paymentMethodName'],
-      processingFee: double.tryParse(json['processingFee']?.toString() ?? ''),
-      networkFee: double.tryParse(json['networkFee']?.toString() ?? ''),
-      transactionHash: json['transactionHash'],
-      metadata: json['metadata']?.toString(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': orderId,
-      'externalId': externalId,
-      'externalCustomerId': externalCustomerId,
-      'country': country,
-      'orderStatusUrl': orderStatusUrl,
-      'orderType': orderType,
-      'status': status,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-      'fiat': fiatCurrency,
-      'fiatAmount': fiatAmount,
-      'crypto': {'id': cryptoCurrency, 'blockchain': blockchain},
-      'walletAddress': walletAddress,
-      'walletAddressTag': walletAddressTag,
-      'cryptoAmount': cryptoAmount,
-      'paymentMethodId': paymentMethodId,
-      'paymentMethodName': paymentMethodName,
-      'processingFee': processingFee,
-      'networkFee': networkFee,
-      'transactionHash': transactionHash,
-      'metadata': metadata,
-    };
-  }
-}
-
 class Blockchain {
   final String id;
   final String description;
@@ -319,9 +212,11 @@ class OrdersResponse {
 
   factory OrdersResponse.fromJson(Map<String, dynamic> json) {
     return OrdersResponse(
-      orders: (json['orders'] as List<dynamic>)
-          .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      orders: [
+        for (final e in json['orders'] as List<dynamic>)
+          // One malformed order must not hide the rest of the list.
+          ?_tryOrder(e),
+      ],
       total: json['total'] ?? 0,
       pageTotal: json['pageTotal'] ?? 0,
     );
@@ -333,6 +228,14 @@ class OrdersResponse {
       'total': total,
       'pageTotal': pageTotal,
     };
+  }
+}
+
+Order? _tryOrder(Object? json) {
+  try {
+    return Order.fromJson(json as Map<String, dynamic>);
+  } on Object {
+    return null;
   }
 }
 
@@ -384,28 +287,35 @@ class Order {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    String text(String key) => json[key]?.toString() ?? '';
+    final id = text('id');
+    if (id.isEmpty) {
+      throw const FormatException('order without an id');
+    }
+    final metadata = json['metadata'];
     return Order(
-      id: json['id'],
-      externalId: json['externalOrderId'], // matches API field
-      externalCustomerId: json['externalCustomerId'],
-      country: json['country'],
-      orderStatusUrl: json['orderStatusUrl'],
-      orderType: json['orderType'],
-      crypto: Crypto.fromJson(json['crypto']),
-      fiat: json['fiat'],
-      fiatAmount: json['fiatAmount'],
-      cryptoAmount: json['cryptoAmount'],
-      paymentMethodId: json['paymentMethodId'],
-      paymentMethodName: json['paymentMethodName'],
-      processingFee: json['processingFee'],
-      networkFee: json['networkFee'],
-      transactionHash: json['transactionHash'],
-      walletAddress: json['walletAddress'],
-      walletAddressTag: json['walletAddressTag'],
-      status: json['status'],
-      metadata: json['metadata'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      id: id,
+      externalId: text('externalOrderId'), // matches API field
+      externalCustomerId: text('externalCustomerId'),
+      country: json['country']?.toString(),
+      orderStatusUrl: text('orderStatusUrl'),
+      orderType: text('orderType'),
+      crypto: Crypto.fromJson(json['crypto'] as Map<String, dynamic>),
+      fiat: text('fiat'),
+      fiatAmount: text('fiatAmount'),
+      cryptoAmount: text('cryptoAmount'),
+      paymentMethodId: text('paymentMethodId'),
+      paymentMethodName: text('paymentMethodName'),
+      processingFee: text('processingFee'),
+      networkFee: text('networkFee'),
+      transactionHash: json['transactionHash']?.toString(),
+      walletAddress: text('walletAddress'),
+      walletAddressTag: json['walletAddressTag']?.toString(),
+      status: text('status'),
+      // The app sends a plain string here, so Banxa may echo a string back.
+      metadata: metadata is Map<String, dynamic> ? metadata : null,
+      createdAt: DateTime.parse(text('createdAt')),
+      updatedAt: DateTime.parse(text('updatedAt')),
     );
   }
 
@@ -465,21 +375,5 @@ class Crypto {
       'address': address,
       'network': network,
     };
-  }
-}
-
-class BanxaKycResponse {
-  final String accountId;
-  final String accountReference;
-
-  BanxaKycResponse({required this.accountId, required this.accountReference});
-
-  factory BanxaKycResponse.fromJson(Map<String, dynamic> json) {
-    final data = (json['data'] as Map<String, dynamic>?) ?? {};
-    final account = (data['account'] as Map<String, dynamic>?) ?? {};
-    return BanxaKycResponse(
-      accountId: account['account_id'] ?? '',
-      accountReference: account['account_reference'] ?? '',
-    );
   }
 }

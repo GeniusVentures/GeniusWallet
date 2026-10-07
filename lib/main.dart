@@ -8,9 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/node_switch_toasts.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_components/buy_order_toasts.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
-import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
+import 'package:genius_wallet/banxa/banxa_order/buy_gnus_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operation_status.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
@@ -388,16 +389,15 @@ class MyApp extends StatelessWidget {
       debugPrint('FlutterError caught: ${details.exception}');
     };
 
-    return RepositoryProvider.value(
-      value: geniusApi,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider.value(value: geniusApi),
+        RepositoryProvider<BanxaApiService>(create: (_) => BanxaApiService()),
+      ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<TransactionsCubit>(
             create: (_) => TransactionsCubit(), // Or with initial state
-          ),
-
-          BlocProvider<MakeOrderCubit>(
-            create: (_) => MakeOrderCubit(BanxaApiService()),
           ),
           BlocProvider(
             create: (_) => WalletDetailsCubit(
@@ -410,6 +410,8 @@ class MyApp extends StatelessWidget {
           BlocProvider<OrdersCubit>(
             create: (context) => OrdersCubit(
               walletDetailsCubit: context.read<WalletDetailsCubit>(),
+              api: context.read<BanxaApiService>(),
+              hasBuyHistory: readBanxaDisclaimerAccepted,
             ),
           ),
           BlocProvider(
@@ -454,9 +456,12 @@ class MyApp extends StatelessWidget {
                     navigatorKey: navigatorKey,
                     child: NodeSwitchToasts(
                       navigatorKey: navigatorKey,
-                      child: GlobalSwapFabHost(
-                        router: geniusWalletRouter,
-                        child: child ?? const SizedBox.shrink(),
+                      child: BuyOrderToasts(
+                        navigatorKey: navigatorKey,
+                        child: GlobalSwapFabHost(
+                          router: geniusWalletRouter,
+                          child: child ?? const SizedBox.shrink(),
+                        ),
                       ),
                     ),
                   ),

@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 081 - Buy checkout handoff</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  /* Sketch-local tokens. The Banxa placeholder is deliberately neutral grey so it never reads as app UI. */
+  [data-theme="dark"] {
+    --ph-bg: #262A31; --ph-bg2: #1D2026; --ph-ink: #E1E4EA; --ph-muted: #A9AEB8; --ph-line: #5E6470;
+    --ph-btn: #4A505B; --link: #0AAEE6; --warn-fill: rgba(255,196,46,.14); --scrim: rgba(0,0,0,.62);
+    --frame-edge: #2A2E37;
+  }
+  :root, [data-theme="light"] {
+    --ph-bg: #E4E6EA; --ph-bg2: #D5D8DE; --ph-ink: #1F2228; --ph-muted: #4B515C; --ph-line: #767C87;
+    --ph-btn: #3A3F48; --link: #0A6885; --warn-fill: rgba(255,196,46,.22); --scrim: rgba(16,19,26,.45);
+    --frame-edge: #B9BFC8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-sunken); color: var(--text-primary); min-height: 100vh; }
+  button { font-family: inherit; }
+
+  /* ---------- sketch chrome (not app UI) ---------- */
+  #variant-nav { position: sticky; top: 0; z-index: 60; background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border-subtle); padding: 10px 16px; display: flex; gap: 8px;
+    align-items: center; flex-wrap: wrap; }
+  .sk-brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  .sk-sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab, .sk-chip { font: 500 13px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 14px; cursor: pointer;
+    transition: all .15s ease; }
+  .variant-tab:hover, .sk-chip:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+  .sk-chip { font-size: 12px; padding: 5px 11px; }
+  .sk-chip.on { color: var(--text-primary); border-color: var(--text-primary); font-weight: 600; }
+  .sk-chip.err { border-style: dashed; }
+  .sk-chip.err.on { color: var(--status-error); border-color: var(--status-error); }
+
+  #flow { padding: 10px 16px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border-subtle); background: var(--surface-base); }
+  #flow .lbl { font: 600 11px var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); margin-right: 4px; }
+  #flow .arrow { color: var(--text-secondary); font-size: 12px; }
+  #caption { padding: 10px 16px 0; max-width: 1280px; margin: 0 auto; font: 400 13px/19px var(--font); color: var(--text-primary-70); min-height: 48px; }
+  #caption b { color: var(--text-primary); font-weight: 600; }
+  #caption code { font: 12px var(--font-mono); color: var(--text-primary); }
+
+  #stage-wrap { padding: 12px 16px 80px; display: flex; justify-content: center; }
+  #stage { position: relative; transform-origin: top left; }
+
+  /* ---------- devices ---------- */
+  .device { position: relative; overflow: hidden; background: var(--surface-base); color: var(--text-primary);
+    border: 1px solid var(--frame-edge); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .device.desktop { width: 1280px; height: 800px; border-radius: 12px; display: flex; flex-direction: column; }
+  .device.mobile { width: 390px; height: 844px; border-radius: 44px; display: flex; flex-direction: column; }
+
+  /* desktop navbar (abbreviated) */
+  .nav { height: 64px; flex: none; display: flex; align-items: center; gap: 28px; padding: 0 24px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .nav .logo { font: 700 17px var(--font); letter-spacing: -.01em; }
+  .nav .tabs { display: flex; gap: 22px; font: 500 14px var(--font); color: var(--text-secondary); }
+  .nav .right { margin-left: auto; display: flex; gap: 10px; }
+  .chip { height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle); font: 500 13px var(--font); color: var(--text-primary); background: var(--surface-base); }
+  .mono { font-family: var(--font-mono); }
+
+  /* mobile chrome */
+  .m-status { height: 44px; flex: none; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 6px;
+    font: 600 14px var(--font); }
+  .m-head { height: 52px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+  .m-head .back { width: 32px; height: 32px; display: grid; place-items: center; color: var(--text-secondary); }
+  .m-head .t { font: 600 18px var(--font); }
+  .m-head .s { font: 400 12px var(--font); color: var(--text-secondary); }
+  .m-nav { height: 76px; flex: none; display: flex; justify-content: space-around; align-items: center; padding-bottom: 12px;
+    border-top: 1px solid var(--border-subtle); background: var(--surface-elevated); font: 500 11px var(--font); color: var(--text-secondary); }
+  .m-nav span { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .m-nav i { width: 22px; height: 22px; border-radius: 6px; border: 1.6px solid currentColor; display: block; }
+  .m-nav .dock i { width: 44px; height: 44px; border-radius: 50%; border: none; background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); margin-top: -18px; }
+
+  .scroll { flex: 1; overflow-y: auto; position: relative; }
+
+  /* ---------- Buy page ---------- */
+  .page { padding: 32px 40px 40px; }
+  .device.mobile .page { padding: 4px 16px 24px; }
+  .ph-title { font: 600 26px/32px var(--font); }
+  .ph-sub { font: 400 14px var(--font); color: var(--text-secondary); margin-top: 2px; }
+  .buy-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; margin-top: 24px; }
+  .device.mobile .buy-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 8px; }
+  .card { background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card); }
+  .device.mobile .card { padding: 16px; }
+  .fld + .fld { margin-top: 16px; }
+  .fld .k { font: 500 12px var(--font); color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .input { height: 48px; border-radius: var(--radius-md); border: 1px solid var(--border-strong); background: var(--surface-base);
+    display: flex; align-items: center; padding: 0 14px; font: 500 16px var(--font); gap: 8px; }
+  .input .suffix { margin-left: auto; color: var(--text-secondary); font-size: 14px; }
+  .amt-chips { display: flex; gap: 8px; margin-top: 8px; }
+  .amt-chips span { padding: 6px 12px; border-radius: var(--radius-pill); border: 1px solid var(--border-subtle); font: 500 13px var(--font); color: var(--text-primary-70); }
+  .amt-chips span.on { border-color: var(--link); color: var(--link); }
+  .get-k { font: 500 12px var(--font); color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; }
+  .get-v { font: 600 30px/38px var(--font); font-variant-numeric: tabular-nums; margin: 4px 0 12px; }
+  .device.mobile .get-v { font-size: 24px; line-height: 30px; }
+  .kv { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; font: 400 14px var(--font); }
+  .kv .k { color: var(--text-primary-70); }
+  .kv .v { font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fine { font: 400 12px/17px var(--font); color: var(--text-secondary); }
+
+  .btn { height: 48px; border: none; border-radius: var(--radius-lg); font: 500 16px var(--font); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; transition: all .15s ease; }
+  .btn.full { width: 100%; }
+  .btn.sm { height: 40px; font-size: 14px; }
+  .btn.grad { background: linear-gradient(90deg, var(--brand-cta-a), var(--brand-cta-b)); color: var(--text-on-brand); }
+  .btn.sec { background: transparent; color: var(--link); box-shadow: inset 0 0 0 1.5px var(--link); }
+  .btn.ter { background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border-subtle); }
+  .btn.ghost { background: transparent; color: var(--text-primary); }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+  .btn.ghost:hover, .btn.ter:hover { background: var(--border-subtle); }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; filter: none; }
+  .link { background: none; border: none; color: var(--link); font: 500 14px var(--font); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 4px 2px; }
+  .link:hover { filter: brightness(1.2); }
+  .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: sp .8s linear infinite; display: inline-block; flex: none; }
+  .spin.lg { width: 28px; height: 28px; border-width: 3px; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+
+  .kicker { font: 600 13px/18px var(--font); letter-spacing: .5px; text-transform: uppercase; color: var(--text-secondary); margin: 28px 0 10px; display: flex; align-items: center; gap: 12px; }
+  .kicker .filters { display: flex; gap: 6px; margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .kicker .filters span { padding: 4px 10px; border-radius: var(--radius-pill); border: 1px solid var(--border-subtle); font-size: 12px; color: var(--text-primary-70); }
+  .kicker .filters span.on { color: var(--text-primary); border-color: var(--text-primary); }
+  .orders { background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
+  .orow { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; transition: background .15s; }
+  .orow + .orow { border-top: 1px solid var(--border-subtle); }
+  .orow:hover { background: var(--border-subtle); }
+  .orow.fresh { box-shadow: inset 3px 0 0 var(--link); }
+  .coin { width: 36px; height: 36px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 700 14px var(--font);
+    background: var(--brand-primary-subtle); color: var(--text-primary); border: 1px solid var(--brand-primary-muted); }
+  .orow .mid { flex: 1; min-width: 0; }
+  .orow .t1 { font: 500 15px var(--font); }
+  .orow .t2 { font: 400 13px var(--font); color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .orow .amt { text-align: right; font: 500 15px var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .orow .amt .t2 { text-align: right; }
+  .inc { color: var(--status-success); }
+  .t-warn { color: var(--status-warning); }
+  .t-err { color: var(--status-error); }
+
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-pill); font: 500 13px var(--font); }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .pill.warn { background: var(--warn-fill); color: var(--status-warning); }
+  .pill.err { background: var(--status-error-fill); color: var(--status-error); }
+  .pill.ok { background: var(--status-success-fill); color: var(--status-success); }
+
+  /* ---------- overlays ---------- */
+  .scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 20; animation: fade .2s ease; }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes up { from { transform: translateY(40px); opacity: 0; } }
+  @keyframes left { from { transform: translateX(60px); opacity: 0; } }
+
+  /* 030-B1 drawer shell: desktop right panel, mobile bottom sheet */
+  .drawer { position: absolute; z-index: 30; background: var(--surface-menu); display: flex; flex-direction: column; }
+  .device.desktop .drawer { top: 0; right: 0; bottom: 0; width: var(--drawer-width); box-shadow: -24px 0 60px rgba(0,0,0,.4); animation: left .25s ease; }
+  .device.mobile .drawer { left: 0; right: 0; bottom: 0; max-height: 88%; border-radius: 24px 24px 0 0; animation: up .25s ease; }
+  .d-head { height: 60px; flex: none; display: flex; align-items: center; padding: 0 12px 0 20px; border-bottom: 1px solid var(--border-subtle); position: relative; }
+  .d-head::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: -1px; height: 1px; background: var(--brand-primary-subtle); }
+  .d-title { font: 600 18px/24px var(--font); }
+  .x { margin-left: auto; width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--radius-md);
+    color: var(--text-primary-70); cursor: pointer; background: none; border: none; transition: all .15s; flex: none; }
+  .x:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .x svg, .ico svg { width: 18px; height: 18px; }
+  .d-body { flex: 1; overflow-y: auto; padding: 8px 20px 20px; }
+  .d-foot { flex: none; padding: 16px 20px; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 10px; }
+  .sec-label { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); margin: 20px 0 8px; }
+  .rows { background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 2px 16px; }
+  .rows .kv + .kv { border-top: 1px solid var(--border-subtle); }
+  .rows .kv { padding: 11px 0; }
+  .copyable { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+  .hero { text-align: center; padding-top: 14px; }
+  .hero .coin { width: 60px; height: 60px; margin: 0 auto; font-size: 20px; }
+  .hero .am { font: 600 24px/32px var(--font); font-variant-numeric: tabular-nums; margin-top: 10px; }
+  .hero .fi { font: 400 14px var(--font); color: var(--text-secondary); margin: 2px 0 10px; }
+  .note { margin-top: 14px; padding: 12px 14px; border-radius: var(--radius-md); background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    font: 400 13px/19px var(--font); color: var(--text-primary-70); text-align: left; }
+
+  /* modal dialog (disclaimer, leave confirm) */
+  .dialog { position: absolute; z-index: 40; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 400px; max-width: calc(100% - 32px);
+    background: var(--surface-menu); border: 1px solid var(--border-subtle); border-radius: var(--radius-3xl); padding: 24px; box-shadow: var(--shadow-card); animation: fade .2s ease; }
+  .dialog h3 { font: 600 18px/24px var(--font); margin-bottom: 10px; }
+  .dialog p { font: 400 14px/21px var(--font); color: var(--text-primary-70); }
+  .dialog .actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .check { display: flex; gap: 10px; align-items: center; margin-top: 14px; font: 500 14px var(--font); cursor: pointer; }
+  .check input { width: 18px; height: 18px; accent-color: var(--link); }
+
+  /* Banxa placeholder */
+  .banxa { background: var(--ph-bg); color: var(--ph-ink); border: 2px dashed var(--ph-line); border-radius: 12px; padding: 20px; position: relative; }
+  .banxa .tag { position: absolute; top: -11px; left: 14px; background: var(--ph-ink); color: var(--ph-bg); font: 600 11px var(--font-mono);
+    padding: 3px 8px; border-radius: 6px; letter-spacing: .03em; }
+  .banxa h4 { font: 600 17px/24px var(--font); margin: 6px 0 4px; }
+  .banxa p { font: 400 13px/19px var(--font); color: var(--ph-muted); }
+  .banxa .steps { display: flex; gap: 6px; font: 600 11px var(--font); color: var(--ph-muted); text-transform: uppercase; letter-spacing: .05em; }
+  .banxa .steps .on { color: var(--ph-ink); text-decoration: underline; text-underline-offset: 4px; }
+  .banxa .box { height: 44px; border-radius: 8px; background: var(--ph-bg2); border: 1px solid var(--ph-line); margin-top: 10px;
+    display: flex; align-items: center; padding: 0 12px; font: 400 13px var(--font); color: var(--ph-muted); }
+  .banxa .doc { height: 110px; border-radius: 10px; border: 1.5px dashed var(--ph-line); margin-top: 14px; display: grid; place-items: center; font: 500 13px var(--font); color: var(--ph-muted); }
+  .banxa .pbtn { margin-top: 16px; width: 100%; height: 46px; border: none; border-radius: 8px; background: var(--ph-btn); color: #fff; font: 600 15px var(--font);
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .banxa .pbtn:hover { filter: brightness(1.15); }
+  .banxa .sum { display: flex; justify-content: space-between; font: 500 14px var(--font); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ph-line); }
+  .banxa-wrap { background: var(--ph-bg2); padding: 24px 16px; flex: 1; overflow-y: auto; }
+  .banxa-wrap .banxa { max-width: 440px; margin: 0 auto; }
+
+  /* A-mobile checkout sheet */
+  .co-sheet { position: absolute; z-index: 30; left: 0; right: 0; bottom: 0; top: 56px; background: var(--surface-menu); border-radius: 24px 24px 0 0;
+    display: flex; flex-direction: column; overflow: hidden; animation: up .28s ease; }
+  .co-head { height: 52px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 18px; border-bottom: 1px solid var(--border-subtle); }
+  .co-head .who { display: flex; flex-direction: column; }
+  .co-head .who b { font: 600 15px var(--font); }
+  .co-head .who span { font: 400 12px var(--font); color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+  .lock { width: 12px; height: 12px; }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--border-strong); margin: 8px auto 0; flex: none; }
+
+  /* browser window mock (desktop A and C) */
+  .bwin { position: absolute; z-index: 25; top: 104px; right: 40px; width: 640px; height: 620px; border-radius: 10px; overflow: hidden;
+    background: var(--ph-bg2); border: 1px solid var(--frame-edge); box-shadow: 0 30px 80px rgba(0,0,0,.45); display: flex; flex-direction: column; animation: up .25s ease; }
+  .bwin .bar { height: 40px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 14px; background: var(--surface-menu); border-bottom: 1px solid var(--border-subtle); font: 500 12px var(--font); color: var(--text-secondary); }
+  .bwin .bar .url { flex: 1; height: 26px; border-radius: 13px; background: var(--surface-base); display: flex; align-items: center; gap: 6px; padding: 0 12px; color: var(--text-primary); }
+  .bwin .bar button { background: none; border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 6px; font: 500 12px var(--font); padding: 4px 8px; cursor: pointer; }
+  .bwin .bar button:hover { background: var(--border-subtle); }
+  .os-label { position: absolute; z-index: 26; top: 84px; right: 40px; font: 600 11px var(--font-mono); color: var(--text-secondary); letter-spacing: .04em; }
+
+  /* waiting card / tracker / full-screen */
+  .wait { max-width: 560px; margin: 24px 0 0; }
+  .wait h2, .fs-title { font: 600 20px/28px var(--font); }
+  .wait .lead { font: 400 14px/21px var(--font); color: var(--text-primary-70); margin: 6px 0 16px; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-row .btn { flex: 1; }
+  .inline-msg { margin-top: 12px; font: 400 13px/19px var(--font); padding: 10px 12px; border-radius: var(--radius-md); background: var(--warn-fill); color: var(--text-primary); }
+  .errbox { display: flex; gap: 12px; align-items: flex-start; }
+  .errbox .dot { width: 36px; height: 36px; border-radius: 50%; background: var(--status-error-fill); color: var(--status-error); display: grid; place-items: center; font: 700 16px var(--font); flex: none; }
+
+  .tl { list-style: none; margin-top: 8px; }
+  .tl li { display: flex; gap: 14px; position: relative; padding-bottom: 18px; }
+  .tl li:not(:last-child)::after { content: ""; position: absolute; left: 11px; top: 26px; bottom: 2px; width: 2px; background: var(--border-subtle); }
+  .tl li.done:not(:last-child)::after { background: var(--status-success); }
+  .tl .mk { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; border: 2px solid var(--border-strong); color: var(--text-primary); font: 700 12px var(--font); background: var(--surface-elevated); }
+  .tl li.done .mk { border-color: var(--status-success); background: var(--status-success-fill); color: var(--status-success); }
+  .tl li.now .mk { border-color: var(--link); color: var(--link); }
+  .tl li.bad .mk { border-color: var(--status-error); color: var(--status-error); background: var(--status-error-fill); }
+  .tl .tt { font: 500 15px/22px var(--font); }
+  .tl li.todo .tt { color: var(--text-secondary); }
+  .tl .ts { font: 400 13px/19px var(--font); color: var(--text-secondary); margin-top: 2px; }
+
+  .fs { position: absolute; inset: 0; z-index: 15; background: var(--surface-base); display: flex; flex-direction: column; animation: fade .2s ease; }
+  .device.desktop .fs { top: 64px; }
+  .device.mobile .fs { top: 44px; }
+  .fs-head { flex: none; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 16px; height: 56px; background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); position: relative; }
+  .device.desktop .fs-head { padding: 0 24px 0 32px; }
+  .fs-head .ttl { font: 600 16px var(--font); }
+  .fs-head .ttl small { display: block; font: 400 12px var(--font); color: var(--text-secondary); }
+  .prog { display: flex; align-items: center; gap: 8px; font: 500 13px var(--font); color: var(--text-secondary); }
+  .device.desktop .prog { margin-left: 40px; }
+  .device.mobile .prog { padding: 10px 16px; border-bottom: 1px solid var(--border-subtle); background: var(--surface-elevated); justify-content: center; }
+  .prog .st { display: flex; align-items: center; gap: 6px; }
+  .prog .st i { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border-strong); display: grid; place-items: center; font: 700 11px var(--font); font-style: normal; }
+  .prog .st.on { color: var(--text-primary); font-weight: 600; }
+  .prog .st.on i { border-color: var(--link); color: var(--link); }
+  .prog .st.done i { border-color: var(--status-success); background: var(--status-success-fill); color: var(--status-success); }
+  .prog .st.bad { color: var(--status-error); }
+  .prog .st.bad i { border-color: var(--status-error); color: var(--status-error); }
+  .prog .gt { color: var(--text-secondary); }
+  .menu { position: absolute; z-index: 32; right: 12px; top: 52px; width: 250px; background: var(--surface-menu); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card); padding: 6px; animation: fade .15s ease; }
+  .menu button { width: 100%; text-align: left; background: none; border: none; color: var(--text-primary); padding: 10px 12px; border-radius: 8px; cursor: pointer; font: 500 14px var(--font); }
+  .menu button small { display: block; font: 400 12px var(--font); color: var(--text-secondary); margin-top: 2px; }
+  .menu button:hover { background: var(--border-subtle); }
+  .center-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 24px; }
+  .center-state .t { font: 600 18px var(--font); }
+  .center-state .s { font: 400 14px/21px var(--font); color: var(--text-primary-70); max-width: 360px; }
+
+  /* Custom Tab mock (C mobile) */
+  .ctab { position: absolute; z-index: 30; inset: 0; background: var(--ph-bg2); display: flex; flex-direction: column; animation: up .28s ease; }
+  .ctab .cbar { height: 96px; flex: none; background: #3C4043; color: #fff; display: flex; align-items: flex-end; gap: 10px; padding: 0 12px 10px; }
+  .ctab .cbar .x { color: #fff; }
+  .ctab .cbar .x:hover { background: rgba(255,255,255,.12); color: #fff; }
+  .ctab .cbar b { font: 600 14px var(--font); display: block; }
+  .ctab .cbar span { font: 400 12px var(--font); color: #D4D7DB; display: flex; gap: 4px; align-items: center; }
+
+  .qr { width: 200px; height: 200px; background: #fff; padding: 12px; border-radius: var(--radius-2xl); margin: 12px auto; display: grid; grid-template-columns: repeat(25, 1fr); }
+  .qr i { display: block; }
+  .qr i.b { background: #000; }
+
+  .toast { position: absolute; z-index: 50; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--surface-elevated); color: var(--text-primary);
+    border: 1px solid var(--border-subtle); border-left: 3px solid var(--link); border-radius: 10px; padding: 12px 16px; font: 500 13px var(--font); box-shadow: var(--shadow-card);
+    animation: up .2s ease; white-space: nowrap; }
+  .device.mobile .toast { bottom: 96px; white-space: normal; width: calc(100% - 32px); }
+
+  #tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px var(--font); background: rgba(0,0,0,.78); color: #fff; padding: 8px 12px;
+    border-radius: 8px; opacity: .55; transition: opacity .2s; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; max-width: calc(100vw - 24px); }
+  #tools:hover { opacity: 1; }
+  #tools select { font: 12px var(--font); background: #222; color: #fff; border: 1px solid #555; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+  #tools label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="sk-brand">081 · BUY CHECKOUT HANDOFF</span>
+  <button class="variant-tab active" data-v="A" onclick="setVariant('A')">A · Sheet on mobile, waiting card on desktop</button>
+  <button class="variant-tab" data-v="B" onclick="setVariant('B')">B · Full-screen checkout ★</button>
+  <button class="variant-tab" data-v="C" onclick="setVariant('C')">C · Stay on the page</button>
+</div>
+<div id="flow"></div>
+<div id="caption"></div>
+<div id="stage-wrap"><div id="stage"></div></div>
+
+<div id="tools">
+  <label>Viewport
+    <select id="t-vp" onchange="setVp(this.value)"><option value="desktop">Desktop 1280</option><option value="mobile">Mobile 390</option></select>
+  </label>
+  <label>Theme
+    <select id="t-theme" onchange="document.documentElement.setAttribute('data-theme', this.value)"><option value="dark">Dark</option><option value="light">Light</option></select>
+  </label>
+  <label>Scenario
+    <select id="t-scn" onchange="S.scenario=this.value; restart()">
+      <option value="ok">Payment goes through</option>
+      <option value="fail">Checkout fails to open</option>
+      <option value="declined">Payment declined</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="t-first" checked onchange="S.firstTime=this.checked; render()"> First buy on this device (disclaimer)</label>
+</div>
+
+<script>
+const ICON = {
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  lock: '<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  back: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>'
+};
+const ORDER = { id: '7f3a9c1e4b20c21e', idShort: '7f3a9c…c21e', fiat: '100.00 EUR', fee: '3.49 EUR', gnus: '2,431.52', rate: '1 GNUS = 0.0397 EUR',
+  wallet: '0x1d9b…4a87', walletName: 'Main wallet', url: 'checkout.banxa.com/…/7f3a9c', time: 'Sep 30, 2026 · 12:04', until: '12:34' };
+
+const S = { variant: 'A', vp: 'desktop', scenario: 'ok', firstTime: true, step: 'form', sub: 'id', orderStatus: null,
+  browserOpen: true, qr: false, menu: false, detail: false, checked: false, checkMsg: false, agree: false, toast: null };
+
+let timer, toastTimer;
+function later(ms, fn) { clearTimeout(timer); timer = setTimeout(fn, ms); }
+function go(patch) { Object.assign(S, patch); render(); }
+function toast(msg) { S.toast = msg; render(); clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.toast = null; render(); }, 2400); }
+
+function restart() { clearTimeout(timer); go({ step: 'form', sub: 'id', orderStatus: null, browserOpen: true, qr: false, menu: false, detail: false, checkMsg: false, agree: false, left: false, bLeft: false }); }
+function setVariant(v) { S.variant = v; document.querySelectorAll('.variant-tab').forEach(t => t.classList.toggle('active', t.dataset.v === v)); restart(); }
+function setVp(v) { S.vp = v; document.getElementById('t-vp').value = v; render(); }
+
+/* ---------- flow actions ---------- */
+function buy() { if (S.firstTime) { go({ step: 'disclaimer', agree: false }); } else { create(); } }
+function acceptDisclaimer() { S.firstTime = false; document.getElementById('t-first').checked = false; create(); }
+function create() {
+  go({ step: 'creating', sub: 'id', browserOpen: true, qr: false, menu: false, checkMsg: false, orderStatus: null, detail: false, left: false, bLeft: false });
+  later(1400, () => go({ step: S.scenario === 'fail' ? 'openFail' : 'checkout' }));
+}
+function retryOpen() { S.scenario = 'ok'; document.getElementById('t-scn').value = 'ok'; go({ step: 'checkout', sub: 'id', browserOpen: true }); }
+function idDone() { go({ sub: 'pay' }); }
+function pay() {
+  go({ sub: 'paying' });
+  later(1200, () => {
+    // Browser-hosted checkout cannot close itself: the callback asks the OS to reopen the app.
+    if (inBrowser()) { go({ sub: 'done' }); } else { back(); }
+  });
+}
+function inBrowser() { return S.vp === 'desktop' && (S.variant === 'A' || S.variant === 'C'); }
+function back() {
+  go({ step: 'returning', qr: false, menu: false, browserOpen: false });
+  later(1500, () => go({ step: 'order', orderStatus: S.scenario === 'declined' ? 'declined' : 'processing', detail: S.variant === 'A' }));
+}
+function checkStatus() {
+  if (S.sub === 'done') { back(); return; }
+  go({ checkMsg: true });
+}
+function askLeave() {
+  if (S.variant === 'C' && S.vp === 'mobile') { leave(); return; }
+  go({ step: 'leaveConfirm' });
+}
+function leave() {
+  clearTimeout(timer);
+  if (S.variant === 'C') { go({ step: 'checkout', browserOpen: false, sub: S.sub === 'paying' ? 'pay' : S.sub, left: true }); toast('Checkout closed. Your order stays open for 30 minutes.'); return; }
+  go({ step: 'order', orderStatus: 'pending', detail: true, qr: false, menu: false });
+  toast('Order saved. You have 30 minutes to finish paying.');
+}
+function completePayment() { go({ step: 'checkout', sub: 'pay', detail: false, browserOpen: true, orderStatus: null, left: false }); }
+// The app's poll notices a finished payment even if the user never uses the callback link.
+function switchApp() { if (S.sub === 'done') { back(); } else { go({ browserOpen: false }); } }
+function closeTab() { if (S.sub === 'done') { back(); } else { go({ browserOpen: false, left: S.variant === 'C' }); } }
+function copyLink() { toast('Checkout link copied'); }
+function copyId() { toast('Banxa order ID copied'); }
+
+/* ---------- jump strip ---------- */
+const FLOW = [
+  ['form', '1 Buy tapped'], ['creating', '2 Creating your order'], ['checkout', '3 Checkout'], ['returning', '4 Return'], ['order', '5 Order: Processing payment']
+];
+const ERRS = [['openFail', 'Checkout failed to open'], ['closed', 'Closed without paying'], ['declined', 'Payment declined']];
+function jump(k) {
+  clearTimeout(timer);
+  const base = { qr: false, menu: false, checkMsg: false, browserOpen: true, left: false, bLeft: false };
+  if (k === 'form') { go({ ...base, step: 'form', orderStatus: null, detail: false }); }
+  else if (k === 'creating') { create(); }
+  else if (k === 'checkout') { go({ ...base, step: 'checkout', sub: 'id', orderStatus: null, detail: false }); }
+  else if (k === 'returning') { back(); }
+  else if (k === 'order') { go({ ...base, step: 'order', orderStatus: 'processing', detail: S.variant === 'A' }); }
+  else if (k === 'openFail') { go({ ...base, step: 'openFail', orderStatus: null, detail: false }); }
+  else if (k === 'closed') {
+    if (S.variant === 'C') { go({ ...base, step: 'checkout', sub: 'pay', browserOpen: false, left: true, orderStatus: null }); }
+    else { go({ ...base, step: 'order', orderStatus: 'pending', detail: true }); }
+  }
+  else if (k === 'declined') { go({ ...base, step: 'order', orderStatus: 'declined', detail: S.variant === 'A' }); }
+}
+function activeJump() {
+  if (S.step === 'openFail') { return 'openFail'; }
+  if (S.orderStatus === 'pending' || S.left) { return 'closed'; }
+  if (S.step === 'order' && S.orderStatus === 'declined') { return 'declined'; }
+  if (S.step === 'disclaimer') { return 'form'; }
+  if (S.step === 'leaveConfirm') { return 'checkout'; }
+  return S.step;
+}
+
+/* ---------- pieces ---------- */
+function qrGrid() {
+  let s = 7, out = '';
+  const fin = (r, c) => { for (const [R, C] of [[0,0],[0,18],[18,0]]) { const y = r - R, x = c - C;
+    if (y >= 0 && y < 7 && x >= 0 && x < 7) { return (y === 0 || y === 6 || x === 0 || x === 6 || (y > 1 && y < 5 && x > 1 && x < 5)) ? 1 : 0; } } return -1; };
+  for (let r = 0; r < 25; r++) { for (let c = 0; c < 25; c++) { const f = fin(r, c); s = (s * 9301 + 49297) % 233280;
+    out += `<i class="${(f === 1 || (f === -1 && s / 233280 > .52)) ? 'b' : ''}"></i>`; } }
+  return `<div class="qr">${out}</div>`;
+}
+
+function banxa() {
+  const steps = `<div class="steps"><span class="${S.sub === 'id' ? 'on' : ''}">ID check</span><span>/</span><span class="${S.sub !== 'id' ? 'on' : ''}">Pay</span></div>`;
+  let body;
+  if (S.sub === 'id') {
+    body = `${steps}<h4>Verify your identity</h4><p>First purchase only. Banxa asks for a photo ID and a quick selfie, then remembers you.</p>
+      <div class="doc">Photo ID upload (Banxa)</div>
+      <button class="pbtn" onclick="idDone()">Continue</button>`;
+  } else if (S.sub === 'pay') {
+    body = `${steps}<h4>Pay with card</h4><p>Card details go to Banxa, not to GeniusWallet.</p>
+      <div class="box">Card number</div><div class="box">MM / YY &nbsp;·&nbsp; CVC</div>
+      <div class="sum"><span>You receive</span><span>${ORDER.gnus} GNUS</span></div>
+      <button class="pbtn" onclick="pay()">Pay ${ORDER.fiat}</button>`;
+  } else if (S.sub === 'paying') {
+    body = `${steps}<h4>Processing</h4><div class="doc"><span class="spin lg"></span></div>`;
+  } else {
+    body = `<h4>Payment submitted</h4><p>You can close this tab. GeniusWallet tracks the order from here.</p>
+      <div class="box" style="justify-content:space-between"><span>Open GeniusWallet?</span><span style="color:var(--ph-ink)">geniuswallet://banxa/callback</span></div>
+      <button class="pbtn" onclick="back()">Open GeniusWallet</button>`;
+  }
+  return `<div class="banxa"><span class="tag">BANXA CHECKOUT · PLACEHOLDER</span>${body}</div>`;
+}
+
+function statusPill(st) {
+  if (st === 'declined') { return '<span class="pill err">Declined</span>'; }
+  if (st === 'pending') { return '<span class="pill warn">Pending Payment</span>'; }
+  return '<span class="pill warn">Processing payment</span>';
+}
+
+function orderRows() {
+  let fresh = '';
+  if (S.orderStatus) {
+    const st = S.orderStatus;
+    const label = st === 'declined' ? 'Declined' : st === 'pending' ? 'Pending Payment' : 'Processing payment';
+    const cls = st === 'declined' ? 't-err' : 't-warn';
+    fresh = `<div class="orow fresh" onclick="go({detail:true})"><div class="coin">G</div>
+      <div class="mid"><div class="t1">GNUS <span style="color:var(--text-secondary);font-weight:400">Purchased</span></div><div class="t2">Today · Card purchase · <span class="${cls}">${label}</span></div></div>
+      <div class="amt"><div class="${st === 'declined' ? '' : 'inc'}">+ ${ORDER.gnus} GNUS</div><div class="t2">${st === 'declined' ? 'Not charged' : ORDER.fiat}</div></div></div>`;
+  }
+  return `<div class="kicker">Your orders<div class="filters"><span class="on">All</span><span>Pending</span><span>Done</span><span>Issues</span></div></div>
+    <div class="orders">${fresh}
+      <div class="orow"><div class="coin">G</div><div class="mid"><div class="t1">GNUS <span style="color:var(--text-secondary);font-weight:400">Purchased</span></div><div class="t2">Sep 12 · Card purchase</div></div>
+        <div class="amt"><div class="inc">+ 1,204.10 GNUS</div><div class="t2">50.00 EUR</div></div></div>
+      <div class="orow"><div class="coin">G</div><div class="mid"><div class="t1">GNUS <span style="color:var(--text-secondary);font-weight:400">Purchased</span></div><div class="t2">Aug 28 · Card purchase</div></div>
+        <div class="amt"><div class="inc">+ 5,980.00 GNUS</div><div class="t2">250.00 EUR</div></div></div>
+    </div>`;
+}
+
+function formBlock(ctaState) {
+  const cta = ctaState === 'creating'
+    ? `<button class="btn grad full" disabled style="opacity:.8"><span class="spin"></span>Creating your order</button>`
+    : `<button class="btn grad full" onclick="buy()">Buy GNUS</button>`;
+  return `<div class="buy-grid">
+    <div class="card">
+      <div class="fld"><div class="k">You spend</div><div class="input">100<span class="suffix">EUR ▾</span></div>
+        <div class="amt-chips"><span>50</span><span class="on">100</span><span>250</span><span>500</span></div></div>
+      <div class="fld"><div class="k">Payment method</div><div class="input">Debit/credit card<span class="suffix">▾</span></div></div>
+      <div class="fld"><div class="k">To wallet</div><div class="input"><span class="mono" style="font-size:14px">${ORDER.wallet}</span><span class="suffix">${ORDER.walletName}</span></div></div>
+    </div>
+    <div class="card">
+      <div class="get-k">You get</div>
+      <div class="get-v">${ORDER.gnus} GNUS</div>
+      <div class="kv"><span class="k">Rate</span><span class="v">${ORDER.rate}</span></div>
+      <div class="kv"><span class="k">Banxa fee</span><span class="v">${ORDER.fee}</span></div>
+      <div class="fine" style="margin:6px 0 14px">Quote refreshes in 8 s. ID check and payment happen in Banxa's checkout.</div>
+      ${cta}
+    </div>
+  </div>`;
+}
+
+function pageHead() {
+  if (S.vp === 'mobile') { return ''; }
+  return `<div class="ph-title">Buy GNUS</div><div class="ph-sub">Powered by Banxa</div>`;
+}
+
+/* ---------- A: waiting card (desktop) ---------- */
+function waitingCard() {
+  if (S.step === 'openFail') {
+    return `<div class="card wait"><div class="errbox"><div class="dot">!</div><div>
+      <h2>Your browser didn't open</h2>
+      <p class="lead">Your order is created and open for 30 minutes. Try again, or finish it another way.</p></div></div>
+      <div class="btn-row"><button class="btn grad" onclick="retryOpen()">Try again</button><button class="btn sec" onclick="copyLink()">Copy checkout link</button></div>
+      <div style="margin-top:10px"><button class="link" onclick="go({qr:true})">Pay on another device</button></div></div>`;
+  }
+  if (S.step === 'returning') {
+    return `<div class="card wait"><div style="display:flex;gap:12px;align-items:center"><span class="spin lg" style="color:var(--link)"></span>
+      <div><h2>Checking your order</h2><p class="lead" style="margin:2px 0 0">Back from Banxa. Asking for the latest status.</p></div></div></div>`;
+  }
+  return `<div class="card wait">
+    <h2>Finish paying in your browser</h2>
+    <p class="lead">Banxa's checkout is open in a browser tab. Come back here when you're done; this page also updates on its own.</p>
+    <div class="rows" style="margin-bottom:16px">
+      <div class="kv"><span class="k">You get</span><span class="v">${ORDER.gnus} GNUS</span></div>
+      <div class="kv"><span class="k">You pay</span><span class="v">${ORDER.fiat}</span></div>
+      <div class="kv"><span class="k">To wallet</span><span class="v mono">${ORDER.wallet}</span></div>
+      <div class="kv"><span class="k">Open until</span><span class="v">${ORDER.until}</span></div>
+    </div>
+    <div class="btn-row"><button class="btn grad" onclick="checkStatus()">I've paid, check status</button><button class="btn sec" onclick="go({browserOpen:true, checkMsg:false})">Reopen checkout</button></div>
+    ${S.checkMsg ? `<div class="inline-msg">Banxa hasn't received a payment for this order yet. Finish in the browser tab, or pay on another device.</div>` : ''}
+    <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+      <button class="link" onclick="go({qr:true})">Pay on another device</button>
+      <button class="link" onclick="leave()">Not now</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- C: tracker ---------- */
+function tracker() {
+  const st = S.step, os = S.orderStatus;
+  const created = st === 'creating' ? 'now' : 'done';
+  let pay = 'todo', payT = 'Pay with Banxa', payS = 'ID check and card payment';
+  let recv = 'todo', recvT = 'Payment received', recvS = 'Usually within a few minutes';
+  let sent = 'todo';
+  if (st === 'checkout' || st === 'openFail') {
+    pay = 'now';
+    payS = st === 'openFail' ? '<span class="t-err">Checkout didn\'t open.</span> Your order is open until ' + ORDER.until + '.'
+      : S.left ? 'Checkout closed before paying. Your order is open until ' + ORDER.until + '.'
+      : S.vp === 'desktop' ? 'Checkout is open in your browser.' : 'Checkout is open in a Banxa tab.';
+  }
+  if (st === 'returning') { pay = 'now'; payS = '<span style="display:inline-flex;gap:8px;align-items:center"><span class="spin"></span>Checking your order</span>'; }
+  if (st === 'order' && os === 'processing') { pay = 'done'; payS = 'Paid ' + ORDER.fiat + ' by card'; recv = 'now'; recvT = 'Processing payment'; recvS = 'Banxa is confirming your payment. GNUS is sent to your wallet after that.'; }
+  if (st === 'order' && os === 'declined') { pay = 'bad'; payT = 'Payment declined'; payS = 'Banxa declined the payment. You were not charged.'; }
+  const mk = (s, n) => s === 'done' ? '&#10003;' : s === 'bad' ? '!' : n;
+  let actions = '';
+  if (st === 'checkout' || st === 'openFail') {
+    actions = `<div class="btn-row" style="margin-top:4px">${st === 'openFail' ? `<button class="btn grad" onclick="retryOpen()">Try again</button>` : `<button class="btn grad" onclick="go({browserOpen:true,left:false})">${S.left ? 'Continue paying' : 'Reopen checkout'}</button>`}
+      <button class="btn sec" onclick="go({qr:true})">Pay on another device</button></div>`;
+  }
+  if (st === 'order' && os === 'declined') {
+    actions = `<div class="btn-row"><button class="btn sec" onclick="restart()">Retry Order</button></div>
+      <div class="fine" style="margin-top:10px">Banxa order <span class="mono copyable" onclick="copyId()">${ORDER.idShort}</span> · <button class="link" onclick="toast('Opening Banxa support')">Contact Banxa support</button></div>`;
+  }
+  if (st === 'order' && os === 'processing') {
+    actions = `<div class="btn-row"><button class="btn ter" onclick="restart()">Buy more</button><button class="btn sec" onclick="toast('Opening your order on Banxa')">View on Banxa</button></div>`;
+  }
+  return `<div class="card" style="${S.vp === 'desktop' ? 'max-width:640px;margin-top:24px' : ''}">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div><div class="get-k">Your order</div><div class="get-v" style="margin:2px 0 0">+ ${ORDER.gnus} GNUS</div><div class="fine">${ORDER.fiat} · to ${ORDER.wallet}</div></div>
+      ${st === 'order' ? statusPill(os) : ''}
+    </div>
+    <ul class="tl" style="margin-top:18px">
+      <li class="${created}"><div class="mk">${mk(created, 1)}</div><div><div class="tt">${created === 'now' ? 'Creating your order' : 'Order created'}</div><div class="ts">${created === 'now' ? '<span class="spin"></span>' : 'Today 12:04 · Banxa <span class="mono copyable" onclick="copyId()">' + ORDER.idShort + '</span>'}</div></div></li>
+      <li class="${pay}"><div class="mk">${mk(pay, 2)}</div><div><div class="tt">${payT}</div><div class="ts">${payS}</div></div></li>
+      <li class="${recv}"><div class="mk">${mk(recv, 3)}</div><div><div class="tt">${recvT}</div><div class="ts">${recvS}</div></div></li>
+      <li class="${sent}"><div class="mk">4</div><div><div class="tt">GNUS in your wallet</div><div class="ts">${ORDER.walletName}</div></div></li>
+    </ul>
+    ${actions}
+  </div>`;
+}
+
+/* ---------- B: full-screen ---------- */
+function bProg() {
+  const os = S.orderStatus;
+  const order = S.step === 'creating' ? 'on' : 'done';
+  const payS = S.step === 'creating' ? '' : (S.step === 'order' ? (os === 'declined' ? 'bad' : 'done') : 'on');
+  const done = S.step === 'order' && os !== 'declined' ? 'on' : '';
+  const i = (c, n) => c === 'done' ? '&#10003;' : c === 'bad' ? '!' : n;
+  return `<div class="prog"><span class="st ${order}"><i>${i(order,1)}</i>Order</span><span class="gt">›</span>
+    <span class="st ${payS}"><i>${i(payS,2)}</i>Pay</span><span class="gt">›</span><span class="st ${done}"><i>3</i>Done</span></div>`;
+}
+function bScreen() {
+  const d = S.vp === 'desktop';
+  const closeable = S.step !== 'order' && S.step !== 'returning';
+  const head = `<div class="fs-head">
+    <button class="x" style="margin:0" onclick="${closeable ? 'askLeave()' : (S.step === 'order' ? 'bExit(false)' : 'restart()')}" aria-label="Close">${ICON.x}</button>
+    <div class="ttl">Buy GNUS<small>${ICON.lock} Secured by Banxa</small></div>
+    ${d ? bProg() : ''}
+    <button class="x" onclick="go({menu:!S.menu})" aria-label="More">${ICON.more}</button>
+    ${S.menu ? `<div class="menu"><button onclick="go({menu:false,qr:true})">Pay on another device<small>Scan a code or copy the link</small></button>
+      <button onclick="go({menu:false}); toast('Opening checkout in your browser')">Open in browser<small>For Apple Pay or iDEAL</small></button></div>` : ''}
+  </div>${d ? '' : bProg()}`;
+  let body;
+  if (S.step === 'creating') { body = `<div class="center-state"><span class="spin lg" style="color:var(--link)"></span><div class="t">Creating your order</div><div class="s">${ORDER.gnus} GNUS for ${ORDER.fiat}</div></div>`; }
+  else if (S.step === 'openFail') {
+    body = `<div class="center-state"><div class="errbox" style="flex-direction:column;align-items:center"><div class="dot">!</div></div><div class="t">Checkout didn't load</div>
+      <div class="s">Your order is created and open for 30 minutes. Check your connection and try again, or finish somewhere else.</div>
+      <div class="btn-row" style="width:100%;max-width:380px"><button class="btn grad" onclick="retryOpen()">Try again</button><button class="btn sec" onclick="toast('Opening checkout in your browser')">Open in browser</button></div>
+      <button class="link" onclick="go({qr:true})">Pay on another device</button></div>`;
+  }
+  else if (S.step === 'returning') { body = `<div class="center-state"><span class="spin lg" style="color:var(--link)"></span><div class="t">Checking your order</div><div class="s">Banxa sent you back. Asking for the latest status.</div></div>`; }
+  else if (S.step === 'order') {
+    const dec = S.orderStatus === 'declined';
+    body = `<div class="center-state"><div class="coin" style="width:60px;height:60px;font-size:20px">G</div>
+      <div class="hero" style="padding:0"><div class="am" style="margin:0">+ ${ORDER.gnus} GNUS</div><div class="fi">${dec ? 'Not charged' : ORDER.fiat}</div>${statusPill(S.orderStatus)}</div>
+      <div class="s">${dec ? 'Banxa declined the payment. You were not charged. Try another card, or contact Banxa with the order ID below.' : 'Banxa has your payment. GNUS usually reaches your wallet within a few minutes. You can leave this screen; the order keeps updating in Your orders.'}</div>
+      <div class="fine">Banxa order <span class="mono copyable" onclick="copyId()">${ORDER.idShort}</span>${dec ? ' · <button class="link" onclick="toast(\'Opening Banxa support\')">Contact Banxa support</button>' : ''}</div>
+      <div class="btn-row" style="width:100%;max-width:380px">${dec ? `<button class="btn sec" onclick="restart()">Retry Order</button>` : `<button class="btn ter" onclick="bExit(false)">Back to Buy</button><button class="btn sec" onclick="bExit(true)">View order</button>`}</div></div>`;
+  }
+  else { body = `<div class="banxa-wrap">${banxa()}</div>`; }
+  return `<div class="fs">${head}${body}</div>`;
+}
+function bExit(detail) { S.bLeft = true; go({ detail: !!detail }); }
+
+/* ---------- order drawer ---------- */
+function orderDrawer() {
+  const os = S.orderStatus, dec = os === 'declined', pend = os === 'pending';
+  const line = dec ? 'Banxa declined the payment. You were not charged. Try another card, or contact Banxa with the order ID.'
+    : pend ? `You closed checkout before paying. The order stays open until ${ORDER.until}; after that Banxa expires it.`
+    : 'Banxa has your payment. GNUS usually reaches your wallet within a few minutes. This updates on its own.';
+  const foot = dec ? `<button class="btn sec full" onclick="restart()">Retry Order</button><button class="link" onclick="toast('Opening Banxa support')">Contact Banxa support</button>`
+    : pend ? `<button class="btn grad full" onclick="completePayment()">Complete Payment</button>`
+    : `<button class="btn sec full" onclick="toast('Opening your order on Banxa')">View on Banxa</button>`;
+  return `<div class="scrim" onclick="go({detail:false})"></div><div class="drawer">
+    <div class="d-head"><div class="d-title">GNUS purchase</div><button class="x" onclick="go({detail:false})">${ICON.x}</button></div>
+    <div class="d-body">
+      <div class="hero"><div class="coin">G</div><div class="am">+ ${ORDER.gnus} GNUS</div><div class="fi">${dec ? 'Not charged' : ORDER.fiat}</div>${statusPill(os)}
+        <div class="note">${line}</div></div>
+      <div class="sec-label">Order</div>
+      <div class="rows">
+        <div class="kv"><span class="k">Date</span><span class="v">${ORDER.time}</span></div>
+        <div class="kv"><span class="k">Payment</span><span class="v">Debit/credit card</span></div>
+        <div class="kv"><span class="k">Banxa fee</span><span class="v">${ORDER.fee}</span></div>
+        <div class="kv"><span class="k">Banxa order</span><span class="v mono copyable" onclick="copyId()">${ORDER.idShort}</span></div>
+      </div>
+      <div class="sec-label">Network</div>
+      <div class="rows">
+        <div class="kv"><span class="k">To</span><span class="v mono">${ORDER.wallet}</span></div>
+        <div class="kv"><span class="k">Network</span><span class="v">GNUS</span></div>
+      </div>
+    </div>
+    <div class="d-foot" style="align-items:center">${foot}</div>
+  </div>`;
+}
+
+function qrDrawer() {
+  return `<div class="scrim" style="z-index:33" onclick="go({qr:false})"></div><div class="drawer" style="z-index:34">
+    <div class="d-head"><div class="d-title">Pay on another device</div><button class="x" onclick="go({qr:false})">${ICON.x}</button></div>
+    <div class="d-body" style="text-align:center">
+      <p class="fine" style="font-size:14px;line-height:21px;margin-top:8px">Scan with your phone's camera to open this checkout there. This screen updates when Banxa has your payment.</p>
+      ${qrGrid()}
+      <div class="mono fine">${ORDER.url}</div>
+    </div>
+    <div class="d-foot"><button class="btn sec full" onclick="copyLink()">Copy link</button></div>
+  </div>`;
+}
+
+function disclaimer() {
+  const where = (S.variant === 'B' || (S.variant === 'A' && S.vp === 'mobile')) ? 'Checkout opens inside GeniusWallet but is run by' : 'Checkout opens in your browser and is run by';
+  return `<div class="scrim"></div><div class="dialog" role="dialog">
+    <h3>Before your first buy</h3>
+    <p>${where} Banxa (banxa.com), a separate company. Your ID check and card details go to Banxa, not to GeniusWallet. By continuing you agree to Banxa's Terms of Use and Privacy &amp; Cookies Policy.</p>
+    <label class="check"><input type="checkbox" ${S.agree ? 'checked' : ''} onchange="go({agree:this.checked})"> I have read and agree</label>
+    <p class="fine" style="margin-top:10px">Shown once on this device. Later buys go straight to checkout.</p>
+    <div class="actions"><button class="btn ghost sm" onclick="restart()">Cancel</button><button class="btn grad sm" ${S.agree ? '' : 'disabled'} onclick="acceptDisclaimer()">Continue</button></div>
+  </div>`;
+}
+
+function leaveDialog() {
+  return `<div class="scrim" style="z-index:35"></div><div class="dialog" style="z-index:36" role="dialog">
+    <h3>Leave checkout?</h3>
+    <p>Your order stays open for 30 minutes, until ${ORDER.until}. You can finish it from Your orders.</p>
+    <div class="actions"><button class="btn ghost sm" onclick="leave()">Leave</button><button class="btn grad sm" onclick="go({step:'checkout'})">Keep paying</button></div>
+  </div>`;
+}
+
+/* ---------- A mobile checkout sheet ---------- */
+function aSheet() {
+  let body;
+  if (S.step === 'creating') { body = `<div class="center-state"><span class="spin lg" style="color:var(--link)"></span><div class="t">Creating your order</div><div class="s">${ORDER.gnus} GNUS for ${ORDER.fiat}</div></div>`; }
+  else if (S.step === 'openFail') {
+    body = `<div class="center-state"><div class="errbox"><div class="dot">!</div></div><div class="t">Checkout didn't load</div>
+      <div class="s">Your order is created and open for 30 minutes. Check your connection and try again.</div>
+      <button class="btn grad full" onclick="retryOpen()">Try again</button><button class="btn sec full" onclick="toast('Opening checkout in your browser')">Open in browser</button>
+      <button class="link" onclick="go({qr:true})">Pay on another device</button></div>`;
+  }
+  else { body = `<div class="banxa-wrap">${banxa()}</div>`; }
+  return `<div class="scrim"></div><div class="co-sheet"><div class="grab"></div>
+    <div class="co-head"><div class="who"><b>Banxa</b><span>${ICON.lock} checkout.banxa.com</span></div>
+      <button class="x" onclick="${S.step === 'creating' ? 'restart()' : 'askLeave()'}" aria-label="Close checkout">${ICON.x}</button></div>
+    ${body}</div>`;
+}
+
+function browserWin() {
+  return `<div class="os-label">SYSTEM BROWSER · OUTSIDE THE APP</div><div class="bwin">
+    <div class="bar">${ICON.lock}<div class="url">${ICON.lock} checkout.banxa.com</div>
+      <button onclick="switchApp()">Switch to GeniusWallet</button><button onclick="closeTab()">Close tab</button></div>
+    <div class="banxa-wrap">${banxa()}</div></div>`;
+}
+
+function cTab() {
+  return `<div class="ctab"><div class="cbar"><button class="x" style="margin:0" onclick="askLeave()" aria-label="Close tab">${ICON.x}</button>
+    <div><b>Banxa</b><span>${ICON.lock} checkout.banxa.com</span></div></div>
+    <div class="banxa-wrap">${banxa()}</div></div>`;
+}
+
+/* ---------- compose ---------- */
+function content() {
+  const v = S.variant, d = S.vp === 'desktop', st = S.step;
+  const inFlow = ['creating', 'checkout', 'leaveConfirm', 'returning', 'openFail'].includes(st) || (st === 'order' && S.orderStatus !== 'pending');
+  let main = formBlock(st === 'creating' && v === 'A' && d ? 'creating' : '');
+  if (v === 'A' && d && ['checkout', 'leaveConfirm', 'returning', 'openFail'].includes(st)) { main = waitingCard(); }
+  if (v === 'C' && inFlow && st !== 'leaveConfirm') { main = tracker(); }
+  let page = `<div class="page">${pageHead()}${main}${orderRows()}</div>`;
+
+  let over = '';
+  if (st === 'disclaimer') { over += disclaimer(); }
+  if (v === 'A' && !d && ['creating', 'checkout', 'leaveConfirm', 'openFail'].includes(st)) { over += aSheet(); }
+  if (v === 'A' && !d && st === 'returning') { over += `<div class="scrim"></div><div class="dialog" style="text-align:center"><span class="spin lg" style="color:var(--link)"></span><h3 style="margin-top:12px">Checking your order</h3><p>Back from Banxa.</p></div>`; }
+  if ((v === 'A' || v === 'C') && d && st === 'checkout' && S.browserOpen) { over += browserWin(); }
+  if (v === 'C' && !d && st === 'checkout' && S.browserOpen) { over += cTab(); }
+  if (v === 'B' && inFlow && !S.bLeft) { over += bScreen(); }
+  if (st === 'leaveConfirm') { over += leaveDialog(); }
+  if (st === 'order' && S.detail) { over += orderDrawer(); }
+  if (S.qr) { over += qrDrawer(); }
+  if (S.toast) { over += `<div class="toast">${S.toast}</div>`; }
+  return { page, over };
+}
+
+function device() {
+  const { page, over } = content();
+  if (S.vp === 'desktop') {
+    return `<div class="device desktop"><div class="nav"><span class="logo">GeniusWallet</span>
+      <div class="tabs"><span>Dashboard</span><span>Transactions</span><span>Swap</span><span>Markets</span><span>News</span><span>Web</span></div>
+      <div class="right"><span class="chip">GNUS</span><span class="chip">${ORDER.walletName} · <span class="mono">${ORDER.wallet}</span></span></div></div>
+      <div class="scroll">${page}</div>${over}</div>`;
+  }
+  return `<div class="device mobile"><div class="m-status"><span>9:41</span><span>5G</span></div>
+    <div class="m-head"><span class="back">${ICON.back}</span><div><div class="t">Buy GNUS</div><div class="s">Powered by Banxa</div></div></div>
+    <div class="scroll">${page}</div>
+    <div class="m-nav"><span><i></i>Home</span><span><i></i>Assets</span><span class="dock"><i></i></span><span><i></i>Activity</span><span><i></i>News</span></div>${over}</div>`;
+}
+
+/* ---------- captions: what the platform is doing ---------- */
+function caption() {
+  const v = S.variant, d = S.vp === 'desktop', st = S.step;
+  const C = {
+    A: {
+      form: d ? '<b>Buy tapped.</b> One quote, one button. The old Open in Browser / Show QR / Copy link sheet is gone.' : '<b>Buy tapped.</b> The checkout sheet opens straight away; there is no browser / QR / link choice first.',
+      disclaimer: '<b>First buy only.</b> The Banxa disclaimer appears once per device, then is remembered (a flag in the settings repository).',
+      creating: d ? '<b>Creating your order.</b> <code>POST /v2/buy</code> runs; the button carries the wait. When it returns, <code>url_launcher</code> opens the checkout URL in the system browser.' : '<b>Creating your order.</b> The sheet is already up and shows the wait, so the tap feels answered at once.',
+      checkout: d ? '<b>Checkout in the browser.</b> The app shows a waiting card. It polls the order and also accepts <code>geniuswallet://banxa/callback</code>. "Switch to GeniusWallet" or "Close tab" to see the app side; the app cannot see the tab close.' : '<b>Checkout in a tall sheet.</b> <code>webview_flutter</code> inside the sheet; its NavigationDelegate watches for <code>geniuswallet://banxa/callback</code>. Try the X: it asks before leaving.',
+      leaveConfirm: '<b>Closing early.</b> The in-app sheet can ask first, because the app owns the close button.',
+      returning: d ? '<b>Return.</b> The callback link reopened the app (or you pressed "I\'ve paid, check status"). One status fetch before landing.' : '<b>Return.</b> The delegate caught the callback, closed the sheet and fetched the order once.',
+      order: '<b>Landed on the order.</b> The receipt drawer opens over Buy GNUS, and the new row sits at the top of Your orders.',
+      openFail: d ? '<b>Checkout failed to open.</b> <code>launchUrl</code> returned false or threw. The order already exists, so the fallbacks are the same order, not a new one.' : '<b>Checkout failed to open.</b> The WebView reported a load error. Try again, the browser, or another device.'
+    },
+    B: {
+      form: '<b>Buy tapped.</b> The checkout takes over the screen with a slim app header and Order › Pay › Done.',
+      disclaimer: '<b>First buy only.</b> The Banxa disclaimer appears once per device.',
+      creating: '<b>Creating your order.</b> Progress sits on Order while <code>POST /v2/buy</code> runs.',
+      checkout: d ? '<b>Checkout in an in-app panel.</b> <code>webview_flutter</code> on Windows (WebView2) and macOS (WKWebView). Linux has no implementation and would still fall back to the browser. "Pay on another device" is in the ⋮ menu.' : '<b>Full-screen checkout.</b> <code>webview_flutter</code> with a NavigationDelegate catching <code>geniuswallet://banxa/callback</code>. ⋮ holds Pay on another device and Open in browser.',
+      leaveConfirm: '<b>Closing early.</b> The app owns the X, so it can ask first.',
+      returning: '<b>Return.</b> Callback caught, Pay turns done, one status fetch.',
+      order: '<b>Done step is the order.</b> The flow ends on its own result page; View order opens the receipt drawer, Back to Buy shows it in Your orders.',
+      openFail: '<b>Checkout failed to load.</b> The WebView\'s onWebResourceError. The order exists; offer the same order another way.'
+    },
+    C: {
+      form: '<b>Buy tapped.</b> The form itself will turn into the order tracker; nothing opens on top of it.',
+      disclaimer: '<b>First buy only.</b> The Banxa disclaimer appears once per device.',
+      creating: '<b>Creating your order.</b> The form becomes the tracker at step 1.',
+      checkout: d ? '<b>Checkout in a separate browser window.</b> The Buy page is already the tracker, so returning needs no navigation at all. The app cannot see the tab close; "Close tab" shows what the page says then.' : '<b>Checkout in an Android Custom Tab / iOS SFSafariViewController.</b> Google Pay works here. The X belongs to the system, so the app cannot ask "Leave checkout?" first; it just resumes on the tracker.',
+      returning: '<b>Return.</b> The page never left; it fetches once and moves the tracker on.',
+      order: '<b>The page is the order.</b> Step 3 reads Processing payment; the row in Your orders matches.',
+      openFail: '<b>Checkout failed to open.</b> The tracker holds the order and offers retry or another device.'
+    }
+  };
+  let t = (C[v] || {})[st] || '';
+  if (st === 'order' && S.orderStatus === 'declined') { t = '<b>Payment declined</b> (Banxa status <code>declined</code>). Not charged, Banxa order ID with copy, support link, and Retry Order prefilled with the same values.'; }
+  if (S.orderStatus === 'pending') { t = '<b>Closed without paying.</b> The order is <code>pendingPayment</code> and open for 30 minutes; Complete Payment reopens the same checkout at the Pay step.'; }
+  if (S.left && v === 'C') { t = '<b>Closed without paying.</b> The checkout went away without a callback. The tracker says so and keeps the order open.'; }
+  return t;
+}
+
+function render() {
+  const f = document.getElementById('flow');
+  const a = activeJump();
+  f.innerHTML = '<span class="lbl">Sequence</span>' + FLOW.map(([k, l], i) => `<button class="sk-chip ${a === k ? 'on' : ''}" onclick="jump('${k}')">${l}</button>${i < FLOW.length - 1 ? '<span class="arrow">›</span>' : ''}`).join('')
+    + '<span class="sk-sep"></span><span class="lbl">Errors</span>' + ERRS.map(([k, l]) => `<button class="sk-chip err ${a === k ? 'on' : ''}" onclick="jump('${k}')">${l}</button>`).join('')
+    + '<span class="sk-sep"></span><button class="sk-chip" onclick="restart()">Restart</button>';
+  document.getElementById('caption').innerHTML = caption();
+  const stage = document.getElementById('stage');
+  const scrollY = stage.querySelector('.scroll')?.scrollTop || 0;
+  stage.innerHTML = device();
+  const sc = stage.querySelector('.scroll'); if (sc) { sc.scrollTop = scrollY; }
+  fit();
+}
+function fit() {
+  const stage = document.getElementById('stage');
+  const w = S.vp === 'desktop' ? 1280 : 390, h = S.vp === 'desktop' ? 800 : 844;
+  const s = Math.min(1, (window.innerWidth - 32) / w);
+  stage.style.transform = `scale(${s})`;
+  stage.style.width = w + 'px';
+  stage.parentElement.style.height = (h * s + 92) + 'px';
+  stage.style.marginRight = (w * s - w) + 'px';
+}
+window.addEventListener('resize', fit);
+render();
+</script>
+</body>
+</html>

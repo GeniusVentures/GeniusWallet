@@ -113,7 +113,7 @@ class DevBanxaFixtures {
       // success bucket
       order(
         id: 'dev-completed',
-        status: 'completed',
+        status: 'complete',
         fiatAmount: '250.00',
         cryptoAmount: '0.0031',
         cryptoId: 'ETH',
@@ -131,8 +131,7 @@ class DevBanxaFixtures {
         cryptoId: 'ETH',
         daysAgo: 2,
       ),
-      // error bucket — the branch order_details_card.dart did NOT have before
-      // Phase 9 (it was a 2-way green/orange ternary).
+      // error bucket
       order(
         id: 'dev-declined',
         status: 'declined',

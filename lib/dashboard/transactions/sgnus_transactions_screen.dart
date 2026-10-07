@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 
@@ -14,7 +16,14 @@ class SgnusTransactionsScreen extends StatefulWidget {
   /// `/transactions` route opts in.
   final bool page;
 
-  const SgnusTransactionsScreen({super.key, this.page = false});
+  /// Forwarded to [TransactionsSlimView.initialFilter].
+  final Filters? initialFilter;
+
+  const SgnusTransactionsScreen({
+    super.key,
+    this.page = false,
+    this.initialFilter,
+  });
 
   @override
   State<SgnusTransactionsScreen> createState() =>
@@ -52,10 +61,17 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
         final allTx = snapshot.data ?? [];
         final sgnusTx = allTx.where((tx) => tx.isSGNUS == true).toList();
 
-        final view = TransactionsSlimView(
-          transactions: sgnusTx,
-          isShowOnlySGNUSTransactions: true,
-          page: widget.page,
+        final view = BlocBuilder<OrdersCubit, OrdersState>(
+          builder: (context, ordersState) => TransactionsSlimView(
+            transactions: sgnusTx,
+            isShowOnlySGNUSTransactions: true,
+            page: widget.page,
+            buyOrders: ordersState.orders?.orders ?? const [],
+            buyOrdersStatus: ordersState.status,
+            onRetryBuyOrders: () =>
+                unawaited(context.read<OrdersCubit>().fetchOrders()),
+            initialFilter: widget.initialFilter,
+          ),
         );
 
         // The page frame already centres, and its branch sits in an `Expanded`

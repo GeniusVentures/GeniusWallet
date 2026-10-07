@@ -5,12 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
-import 'package:genius_wallet/banxa/banxa_helpers/order_service.dart';
-import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
-import 'package:genius_wallet/banxa/banxa_orders_history.dart';
-import 'package:genius_wallet/banxa/banxa_payment.dart';
-import 'package:genius_wallet/banxa/checkout_qr.dart';
-import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
+import 'package:genius_wallet/banxa/checkout/checkout_screen.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart';
@@ -23,6 +18,8 @@ import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart'
+    show filterFromQuery;
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/dev/design_gallery_screen.dart';
@@ -32,7 +29,6 @@ import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
-import 'package:genius_wallet/screens/order_details_page.dart';
 import 'package:genius_wallet/screens/splash.dart';
 import 'package:genius_wallet/send/send_screen.dart';
 import 'package:genius_wallet/services/coins_service.dart';
@@ -40,6 +36,7 @@ import 'package:genius_wallet/settings/settings_screen.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -86,113 +83,31 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      // The orders history's own route, now that `/buy` is the buy form.
-      // Reached from the buy screen's orders rail ("View all") and from
-      // `order_details_page.dart`'s root-fallback back arrow.
-      path: '/buy/orders',
-      builder: (context, state) {
-        return const OrdersPage();
-      },
-    ),
-    GoRoute(
-      path: '/createOrder',
-      builder: (context, state) {
-        final args = state.extra as Map<String, dynamic>? ?? {};
-
-        return BanxaBuyScreen(
-          initialFiatCode: args['fiat'] as String?,
-          initialCryptoCode: args['crypto'] as String?,
-          initialPaymentMethodId: args['method'] as String?,
-          initialAmount: args['amount'] as String?,
-          initialWalletAddress: args['wallet'] as String?,
-        );
-      },
-    ),
-    GoRoute(
-      path: '/orderDetails',
-      builder: (context, state) {
-        final extra = (state.extra as Map<String, dynamic>?) ?? {};
-        final orderId = extra['orderId'] as String? ?? '';
-        final checkoutUrl = extra['checkoutUrl'] as String?;
-        final redirectUrl = extra['redirectUrl'] as String?;
-        return OrderDetailsPage(
-          orderId: orderId,
-          checkoutUrl: checkoutUrl,
-          redirectUrl: redirectUrl,
-        );
-      },
-    ),
-    GoRoute(
+      // Banxa or anyone can open this link, so its query is ignored; the
+      // polled order status says what happened.
       path: '/banxa/callback',
-      builder: (ctx, state) {
-        final qp = state.uri.queryParameters;
-        final status = qp['status'];
-        final extOrderId = qp['extOrderId'];
-        final orderIdFromBanxa = qp['orderId'];
-
-        final effectiveOrderId =
-            orderIdFromBanxa ?? OrderLinker.instance.get(extOrderId ?? '');
-
-        if (effectiveOrderId != null && effectiveOrderId.isNotEmpty) {
-          return OrderDetailsPage(
-            orderId: effectiveOrderId,
-            initialStatus: status,
-            redirectUrl: state.uri.toString(),
-            checkoutUrl: null,
-          );
-        }
-
-        return const OrdersPage();
-      },
-    ),
-    GoRoute(
-      path: '/checkoutQR',
-      builder: (context, state) {
-        String? checkoutUrl;
-        String? orderId;
-
-        final extra = state.extra;
-        if (extra is Map) {
-          checkoutUrl = extra['checkoutUrl'] as String?;
-          orderId = extra['orderId'] as String?;
-        }
-        checkoutUrl ??= state.uri.queryParameters['checkoutUrl'];
-        orderId ??= state.uri.queryParameters['orderId'];
-
-        if (checkoutUrl == null || checkoutUrl.isEmpty) {
-          return const Scaffold(
-            body: Center(child: Text('Missing checkoutUrl')),
-          );
-        }
-
-        final api = BanxaApiService();
-
-        return BlocProvider(
-          create: (_) =>
-              PollingCubit(orderId: orderId ?? '', api: api)..startPolling(),
-          child: CheckoutQrPage(
-            checkoutUrl: checkoutUrl,
-            orderId: orderId ?? '',
-          ),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/kyc',
-      builder: (context, state) {
-        return const BanxaKycScreen();
-      },
+      redirect: (_, _) => '/transactions?filter=purchase',
     ),
     GoRoute(
       path: '/checkout',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final args = state.extra as Map<String, dynamic>? ?? {};
-        final checkoutUrl = args['checkoutUrl'] as String? ?? '';
-        final redirectUrl = args['redirectUrl'] as String? ?? '';
-
-        return BanxaPaymentWebView(
-          checkoutUrl: checkoutUrl,
-          redirectUrl: redirectUrl,
+        final screen = CheckoutScreen(
+          orderId: args['orderId'] as String? ?? '',
+          checkoutUrl: args['checkoutUrl'] as String? ?? '',
+          isSandbox: context.read<BanxaApiService>().isSandbox,
+        );
+        if (!GeniusBreakpoints.useDesktopLayout(context)) {
+          return MaterialPage(key: state.pageKey, child: screen);
+        }
+        // Desktop: a dialog over the dimmed app, not a full-window page.
+        return CustomTransitionPage(
+          key: state.pageKey,
+          opaque: false,
+          barrierColor: context.gw.surfaceOverlay,
+          child: screen,
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
         );
       },
     ),
@@ -249,7 +164,9 @@ final geniusWalletRouter = GoRouter(
         GoRoute(path: '/dashboard', builder: (_, _) => const DashboardScreen()),
         GoRoute(
           path: '/transactions',
-          builder: (_, _) => const TransactionsScreen(),
+          builder: (_, state) => TransactionsScreen(
+            initialFilter: filterFromQuery(state.uri.queryParameters['filter']),
+          ),
         ),
         // The dashboard's Assets `View all` destination (phase 25). INSIDE the
         // shell is load-bearing: outside it the page would replace the bottom
@@ -321,48 +238,15 @@ final geniusWalletRouter = GoRouter(
         GoRoute(path: '/markets', builder: (_, _) => const MarketsScreen()),
         GoRoute(path: '/news', builder: (_, _) => const CryptoNewsScreen()),
         GoRoute(
-          // 09-08: `/buy` is the BUY FORM — the CTA labelled "Buy GNUS"
-          // (`wallet_information.dart`, `coins_screen.dart`) must open a page
-          // for buying GNUS, not the order history. The history is at
-          // `/buy/orders` (still outside the shell, unchanged by this move).
-          //
-          // Moved INSIDE the shell 2026-07-31 (walk item 1), matching
-          // `/token-info`'s own move on 2026-07-28 (sketch 071): it was the
-          // only entry point still pushed OUTSIDE the shell that both
-          // `wallet_information.dart` and `coins_screen.dart` reach with
-          // `context.push('/buy')` from a screen already inside the shell,
-          // so it pushes onto the shell's own nested Navigator exactly as
-          // `/token-info` does — the app's nav bar stays mounted rather than
-          // the screen replacing it with its own back-arrow AppBar.
+          // The "Buy GNUS" CTAs open the buy card. It moved inside the shell
+          // so the nav bar stays mounted, as `/token-info` does.
           path: '/buy',
           builder: (context, state) {
             final args = state.extra as Map<String, dynamic>? ?? {};
 
-            // Sensible defaults (walk item 3, 2026-07-31): a blank
-            // five-field form reads as broken, not as one waiting for
-            // input. USD/GNUS are always-available choices; the wallet
-            // address comes from the user's OWN selected wallet
-            // (`WalletDetailsCubit`), never a literal. Only applied when the
-            // caller didn't already pass one (`args['...']` still wins, so a
-            // deep link's own values are never clobbered). Payment method
-            // and amount stay blank on purpose: Banxa's available methods
-            // and limits depend on the fiat+crypto pair, so neither has a
-            // safe default.
-            final walletCubit = context.read<WalletDetailsCubit>();
-
             return BanxaBuyScreen(
-              initialFiatCode: args['fiat'] as String? ?? 'USD',
-              initialCryptoCode: args['crypto'] as String? ?? 'GNUS',
-              initialPaymentMethodId: args['method'] as String?,
+              initialFiatCode: args['fiat'] as String?,
               initialAmount: args['amount'] as String?,
-              initialWalletAddress:
-                  args['wallet'] as String? ??
-                  walletCubit.state.selectedWallet?.address,
-              // The back link's label (walk item 2, 2026-07-31). Each caller
-              // passes its own origin explicitly - never sniffed from the
-              // nav stack, which breaks silently on a deep link.
-              // `BanxaBuyScreen` falls back to 'BACK' when absent.
-              originLabel: args['origin'] as String?,
             );
           },
         ),

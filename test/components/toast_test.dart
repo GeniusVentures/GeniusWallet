@@ -109,6 +109,42 @@ void main() {
     });
   });
 
+  testWidgets('an action link dismisses the toast and runs its callback', (
+    tester,
+  ) async {
+    final context = await _pumpHost(tester);
+    var taps = 0;
+    showToast(
+      context,
+      'GNUS arrived.',
+      title: 'Done',
+      actionLabel: 'View order',
+      onAction: () => taps++,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('View order'), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(TextButton)).height,
+      greaterThanOrEqualTo(44),
+    );
+
+    await tester.tap(find.text('View order'));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(taps, 1);
+    expect(ToastManager.instance.visibleCount, 0);
+  });
+
+  testWidgets('a compact toast has no room for an action link', (tester) async {
+    final context = await _pumpHost(tester);
+    showToast(context, 'Link copied', actionLabel: 'Undo', onAction: () {});
+    await tester.pump();
+
+    expect(find.text('Undo'), findsNothing);
+  });
+
   testWidgets('a screen reader is handed both halves of an alert', (
     tester,
   ) async {

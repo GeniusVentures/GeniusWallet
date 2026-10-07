@@ -20,6 +20,10 @@ enum ToastType { success, error, warning }
 /// by 8px before anything wrapped. 4 of slack on top of the 92.
 const double _kCardStride = 96.0;
 
+/// A card with an action link: the link's 44pt tap target sits under the
+/// message.
+const double _kActionCardStride = _kCardStride + 44.0;
+
 /// A pill is 30 — `space3` padding twice (12) + one `labelMd` line (18).
 const double _kCompactStride = 44.0;
 
@@ -51,6 +55,9 @@ const String _kErrorTitle = 'Error';
 ///
 /// One exception: [ToastType.error] always gets the card, titled or not — see
 /// [_kErrorTitle]. Nothing the user has to act on is allowed to be a receipt.
+///
+/// [actionLabel] with [onAction] adds a link under the message of a card
+/// toast; tapping it dismisses the toast and runs the callback.
 void showToast(
   BuildContext context,
   String message, {
@@ -58,6 +65,8 @@ void showToast(
   ToastType type = ToastType.success,
   Duration? duration,
   VoidCallback? onClose,
+  String? actionLabel,
+  VoidCallback? onAction,
 }) {
   ToastManager.instance.show(
     context: context,
@@ -66,6 +75,8 @@ void showToast(
     type: type,
     duration: duration,
     onClose: onClose,
+    actionLabel: actionLabel,
+    onAction: onAction,
   );
 }
 
@@ -86,6 +97,8 @@ class ToastManager {
     ToastType type = ToastType.success,
     Duration? duration,
     VoidCallback? onClose,
+    String? actionLabel,
+    VoidCallback? onAction,
   }) {
     // Every in-page caller has an ancestor Overlay (the app shell's own), so
     // `Overlay.maybeOf` resolves on the first branch. The fallback is for a
@@ -97,6 +110,7 @@ class ToastManager {
     final overlay = Overlay.maybeOf(context) ?? Navigator.of(context).overlay!;
     final cardTitle = title ?? (type == ToastType.error ? _kErrorTitle : null);
     final isCard = cardTitle != null;
+    final hasAction = isCard && actionLabel != null && onAction != null;
 
     while (_toasts.length >= _kMaxVisible) {
       _dismiss(_toasts.first, null);
@@ -111,6 +125,13 @@ class ToastManager {
         title: cardTitle,
         message: message,
         type: type,
+        actionLabel: hasAction ? actionLabel : null,
+        onAction: hasAction
+            ? () {
+                _dismiss(toast, onClose);
+                onAction();
+              }
+            : null,
         // The auto-dismiss timer lives on the State, not here, so that a tree
         // torn down while a toast is up cancels it. Held on the manager it
         // survived its own overlay — which in a widget test is a pending-timer
@@ -124,7 +145,7 @@ class ToastManager {
       ),
     );
 
-    toast = _ActiveToast(entry: entry, isCard: isCard);
+    toast = _ActiveToast(entry: entry, isCard: isCard, hasAction: hasAction);
     _toasts.add(toast);
     overlay.insert(entry);
     _restack();
@@ -152,7 +173,11 @@ class ToastManager {
     }
     var total = 0.0;
     for (var i = 0; i < index; i++) {
-      total += _toasts[i].isCard ? _kCardStride : _kCompactStride;
+      total += switch (_toasts[i]) {
+        _ActiveToast(hasAction: true) => _kActionCardStride,
+        _ActiveToast(isCard: true) => _kCardStride,
+        _ => _kCompactStride,
+      };
     }
     return total;
   }
@@ -201,10 +226,15 @@ class ToastManager {
 class _ActiveToast {
   final OverlayEntry entry;
   final bool isCard;
+  final bool hasAction;
   AnimationController? controller; // set once the widget initializes
   bool dismissed = false;
 
-  _ActiveToast({required this.entry, required this.isCard});
+  _ActiveToast({
+    required this.entry,
+    required this.isCard,
+    required this.hasAction,
+  });
 }
 
 class _AnimatedToast extends StatefulWidget {
@@ -212,6 +242,8 @@ class _AnimatedToast extends StatefulWidget {
   final String? title;
   final String message;
   final ToastType type;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   final Duration duration;
   final ValueChanged<AnimationController> onControllerReady;
   final VoidCallback onDismiss;
@@ -222,6 +254,8 @@ class _AnimatedToast extends StatefulWidget {
     required this.title,
     required this.message,
     required this.type,
+    required this.actionLabel,
+    required this.onAction,
     required this.duration,
     required this.onControllerReady,
     required this.onDismiss,
@@ -291,6 +325,8 @@ class _AnimatedToastState extends State<_AnimatedToast>
       message: widget.message,
       type: widget.type,
       onDismiss: widget.onDismiss,
+      actionLabel: widget.actionLabel,
+      onAction: widget.onAction,
     );
 
     // Respect the OS "reduce motion" switch: fade in place rather than travel.

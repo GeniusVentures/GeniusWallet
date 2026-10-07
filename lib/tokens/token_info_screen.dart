@@ -697,9 +697,13 @@ class _CoinActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    final String pageSymbol = (marketData?.symbol ?? selectedCoin?.symbol ?? '')
+        .toLowerCase();
+
+    // Wrap, not Row: Buy makes five actions, which overflow a phone.
+    return Wrap(
       spacing: GeniusWalletConsts.space4,
+      runSpacing: GeniusWalletConsts.space4,
       children: [
         GWButton(
           variant: GWButtonVariant.gradient,
@@ -795,6 +799,14 @@ class _CoinActionRow extends StatelessWidget {
             onPressed: selectedCoin?.balance == 0
                 ? null
                 : () => _pushBridgeScreen(context, walletDetailsCubit),
+          ),
+        if (pageSymbol == 'gnus')
+          GWButton(
+            variant: GWButtonVariant.gradientOutline,
+            size: GWButtonSize.sm,
+            label: 'Buy',
+            leading: const Icon(Icons.add_card),
+            onPressed: () => GoRouter.of(context).push('/buy'),
           ),
       ],
     );
