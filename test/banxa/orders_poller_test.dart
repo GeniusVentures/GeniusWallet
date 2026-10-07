@@ -211,6 +211,30 @@ void main() {
     });
   });
 
+  test('a tracked order already final on its first read is announced', () {
+    fakeAsync((async) {
+      final api = FakeBanxaApi(orders: [_order('c1', 'complete')]);
+      final cubit = _cubit(api);
+      final finished = <String>[];
+      cubit.stream.listen(
+        (s) => finished.addAll(s.justFinished.map((o) => o.id)),
+      );
+      async.flushMicrotasks();
+      api.orders = [_order('c1', 'complete'), _order('n1', 'complete')];
+
+      api.orderByIdError = Exception('offline');
+      unawaited(cubit.track('n1'));
+      async.flushMicrotasks();
+
+      api.orderByIdError = null;
+      async.elapse(_tick);
+      expect(finished, ['n1']);
+
+      unawaited(cubit.close());
+      async.flushMicrotasks();
+    });
+  });
+
   test('refreshOrder completes once the order has been read', () {
     fakeAsync((async) {
       final api = FakeBanxaApi(orders: [_order('p1', 'pendingPayment')])

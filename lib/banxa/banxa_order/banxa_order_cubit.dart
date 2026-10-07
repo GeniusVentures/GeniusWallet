@@ -294,10 +294,13 @@ class OrdersCubit extends Cubit<OrdersState> {
         before.updatedAt == fresh.updatedAt) {
       return;
     }
+    // A tracked order can be final on its very first read when that read
+    // failed earlier; it was still started in this session, so it is news.
     final turnedFinal =
-        before != null &&
-        before.banxaStatus != fresh.banxaStatus &&
-        fresh.banxaStatus.isFinal;
+        fresh.banxaStatus.isFinal &&
+        (before == null
+            ? _trackedIds.contains(fresh.id)
+            : before.banxaStatus != fresh.banxaStatus);
 
     List<Order> put(List<Order> list) {
       final index = list.indexWhere((o) => o.id == fresh.id);
