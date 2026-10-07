@@ -197,8 +197,9 @@ void main() {
     await _drainToasts(tester);
   });
 
-  testWidgets('a wallet switch the CTA has not rebuilt for signs with the '
-      'live wallet', (tester) async {
+  testWidgets('a wallet switch while the screen is open stops the burn', (
+    tester,
+  ) async {
     final host = _Host(_appState());
     await _readyCta(tester, host);
 
@@ -217,7 +218,36 @@ void main() {
     );
     await _tap(tester);
 
-    expect(host.api.signers, [_otherAddress]);
+    expect(host.api.burns, 0);
+    expect(
+      find.text('The wallet or network changed. Reopen Bridge.'),
+      findsOneWidget,
+    );
+    await _drainToasts(tester);
+  });
+
+  testWidgets('a network switch to the same GNUS contract stops the burn', (
+    tester,
+  ) async {
+    final host = _Host(_appState());
+    await _readyCta(tester, host);
+
+    const other = Network(
+      name: 'BNB Chain',
+      symbol: 'bnb',
+      chainId: 56,
+      rpcUrl: 'https://rpc.bnb.invalid',
+    );
+    host.wallet.push(
+      host.wallet.state.copyWith(selectedNetwork: other, coinsNetwork: other),
+    );
+    await _tap(tester);
+
+    expect(host.api.burns, 0);
+    expect(
+      find.text('The wallet or network changed. Reopen Bridge.'),
+      findsOneWidget,
+    );
     await _drainToasts(tester);
   });
 
@@ -248,7 +278,10 @@ void main() {
 
     expect(host.api.burns, 0);
     expect(find.text("Can't bridge"), findsOneWidget);
-    expect(find.text('The network changed. Reopen Bridge.'), findsOneWidget);
+    expect(
+      find.text('The wallet or network changed. Reopen Bridge.'),
+      findsOneWidget,
+    );
     await _drainToasts(tester);
   });
 

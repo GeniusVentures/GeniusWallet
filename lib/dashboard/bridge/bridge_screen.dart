@@ -49,11 +49,18 @@ class BridgeScreenState extends State<BridgeScreen> {
   // either flag.
   bool isEstimating = false;
   bool isSubmitting = false;
+  // The amount, balance and fee shown here belong to the wallet and chain the
+  // screen opened on; a burn on any other pair is refused.
+  String? _openedWallet;
+  int? _openedChainId;
 
   @override
   void initState() {
     super.initState();
     fromToken = widget.fromToken;
+    final opened = context.read<WalletDetailsCubit>().state;
+    _openedWallet = opened.selectedWallet?.address.toLowerCase();
+    _openedChainId = opened.selectedNetwork?.chainId;
     fromAmountController.text = '';
     toAmountController.text = '';
     _fetchBridgeNetworks();
@@ -303,11 +310,16 @@ class BridgeScreenState extends State<BridgeScreen> {
     final gate = liveBridgeGate(context);
     final approved = gate.coin?.address?.toLowerCase();
     final burning = fromToken?.address?.toLowerCase();
-    if (!gate.enabled || approved == null || approved != burning) {
+    final sameSource =
+        approved != null &&
+        approved == burning &&
+        state.selectedWallet?.address.toLowerCase() == _openedWallet &&
+        state.selectedNetwork?.chainId == _openedChainId;
+    if (!gate.enabled || !sameSource) {
       showToast(
         context,
         gate.enabled
-            ? 'The network changed. Reopen Bridge.'
+            ? 'The wallet or network changed. Reopen Bridge.'
             : gate.caption ?? '',
         title: "Can't bridge",
         type: ToastType.error,
