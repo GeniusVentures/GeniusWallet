@@ -24,7 +24,8 @@ findings:
   warning: 4
   info: 2
   total: 6
-status: issues_found
+status: warnings_fixed
+warnings_fixed: 4
 ---
 
 # Phase 40: Code Review Report
@@ -74,6 +75,8 @@ if (registrations == null) {
 ```
 At minimum, only store `_childKey` when `registrations != null` (or `candidates.isEmpty`).
 
+**Fixed:** 4fc451b4. An unreadable registrations read now leaves the child check unknown. The gate reads checking (closed), nothing is cached, and the next resolve reads again.
+
 ### WR-02: The other-network probe has no timeout, so one hung RPC pins the gate on "Checking"
 
 **File:** `lib/dashboard/bridge/bridge_gate_cubit.dart:226-246`
@@ -90,6 +93,8 @@ _balanceOf(...)
     .then<double>((v) => v, onError: (Object _) => 0.0),
 ```
 
+**Fixed:** 40141001. Each other-network read has an 8 second timeout and counts as zero on timeout. `Web3.balanceOf` disposes its client on both paths, so packages/genius_api is untouched.
+
 ### WR-03: A failed coins read leaves the gate on "Checking your GNUS balance." with no way out
 
 **File:** `lib/dashboard/bridge/bridge_gate_cubit.dart:66-70` and `lib/dashboard/bridge/bridge_gate.dart:96-98`
@@ -100,6 +105,8 @@ GNUS balance." permanently, while nothing is checking. The user gets neither a r
 **Fix:** Pass `coinsFailed: details.coinsStatus == WalletStatus.error` to the resolver and add a
 state (for example `balanceUnavailable`, caption "Couldn't read your GNUS balance.") ranked above
 `checking`, so the caption stops lying and the state can be tested.
+
+**Fixed:** 706ceec7. New `balanceUnavailable` state, caption "Couldn't read your GNUS balance.", ranked above `checking` and fed by `WalletStatus.error`.
 
 ### WR-04: Submit-time gate does not tie the burned token to the coin the gate approved
 
@@ -116,6 +123,8 @@ call. The gate was added precisely to be the last check before `bridgeOut`.
 final coin = gate.coin;
 if (!gate.enabled || coin == null || coin.address != fromToken?.address) { /* toast, return */ }
 ```
+
+**Fixed:** 8727ead0. `_submitBridge` refuses unless the gate's coin address matches `fromToken` (case-insensitive), with the toast "The network changed. Reopen Bridge."
 
 ## Info
 
