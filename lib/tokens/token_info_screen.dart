@@ -671,7 +671,11 @@ class _CoinActionRow extends StatelessWidget {
         .toLowerCase();
 
     final bool isGnusPage = pageSymbol == 'gnus';
-    final gate = context.watch<BridgeGateCubit?>()?.state ?? kBridgeGateUnknown;
+    // Only the GNUS page reads the gate: reading it builds the app-level cubit,
+    // which starts SDK and balance reads.
+    final gate = isGnusPage
+        ? context.watch<BridgeGateCubit?>()?.state ?? kBridgeGateUnknown
+        : kBridgeGateUnknown;
 
     // Wrap, not Row: Buy makes five actions, which overflow a phone.
     final actions = Wrap(
