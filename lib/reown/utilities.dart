@@ -19,12 +19,16 @@ int? eip155ChainId(String caip2) {
 bool canSignOn(Network network) =>
     network.chainId != null && (network.rpcUrl ?? '').isNotEmpty;
 
-/// Whether [wallet] can sign a send on [network]. A tracked wallet holds only
-/// an address, and a Super Genius account's key lives in the SDK, not here.
+/// Whether [wallet] holds a key this app can sign with. A tracked wallet holds
+/// only an address, and a Super Genius account's key lives in the SDK.
+bool walletCanSign(Wallet wallet) =>
+    wallet.walletType != WalletType.tracking &&
+    wallet.walletType != WalletType.sgnus;
+
+/// Whether [wallet] can sign a send on [network].
 bool canSendFrom(Wallet? wallet, Network? network) =>
     wallet != null &&
-    wallet.walletType != WalletType.tracking &&
-    wallet.walletType != WalletType.sgnus &&
+    walletCanSign(wallet) &&
     network != null &&
     canSignOn(network);
 

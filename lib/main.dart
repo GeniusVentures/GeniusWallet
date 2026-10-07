@@ -18,6 +18,7 @@ import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_tools_host.dart';
 import 'package:genius_wallet/hive/init.dart';
@@ -434,6 +435,13 @@ class MyApp extends StatelessWidget {
               readAppState: () => context.read<AppBloc>().state,
               appStates: context.read<AppBloc>().stream,
               onResolved: context.read<WalletDetailsCubit>().getCoins,
+            ),
+          ),
+          BlocProvider<BridgeGateCubit>(
+            create: (context) => BridgeGateCubit(
+              readAppState: () => context.read<AppBloc>().state,
+              appStates: context.read<AppBloc>().stream,
+              walletDetails: context.read<WalletDetailsCubit>(),
             ),
           ),
         ],
