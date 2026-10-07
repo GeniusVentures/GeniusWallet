@@ -22,6 +22,9 @@ typedef GnusBalanceRead =
       required String rpcUrl,
     });
 
+/// A stalled public RPC must not hold the caption on checking.
+const _probeTimeout = Duration(seconds: 8);
+
 /// Keeps the Bridge gate current with the earning account, the selected
 /// wallet and its coins, so every surface reads one value.
 class BridgeGateCubit extends Cubit<BridgeGate> {
@@ -228,10 +231,12 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
       Future.wait([
         for (final p in probes)
           _balanceOf(
-            address: wallet.address,
-            contractAddress: p.contract,
-            rpcUrl: p.rpc,
-          ).then<double>((v) => v, onError: (Object _) => 0.0),
+                address: wallet.address,
+                contractAddress: p.contract,
+                rpcUrl: p.rpc,
+              )
+              .timeout(_probeTimeout)
+              .then<double>((v) => v, onError: (Object _) => 0.0),
       ]).then((balances) {
         if (isClosed || generation != _probeGeneration || key != _probeKey) {
           return;

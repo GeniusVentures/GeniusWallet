@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
@@ -401,6 +402,32 @@ void main() {
 
       expect(r.gate.state.state, BridgeGateState.noGnus);
       expect(r.gate.state.elsewhereNetwork, isNull);
+    });
+
+    test('a read that never answers counts as zero', () {
+      fakeAsync((async) {
+        final r = _Rig(network: _polygon, coins: _noGnus());
+        expect(r.reads.calls.first.rpc, rpc(_ethereum));
+        r.reads.answer(1, {rpc(_base): 5});
+        async.flushMicrotasks();
+        expect(r.gate.state.state, BridgeGateState.checking);
+
+        async.elapse(const Duration(seconds: 30));
+
+        expect(r.gate.state.state, BridgeGateState.gnusElsewhere);
+        expect(r.gate.state.caption, 'GNUS is on Base. Switch network.');
+        unawaited(r.dispose());
+      });
+    });
+
+    test('every read hanging still ends on no GNUS', () {
+      fakeAsync((async) {
+        final r = _Rig(network: _polygon, coins: _noGnus());
+        async.elapse(const Duration(seconds: 30));
+
+        expect(r.gate.state.state, BridgeGateState.noGnus);
+        unawaited(r.dispose());
+      });
     });
 
     test('a wallet switch mid-probe discards the older results', () async {
