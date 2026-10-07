@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Child wallets & account linking
-current_phase: 38
-current_phase_name: Account tree switcher
-status: awaiting_verification
-stopped_at: Phase 38 plan 03 executed (phase complete, live walk pending)
-last_updated: "2026-09-29T10:00:00.000Z"
-last_activity: 2026-09-29
-last_activity_desc: Phase 38 plan 03 executed (child actions on nested rows, collapsible mains, live refresh, phone-width and contrast fixes, Windows compile)
+current_phase: 40
+current_phase_name: Always-available GNUS bridge
+status: ready_to_execute
+stopped_at: Phase 40 planned (6 plans, 3 waves); phases 34-39 live walks still pending
+last_updated: "2026-10-07T12:00:00.000Z"
+last_activity: 2026-10-07
+last_activity_desc: Phase 40 context, research, UI-SPEC and plans
 progress:
   total_phases: 5
   completed_phases: 5

@@ -384,18 +384,23 @@ Future<void> openGnusBridge(BuildContext context) async {
 | A6 | A child of a foreign main being undetectable is an acceptable ceiling for D-03 | Q2 | A foreign-main child could still bridge; same ceiling as Phase 38 |
 | A7 | Readers of `isGnusWalletConnected` are only the router and `TokenInfoScreen` | Q5 | Verified by grep over `lib/` and `test/` this session; low |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Dashboard card placement and slot growth (A or B).**
    - Known: 8px slack, caption costs 22, slot constant feeds three layouts and two tests.
    - Unclear: whether Jakub accepts +20 (A) or +76 (B) on desktop.
    - Recommendation: settle in UI-SPEC (`ui_phase` is on); default to A.
+   - RESOLVED: A, slot 340 -> 360, Bridge beside "New processing job" (user, 2026-10-07; UI-SPEC).
 2. **Which "Assets" surface?** CONTEXT names "the GNUS row on Assets" and an existing Receive action that is not in the tree.
    - Recommendation: `/assets` page only (`assets_screen.dart`); the dashboard overview card covers Home. Confirm with the user whether the Home Assets panel (`coins_screen.dart`) should also carry one.
+   - RESOLVED: `/assets` page only (D-14).
 3. **Submit-time guard.** `bridgeOut` (`genius_api.dart:1860`) has no earning check and CONTEXT says the bridge is unchanged. The tap-time re-read narrows the window but a switch started while `BridgeScreen` is open (mobile has no header there, so unlikely) still lands.
    - Recommendation: ship the tap-time re-read; record a follow-up todo for a `BridgeScreen` submit-time check rather than widening this phase.
+   - RESOLVED: the user chose a submit-time refusal in this phase (D-13, BRDG-08).
 4. **D-12 cost.** Naming the other network requires new RPC reads; if the user wants no new network calls, fall back to `noGnus` with generic copy. Recommendation: keep D-12 as locked.
+   - RESOLVED: D-12 kept with cached per-network reads (user, 2026-10-07).
 5. **Copy for an SDK account view** (`WalletType.sgnus`, reached via "View balance"): currently shares `viewOnly` copy. A dedicated line ("Pick this account's wallet to bridge.") may read better; planner's call.
+   - RESOLVED: shares the viewOnly caption, per UI-SPEC row 2.
 
 ## Environment Availability
 
