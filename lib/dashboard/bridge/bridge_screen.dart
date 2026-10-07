@@ -295,13 +295,11 @@ class BridgeScreenState extends State<BridgeScreen> {
     );
   }
 
-  // The burn call below is unchanged. The gate is read again first because
-  // the mint credits the earning account, and an earning switch can begin
-  // while this screen is open.
-  Future<void> _submitBridge(
-    BuildContext context,
-    WalletDetailsState state,
-  ) async {
+  // The gate and the burn both read the live wallet state, never the one this
+  // button was built with: the mint credits the earning account, and the
+  // wallet, network or earning account can change while this screen is open.
+  Future<void> _submitBridge(BuildContext context) async {
+    final state = context.read<WalletDetailsCubit>().state;
     final gate = liveBridgeGate(context);
     final approved = gate.coin?.address?.toLowerCase();
     final burning = fromToken?.address?.toLowerCase();
@@ -737,7 +735,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         // Signing looks the key up by address, so a watch-only row sharing a
         // key wallet's address would otherwise spend from that key.
         onPressed: canSendFrom(state.selectedWallet, state.selectedNetwork)
-            ? () => _submitBridge(context, state)
+            ? () => _submitBridge(context)
             : null,
       );
     }

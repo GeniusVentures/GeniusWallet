@@ -53,6 +53,7 @@ AppState _appState({String linkedWallet = _walletAddress, String? switching}) =>
 
 class _RecordingApi implements GeniusApi {
   int burns = 0;
+  final signers = <String>[];
 
   @override
   Future<ApiResponse<String>> getBrigeOutGasCost({
@@ -75,6 +76,7 @@ class _RecordingApi implements GeniusApi {
     bool shouldMintTokens = false,
   }) async {
     burns++;
+    signers.add(address);
     return ApiResponse.error('rejected by the fake');
   }
 
@@ -192,6 +194,30 @@ void main() {
     expect(find.text("Can't bridge"), findsOneWidget);
     expect(find.text('Only the earning wallet can bridge.'), findsOneWidget);
     expect(find.text('Bridging…'), findsNothing);
+    await _drainToasts(tester);
+  });
+
+  testWidgets('a wallet switch the CTA has not rebuilt for signs with the '
+      'live wallet', (tester) async {
+    final host = _Host(_appState());
+    await _readyCta(tester, host);
+
+    host.app = _appState(linkedWallet: _otherAddress);
+    host.wallet.push(
+      host.wallet.state.copyWith(
+        selectedWallet: const Wallet(
+          coinType: TWCoinType.TWCoinTypeEthereum,
+          walletName: 'Other Wallet',
+          currencySymbol: 'MATIC',
+          walletType: WalletType.mnemonic,
+          balance: 0,
+          address: _otherAddress,
+        ),
+      ),
+    );
+    await _tap(tester);
+
+    expect(host.api.signers, [_otherAddress]);
     await _drainToasts(tester);
   });
 
