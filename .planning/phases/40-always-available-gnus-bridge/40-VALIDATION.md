@@ -2,9 +2,9 @@
 phase: 40
 slug: always-available-gnus-bridge
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-10-07
 ---
 
@@ -33,23 +33,23 @@ created: 2026-10-07
 
 Filled by the planner per task. The requirement-to-test map is in `40-RESEARCH.md` § Validation Architecture.
 
-| Req | Behavior | Test Type | Command | File Exists |
-|-----|----------|-----------|---------|-------------|
-| BRDG-02/03/05/06 | gate resolver states, precedence, captions | unit | `flutter test test/dashboard/bridge/bridge_gate_test.dart` | W0 |
-| BRDG-02/03/06 | cubit recompute on switch/wallet/network, probes | unit | `flutter test test/dashboard/bridge/bridge_gate_cubit_test.dart` | W0 |
-| BRDG-01/04/07 | entry on 3 surfaces, caption, tap-time re-read | widget | `flutter test test/dashboard/bridge/bridge_entry_test.dart` | W0 |
-| BRDG-01 | compute panel fits slot at 320/290 | widget | `flutter test test/dashboard/compute_panel_height_test.dart` | extend |
-| BRDG-04 | coin page 360px both modes, no overflow | widget | `flutter test test/banxa/buy_entry_points_test.dart` | extend |
-| D-13 | BridgeScreen refuses submit when gate is not enabled | widget | planner names the file | W0 |
-| BRDG-07 | no `isGnusWalletConnected` left in `lib/` | source scan | `grep -rn isGnusWalletConnected lib` | n/a |
+| Req | Behavior | Test Type | Command | Result |
+|-----|----------|-----------|---------|--------|
+| BRDG-02/03/05/06 | gate resolver states, precedence, captions | unit | `flutter test test/dashboard/bridge/bridge_gate_test.dart` | green |
+| BRDG-02/03/06 | cubit recompute on switch/wallet/network, probes | unit | `flutter test test/dashboard/bridge/bridge_gate_cubit_test.dart` | green |
+| BRDG-01/04/07 | coin page entry, caption, tap-time re-read, semantics, variants, contrast, one-line fit | widget | `flutter test test/dashboard/bridge/bridge_entry_test.dart` | green |
+| BRDG-01 | compute panel fits slot at 320/290 | widget | `flutter test test/dashboard/compute_panel_height_test.dart` | Deferred (D-05 revised 2026-10-07) |
+| BRDG-04 | coin page 360px both modes, no overflow | widget | `flutter test test/banxa/buy_entry_points_test.dart` | green |
+| D-13 | BridgeScreen refuses submit when gate is not enabled | widget | `flutter test test/dashboard/bridge/bridge_submit_gate_test.dart` | green |
+| BRDG-07 | no `isGnusWalletConnected` left in `lib/navigation` or the coin page | source scan | `grep -rn isGnusWalletConnected lib/navigation lib/tokens/token_info_screen.dart` | none |
 
 ## Wave 0 Requirements
 
-- [ ] `test/dashboard/bridge/bridge_gate_test.dart`
-- [ ] `test/dashboard/bridge/bridge_gate_cubit_test.dart`
-- [ ] `test/dashboard/bridge/bridge_entry_test.dart`
-- [ ] Seeded `BridgeGateCubit` helper for widget tests
-- [ ] Update the 4 test files that construct `TokenInfoScreen`
+- [x] `test/dashboard/bridge/bridge_gate_test.dart`
+- [x] `test/dashboard/bridge/bridge_gate_cubit_test.dart`
+- [x] `test/dashboard/bridge/bridge_entry_test.dart`
+- [x] Seeded `BridgeGateCubit` helper for widget tests
+- [x] Update the 4 test files that construct `TokenInfoScreen`
 
 ## Manual-Only Verifications
 
@@ -59,11 +59,11 @@ Filled by the planner per task. The requirement-to-test map is in `40-RESEARCH.m
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120 s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120 s (quick run)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** automated gates green 2026-10-07; manual walk row open

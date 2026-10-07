@@ -1643,7 +1643,7 @@ Plans:
 **Requirements**: BRDG-01, BRDG-02, BRDG-03, BRDG-04, BRDG-05, BRDG-06, BRDG-07, BRDG-08
 **Context**: 2026-09-30. The only Bridge button is on the GNUS coin page (`token_info_screen.dart:794`), shown only when the node started and the selected wallet equals the node's start-up wallet (`router.dart:384`). That wallet is set once at SDK init (`genius_api.dart:263`) and never follows a wallet or earning-account switch, so Bridge vanishes for every other wallet. The bridge itself is GNUS-only, burn on the source chain with an optional mint (`bridgeOut`, `genius_api.dart:1830`; mint token id is hard-coded).
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans executed
 
 Plans:
 
@@ -1658,7 +1658,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 40-04-PLAN.md — submit-time refusal in BridgeScreen; accessibility and contrast tests; phase check
+- [x] 40-04-PLAN.md — submit-time refusal in BridgeScreen; accessibility and contrast tests; phase check
 
 ## Progress
 
