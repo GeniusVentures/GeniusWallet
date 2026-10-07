@@ -4,11 +4,11 @@ milestone: v3.0
 milestone_name: Child wallets & account linking
 current_phase: 40
 current_phase_name: Always-available GNUS bridge
-status: executing
-stopped_at: Completed 40-04-PLAN.md (submit-time refusal, entry contract tests, phase gate green, Windows debug build compiled); phase 40 live walk and phases 34-39 live walks still pending
+status: human_needed
+stopped_at: "Phase 40 executed and verified in code (4/4 plans, review 4 warnings); live walk in 40-UAT.md pending, phases 34-39 live walks still pending"
 last_updated: "2026-10-07T12:00:00.000Z"
 last_activity: 2026-10-07
-last_activity_desc: Phase 40 plan 04 executed
+last_activity_desc: Phase 40 verified, human walk pending
 progress:
   total_phases: 5
   completed_phases: 5
