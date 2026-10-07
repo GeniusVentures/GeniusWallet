@@ -116,7 +116,6 @@ Widget _buildSectionTitle(BuildContext context, String text) =>
 class TokenInfoScreen extends StatefulWidget {
   final TokenInfoArgs args;
   final WalletDetailsCubit walletDetailsCubit;
-  final bool isGnusWalletConnected;
 
   /// Injectable market-data resolver - the seam
   /// `test/tokens/coin_page_entry_parity_test.dart` uses to drive loading,
@@ -132,7 +131,6 @@ class TokenInfoScreen extends StatefulWidget {
     super.key,
     required this.walletDetailsCubit,
     required this.args,
-    this.isGnusWalletConnected = false,
     this.resolveMarketData,
   });
 

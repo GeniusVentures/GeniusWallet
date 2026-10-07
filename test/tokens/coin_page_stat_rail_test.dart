@@ -55,7 +55,6 @@ Widget _host() => BlocProvider(
         // when CoinGecko does not cover it. No `coinGeckoId` either, so the
         // page goes straight to `uncovered` rather than fetching.
         args: const TokenInfoArgs(),
-        isGnusWalletConnected: false,
       ),
     ),
   ),
@@ -116,11 +115,8 @@ Widget _routedHost(
     routes: [
       GoRoute(
         path: '/token-info',
-        builder: (context, state) => TokenInfoScreen(
-          walletDetailsCubit: cubit,
-          args: args,
-          isGnusWalletConnected: false,
-        ),
+        builder: (context, state) =>
+            TokenInfoScreen(walletDetailsCubit: cubit, args: args),
       ),
       GoRoute(
         path: '/send',

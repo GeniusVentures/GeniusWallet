@@ -109,7 +109,6 @@ CoinGeckoMarketData _usdc({double price = 1.0}) =>
 
 Widget _host({
   required TokenInfoArgs args,
-  bool isGnusWalletConnected = false,
   Future<Map<String, CoinGeckoMarketData?>> Function(List<String>)?
   resolveMarketData,
 }) => BlocProvider(
@@ -123,7 +122,6 @@ Widget _host({
       builder: (context) => TokenInfoScreen(
         walletDetailsCubit: context.read<WalletDetailsCubit>(),
         args: args,
-        isGnusWalletConnected: isGnusWalletConnected,
         resolveMarketData: resolveMarketData,
       ),
     ),

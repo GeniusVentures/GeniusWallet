@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_screen.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -273,30 +272,7 @@ final geniusWalletRouter = GoRouter(
             final args = TokenInfoArgs.fromExtra(state.extra);
             final walletCubit = context.read<WalletDetailsCubit>();
 
-            // The route is the ONLY place that decides this flag now - it
-            // used to be computed independently at each push site (two of
-            // three hardcoded `false`; only the Assets panel got it right).
-            // Reading it here instead of threading it through every caller
-            // is safe BECAUSE `SGNUSConnectionController` is a
-            // `BehaviorSubject.seeded`
-            // (`packages/genius_api/lib/controllers/sgnus_connection_controller.dart`):
-            // a subscriber that attaches after the connection already landed
-            // still receives the CURRENT value on its first event, rather
-            // than waiting for a future change that may never come.
-            return StreamBuilder<SGNUSConnection>(
-              stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-              builder: (context, snapshot) {
-                final isGnusWalletConnected =
-                    (snapshot.data?.walletAddress ?? false) ==
-                    walletCubit.state.selectedWallet?.address;
-
-                return TokenInfoScreen(
-                  walletDetailsCubit: walletCubit,
-                  args: args,
-                  isGnusWalletConnected: isGnusWalletConnected,
-                );
-              },
-            );
+            return TokenInfoScreen(walletDetailsCubit: walletCubit, args: args);
           },
         ),
       ],
