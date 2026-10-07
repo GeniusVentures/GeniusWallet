@@ -189,6 +189,28 @@ void main() {
     });
   });
 
+  test('a tracked order whose first read fails is retried by the poll', () {
+    fakeAsync((async) {
+      final api = FakeBanxaApi(orders: [_order('c1', 'complete')]);
+      final cubit = _cubit(api);
+      async.flushMicrotasks();
+      api.orders = [_order('c1', 'complete'), _order('n1', 'pendingPayment')];
+
+      api.orderByIdError = Exception('offline');
+      unawaited(cubit.track('n1'));
+      async.flushMicrotasks();
+      expect(_ids(cubit), ['c1']);
+
+      api.orderByIdError = null;
+      async.elapse(_tick);
+      expect(_ids(cubit), ['n1', 'c1']);
+      expect(_statusOf(cubit, 'n1'), 'pendingPayment');
+
+      unawaited(cubit.close());
+      async.flushMicrotasks();
+    });
+  });
+
   test('refreshOrder completes once the order has been read', () {
     fakeAsync((async) {
       final api = FakeBanxaApi(orders: [_order('p1', 'pendingPayment')])

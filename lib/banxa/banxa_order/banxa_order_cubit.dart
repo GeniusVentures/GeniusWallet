@@ -196,10 +196,18 @@ class OrdersCubit extends Cubit<OrdersState> {
         _now().difference(order.updatedAt) < _expiredGrace;
   }
 
-  List<String> _openIds() => [
-    for (final order in state.orders?.orders ?? const <Order>[])
-      if (_isOpen(order)) order.id,
-  ];
+  // A tracked order whose first read failed is not in the list yet, but it
+  // still has to be polled or nothing would ever retry it.
+  List<String> _openIds() {
+    final orders = state.orders?.orders ?? const <Order>[];
+    final known = {for (final order in orders) order.id};
+    return [
+      for (final order in orders)
+        if (_isOpen(order)) order.id,
+      for (final id in _trackedIds)
+        if (!known.contains(id)) id,
+    ];
+  }
 
   void _syncTimer() {
     if (isClosed || !_foreground || _openIds().isEmpty) {
@@ -262,6 +270,7 @@ class OrdersCubit extends Cubit<OrdersState> {
       fresh = await _api.getOrderById(orderId);
     } catch (_) {
       // The old row stays; the next tick tries again.
+      _syncTimer();
       return;
     }
     // A poll tick yields to any newer list fetch; a single read only to a
