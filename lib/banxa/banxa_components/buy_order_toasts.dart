@@ -66,10 +66,11 @@ class _BuyOrderToastsState extends State<BuyOrderToasts> {
       });
       return;
     }
-    if (_onCheckout(toastContext)) {
-      return;
-    }
+    final shownInCheckout = _checkoutOrderId(toastContext);
     for (final order in orders) {
+      if (order.id == shownInCheckout) {
+        continue;
+      }
       final copy = _copyFor(order);
       if (copy == null) {
         continue;
@@ -85,17 +86,18 @@ class _BuyOrderToastsState extends State<BuyOrderToasts> {
     }
   }
 
-  /// Checkout shows its own outcome, so a toast on top of it would say it
-  /// twice.
-  bool _onCheckout(BuildContext context) {
-    final config = GoRouter.maybeOf(
-      context,
-    )?.routerDelegate.currentConfiguration;
-    if (config == null) {
-      return false;
+  /// Checkout shows its own order's outcome, so a toast for that order would
+  /// say it twice. Other orders still toast: the event is not repeated.
+  String? _checkoutOrderId(BuildContext context) {
+    final router = GoRouter.maybeOf(context);
+    if (router == null || router.routerDelegate.currentConfiguration.isEmpty) {
+      return null;
     }
-    final path = config.isNotEmpty ? config.last.matchedLocation : '';
-    return path.startsWith('/checkout');
+    final state = router.state;
+    if (!state.matchedLocation.startsWith('/checkout')) {
+      return null;
+    }
+    return (state.extra as Map<String, dynamic>?)?['orderId'] as String?;
   }
 }
 

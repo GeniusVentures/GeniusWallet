@@ -203,23 +203,25 @@ void main() {
     await _finish(tester, h);
   });
 
-  testWidgets('nothing toasts while checkout is showing', (tester) async {
+  testWidgets('only the order checkout is showing stays quiet', (tester) async {
     final h = await _pump(
       tester,
-      orders: [_pending('ord_1')],
+      orders: [_pending('ord_1'), _pending('ord_2')],
       script: {
         'ord_1': ['complete'],
+        'ord_2': ['declined'],
       },
-      at: '/checkout',
     );
+    unawaited(h.router.push('/checkout', extra: {'orderId': 'ord_1'}));
+    await tester.pumpAndSettle();
     expect(find.text('checkout page'), findsOneWidget);
 
     await tester.pump(_tick);
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(h.api.readIds, ['ord_1']);
+    expect(h.api.readIds, containsAll(['ord_1', 'ord_2']));
     expect(find.text('GNUS is in your wallet'), findsNothing);
-    expect(ToastManager.instance.visibleCount, 0);
+    expect(find.text('Payment declined'), findsOneWidget);
 
     await _finish(tester, h);
   });
