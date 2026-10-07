@@ -55,7 +55,17 @@ except the start-up one.
   selected network, the same as the coin page.
 - **D-12:** If the wallet holds no GNUS on the selected network but does on another one, Bridge is
   disabled and the reason names that network (for example "Your GNUS is on Base. Switch network to
-  bridge."). No chain picker and no automatic network switch.
+  bridge."). No chain picker and no automatic network switch. Confirmed after research: one balance
+  read per other network is acceptable, cached in an app-level cubit.
+
+### Added after research (2026-10-07)
+- **D-13:** The bridge refuses at submit time as well. BridgeScreen re-checks the earning gate before
+  calling `bridgeOut` and refuses with the same reason. This narrows "the bridge itself is unchanged"
+  to the burn and mint mechanics. The tap handler re-reads the gate too.
+- **D-14:** "Assets" means the `/assets` page only. Bridge and its caption sit under the GNUS row
+  there. The dashboard panel's asset list is not touched.
+- **D-15:** The GNUS coin is matched by symbol plus a non-empty contract address, so the Super Genius
+  native GNUS (no address) never opens `/bridge`.
 
 ### Claude's Discretion
 - Exact reason strings, the precedence between overlapping states, and how the GNUS coin is resolved
@@ -86,8 +96,10 @@ except the start-up one.
 
 ### Surfaces
 - `lib/components/wallet_overview.dart` - the dashboard wallet overview card
-- `lib/dashboard/assets/assets_screen.dart` - the Assets rows (the GNUS row's existing Receive action;
-  `selectCoin` on row tap is load-bearing for `/bridge`)
+- `lib/dashboard/assets/assets_screen.dart` - the Assets rows (`CoinCardRow` has only `onTap`, no
+  actions; `selectCoin` on row tap is load-bearing for `/bridge`)
+- `.planning/phases/40-always-available-gnus-bridge/40-RESEARCH.md` - gate states, precedence,
+  dashboard height budget
 
 ### Project rules
 - `AGENTS.md` - brace rule, widgets not helpers, GWColors tokens, no repository access from widgets
