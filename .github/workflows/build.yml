@@ -67,6 +67,8 @@ jobs:
       linux_arm: ${{ steps.pick.outputs.linux_arm }}
       windows: ${{ steps.pick.outputs.windows }}
       mac: ${{ steps.pick.outputs.mac }}
+      # Temporary: force Android onto GitHub-hosted runners (no self-hosted) for disk debugging.
+      github_linux: '["ubuntu-latest"]'
     steps:
       - name: Check self-hosted runner availability
         id: pick
@@ -196,7 +198,8 @@ jobs:
             runner_key: mac
             flutter-platform: macos
           - target: Android
-            runner_key: linux_x64
+            # Temporary: use GitHub-hosted runners (no self-hosted) for disk debugging.
+            runner_key: github_linux
             flutter-platform: apk
           - target: iOS
             runner_key: mac
@@ -748,6 +751,11 @@ jobs:
           echo "FLUTTER_BUILD_PLATFORM=$FLUTTER_BUILD_PLATFORM" >> $GITHUB_ENV
           echo "FLUTTER_VERSION_ARGS=$FLUTTER_VERSION_ARGS" >> $GITHUB_ENV
 
+      - name: Disk usage before Flutter build (temporary)
+        if: ${{ matrix.target == 'Android' }}
+        shell: bash
+        run: df -h / /mnt 2>/dev/null || df -h
+
       - name: Build Flutter
         shell: bash
         env:
@@ -774,6 +782,11 @@ jobs:
               CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY" --verbose
             fi
           fi
+
+      - name: Disk usage after Flutter build (temporary)
+        if: ${{ matrix.target == 'Android' }}
+        shell: bash
+        run: df -h / /mnt 2>/dev/null || df -h
 
       - name: Build Android App Bundle (AAB)
         if: ${{ matrix.target == 'Android' && matrix.build-type == 'Release' }}
