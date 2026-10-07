@@ -12,6 +12,8 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_entry.dart'
+    show liveBridgeGate;
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
@@ -293,18 +295,23 @@ class BridgeScreenState extends State<BridgeScreen> {
     );
   }
 
-  // Task 3 (c) / 08-06 Task 2: the ready rung's submit action -- develop's
-  // inline closure (api.bridgeOut(...) with all seven arguments including
-  // shouldMintTokens: true, the mounted guard, the ToastManager call) stays
-  // byte-identical; the `isSubmitting` flag still wraps the real await so
-  // the CTA can show its "Bridging…" rung for exactly as long as this
-  // genuinely takes. 08-06 replaces the retired inline AlertDialog below
-  // with the shared 031-B receipt (D-04), fired alongside the toast, never
-  // instead of it.
+  // The burn call below is unchanged. The gate is read again first because
+  // the mint credits the earning account, and an earning switch can begin
+  // while this screen is open.
   Future<void> _submitBridge(
     BuildContext context,
     WalletDetailsState state,
   ) async {
+    final gate = liveBridgeGate(context);
+    if (!gate.enabled) {
+      showToast(
+        context,
+        gate.caption ?? '',
+        title: "Can't bridge",
+        type: ToastType.error,
+      );
+      return;
+    }
     setState(() => isSubmitting = true);
     try {
       final api = context.read<GeniusApi>();
