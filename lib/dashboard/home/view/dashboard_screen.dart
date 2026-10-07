@@ -784,12 +784,8 @@ class ContributionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The BlocBuilder<WalletDetailsCubit> + StreamBuilder<SGNUSConnection>
-    // this used to wrap `CoinsScreen` in existed solely to compute the
-    // `isGnusWalletConnected` flag - `router.dart`'s `/token-info` route
-    // derives that itself now (quick task 260731-hsb), so this collapses to
-    // the plain container. `CoinsScreen` runs its own `BlocBuilder`
-    // internally, so it keeps rebuilding on wallet state exactly as before.
+    // `CoinsScreen` runs its own `BlocBuilder`, so nothing here needs to
+    // watch wallet or connection state.
     return const DashboardScrollContainer(
       child: CoinsScreen(isUseDivider: true),
     );

@@ -90,7 +90,6 @@ Widget _host(CoinGeckoMarketData data) => BlocProvider(
       builder: (context) => TokenInfoScreen(
         walletDetailsCubit: context.read<WalletDetailsCubit>(),
         args: TokenInfoArgs(marketData: data),
-        isGnusWalletConnected: false,
       ),
     ),
   ),

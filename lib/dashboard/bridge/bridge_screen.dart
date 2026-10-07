@@ -12,6 +12,8 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_entry.dart'
+    show liveBridgeGate;
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
@@ -47,11 +49,18 @@ class BridgeScreenState extends State<BridgeScreen> {
   // either flag.
   bool isEstimating = false;
   bool isSubmitting = false;
+  // The amount, balance and fee shown here belong to the wallet and chain the
+  // screen opened on; a burn on any other pair is refused.
+  String? _openedWallet;
+  int? _openedChainId;
 
   @override
   void initState() {
     super.initState();
     fromToken = widget.fromToken;
+    final opened = context.read<WalletDetailsCubit>().state;
+    _openedWallet = opened.selectedWallet?.address.toLowerCase();
+    _openedChainId = opened.selectedNetwork?.chainId;
     fromAmountController.text = '';
     toAmountController.text = '';
     _fetchBridgeNetworks();
@@ -293,18 +302,30 @@ class BridgeScreenState extends State<BridgeScreen> {
     );
   }
 
-  // Task 3 (c) / 08-06 Task 2: the ready rung's submit action -- develop's
-  // inline closure (api.bridgeOut(...) with all seven arguments including
-  // shouldMintTokens: true, the mounted guard, the ToastManager call) stays
-  // byte-identical; the `isSubmitting` flag still wraps the real await so
-  // the CTA can show its "Bridging…" rung for exactly as long as this
-  // genuinely takes. 08-06 replaces the retired inline AlertDialog below
-  // with the shared 031-B receipt (D-04), fired alongside the toast, never
-  // instead of it.
-  Future<void> _submitBridge(
-    BuildContext context,
-    WalletDetailsState state,
-  ) async {
+  // The gate and the burn both read the live wallet state, never the one this
+  // button was built with: the mint credits the earning account, and the
+  // wallet, network or earning account can change while this screen is open.
+  Future<void> _submitBridge(BuildContext context) async {
+    final state = context.read<WalletDetailsCubit>().state;
+    final gate = liveBridgeGate(context);
+    final approved = gate.coin?.address?.toLowerCase();
+    final burning = fromToken?.address?.toLowerCase();
+    final sameSource =
+        approved != null &&
+        approved == burning &&
+        state.selectedWallet?.address.toLowerCase() == _openedWallet &&
+        state.selectedNetwork?.chainId == _openedChainId;
+    if (!gate.enabled || !sameSource) {
+      showToast(
+        context,
+        gate.enabled
+            ? 'The wallet or network changed. Reopen Bridge.'
+            : gate.caption ?? '',
+        title: "Can't bridge",
+        type: ToastType.error,
+      );
+      return;
+    }
     setState(() => isSubmitting = true);
     try {
       final api = context.read<GeniusApi>();
@@ -726,7 +747,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         // Signing looks the key up by address, so a watch-only row sharing a
         // key wallet's address would otherwise spend from that key.
         onPressed: canSendFrom(state.selectedWallet, state.selectedNetwork)
-            ? () => _submitBridge(context, state)
+            ? () => _submitBridge(context)
             : null,
       );
     }

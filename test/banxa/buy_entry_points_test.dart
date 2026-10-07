@@ -100,12 +100,8 @@ void _size(WidgetTester tester, double width, double height) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Widget _coinPage(WalletDetailsCubit cubit, {bool gnusWallet = false}) =>
-    TokenInfoScreen(
-      walletDetailsCubit: cubit,
-      args: const TokenInfoArgs(),
-      isGnusWalletConnected: gnusWallet,
-    );
+Widget _coinPage(WalletDetailsCubit cubit) =>
+    TokenInfoScreen(walletDetailsCubit: cubit, args: const TokenInfoArgs());
 
 const _gnus = Coin(symbol: 'GNUS', address: '0xabc', balance: 10);
 const _usdc = Coin(symbol: 'USDC', address: '0xdef', balance: 10);
@@ -198,15 +194,14 @@ void main() {
       final cubit = _cubit(coins: [_gnus], selected: _gnus, seedWallet: true);
       addTearDown(cubit.close);
 
-      await tester.pumpWidget(
-        _app(_coinPage(cubit, gnusWallet: true), [], colors: colors),
-      );
+      await tester.pumpWidget(_app(_coinPage(cubit), [], colors: colors));
       await tester.pump();
 
       // All five actions present, so the row really did have to wrap.
       for (final label in ['Swap', 'Send', 'Receive', 'Bridge', 'Buy']) {
         expect(find.text(label), findsOneWidget, reason: label);
       }
+      expect(find.text('Checking your GNUS balance.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

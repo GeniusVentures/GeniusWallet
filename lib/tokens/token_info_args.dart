@@ -62,14 +62,14 @@ class TokenInfoArgs {
   /// (`{"marketData": ..., "isGnusWalletConnected": ...}`) when it is a map;
   /// and returns a const empty instance for anything else, so a malformed or
   /// stale deep link opens an honest empty page instead of throwing inside a
-  /// route builder (T-hsb-01).
+  /// route builder.
   ///
   /// **The legacy map branch exists for deep links and must not be deleted**
   /// once the three in-tree call sites below are migrated to pass
   /// [TokenInfoArgs] directly - it is the only path standing between a
-  /// serialised deep link and a crash. `isGnusWalletConnected` is
-  /// deliberately NOT read here: the route derives that flag itself now (see
-  /// `router.dart`), so no caller - legacy or migrated - needs to carry it.
+  /// serialised deep link and a crash. The legacy `isGnusWalletConnected`
+  /// key is ignored: nothing reads it, and the coin page takes its Bridge
+  /// gate from its own cubit.
   static TokenInfoArgs fromExtra(Object? extra) {
     if (extra is TokenInfoArgs) {
       return extra;

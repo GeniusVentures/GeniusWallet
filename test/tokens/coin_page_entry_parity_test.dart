@@ -22,6 +22,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -109,7 +110,6 @@ CoinGeckoMarketData _usdc({double price = 1.0}) =>
 
 Widget _host({
   required TokenInfoArgs args,
-  bool isGnusWalletConnected = false,
   Future<Map<String, CoinGeckoMarketData?>> Function(List<String>)?
   resolveMarketData,
 }) => BlocProvider(
@@ -123,7 +123,6 @@ Widget _host({
       builder: (context) => TokenInfoScreen(
         walletDetailsCubit: context.read<WalletDetailsCubit>(),
         args: args,
-        isGnusWalletConnected: isGnusWalletConnected,
         resolveMarketData: resolveMarketData,
       ),
     ),
@@ -183,9 +182,8 @@ void main() {
             isFalse,
             reason:
                 '${entry.key}: a /token-info push still carries '
-                'isGnusWalletConnected in its extra - router.dart derives '
-                'this flag now (a BehaviorSubject.seeded read), so no '
-                'call site should carry it any more',
+                'isGnusWalletConnected in its extra - nothing reads that '
+                'key any more, so no call site should carry it',
           );
         }
       }
@@ -257,6 +255,49 @@ void main() {
         expect(find.text('ASSETS'), findsNothing);
       });
     }
+
+    testWidgets('a GNUS route shows Bridge before its market data loads', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+      final pending = Completer<Map<String, CoinGeckoMarketData?>>();
+
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(symbol: 'GNUS', coinGeckoId: 'genius-ai'),
+          resolveMarketData: (_) => pending.future,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Bridge'), findsOneWidget);
+      pending.complete({});
+      await tester.pump();
+    });
+
+    testWidgets('a non-GNUS coin page never creates the bridge gate', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+      var created = 0;
+
+      await tester.pumpWidget(
+        BlocProvider<BridgeGateCubit>(
+          create: (_) {
+            created++;
+            throw StateError('the gate must stay unbuilt');
+          },
+          child: _host(args: TokenInfoArgs(marketData: _usdc())),
+        ),
+      );
+      await tester.pump();
+
+      expect(created, 0);
+    });
 
     testWidgets('a null walletCoin renders no Address or Network row', (
       tester,

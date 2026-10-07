@@ -214,6 +214,19 @@ Added 2026-09-30 with the Phase 39 plans. The Banxa key stays in the app as a bu
 - [ ] **BUY-13**: Buy GNUS is reachable from Home, Assets, the GNUS coin page and Transactions, and the Buy page links to Transactions with the Buy orders filter selected
 - [ ] **BUY-14**: Dead Banxa code is removed (client-side KYC and HMAC calls, the sandbox KYC screen and route, the checkout options sheet, the old orders history and order details pages, the order-id linker, all prints) and the Banxa tests are rewritten to match
 
+### Bridge (BRDG) — Phase 40
+
+Added 2026-10-07 with the Phase 40 context. The mint lands in the earning account, so only the earning wallet may bridge.
+
+- [ ] **BRDG-01**: A Bridge button is always visible on the GNUS coin page (other surfaces deferred to a later placement decision) and opens `/bridge` on the Selected wallet's GNUS coin on the selected network
+- [ ] **BRDG-02**: Bridge is enabled only when the Selected wallet is the live earning account (`selectedSDKAccount` + `sdkAccountLinks`), never from the start-up `SGNUSConnection.walletAddress`
+- [ ] **BRDG-03**: A view-only wallet, an SDK account view and a child wallet cannot bridge and show their own reason
+- [ ] **BRDG-04**: Every disabled state shows a one-line muted caption under the button, visible without hover, readable by a screen reader, AA in both modes
+- [ ] **BRDG-05**: One pure-Dart resolver owns the gate, its precedence and its copy; one test file pins them
+- [ ] **BRDG-06**: GNUS held only on another network disables Bridge and the reason names that network; no automatic switch
+- [ ] **BRDG-07**: The gate is re-read at the moment of the tap, and the stale `isGnusWalletConnected` route gate is removed
+- [ ] **BRDG-08**: BridgeScreen re-checks the gate before calling `bridgeOut` and refuses with the same reason
+
 ## Beyond v2.0 (deferred)
 
 - **FEE-01** *(deferred 2026-09-18 — business, not engineering)*: Squid enables an integrator fee on
@@ -353,10 +366,18 @@ Added 2026-09-30 with the Phase 39 plans. The Banxa key stays in the app as a bu
 | BUY-12 | Phase 39 — Banxa integration hardening (39-04) | Pending |
 | BUY-13 | Phase 39 — Banxa integration hardening (39-08, 39-13) | Pending |
 | BUY-14 | Phase 39 — Banxa integration hardening (39-02, 39-03, 39-12) | Pending |
+| BRDG-01 | Phase 40 — Always-available GNUS bridge | Pending |
+| BRDG-02 | Phase 40 — Always-available GNUS bridge | Pending |
+| BRDG-03 | Phase 40 — Always-available GNUS bridge | Pending |
+| BRDG-04 | Phase 40 — Always-available GNUS bridge | Pending |
+| BRDG-05 | Phase 40 — Always-available GNUS bridge | Pending |
+| BRDG-06 | Phase 40 — Always-available GNUS bridge | Pending |
+| BRDG-07 | Phase 40 — Always-available GNUS bridge | Pending |
+| BRDG-08 | Phase 40 — Always-available GNUS bridge | Pending |
 
 **Coverage:**
 
-- v3.0 requirements: **22 total** (6 SWT + 3 LINK + 9 CHILD + 2 PEND + 2 VER), plus **14 BUY** added with Phase 39 (all mapped to Phase 39)
+- v3.0 requirements: **22 total** (6 SWT + 3 LINK + 9 CHILD + 2 PEND + 2 VER), plus **14 BUY** added with Phase 39 (all mapped to Phase 39) and **8 BRDG** added with Phase 40 (all mapped to Phase 40)
 - Mapped to phases: **22/22 ✓** — every v3.0 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases: 34-37 (4 phases), continuing numbering from v1.0/v2.0 (last phase: 33)
 - Note: VER-02 ("each v3.0 phase closes only after a walk on the live testnet") is cross-cutting by design — it appears as a standing success criterion in Phases 34-37's ROADMAP entries, but is mapped/counted at Phase 37 only, where the milestone's last write operation closes it

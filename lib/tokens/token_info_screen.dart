@@ -21,6 +21,9 @@ import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_entry.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -34,22 +37,6 @@ import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
-/// Bridge: push /bridge with the cubit payload, then refresh the coins so a
-/// completed bridge shows up on the balance you came back to.
-///
-/// **074-C2 dropped a `Navigator.of(context).pop()` that used to open this
-/// function.** It was there to close the "More Options" drawer this row lived
-/// in; Bridge is now a direct icon on the section line, so with no drawer above
-/// it that pop would have popped the PAGE and pushed /bridge onto whatever was
-/// underneath.
-Future<void> _pushBridgeScreen(
-  BuildContext context,
-  WalletDetailsCubit walletDetailsCubit,
-) async {
-  await GoRouter.of(context).push('/bridge', extra: walletDetailsCubit);
-  walletDetailsCubit.getCoins();
-}
 
 /// Height of everything the chart shares the viewport with on desktop - back
 /// chip, header, stat rail, the action line and the gaps between them. Measured
@@ -129,7 +116,6 @@ Widget _buildSectionTitle(BuildContext context, String text) =>
 class TokenInfoScreen extends StatefulWidget {
   final TokenInfoArgs args;
   final WalletDetailsCubit walletDetailsCubit;
-  final bool isGnusWalletConnected;
 
   /// Injectable market-data resolver - the seam
   /// `test/tokens/coin_page_entry_parity_test.dart` uses to drive loading,
@@ -145,7 +131,6 @@ class TokenInfoScreen extends StatefulWidget {
     super.key,
     required this.walletDetailsCubit,
     required this.args,
-    required this.isGnusWalletConnected,
     this.resolveMarketData,
   });
 
@@ -246,11 +231,6 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
     final selectedCoin = state.selectedCoin;
     final selectedWallet = state.selectedWallet;
     final selectedNetwork = state.selectedNetwork;
-    final walletDetailsCubit = context.read<WalletDetailsCubit>();
-
-    final isGnusBridgeEnabled =
-        widget.isGnusWalletConnected &&
-        selectedCoin?.symbol?.toLowerCase() == 'gnus';
 
     return Scaffold(
       // 071-B: the 48px Material AppBar and its hand-built "Markets / Bitcoin"
@@ -311,12 +291,11 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     // Receive needs no market price and must survive the
                     // no-data route.
                     _CoinActionRow(
+                      routeSymbol: widget.args.symbol,
                       walletCoin: widget.args.walletCoin,
                       selectedCoin: selectedCoin,
                       selectedWallet: selectedWallet,
                       selectedNetwork: selectedNetwork,
-                      isGnusBridgeEnabled: isGnusBridgeEnabled,
-                      walletDetailsCubit: walletDetailsCubit,
                       marketData: _marketData,
                     ),
                     const SizedBox(height: GeniusWalletConsts.space8),
@@ -644,12 +623,8 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 ///
 ///  * **Receive** needs no market price, so it renders on the no-market-data
 ///    route too.
-///  * **Bridge** is absent unless `isGnusBridgeEnabled` and the wallet can sign
-///    here, like Send; `onPressed: null` on a zero balance rather than
-///    hidden (a balance is a state the user can change, absence is not).
-///    Bridge takes the same `gradientOutline` treatment as Receive. **Flagged
-///    for the walk, not settled** - two outlines beside one fill is still one
-///    fill under the CTA weight rule, but nobody has judged it in place yet.
+///  * **Bridge** shows on every GNUS page, disabled with a caption when the
+///    selected wallet cannot bridge.
 ///
 /// **`size: sm` (44), settled on the walk 2026-07-31.** Jakub read the 48px
 /// row as too tall against the rest of the page and asked for the height the
@@ -678,30 +653,42 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 /// would repeat it to a screen reader - both read twice for no reason.
 class _CoinActionRow extends StatelessWidget {
   const _CoinActionRow({
+    required this.routeSymbol,
     required this.walletCoin,
     required this.selectedCoin,
     required this.selectedWallet,
     required this.selectedNetwork,
-    required this.isGnusBridgeEnabled,
-    required this.walletDetailsCubit,
     required this.marketData,
   });
 
+  final String? routeSymbol;
   final Coin? walletCoin;
   final Coin? selectedCoin;
   final Wallet? selectedWallet;
   final Network? selectedNetwork;
-  final bool isGnusBridgeEnabled;
-  final WalletDetailsCubit walletDetailsCubit;
   final CoinGeckoMarketData? marketData;
 
   @override
   Widget build(BuildContext context) {
-    final String pageSymbol = (marketData?.symbol ?? selectedCoin?.symbol ?? '')
-        .toLowerCase();
+    // The route says which coin this page is; the wallet's global selection
+    // is only a last resort, since it can belong to another page.
+    final String pageSymbol =
+        (routeSymbol ??
+                walletCoin?.symbol ??
+                marketData?.symbol ??
+                selectedCoin?.symbol ??
+                '')
+            .toLowerCase();
+
+    final bool isGnusPage = pageSymbol == 'gnus';
+    // Only the GNUS page reads the gate: reading it builds the app-level cubit,
+    // which starts SDK and balance reads.
+    final gate = isGnusPage
+        ? context.watch<BridgeGateCubit?>()?.state ?? kBridgeGateUnknown
+        : kBridgeGateUnknown;
 
     // Wrap, not Row: Buy makes five actions, which overflow a phone.
-    return Wrap(
+    final actions = Wrap(
       spacing: GeniusWalletConsts.space4,
       runSpacing: GeniusWalletConsts.space4,
       children: [
@@ -786,21 +773,9 @@ class _CoinActionRow extends StatelessWidget {
             ),
           ),
         ),
-        if (isGnusBridgeEnabled && canSendFrom(selectedWallet, selectedNetwork))
-          GWButton(
-            // Bridge was not in the 164 brief, but it stands in the same row on
-            // GNUS-enabled coins. Leaving it bare next to two bounded siblings
-            // would read as a broken third button rather than a restrained one,
-            // so it takes the same treatment. Flagged rather than assumed.
-            variant: GWButtonVariant.gradientOutline,
-            size: GWButtonSize.sm,
-            label: 'Bridge',
-            leading: const Icon(Icons.alt_route),
-            onPressed: selectedCoin?.balance == 0
-                ? null
-                : () => _pushBridgeScreen(context, walletDetailsCubit),
-          ),
-        if (pageSymbol == 'gnus')
+        if (isGnusPage)
+          BridgeButton(gate: gate, onPressed: () => openGnusBridge(context)),
+        if (isGnusPage)
           GWButton(
             variant: GWButtonVariant.gradientOutline,
             size: GWButtonSize.sm,
@@ -808,6 +783,18 @@ class _CoinActionRow extends StatelessWidget {
             leading: const Icon(Icons.add_card),
             onPressed: () => GoRouter.of(context).push('/buy'),
           ),
+      ],
+    );
+    if (!isGnusPage) {
+      return actions;
+    }
+    // Below the whole Wrap, so its place does not depend on how the actions wrap.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        actions,
+        BridgeReasonCaption(gate: gate),
       ],
     );
   }
