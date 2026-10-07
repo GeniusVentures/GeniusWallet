@@ -74,7 +74,7 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
         details.coinsStatus == WalletStatus.successful;
     final coin = coinsReady ? bridgeCoin(details.coins) : null;
 
-    final isChild = wallet != null && _refreshChild(app, wallet);
+    final isChild = wallet == null ? false : _refreshChild(app, wallet);
     final walletCanSignNow = wallet == null || walletCanSign(wallet);
     final isEarning =
         wallet != null &&
@@ -100,6 +100,7 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     if (wallet != null &&
         network != null &&
         coinsReady &&
+        isChild != null &&
         resolve(null) == BridgeGateState.checking &&
         !identical(details.coins, _probedCoins)) {
       _startProbe(wallet, network, details.coins);
@@ -120,11 +121,12 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     return gate;
   }
 
-  /// Whether [wallet] is registered as a child under another own main. Cached
-  /// by its inputs, so the SDK read runs on a change, not on every emit.
+  /// Whether [wallet] is registered as a child under another own main, or null
+  /// when the registrations cannot be read. A known answer is cached by its
+  /// inputs; an unknown one is read again on the next resolve.
   // ponytail: only the user's own mains are scanned, so a child of a main
   // they do not own still reads as bridgeable; upgrade is an SDK by-child query.
-  bool _refreshChild(AppState app, Wallet wallet) {
+  bool? _refreshChild(AppState app, Wallet wallet) {
     final operations = _childOperations;
     if (operations == null) {
       return false;
@@ -143,7 +145,6 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     if (key == _childKey) {
       return _isChild;
     }
-    _childKey = key;
     final candidates = {
       for (final link in app.sdkAccountLinks.entries)
         if (link.value.walletAddress.toLowerCase() == address)
@@ -152,17 +153,20 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     var child = false;
     if (candidates.isNotEmpty) {
       final registrations = operations.ownRegistrations();
-      if (registrations != null) {
-        for (final candidate in candidates) {
-          for (final entry in registrations.entries) {
-            if (entry.key != candidate &&
-                entry.value.any((c) => c.address.toLowerCase() == candidate)) {
-              child = true;
-            }
+      if (registrations == null) {
+        _childKey = null;
+        return null;
+      }
+      for (final candidate in candidates) {
+        for (final entry in registrations.entries) {
+          if (entry.key != candidate &&
+              entry.value.any((c) => c.address.toLowerCase() == candidate)) {
+            child = true;
           }
         }
       }
     }
+    _childKey = key;
     return _isChild = child;
   }
 

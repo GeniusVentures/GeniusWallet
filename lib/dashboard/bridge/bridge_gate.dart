@@ -28,7 +28,8 @@ enum BridgeGateState {
   /// The selected network has no RPC to burn on.
   wrongNetwork,
 
-  /// Coins are loading, or loaded for another network, or the probe is out.
+  /// Coins are loading, or loaded for another network, the child check could
+  /// not be read, or the probe is out.
   checking,
 
   /// GNUS is held on another network, not this one.
@@ -62,11 +63,13 @@ class BridgeGate extends Equatable {
 /// enabled by default.
 const kBridgeGateUnknown = BridgeGate(BridgeGateState.checking);
 
-/// [gnusElsewhere] is null while the other-network probe has not answered.
+/// [isChild] is null when the registrations read failed, which keeps the gate
+/// closed. [gnusElsewhere] is null while the other-network probe has not
+/// answered.
 BridgeGateState resolveBridgeGate({
   required bool hasWallet,
   required bool walletCanSign,
-  required bool isChild,
+  required bool? isChild,
   required bool isSwitching,
   required String? earningAccount,
   required bool isEarningWallet,
@@ -81,7 +84,7 @@ BridgeGateState resolveBridgeGate({
   if (!walletCanSign) {
     return BridgeGateState.viewOnly;
   }
-  if (isChild) {
+  if (isChild == true) {
     return BridgeGateState.child;
   }
   if (isSwitching) {
@@ -96,7 +99,7 @@ BridgeGateState resolveBridgeGate({
   if (!networkCanSign) {
     return BridgeGateState.wrongNetwork;
   }
-  if (!coinsReady) {
+  if (!coinsReady || isChild == null) {
     return BridgeGateState.checking;
   }
   if ((gnusBalance ?? 0) > 0) {

@@ -9,7 +9,7 @@ import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 class _Inputs {
   bool hasWallet = true;
   bool walletCanSign = true;
-  bool isChild = false;
+  bool? isChild = false;
   bool isSwitching = false;
   String? earningAccount = '0xsdk';
   bool isEarningWallet = true;
@@ -99,6 +99,20 @@ void main() {
         }
       }
     });
+
+    test(
+      'an unreadable child check reads checking, below the earning rungs',
+      () {
+        expect((_Inputs()..isChild = null).resolve(), BridgeGateState.checking);
+        expect(
+          (_Inputs()
+                ..isChild = null
+                ..isEarningWallet = false)
+              .resolve(),
+          BridgeGateState.notEarning,
+        );
+      },
+    );
 
     group('balance and the other-network probe', () {
       for (final balance in <double?>[null, 0]) {

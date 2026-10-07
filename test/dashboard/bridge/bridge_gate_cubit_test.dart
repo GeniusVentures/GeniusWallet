@@ -193,7 +193,7 @@ class _Rig {
       geniusApi: _UnusedApi(),
       networkTokensProvider: provider,
     );
-    ops = _FakeChildOps(() => this.app)..registrations = registrations;
+    ops = _FakeChildOps(() => this.app)..registrations = registrations ?? {};
     gate = BridgeGateCubit(
       readAppState: () => this.app,
       appStates: appStream.stream,
@@ -238,8 +238,35 @@ void main() {
     expect(rig.gate.resolveNow().caption, "Child wallets can't bridge.");
   });
 
-  test('without a registrations read the wallet is not a child', () {
-    expect(rig.gate.resolveNow().state, BridgeGateState.enabled);
+  test('an unreadable registrations read keeps the gate closed', () async {
+    await rig.ops.publish(null);
+
+    expect(rig.gate.resolveNow().state, BridgeGateState.checking);
+    expect(rig.gate.state.caption, 'Checking your GNUS balance.');
+    expect(rig.gate.state.enabled, isFalse);
+  });
+
+  test('an unreadable read is retried, not cached as not a child', () async {
+    await rig.ops.publish(null);
+    final before = rig.ops.reads;
+
+    rig.gate.resolveNow();
+    expect(rig.ops.reads, before + 1);
+
+    await rig.ops.publish({
+      _mainAccount.toLowerCase(): [_child(_earningAccount)],
+    });
+    expect(rig.gate.state.state, BridgeGateState.child);
+  });
+
+  test('an unreadable read runs no other-network probe', () async {
+    final r = _Rig(network: _polygon, coins: _noGnus());
+    addTearDown(r.dispose);
+    await r.ops.publish(null);
+    await r.refreshCoins(_noGnus());
+
+    expect(r.reads.calls, hasLength(2));
+    expect(r.gate.state.state, BridgeGateState.checking);
   });
 
   test('a mixed-case child address still matches', () async {
