@@ -155,24 +155,8 @@ class BanxaApiService {
     return OrderResponse.fromJson(json.decode(response.body));
   }
 
-  /// Fetches EVERY order in the window, not just the first page.
-  ///
-  /// The `limit` is per-request, and the response's own `total` says how many
-  /// exist — so a user with more than [pageSize] orders used to lose the rest
-  /// silently, with no marker in the UI that the list was cut.
-  ///
-  /// [externalCustomerId] has no fallback on purpose. It used to default to
-  /// the literal `'your-cust-id'`, which matched nothing and made every
-  /// unspecified call look like "this user has no orders" rather than "nobody
-  /// said whose orders to fetch". A null id now returns an empty response
-  /// without a network round trip.
-  ///
-  /// ponytail: pages via a `page` query parameter, which is the shape Banxa's
-  /// v2 order list uses. If the server ignores it, the second page comes back
-  /// identical to the first — so the loop stops on a repeated leading order id
-  /// rather than spinning or duplicating rows. Ceiling: at most [maxPages]
-  /// requests (2,000 orders) even if `total` claims more. Upgrade path: a
-  /// cursor, if Banxa exposes one.
+  /// Fetches every page of orders in the window via the `page` parameter.
+  /// A null or empty [externalCustomerId] returns no orders without a request.
   Future<OrdersResponse> fetchAllOrders({
     required String startDateUtc,
     required String endDateUtc,
@@ -190,6 +174,8 @@ class BanxaApiService {
     var pageTotal = 0;
     String? previousFirstOrderId;
 
+    // ponytail: stops at [maxPages] requests even if `total` claims more;
+    // switch to a cursor if Banxa exposes one.
     for (var page = 1; page <= maxPages; page++) {
       final uri = Uri.parse('$_baseUrl/orders').replace(
         queryParameters: {
