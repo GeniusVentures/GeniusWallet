@@ -35,7 +35,6 @@ Buy GNUS is one tap from every main surface, CI builds get `BANXA_API_KEY` witho
 
 ## Deviations from Plan
 - [Rule 1] The new header button duplicates "Buy GNUS" on the Transactions empty state, so `test/dashboard/buy_orders_filter_test.dart` tapped an ambiguous finder; it now scopes the tap to the empty state. Same route and origin.
-- Home's Buy GNUS lived in `coins_screen.dart` labelled MARKETS; changed to HOME as planned. Wallet info already used HOME.
 
 ## Self-Check: PASSED
 Both code commits and the test file exist; commit messages carry no trailer; STATE.md and ROADMAP.md untouched; no flutter_tester left.

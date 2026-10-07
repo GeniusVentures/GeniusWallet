@@ -22,7 +22,7 @@ A GNUS-only Buy cubit with a self-refreshing quote, tap-time destination address
 - Full `flutter test`: 2304 passed, 6 skipped, 0 failed (plan 05 ended at 2277). `flutter analyze lib test` clean. Format, brace and raw-colour scripts exit 0. ID gate printed 0 on both code commits.
 - Commits: feat buy_defaults, feat BuyGnusCubit and state, docs sandbox line. No checkpoints or tracer tasks. STATE.md and ROADMAP.md untouched.
 - Sandbox coin list: unchecked (no sandbox key in the shell, production not called). BUY-06 will be recorded as blocked on Banxa at the final gate unless a key appears.
-- A mutation check (dropping the generation guard) makes the stale-answer test fail.
+- A mutation check (dropping the generation guard) makes the stale-answer test fail. No screen uses the cubit yet; a later plan wires it.
 
 ## Decisions
 - A fresh quote is never kept across an input change: amount, method or fiat edits clear it at once, only the 10 s refresh keeps the old numbers while requesting.
@@ -35,10 +35,6 @@ A GNUS-only Buy cubit with a self-refreshing quote, tap-time destination address
 - [Rule 2] ctaFor and createOrder block non-EVM addresses, as above; the threat register asks for the `isEvmAddress` check at the tap.
 - FakeBanxaApi gained more than the two fields: `listError`, `quoteHandler`, and request recorders (`quoteRequests`, `createRequests`, `listCalls`) the tests need.
 - Task 1 tests and code were written together, not RED first; the rounding logic is covered by the 1/2/2.5/5 property test.
-- The sandbox line also ticks the sandbox item in the validation checklist.
-
-## Known Stubs
-None. The cubit is not yet used by any screen; a later plan wires it.
 
 ## Self-Check: PASSED
 All five new files exist, three commits are in `git log`, no trailer in any message, no key-like value in the diff.

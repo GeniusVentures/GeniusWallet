@@ -35,8 +35,5 @@ actuals: {tokens: 14300, tasks: 3, commits: 3}
 - Stale mentions in `gw_control_track.dart` and a test comment about the removed rail and form were updated.
 - The "Change opens the switcher" test seeds a real AppBloc with an unused GeniusApi, the same harness the account tests use.
 
-## Known Stubs
-None.
-
 ## Self-Check: PASSED
 buy_card_test.dart exists, the two cubit files and five old tests are gone, all three commits are in `git log`.
