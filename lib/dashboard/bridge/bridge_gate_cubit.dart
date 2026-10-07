@@ -1,12 +1,26 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+
+/// Reads a token balance over a public RPC. [Web3.balanceOf] returns 0 when
+/// the read fails.
+typedef GnusBalanceRead =
+    Future<double> Function({
+      required String address,
+      required String contractAddress,
+      required String rpcUrl,
+    });
 
 /// Keeps the Bridge gate current with the earning account, the selected
 /// wallet and its coins, so every surface reads one value.
@@ -16,9 +30,11 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     required Stream<AppState> appStates,
     required WalletDetailsCubit walletDetails,
     ChildOperationsCubit? childOperations,
+    GnusBalanceRead? balanceOf,
   }) : _readAppState = readAppState,
        _walletDetails = walletDetails,
        _childOperations = childOperations,
+       _balanceOf = balanceOf ?? Web3().balanceOf,
        super(kBridgeGateUnknown) {
     _appSub = appStates.listen((_) => resolveNow());
     _walletSub = walletDetails.stream.listen((_) => resolveNow());
@@ -29,12 +45,21 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
   final AppState Function() _readAppState;
   final WalletDetailsCubit _walletDetails;
   final ChildOperationsCubit? _childOperations;
+  final GnusBalanceRead _balanceOf;
   late final StreamSubscription<AppState> _appSub;
   late final StreamSubscription<WalletDetailsState> _walletSub;
   late final StreamSubscription<ChildOperationsState>? _childSub;
 
   String? _childKey;
   bool _isChild = false;
+
+  String? _probeKey;
+  List<Coin>? _probedCoins;
+  int _probeGeneration = 0;
+
+  /// The answer for [_probeKey]: the first other network holding GNUS, or
+  /// null for none. A null record means no probe has landed yet.
+  ({String? network})? _outcome;
 
   /// Reads live state now, so a tap never acts on the last frame's gate.
   BridgeGate resolveNow() {
@@ -57,7 +82,7 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
         isEarningWallet(wallet, earning, app.sdkAccountLinks);
     final networkCanSignNow = network != null && canSignOn(network);
 
-    BridgeGateState resolve(bool gnusElsewhere) => resolveBridgeGate(
+    BridgeGateState resolve(bool? gnusElsewhere) => resolveBridgeGate(
       hasWallet: wallet != null,
       walletCanSign: walletCanSignNow,
       isChild: isChild,
@@ -70,10 +95,24 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
       gnusElsewhere: gnusElsewhere,
     );
 
-    final resolved = resolve(false);
+    _refreshProbeKey(wallet, network);
+    // Probe only when nothing above the other-network rung stops the gate.
+    if (wallet != null &&
+        network != null &&
+        coinsReady &&
+        resolve(null) == BridgeGateState.checking &&
+        !identical(details.coins, _probedCoins)) {
+      _startProbe(wallet, network, details.coins);
+    }
+
+    final outcome = _outcome;
+    final resolved = resolve(outcome == null ? null : outcome.network != null);
     final gate = BridgeGate(
       resolved,
       coin: resolved == BridgeGateState.enabled ? coin : null,
+      elsewhereNetwork: resolved == BridgeGateState.gnusElsewhere
+          ? outcome?.network
+          : null,
     );
     if (!isClosed && gate != state) {
       emit(gate);
@@ -125,6 +164,79 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
       }
     }
     return _isChild = child;
+  }
+
+  /// A new wallet or network drops the cached outcome and any probe in flight.
+  void _refreshProbeKey(Wallet? wallet, Network? network) {
+    final key = wallet == null || network == null
+        ? null
+        : '${wallet.address.toLowerCase()}|${network.chainId}';
+    if (key == _probeKey) {
+      return;
+    }
+    _probeKey = key;
+    _outcome = null;
+    _probedCoins = null;
+    _probeGeneration++;
+  }
+
+  /// Names the first other network of the same class that holds GNUS. The
+  /// answer only picks a caption; it never enables Bridge.
+  // ponytail: only networks of the selected one's mainnet/testnet class are
+  // probed, and results refresh with the coins, never on a timer; upgrade is
+  // probing every class.
+  void _startProbe(Wallet wallet, Network current, List<Coin> coins) {
+    _probedCoins = coins;
+    final generation = ++_probeGeneration;
+    if (kDebugMode && kShowDevTools && _walletDetails.mockMode) {
+      _outcome = (network: null);
+      return;
+    }
+    final probes = <({String name, String contract, String rpc})>[];
+    final tokens = _walletDetails.networkTokensProvider.tokensByNetwork;
+    for (final entry in tokens.entries) {
+      final other = entry.key;
+      final contract = entry.value
+          .where(
+            (t) =>
+                t.name?.toLowerCase() == 'gnus' && (t.address ?? '').isNotEmpty,
+          )
+          .firstOrNull
+          ?.address;
+      if ((other.rpcUrl ?? '').isEmpty ||
+          other.testnet != current.testnet ||
+          other.chainId == current.chainId ||
+          contract == null) {
+        continue;
+      }
+      probes.add((
+        name: other.name ?? '',
+        contract: contract,
+        rpc: other.rpcUrl!,
+      ));
+    }
+    if (probes.isEmpty) {
+      _outcome = (network: null);
+      return;
+    }
+    final key = _probeKey;
+    unawaited(
+      Future.wait([
+        for (final p in probes)
+          _balanceOf(
+            address: wallet.address,
+            contractAddress: p.contract,
+            rpcUrl: p.rpc,
+          ).then<double>((v) => v, onError: (Object _) => 0.0),
+      ]).then((balances) {
+        if (isClosed || generation != _probeGeneration || key != _probeKey) {
+          return;
+        }
+        final hit = balances.indexWhere((b) => b > 0);
+        _outcome = (network: hit < 0 ? null : probes[hit].name);
+        resolveNow();
+      }),
+    );
   }
 
   @override
