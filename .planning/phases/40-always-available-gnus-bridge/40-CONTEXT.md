@@ -6,8 +6,8 @@
 <domain>
 ## Phase Boundary
 
-Bridge can always be found. A Bridge entry sits on the dashboard wallet overview, the Assets GNUS row and
-the GNUS coin page, and opens the GNUS bridge for the Selected wallet. When that wallet cannot bridge,
+Bridge can always be found on the GNUS coin page (other surfaces are deferred, see D-05), and opens the
+GNUS bridge for the Selected wallet. When that wallet cannot bridge,
 the button stays visible and disabled, with a one-line reason under it. The bridge itself (burn on the
 source chain, mint through the SDK) is unchanged.
 
@@ -31,7 +31,7 @@ except the start-up one.
   `SGNUSConnection.walletAddress`. That stream and its other readers (`wallet_overview.dart`,
   `compute_state.dart`) are left as they are.
 - **D-03:** Child wallets cannot bridge. Bridge is disabled with a reason.
-- **D-04:** One pure-Dart function owns the gate and the reason, used by all three surfaces. Its
+- **D-04:** One pure-Dart function owns the gate and the reason, used by the coin page and BridgeScreen. Its
   precedence and copy are tested in one small test file.
 
 ### Where Bridge sits
@@ -52,8 +52,7 @@ except the start-up one.
   Exact strings are up to the planner, one short sentence each.
 
 ### Entry without a coin
-- **D-11:** Bridge opened from the dashboard or Assets starts on the Selected wallet's GNUS coin on the
-  selected network, the same as the coin page.
+- **D-11:** Bridge starts on the Selected wallet's GNUS coin on the selected network.
 - **D-12:** If the wallet holds no GNUS on the selected network but does on another one, Bridge is
   disabled and the reason names that network (for example "Your GNUS is on Base. Switch network to
   bridge."). No chain picker and no automatic network switch. Confirmed after research: one balance
@@ -123,14 +122,14 @@ except the start-up one.
 
 ### Integration Points
 - AppBloc state (`selectedSDKAccount`, `sdkAccountLinks`, `switchingSDKAccount`) plus
-  WalletDetailsCubit (selected wallet, network, coins) feed the gate on all three surfaces.
+  WalletDetailsCubit (selected wallet, network, coins) feed the gate on the coin page.
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- Bridge stays visible on all three surfaces. Being hidden is the bug this phase fixes.
+- Bridge stays visible on the coin page. Being hidden is the bug this phase fixes.
 
 </specifics>
 
