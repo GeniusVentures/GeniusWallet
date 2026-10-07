@@ -39,6 +39,11 @@ class _FakeChildOps extends ChildOperationsCubit {
   // ignore: prefer_const_constructors
   void reemit() => emit(ChildOperationsState(operations: []));
 
+  Future<void> pending(ChildOperation op) async {
+    emit(ChildOperationsState(operations: [op]));
+    await Future<void>.delayed(Duration.zero);
+  }
+
   Future<void> publish(Map<String, List<ChildWallet>>? next) async {
     registrations = next;
     reemit();
@@ -318,6 +323,25 @@ void main() {
     () async {
       rig = _Rig(network: _sepolia, coins: const []);
       expect(rig.gate.resolveNow().state, BridgeGateState.balanceUnavailable);
+    },
+  );
+
+  test(
+    'a pending registration of the earning account closes the gate',
+    () async {
+      expect(rig.gate.resolveNow().state, BridgeGateState.enabled);
+
+      await rig.ops.pending(
+        ChildOperation(
+          kind: ChildOperationKind.register,
+          fromAccount: _mainAccount,
+          target: _earningAccount,
+          main: _mainAccount,
+          submittedAt: DateTime.utc(2026),
+        ),
+      );
+
+      expect(rig.gate.resolveNow().state, BridgeGateState.checking);
     },
   );
 

@@ -156,6 +156,20 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
       address,
       identityHashCode(operations.state),
     ].join('|');
+    // A register or move of the earning account that has not resolved may
+    // already have made it a child, before any registrations read shows it.
+    final earningNow = app.selectedSDKAccount?.toLowerCase();
+    final reparenting = operations.state.operations.any(
+      (op) =>
+          !op.expired &&
+          (op.kind == ChildOperationKind.register ||
+              op.kind == ChildOperationKind.move) &&
+          op.target.toLowerCase() == earningNow,
+    );
+    if (reparenting) {
+      _childKey = null;
+      return null;
+    }
     if (key == _childKey) {
       return _isChild;
     }
