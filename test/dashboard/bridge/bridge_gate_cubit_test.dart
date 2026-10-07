@@ -278,6 +278,29 @@ void main() {
     expect(rig.gate.resolveNow().state, BridgeGateState.child);
   });
 
+  test('a child account also linked to the earning wallet does not block '
+      'it', () async {
+    final third = '0x${'c' * 128}';
+    final app = _app();
+    rig = _Rig(
+      app: AppState(
+        selectedSDKAccount: app.selectedSDKAccount,
+        sdkAccounts: [...app.sdkAccounts, third],
+        sdkAccountLinks: {
+          ...app.sdkAccountLinks,
+          third.toLowerCase(): (
+            walletAddress: _walletAddress.toLowerCase(),
+            walletName: 'Also linked',
+          ),
+        },
+      ),
+      registrations: {
+        _mainAccount.toLowerCase(): [_child(third)],
+      },
+    );
+    expect(rig.gate.resolveNow().state, isNot(BridgeGateState.child));
+  });
+
   test('an account listed only under itself is not a child', () async {
     await rig.ops.publish({
       _earningAccount.toLowerCase(): [_child(_earningAccount)],

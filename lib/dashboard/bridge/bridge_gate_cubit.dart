@@ -149,10 +149,14 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     if (key == _childKey) {
       return _isChild;
     }
+    // Only the earning account mints, so only its own registration matters,
+    // not other accounts that happen to link to the same wallet.
+    final earning = app.selectedSDKAccount?.toLowerCase();
     final candidates = {
       for (final link in app.sdkAccountLinks.entries)
-        if (link.value.walletAddress.toLowerCase() == address)
-          link.key.toLowerCase(),
+        if (link.key.toLowerCase() == earning &&
+            link.value.walletAddress.toLowerCase() == address)
+          earning!,
     };
     var child = false;
     if (candidates.isNotEmpty) {
