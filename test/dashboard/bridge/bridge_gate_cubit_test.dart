@@ -194,7 +194,11 @@ class _Rig {
       geniusApi: _UnusedApi(),
       networkTokensProvider: provider,
     );
-    ops = _FakeChildOps(() => this.app)..registrations = registrations ?? {};
+    // By default every own main read cleanly and registered nobody.
+    ops = _FakeChildOps(() => this.app)
+      ..registrations =
+          registrations ??
+          {for (final main in this.app.sdkAccounts) main.toLowerCase(): []};
     gate = BridgeGateCubit(
       readAppState: () => this.app,
       appStates: appStream.stream,
@@ -301,9 +305,18 @@ void main() {
     expect(rig.gate.resolveNow().state, isNot(BridgeGateState.child));
   });
 
+  test(
+    'a main whose registrations could not be read keeps the gate closed',
+    () async {
+      rig = _Rig(registrations: {_earningAccount.toLowerCase(): []});
+      expect(rig.gate.resolveNow().state, BridgeGateState.checking);
+    },
+  );
+
   test('an account listed only under itself is not a child', () async {
     await rig.ops.publish({
       _earningAccount.toLowerCase(): [_child(_earningAccount)],
+      _mainAccount.toLowerCase(): [],
     });
 
     expect(rig.gate.resolveNow().state, BridgeGateState.enabled);
@@ -333,7 +346,7 @@ void main() {
     });
     expect(rig.gate.state.state, BridgeGateState.child);
 
-    await rig.ops.publish({});
+    await rig.ops.publish({_mainAccount.toLowerCase(): []});
 
     expect(rig.gate.state.state, BridgeGateState.enabled);
   });

@@ -161,7 +161,16 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     var child = false;
     if (candidates.isNotEmpty) {
       final registrations = operations.ownRegistrations();
-      if (registrations == null) {
+      // A main whose read failed is missing from the map, and its absence is
+      // no proof the earning account is not its child.
+      final unread =
+          registrations == null ||
+          app.sdkAccounts.any(
+            (main) =>
+                main.toLowerCase() != earning &&
+                !registrations.containsKey(main.toLowerCase()),
+          );
+      if (unread) {
         _childKey = null;
         return null;
       }
