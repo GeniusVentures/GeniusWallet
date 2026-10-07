@@ -313,6 +313,14 @@ void main() {
     },
   );
 
+  test(
+    'a GNUS coin missing from a network that lists it reads as unavailable',
+    () async {
+      rig = _Rig(network: _sepolia, coins: const []);
+      expect(rig.gate.resolveNow().state, BridgeGateState.balanceUnavailable);
+    },
+  );
+
   test('an account listed only under itself is not a child', () async {
     await rig.ops.publish({
       _earningAccount.toLowerCase(): [_child(_earningAccount)],

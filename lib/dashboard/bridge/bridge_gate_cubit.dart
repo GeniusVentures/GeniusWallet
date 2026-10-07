@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/models/token.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -76,6 +77,15 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
         details.coinsNetwork == network &&
         details.coinsStatus == WalletStatus.successful;
     final coin = coinsReady ? bridgeCoin(details.coins) : null;
+    // A failed GNUS read drops the coin from an otherwise successful list, so
+    // a network that lists GNUS but returned no coin is unreadable, not zero.
+    final gnusUnread =
+        coinsReady &&
+        coin == null &&
+        _gnusContract(
+              _walletDetails.networkTokensProvider.tokensByNetwork[network],
+            ) !=
+            null;
 
     final isChild = wallet == null ? false : _refreshChild(app, wallet);
     final walletCanSignNow = wallet == null || walletCanSign(wallet);
@@ -94,7 +104,7 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
       isEarningWallet: isEarning,
       networkCanSign: networkCanSignNow,
       coinsReady: coinsReady,
-      coinsFailed: details.coinsStatus == WalletStatus.error,
+      coinsFailed: details.coinsStatus == WalletStatus.error || gnusUnread,
       gnusBalance: coin?.balance,
       gnusElsewhere: gnusElsewhere,
     );
@@ -217,13 +227,7 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     final tokens = _walletDetails.networkTokensProvider.tokensByNetwork;
     for (final entry in tokens.entries) {
       final other = entry.key;
-      final contract = entry.value
-          .where(
-            (t) =>
-                t.name?.toLowerCase() == 'gnus' && (t.address ?? '').isNotEmpty,
-          )
-          .firstOrNull
-          ?.address;
+      final contract = _gnusContract(entry.value);
       if ((other.rpcUrl ?? '').isEmpty ||
           other.testnet != current.testnet ||
           other.chainId == current.chainId ||
@@ -269,4 +273,11 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
     _childSub?.cancel();
     return super.close();
   }
+
+  static String? _gnusContract(List<Token>? tokens) => tokens
+      ?.where(
+        (t) => t.name?.toLowerCase() == 'gnus' && (t.address ?? '').isNotEmpty,
+      )
+      .firstOrNull
+      ?.address;
 }
