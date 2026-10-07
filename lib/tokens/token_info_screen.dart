@@ -291,6 +291,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     // Receive needs no market price and must survive the
                     // no-data route.
                     _CoinActionRow(
+                      routeSymbol: widget.args.symbol,
                       walletCoin: widget.args.walletCoin,
                       selectedCoin: selectedCoin,
                       selectedWallet: selectedWallet,
@@ -652,6 +653,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 /// would repeat it to a screen reader - both read twice for no reason.
 class _CoinActionRow extends StatelessWidget {
   const _CoinActionRow({
+    required this.routeSymbol,
     required this.walletCoin,
     required this.selectedCoin,
     required this.selectedWallet,
@@ -659,6 +661,7 @@ class _CoinActionRow extends StatelessWidget {
     required this.marketData,
   });
 
+  final String? routeSymbol;
   final Coin? walletCoin;
   final Coin? selectedCoin;
   final Wallet? selectedWallet;
@@ -667,8 +670,15 @@ class _CoinActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String pageSymbol = (marketData?.symbol ?? selectedCoin?.symbol ?? '')
-        .toLowerCase();
+    // The route says which coin this page is; the wallet's global selection
+    // is only a last resort, since it can belong to another page.
+    final String pageSymbol =
+        (routeSymbol ??
+                walletCoin?.symbol ??
+                marketData?.symbol ??
+                selectedCoin?.symbol ??
+                '')
+            .toLowerCase();
 
     final bool isGnusPage = pageSymbol == 'gnus';
     // Only the GNUS page reads the gate: reading it builds the app-level cubit,

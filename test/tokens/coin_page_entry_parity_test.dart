@@ -256,6 +256,27 @@ void main() {
       });
     }
 
+    testWidgets('a GNUS route shows Bridge before its market data loads', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+      final pending = Completer<Map<String, CoinGeckoMarketData?>>();
+
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(symbol: 'GNUS', coinGeckoId: 'genius-ai'),
+          resolveMarketData: (_) => pending.future,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Bridge'), findsOneWidget);
+      pending.complete({});
+      await tester.pump();
+    });
+
     testWidgets('a non-GNUS coin page never creates the bridge gate', (
       tester,
     ) async {
