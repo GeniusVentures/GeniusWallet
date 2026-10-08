@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
@@ -237,6 +238,29 @@ class SwapField extends StatelessWidget {
                                           child: const SizedBox(
                                             width: 32,
                                             height: 32,
+                                          ),
+                                        )
+                                      : selectedToken!.hasSvgLogo
+                                      ? SvgPicture.network(
+                                          selectedToken!.logoUri!,
+                                          width: 32,
+                                          height: 32,
+                                          fit: BoxFit.cover,
+                                          placeholderBuilder: (_) => Container(
+                                            width: 32,
+                                            height: 32,
+                                            color: gw.surfaceMenu,
+                                          ),
+                                          errorBuilder: (_, _, _) => Container(
+                                            width: 32,
+                                            height: 32,
+                                            color: gw.surfaceMenu,
+                                            alignment: Alignment.center,
+                                            child: Icon(
+                                              Icons.broken_image,
+                                              color: gw.textSecondary,
+                                              size: 16,
+                                            ),
                                           ),
                                         )
                                       : Image.network(

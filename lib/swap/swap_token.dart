@@ -28,6 +28,12 @@ class SwapToken {
 
   final String? logoUri;
 
+  /// Squid serves many logos as SVG, which Image.network cannot decode.
+  // ponytail: judged by the URL's extension, so an SVG served without `.svg`
+  // still fails; knowing for sure needs the response content type.
+  bool get hasSvgLogo =>
+      (Uri.tryParse(logoUri ?? '')?.path ?? '').toLowerCase().endsWith('.svg');
+
   /// Base units, or null when the holding is unknown. Absent and zero are
   /// different facts: the CTA must not say "insufficient" on data that never
   /// arrived.

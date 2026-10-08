@@ -263,8 +263,9 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     });
   }
 
-  /// The wallet [selectWallet] last persisted, else the first one. With no
-  /// stored type (older installs) the user's own wallet wins over an SDK one.
+  /// The wallet [selectWallet] last persisted, else the user's own first
+  /// wallet. SDK accounts are listed first, so a first run would otherwise
+  /// land on one; with no stored type the user's own wallet wins as well.
   static Wallet restoreSelectedWallet(List<Wallet> wallets) {
     final box = Hive.box(walletBoxName);
     final address = box.get(selectedWalletKey) as String?;
@@ -273,7 +274,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     return matches.where((w) => w.walletType.name == type).firstOrNull ??
         matches.where((w) => w.walletType != WalletType.sgnus).firstOrNull ??
         matches.firstOrNull ??
-        wallets.first;
+        AppBloc.replacementWallet(wallets);
   }
 
   /// A rename is metadata only: it must not refetch holdings like a reselect.

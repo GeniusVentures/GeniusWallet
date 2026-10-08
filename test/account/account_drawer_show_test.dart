@@ -50,12 +50,14 @@ import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/overlay/more_sheet.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:local_secure_storage/local_secure_storage.dart'
     show SDKAccountLink;
@@ -973,4 +975,55 @@ void main() {
       }
     },
   );
+
+  testWidgets('Add wallet opened through the More sheet pushes the landing '
+      'screen', (tester) async {
+    await _withDrawerHarness(tester, (box, harness, pending) async {
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, _) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () => MoreSheet.show(context),
+                child: const Text('open menu'),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/landing_screen',
+            builder: (_, _) => const Text('landing'),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<WalletDetailsCubit>.value(
+              value: harness.walletDetailsCubit,
+            ),
+            BlocProvider<AppBloc>.value(value: harness.appBloc),
+          ],
+          child: MaterialApp.router(
+            theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open menu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Accounts'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add wallet'));
+      await tester.pumpAndSettle();
+
+      expect(
+        router.routerDelegate.currentConfiguration.last.matchedLocation,
+        '/landing_screen',
+      );
+      expect(find.text('landing'), findsOneWidget);
+    });
+  });
 }

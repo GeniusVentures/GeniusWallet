@@ -579,8 +579,25 @@ void main() {
         expect(WalletDetailsCubit.restoreSelectedWallet(wallets), local);
       });
 
-      test('nothing stored restores the first wallet', () {
-        expect(WalletDetailsCubit.restoreSelectedWallet(wallets), sdkSameKey);
+      test('nothing stored picks the own wallet, not the SDK account listed '
+          'first', () {
+        final firstRun = [
+          _eth(
+            'Super Genius Wallet',
+            '0x${'8b6f' * 32}',
+          ).copyWith(walletType: WalletType.sgnus),
+          local,
+        ];
+
+        expect(WalletDetailsCubit.restoreSelectedWallet(firstRun), local);
+        expect(WalletDetailsCubit.restoreSelectedWallet(wallets), local);
+      });
+
+      test('with only SDK accounts, nothing stored picks the first', () {
+        expect(
+          WalletDetailsCubit.restoreSelectedWallet([sdkSameKey]),
+          sdkSameKey,
+        );
       });
     });
 

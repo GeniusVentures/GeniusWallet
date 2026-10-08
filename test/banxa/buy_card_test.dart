@@ -101,6 +101,7 @@ Future<_Rig> _pumpCard(
   bool disclaimerAccepted = true,
   AppBloc? appBloc,
   PickableWalletCubit? wallets,
+  String testCoin = '',
 }) async {
   await tester.binding.setSurfaceSize(size);
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -115,6 +116,7 @@ Future<_Rig> _pumpCard(
           initialFiatCode: fiat,
           createCubit: (a) => BuyGnusCubit(
             a,
+            testCoin: testCoin,
             readDisclaimerAccepted: () => rig.disclaimerAccepted,
             saveDisclaimerAccepted: () async {
               rig.disclaimerAccepted = true;
@@ -388,7 +390,10 @@ void main() {
     ) async {
       await _pumpCard(tester, wallet: testWallet('bc1qexampleaddress'));
 
-      expect(find.text(BuyGnusState.unsupportedAddressReason), findsOneWidget);
+      expect(
+        find.text(const BuyGnusState().unsupportedAddressReason),
+        findsOneWidget,
+      );
       expect(_cta(tester).onPressed, isNull);
       await _unmount(tester);
     });
@@ -629,6 +634,41 @@ void main() {
 
       await _pumpCard(tester, api: _api()..isSandbox = true);
       expect(find.text('Sandbox · no real money'), findsOneWidget);
+      await _unmount(tester);
+    });
+
+    testWidgets('a sandbox test coin names that coin everywhere, not GNUS', (
+      tester,
+    ) async {
+      final eth = CryptoCurrency(
+        code: 'ETH',
+        name: 'Ethereum',
+        blockchains: _gnus.blockchains,
+      );
+      await _pumpCard(
+        tester,
+        api: _api(cryptos: [_gnus, eth])..isSandbox = true,
+        testCoin: 'eth',
+      );
+
+      expect(find.text('Sandbox · no real money'), findsOneWidget);
+      expect(find.text('Buy ETH'), findsWidgets);
+      expect(find.text('~12.5 ETH'), findsOneWidget);
+      expect(find.text('1 ETH = 8.00 USD'), findsOneWidget);
+      expect(_cta(tester).label, 'Buy ETH');
+      expect(find.textContaining('GNUS'), findsNothing);
+      await _unmount(tester);
+
+      await _pumpCard(
+        tester,
+        api: _api(cryptos: [_gnus, eth]),
+        testCoin: 'eth',
+      );
+      expect(find.text('Sandbox · no real money'), findsNothing);
+      expect(find.text('~12.5 GNUS'), findsOneWidget);
+      expect(find.text('1 GNUS = 8.00 USD'), findsOneWidget);
+      expect(_cta(tester).label, 'Buy GNUS');
+      expect(find.textContaining('ETH'), findsNothing);
       await _unmount(tester);
     });
 

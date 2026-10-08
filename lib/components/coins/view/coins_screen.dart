@@ -60,13 +60,28 @@ class CoinsScreenState extends State<CoinsScreen> {
     super.initState();
 
     // periodically fetch market data to keep wallet balance up to date
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      final state = context.read<WalletDetailsCubit>().state;
-      if (state.coinsStatus == WalletStatus.successful &&
-          state.coins.isNotEmpty) {
-        _fetchMarketData(state.coins);
+    _refreshTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _fetchIfCoinsLoaded(),
+    );
+
+    // A rotation or window resize swaps the dashboard layout and remounts this
+    // panel with coins already loaded. No state change follows, so the
+    // listener below never fires and every row would read $0.00.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
       }
+      _fetchIfCoinsLoaded();
     });
+  }
+
+  void _fetchIfCoinsLoaded() {
+    final state = context.read<WalletDetailsCubit>().state;
+    if (state.coinsStatus == WalletStatus.successful &&
+        state.coins.isNotEmpty) {
+      _fetchMarketData(state.coins);
+    }
   }
 
   @override
@@ -94,6 +109,17 @@ class CoinsScreenState extends State<CoinsScreen> {
     }
     setState(() => _isFetchingMarketData = true);
 
+    try {
+      await _resolveAndApplyMarketData(coins);
+    } catch (_) {
+      // Keep the last good prices; a stranded flag would block every retry.
+      if (mounted) {
+        setState(() => _isFetchingMarketData = false);
+      }
+    }
+  }
+
+  Future<void> _resolveAndApplyMarketData(List<Coin> coins) async {
     final coinGeckoCoinsList = await fetchAllCoinGeckoCoins();
 
     final List<String> coinGeckoIds = coins

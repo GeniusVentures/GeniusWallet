@@ -134,6 +134,9 @@ class GWPageHeader extends StatelessWidget {
     final titleText = Text(
       title,
       textAlign: centered ? TextAlign.center : TextAlign.start,
+      // A squeezed title must ellipsize; wrapping breaks it one letter a line.
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: GeniusWalletTypography.headlineLg.copyWith(color: gw.textPrimary),
     );
     final subtitleText = subtitle == null
@@ -234,7 +237,8 @@ class GWPageHeader extends StatelessWidget {
               else
                 Expanded(child: titleBlock),
               if (trailingBesideIdentity) trailing!,
-              if (trailingHugsTitle) const Spacer(),
+              // Without a trailing the Spacer would only halve the title's room.
+              if (trailingHugsTitle && trailingBesideIdentity) const Spacer(),
             ],
           );
 

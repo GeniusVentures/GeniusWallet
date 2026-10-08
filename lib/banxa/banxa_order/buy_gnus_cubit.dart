@@ -36,13 +36,21 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
     bool Function()? readDisclaimerAccepted,
     Future<void> Function()? saveDisclaimerAccepted,
     DateTime Function() now = DateTime.now,
+    String testCoin = kBanxaTestCoin,
   }) : _api = api,
        _now = now,
        _readDisclaimer = readDisclaimerAccepted ?? readBanxaDisclaimerAccepted,
        _saveDisclaimer =
            saveDisclaimerAccepted ??
            (() => Hive.box(preferencesBoxName).put(_disclaimerKey, true)),
-       super(BuyGnusState(isSandbox: api.isSandbox));
+       super(
+         BuyGnusState(
+           isSandbox: api.isSandbox,
+           coin: api.isSandbox && testCoin.isNotEmpty
+               ? testCoin.toUpperCase()
+               : 'GNUS',
+         ),
+       );
 
   static const String createFailedMessage =
       "Couldn't start your order. Try again.";
@@ -97,10 +105,9 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
     if (isClosed) {
       return;
     }
-    final coin = _api.isSandbox && kBanxaTestCoin.isNotEmpty
-        ? kBanxaTestCoin.toUpperCase()
-        : 'GNUS';
-    final gnus = cryptos.where((c) => c.code.toUpperCase() == coin).firstOrNull;
+    final gnus = cryptos
+        .where((c) => c.code.toUpperCase() == state.coin)
+        .firstOrNull;
     if (gnus == null) {
       emit(state.copyWith(availability: BuyAvailability.notListed));
       return;

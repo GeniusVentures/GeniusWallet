@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
@@ -218,6 +219,29 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                             ? ColoredBox(
                                 color: gw.surfaceMenu,
                                 child: const SizedBox(width: 36, height: 36),
+                              )
+                            : token.hasSvgLogo
+                            ? SvgPicture.network(
+                                logoUri,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.cover,
+                                placeholderBuilder: (_) => Container(
+                                  width: 36,
+                                  height: 36,
+                                  color: gw.surfaceMenu,
+                                ),
+                                errorBuilder: (_, _, _) => Container(
+                                  width: 36,
+                                  height: 36,
+                                  color: gw.surfaceMenu,
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: gw.textSecondary,
+                                    size: 16,
+                                  ),
+                                ),
                               )
                             : Image.network(
                                 logoUri,

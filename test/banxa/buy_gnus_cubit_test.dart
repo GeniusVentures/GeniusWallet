@@ -74,12 +74,14 @@ void _run(
   bool load = true,
   bool disclaimer = false,
   Future<void> Function()? save,
+  String testCoin = '',
 }) {
   test(name, () {
     fakeAsync((async) {
       final fake = api ?? _api();
       final cubit = BuyGnusCubit(
         fake,
+        testCoin: testCoin,
         readDisclaimerAccepted: () => disclaimer,
         saveDisclaimerAccepted: save ?? () async {},
         now: async.getClock(DateTime.utc(2026)).now,
@@ -145,6 +147,28 @@ void main() {
       'the sandbox flag comes from the client',
       (async, cubit, api) => expect(cubit.state.isSandbox, isTrue),
       api: _api()..isSandbox = true,
+    );
+
+    _run(
+      'a sandbox test coin is what gets quoted and labelled',
+      (async, cubit, api) {
+        expect(cubit.state.coin, 'ETH');
+        expect(api.quoteRequests.single['crypto'], 'eth');
+        expect(cubit.state.ctaFor(testWallet(_a)).label, 'Buy ETH');
+      },
+      api: _api(cryptos: [_crypto('gnus'), _crypto('eth')])..isSandbox = true,
+      testCoin: 'eth',
+    );
+
+    _run(
+      'outside the sandbox the test coin is ignored',
+      (async, cubit, api) {
+        expect(cubit.state.coin, 'GNUS');
+        expect(api.quoteRequests.single['crypto'], 'gnus');
+        expect(cubit.state.ctaFor(testWallet(_a)).label, 'Buy GNUS');
+      },
+      api: _api(cryptos: [_crypto('gnus'), _crypto('eth')]),
+      testCoin: 'eth',
     );
   });
 

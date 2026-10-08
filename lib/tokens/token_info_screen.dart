@@ -284,7 +284,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _header(context, selectedCoin),
+                    _header(context, selectedCoin, isDesktop),
                     // sketch 165 Synthesis, change 3: the actions sit on their
                     // own row under the identity block, not on the title's
                     // line, and mount OUTSIDE the `marketData != null` guard -
@@ -448,7 +448,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
   /// own row. `titleTrailing` reverts to null at this call site - it is not
   /// deleted from `GWPageHeader` itself, which still has two tests of its own
   /// exercising it.
-  Widget _header(BuildContext context, Coin? selectedCoin) {
+  Widget _header(BuildContext context, Coin? selectedCoin, bool isDesktop) {
     // marketData is what can be missing, not the coin - so the title falls back
     // to the wallet's own record rather than to "Token".
     final String title =
@@ -466,7 +466,8 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
     final String symbol = (_marketData?.symbol ?? selectedCoin?.symbol ?? '')
         .toUpperCase();
 
-    return GWPageHeader(
+    final bool priceBesideTitle = isDesktop && _marketData != null;
+    final header = GWPageHeader(
       title: title,
       subtitle: symbol.isEmpty ? null : symbol,
       // Jakub 2026-07-28: *"Przed Genius AI powinna być ikona tokenu,
@@ -488,9 +489,31 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
       // the identity block and separated from it by a vertical hairline,
       // instead of hanging off the far right edge.
       trailingHugsTitle: true,
-      trailing: _marketData == null
-          ? null
-          : _IdentityPriceGroup(data: _marketData!),
+      trailing: priceBesideTitle
+          ? _IdentityPriceGroup(data: _marketData!)
+          : null,
+    );
+    if (priceBesideTitle || _marketData == null) {
+      return header;
+    }
+    // On a phone the price beside the name leaves the name a few pixels, so
+    // it takes its own line and scales down rather than overflowing.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        header,
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: gwPageHeaderContentInset(context),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: _PriceBlock(data: _marketData!),
+          ),
+        ),
+        const SizedBox(height: GeniusWalletConsts.space8),
+      ],
     );
   }
 
