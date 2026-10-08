@@ -645,9 +645,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     api.streamSGNUSTransactions();
   }
 
-  /// The wallet selected after the current one is deleted: the user's own
-  /// wallets first, an SDK account only when none of those is left.
-  @visibleForTesting
+  /// The wallet selected when there is no current one (first run, or it was
+  /// deleted): the user's own wallets first, an SDK account only as a last
+  /// resort.
   static Wallet replacementWallet(List<Wallet> remaining) =>
       remaining.firstWhere(
         (w) => w.walletType != WalletType.sgnus,
