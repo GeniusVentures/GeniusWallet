@@ -54,6 +54,9 @@ class AccountDrawer {
     bool includeNetwork = false,
   }) async {
     final walletCubit = context.read<WalletDetailsCubit>();
+    // Resolved now: a caller like the More sheet pops itself first, so its
+    // context is dead by the time Add wallet is tapped.
+    final router = GoRouter.maybeOf(context);
 
     // Read at the CALL SITE, before the route is pushed, and passed in as a
     // plain list. `ResponsiveDrawer.show` pushes on the root navigator, so a
@@ -92,7 +95,7 @@ class AccountDrawer {
         variant: GWButtonVariant.gradient,
         size: GWButtonSize.sm,
         expand: true,
-        onPressed: () => context.push('/landing_screen', extra: true),
+        onPressed: () => router?.push('/landing_screen', extra: true),
       ),
     );
 
