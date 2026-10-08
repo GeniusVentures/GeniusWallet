@@ -18,6 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/loading.dart';
@@ -112,8 +113,10 @@ Widget _host({
   required TokenInfoArgs args,
   Future<Map<String, CoinGeckoMarketData?>> Function(List<String>)?
   resolveMarketData,
+  WalletDetailsState initialState = const WalletDetailsState(),
 }) => BlocProvider(
   create: (_) => WalletDetailsCubit(
+    initialState: initialState,
     geniusApi: _UnusedApi(),
     networkTokensProvider: NetworkTokensProvider(),
   ),
@@ -127,6 +130,24 @@ Widget _host({
       ),
     ),
   ),
+);
+
+const _ethereum = Network(
+  name: 'Ethereum',
+  chainId: 1,
+  rpcUrl: 'https://rpc.invalid',
+);
+const _eth = Coin(
+  name: 'Ethereum',
+  symbol: 'ETH',
+  coinGeckoId: 'ethereum',
+  balance: 1,
+);
+const _ethWallet = WalletDetailsState(
+  selectedNetwork: _ethereum,
+  coins: [_eth],
+  coinsNetwork: _ethereum,
+  coinsStatus: WalletStatus.successful,
 );
 
 void main() {
@@ -339,6 +360,143 @@ void main() {
 
       expect(find.text('Address'), findsOneWidget);
       expect(find.text('Network'), findsOneWidget);
+    });
+  });
+
+  group('TokenInfoScreen - Receive only for a coin on this network', () {
+    testWidgets('Bitcoin from Markets on an Ethereum wallet has no Receive', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _host(
+          args: TokenInfoArgs(
+            coinGeckoId: 'bitcoin',
+            symbol: 'btc',
+            marketData: CoinGeckoMarketData.fromJson({
+              'id': 'bitcoin',
+              'symbol': 'btc',
+              'name': 'Bitcoin',
+            }),
+          ),
+          initialState: _ethWallet,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Swap'), findsOneWidget);
+      expect(find.widgetWithText(GWButton, 'Receive'), findsNothing);
+    });
+
+    testWidgets('ETH from Markets on an Ethereum wallet keeps Receive', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(coinGeckoId: 'ethereum', symbol: 'eth'),
+          resolveMarketData: (_) async => {},
+          initialState: _ethWallet,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Receive'), findsOneWidget);
+    });
+
+    testWidgets('a wallet coin on the route keeps Receive', (tester) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(
+            coinGeckoId: 'ethereum',
+            symbol: 'eth',
+            walletCoin: _eth,
+            network: 'Ethereum',
+          ),
+          resolveMarketData: (_) async => {},
+          initialState: _ethWallet,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Receive'), findsOneWidget);
+    });
+    testWidgets('a wallet coin on the route loses Receive once the network '
+        'changes', (tester) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      const bsc = Network(
+        name: 'BNB Smart Chain',
+        chainId: 56,
+        rpcUrl: 'https://bsc.invalid',
+      );
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(
+            coinGeckoId: 'ethereum',
+            symbol: 'eth',
+            walletCoin: _eth,
+            network: 'Ethereum',
+          ),
+          resolveMarketData: (_) async => {},
+          initialState: const WalletDetailsState(
+            selectedNetwork: bsc,
+            coins: [
+              Coin(name: 'BNB', symbol: 'BNB', coinGeckoId: 'binancecoin'),
+            ],
+            coinsNetwork: bsc,
+            coinsStatus: WalletStatus.successful,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Receive'), findsNothing);
+    });
+    testWidgets('an Ethereum USDC page loses Receive on BNB, where USDC '
+        'shares its CoinGecko id', (tester) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      const bsc = Network(
+        name: 'BNB Smart Chain',
+        chainId: 56,
+        rpcUrl: 'https://bsc.invalid',
+      );
+      const ethUsdc = Coin(symbol: 'USDC', coinGeckoId: 'usd-coin');
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(
+            coinGeckoId: 'usd-coin',
+            symbol: 'usdc',
+            walletCoin: ethUsdc,
+            network: 'Ethereum',
+          ),
+          resolveMarketData: (_) async => {},
+          initialState: const WalletDetailsState(
+            selectedNetwork: bsc,
+            coins: [Coin(symbol: 'USDC', coinGeckoId: 'usd-coin')],
+            coinsNetwork: bsc,
+            coinsStatus: WalletStatus.successful,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Receive'), findsNothing);
     });
   });
 

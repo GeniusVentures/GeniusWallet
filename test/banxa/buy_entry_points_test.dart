@@ -59,6 +59,7 @@ WalletDetailsCubit _cubit({
     selectedCoin: selected,
     selectedWallet: seedWallet ? _wallet : null,
     selectedNetwork: seedWallet ? _amoy : null,
+    coinsNetwork: seedWallet ? _amoy : null,
   ),
   geniusApi: _UnusedApi(),
   networkTokensProvider: NetworkTokensProvider(),

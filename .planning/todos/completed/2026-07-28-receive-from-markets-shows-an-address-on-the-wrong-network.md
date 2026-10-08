@@ -36,3 +36,7 @@ Should Receive appear at all on a coin the wallet cannot receive? Three answers,
 
 - `.planning/quick/260728-v6c-coin-actions-074c2/SUMMARY.md`
 - `lib/components/qr/crypto_address_qr.dart` - the warning note that keeps option 1 defensible
+
+## Resolved 2026-10-08
+
+Option 2 (hide) chosen by Braian. Receive shows only when the route carries the wallet's own coin, or the coin list loaded for the selected network has a coin matching the page (CoinGecko id first, symbol for coins without one); otherwise the button is absent.

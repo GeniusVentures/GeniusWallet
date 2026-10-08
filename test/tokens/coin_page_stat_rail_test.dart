@@ -44,6 +44,12 @@ Widget _host() => BlocProvider(
   create: (_) => WalletDetailsCubit(
     geniusApi: _UnusedApi(),
     networkTokensProvider: NetworkTokensProvider(),
+    initialState: const WalletDetailsState(
+      selectedNetwork: _amoy,
+      coins: [_xyz],
+      coinsNetwork: _amoy,
+      coinsStatus: WalletStatus.successful,
+    ),
   ),
   child: MaterialApp(
     theme: ThemeData(extensions: [GWColors.dark()]),
@@ -53,12 +59,15 @@ Widget _host() => BlocProvider(
         // The state this test exists for. Reachable from the wallet's own
         // Assets list, which looks the coin up by symbol and passes null
         // when CoinGecko does not cover it. No `coinGeckoId` either, so the
-        // page goes straight to `uncovered` rather than fetching.
-        args: const TokenInfoArgs(),
+        // page goes straight to `uncovered` rather than fetching. The coin is
+        // in the wallet's list for the selected network, which keeps Receive.
+        args: const TokenInfoArgs(walletCoin: _xyz, network: 'Polygon Amoy'),
       ),
     ),
   ),
 );
+
+const _xyz = Coin(symbol: 'XYZ');
 
 const _amoy = Network(
   name: 'Polygon Amoy',
