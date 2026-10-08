@@ -86,11 +86,13 @@ Future<void> main() async {
   // Read on Windows and Linux only. The default, ./.sentry-native, is the
   // install folder there, which a read-only install under /opt cannot write.
   String? sentryDatabase;
-  try {
-    sentryDatabase =
-        '${(await appDataDirectory()).path}${Platform.pathSeparator}.sentry-native';
-  } catch (e) {
-    debugPrint('Sentry keeps its default database folder: $e');
+  if (Platform.isWindows || Platform.isLinux) {
+    try {
+      sentryDatabase =
+          '${(await appDataDirectory()).path}${Platform.pathSeparator}.sentry-native';
+    } catch (e) {
+      debugPrint('Sentry keeps its default database folder: $e');
+    }
   }
 
   await SentryFlutter.init(
