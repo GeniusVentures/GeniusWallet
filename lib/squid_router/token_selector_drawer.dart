@@ -3,6 +3,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
+import 'package:genius_wallet/squid_router/swap_token_logo.dart';
 import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -203,49 +204,13 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                   // class around it.
                   itemBuilder: (context, index) {
                     final token = filtered[index];
-                    final logoUri = token.logoUri;
                     return GWSelectRow(
                       selected: _isSelected(token),
                       onTap: () {
                         Navigator.of(context).pop();
                         widget.onTokenSelected(token);
                       },
-                      leading: ClipOval(
-                        // The catalogue does not promise a logo. The neutral
-                        // disc the two loading branches already use holds the
-                        // 36x36 slot, so a missing one costs no layout.
-                        child: logoUri == null
-                            ? ColoredBox(
-                                color: gw.surfaceMenu,
-                                child: const SizedBox(width: 36, height: 36),
-                              )
-                            : Image.network(
-                                logoUri,
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                                loadingBuilder: (context, child, progress) =>
-                                    progress == null
-                                    ? child
-                                    : Container(
-                                        width: 36,
-                                        height: 36,
-                                        color: gw.surfaceMenu,
-                                      ),
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                      width: 36,
-                                      height: 36,
-                                      color: gw.surfaceMenu,
-                                      alignment: Alignment.center,
-                                      child: Icon(
-                                        Icons.broken_image,
-                                        color: gw.textSecondary,
-                                        size: 16,
-                                      ),
-                                    ),
-                              ),
-                      ),
+                      leading: SwapTokenLogo(url: token.logoUri, size: 36),
                       title: token.name,
                       subtitle: token.symbol,
                       // A balance the wallet does not hold is ABSENT, not "0"

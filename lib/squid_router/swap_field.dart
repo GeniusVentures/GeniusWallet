@@ -3,6 +3,7 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
+import 'package:genius_wallet/squid_router/swap_token_logo.dart';
 import 'package:genius_wallet/squid_router/token_selector_drawer.dart';
 import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -227,55 +228,9 @@ class SwapField extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               if (selectedToken != null)
-                                ClipOval(
-                                  // The catalogue does not promise a logo. The
-                                  // slot is 32x32 either way, so nothing in the
-                                  // pill moves when one is missing.
-                                  child: selectedToken!.logoUri == null
-                                      ? ColoredBox(
-                                          color: gw.surfaceMenu,
-                                          child: const SizedBox(
-                                            width: 32,
-                                            height: 32,
-                                          ),
-                                        )
-                                      : Image.network(
-                                          selectedToken!.logoUri!,
-                                          width: 32,
-                                          height: 32,
-                                          fit: BoxFit.cover,
-                                          // The slot is already 32x32, so nothing moves
-                                          // when the bytes land — but until they do it
-                                          // is a hole beside the symbol. A neutral disc
-                                          // holds the shape, reusing the error branch's
-                                          // idea of "no logo" rather than inventing a
-                                          // second one.
-                                          loadingBuilder:
-                                              (context, child, progress) {
-                                                if (progress == null) {
-                                                  return child;
-                                                }
-                                                return Container(
-                                                  width: 32,
-                                                  height: 32,
-                                                  color: gw.surfaceMenu,
-                                                );
-                                              },
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Container(
-                                                  width: 32,
-                                                  height: 32,
-                                                  color: gw.surfaceMenu,
-                                                  alignment: Alignment.center,
-                                                  child: Icon(
-                                                    Icons.broken_image,
-                                                    color: gw.textSecondary,
-                                                    size: 16,
-                                                  ),
-                                                );
-                                              },
-                                        ),
+                                SwapTokenLogo(
+                                  url: selectedToken!.logoUri,
+                                  size: 32,
                                 ),
                               const SizedBox(width: 8),
                               Text(
