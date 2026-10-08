@@ -801,7 +801,7 @@ jobs:
           leaked=$(grep -cE '^(SSL|EVP)_' <<<"$exports" || true)
           echo "$lib: $leaked SSL_/EVP_ exports"
           [ "$leaked" -eq 0 ] || { echo "::error::OpenSSL symbols exported; system libcurl will bind to them"; exit 1; }
-          for sym in GeniusSDKInit TWStringCreateWithUTF8Bytes HRP_BITCOIN; do
+          for sym in GeniusSDKInit GeniusSDKGetBalance TWStringCreateWithUTF8Bytes; do
             grep -qx "$sym" <<<"$exports" || { echo "::error::FFI symbol $sym is no longer exported"; exit 1; }
           done
 
