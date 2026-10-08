@@ -105,9 +105,9 @@ class _BuyOrderToastsState extends State<BuyOrderToasts> {
   switch (order.banxaStatus) {
     case BanxaOrderStatus.complete:
       return (
-        title: 'GNUS is in your wallet',
+        title: '${order.crypto.id} is in your wallet',
         message:
-            '${formatTxAmount(order.cryptoAmount)} GNUS from your Banxa '
+            '${formatTxAmount(order.cryptoAmount)} ${order.crypto.id} from your Banxa '
             'order arrived.',
         type: ToastType.success,
       );

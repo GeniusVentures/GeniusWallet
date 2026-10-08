@@ -100,14 +100,14 @@ void main() {
     await tester.pump(_tick);
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('GNUS is in your wallet'), findsOneWidget);
-    expect(find.text('0.0025 GNUS from your Banxa order arrived.'), findsOne);
+    expect(find.text('BTC is in your wallet'), findsOneWidget);
+    expect(find.text('0.0025 BTC from your Banxa order arrived.'), findsOne);
     expect(find.text('View order'), findsOneWidget);
 
     ToastManager.instance.disposeAll();
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(_tick * 3);
-    expect(find.text('GNUS is in your wallet'), findsNothing);
+    expect(find.text('BTC is in your wallet'), findsNothing);
     expect(h.api.readIds, ['ord_1']);
 
     await _finish(tester, h);
@@ -197,7 +197,7 @@ void main() {
     await tester.pump(_tick * 3);
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('GNUS is in your wallet'), findsNothing);
+    expect(find.text('BTC is in your wallet'), findsNothing);
     expect(ToastManager.instance.visibleCount, 0);
 
     await _finish(tester, h);
@@ -220,7 +220,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(h.api.readIds, containsAll(['ord_1', 'ord_2']));
-    expect(find.text('GNUS is in your wallet'), findsNothing);
+    expect(find.text('BTC is in your wallet'), findsNothing);
     expect(find.text('Payment declined'), findsOneWidget);
 
     await _finish(tester, h);

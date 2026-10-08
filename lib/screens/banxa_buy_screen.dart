@@ -130,6 +130,7 @@ class _BuyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final coin = context.select((BuyGnusCubit c) => c.state.coin);
     return Scaffold(
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -154,7 +155,7 @@ class _BuyPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       GWPageHeader(
-                        title: 'Buy GNUS',
+                        title: 'Buy $coin',
                         subtitle: 'Powered by Banxa',
                         centered: true,
                         trailing: IconButton(
@@ -197,7 +198,10 @@ class _BuyCard extends StatelessWidget {
           case BuyAvailability.notListed:
           case BuyAvailability.notConfigured:
           case BuyAvailability.loadFailed:
-            content = _NotAvailable(availability: state.availability);
+            content = _NotAvailable(
+              availability: state.availability,
+              coin: state.coin,
+            );
         }
         return GWCard(
           child: Column(
@@ -246,11 +250,12 @@ class _SandboxPill extends StatelessWidget {
   }
 }
 
-/// Stands in for the whole form when Banxa cannot sell GNUS right now.
+/// Stands in for the whole form when Banxa cannot sell the coin right now.
 class _NotAvailable extends StatelessWidget {
-  const _NotAvailable({required this.availability});
+  const _NotAvailable({required this.availability, required this.coin});
 
   final BuyAvailability availability;
+  final String coin;
 
   @override
   Widget build(BuildContext context) {
@@ -260,14 +265,14 @@ class _NotAvailable extends StatelessWidget {
     String? retryLabel;
     switch (availability) {
       case BuyAvailability.notListed:
-        title = "GNUS isn't on Banxa yet";
+        title = "$coin isn't on Banxa yet";
         body =
-            "Banxa doesn't sell GNUS yet. Buying opens here as soon as it does.";
+            "Banxa doesn't sell $coin yet. Buying opens here as soon as it does.";
         retryLabel = 'Check again';
       case BuyAvailability.notConfigured:
         title = "Buying isn't set up in this build";
         body =
-            'This build has no Banxa connection. Use an official release to buy GNUS.';
+            'This build has no Banxa connection. Use an official release to buy $coin.';
       case BuyAvailability.loadFailed:
       case BuyAvailability.loading:
       case BuyAvailability.ready:
@@ -369,7 +374,7 @@ class _BuyForm extends StatelessWidget {
         const SizedBox(height: GeniusWalletConsts.space6),
         _QuoteRows(state: state),
         const SizedBox(height: GeniusWalletConsts.space10),
-        const _ToRow(),
+        _ToRow(state: state),
         const SizedBox(height: GeniusWalletConsts.space10),
         _PaymentRow(state: state),
         const SizedBox(height: GeniusWalletConsts.space10),
@@ -816,7 +821,7 @@ class _YouGet extends StatelessWidget {
       opacity: state.quoting && quote != null ? 0.5 : 1,
       duration: const Duration(milliseconds: 150),
       child: Text(
-        quote == null ? '-' : '~${quote.cryptoAmount} GNUS',
+        quote == null ? '-' : '~${quote.cryptoAmount} ${state.coin}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: GeniusWalletTypography.numericHeadline.copyWith(
@@ -869,7 +874,7 @@ String _rateText(BuyGnusState state, Quote quote) {
     return '-';
   }
   final rate = fiat / crypto;
-  return '1 GNUS = ${rate.toStringAsFixed(rate < 1 ? 4 : 2)} ${state.fiat?.code ?? ''}'
+  return '1 ${state.coin} = ${rate.toStringAsFixed(rate < 1 ? 4 : 2)} ${state.fiat?.code ?? ''}'
       .trimRight();
 }
 
@@ -932,9 +937,11 @@ class _QuoteGridRow extends StatelessWidget {
   }
 }
 
-/// Where the GNUS goes: the Selected wallet, read here for display only.
+/// Where the coin goes: the Selected wallet, read here for display only.
 class _ToRow extends StatelessWidget {
-  const _ToRow();
+  const _ToRow({required this.state});
+
+  final BuyGnusState state;
 
   @override
   Widget build(BuildContext context) {
@@ -951,7 +958,7 @@ class _ToRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'No wallet to receive GNUS',
+                'No wallet to receive ${state.coin}',
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: gw.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -959,7 +966,7 @@ class _ToRow extends StatelessWidget {
               ),
               const SizedBox(height: GeniusWalletConsts.space2),
               Text(
-                'Add or import a wallet first. GNUS is delivered straight to it.',
+                'Add or import a wallet first. ${state.coin} is delivered straight to it.',
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: gw.textSecondary,
                 ),
@@ -1005,7 +1012,7 @@ class _ToRow extends StatelessWidget {
                 change,
               ],
             ),
-            if (BuyGnusState.blockedReason(wallet) case final reason?) ...[
+            if (state.blockedReason(wallet) case final reason?) ...[
               const SizedBox(height: GeniusWalletConsts.space2),
               Text(
                 reason,
