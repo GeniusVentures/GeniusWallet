@@ -792,6 +792,19 @@ jobs:
             fi
           fi
 
+      - name: Check libGeniusWallet.so keeps OpenSSL private (Linux)
+        if: matrix.target == 'Linux'
+        shell: bash
+        run: |
+          lib=$(ls build/linux/*/release/bundle/lib/libGeniusWallet.so | head -1)
+          exports=$(nm -D --defined-only "$lib" | awk '{print $3}')
+          leaked=$(grep -cE '^(SSL|EVP)_' <<<"$exports" || true)
+          echo "$lib: $leaked SSL_/EVP_ exports"
+          [ "$leaked" -eq 0 ] || { echo "::error::OpenSSL symbols exported; system libcurl will bind to them"; exit 1; }
+          for sym in GeniusSDKInit TWStringCreateWithUTF8Bytes HRP_BITCOIN; do
+            grep -qx "$sym" <<<"$exports" || { echo "::error::FFI symbol $sym is no longer exported"; exit 1; }
+          done
+
       - name: Build Android App Bundle (AAB)
         if: ${{ matrix.target == 'Android' && matrix.build-type == 'Release' }}
         shell: bash

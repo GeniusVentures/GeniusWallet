@@ -531,4 +531,14 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
         wallet_core_rs
         TrezorCrypto
     )
+
+    # Keep the static OpenSSL 3 private. Exported, it interposes on the system
+    # libcurl that sentry-native loads, which then mixes our OpenSSL 3 with the
+    # distro's libssl 1.1 and crashes. Not ALL: the FFI entry points live in archives.
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        target_link_options(GeniusWallet PRIVATE
+            "LINKER:--exclude-libs=libssl.a"
+            "LINKER:--exclude-libs=libcrypto.a"
+        )
+    endif()
 endif()
