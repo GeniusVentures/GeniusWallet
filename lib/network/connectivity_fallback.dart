@@ -11,10 +11,18 @@ Future<void> assumeOnlineWithoutNetworkManager() async {
   try {
     await ConnectivityPlatform.instance.checkConnectivity();
   } catch (e) {
-    debugPrint('Connectivity unavailable, assuming online: $e');
+    // Only a missing NetworkManager is permanent; any other failure may be
+    // transient, and replacing the backend would hide real changes for good.
+    // Matched by name to avoid depending on the dbus package's exception type.
+    if (!e.toString().contains(_serviceUnknown)) {
+      return;
+    }
+    debugPrint('NetworkManager missing, assuming online: $e');
     ConnectivityPlatform.instance = _AssumedOnline();
   }
 }
+
+const _serviceUnknown = 'org.freedesktop.DBus.Error.ServiceUnknown';
 
 class _AssumedOnline extends ConnectivityPlatform {
   // Ethernet, not `other`: WalletConnect treats `other` as offline.
@@ -24,6 +32,10 @@ class _AssumedOnline extends ConnectivityPlatform {
   Future<List<ConnectivityResult>> checkConnectivity() async => _online;
 
   @override
+  // Broadcast, like the plugin's own stream: pages listen to it more than once.
   Stream<List<ConnectivityResult>> get onConnectivityChanged =>
-      Stream.value(_online);
+      Stream.multi((listener) {
+        listener.add(_online);
+        listener.close();
+      }, isBroadcast: true);
 }

@@ -18,6 +18,12 @@ class _NoNetworkManager extends ConnectivityPlatform {
       Stream.error(StateError('org.freedesktop.DBus.Error.ServiceUnknown'));
 }
 
+class _TransientFailure extends ConnectivityPlatform {
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() =>
+      Future.error(StateError('channel not ready'));
+}
+
 class _Wifi extends ConnectivityPlatform {
   @override
   Future<List<ConnectivityResult>> checkConnectivity() async => [
@@ -50,6 +56,28 @@ void main() {
       [ConnectivityResult.ethernet],
     ]);
   });
+
+  test('the fallback stream takes more than one listener', () async {
+    ConnectivityPlatform.instance = _NoNetworkManager();
+
+    await assumeOnlineWithoutNetworkManager();
+
+    final stream = Connectivity().onConnectivityChanged;
+    expect(await stream.first, [ConnectivityResult.ethernet]);
+    expect(await stream.first, [ConnectivityResult.ethernet]);
+  });
+
+  test(
+    'a failure other than a missing NetworkManager keeps the backend',
+    () async {
+      final transient = _TransientFailure();
+      ConnectivityPlatform.instance = transient;
+
+      await assumeOnlineWithoutNetworkManager();
+
+      expect(ConnectivityPlatform.instance, same(transient));
+    },
+  );
 
   test('a working backend is kept', () async {
     final wifi = _Wifi();
