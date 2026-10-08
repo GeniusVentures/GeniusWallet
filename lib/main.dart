@@ -82,10 +82,21 @@ Future<void> _attachSdkLogsToHint(Hint hint) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Read on Windows and Linux only. The default, ./.sentry-native, is the
+  // install folder there, which a read-only install under /opt cannot write.
+  String? sentryDatabase;
+  try {
+    sentryDatabase =
+        '${(await appDataDirectory()).path}${Platform.pathSeparator}.sentry-native';
+  } catch (e) {
+    debugPrint('Sentry keeps its default database folder: $e');
+  }
+
   await SentryFlutter.init(
     (options) {
       options.dsn =
           'https://5a5e942557e461b7f464127e987cab08@o4511215700017152.ingest.us.sentry.io/4511215701458944';
+      options.nativeDatabasePath = sentryDatabase;
       options.tracesSampleRate = 1.0;
       options.sendDefaultPii = true;
       options.beforeSend = (event, hint) async {
