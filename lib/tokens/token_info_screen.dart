@@ -630,8 +630,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 /// glyph-era row, comments included: only the chrome around them is new.
 ///
 ///  * **Receive** shows only when this coin is on the wallet's current
-///    network: the route carries a wallet coin, or [networkCoins] holds one
-///    matching this page. It needs no market price.
+///    network: [networkCoins] holds one matching this page. It needs no market price.
 ///  * **Bridge** shows on every GNUS page, disabled with a caption when the
 ///    selected wallet cannot bridge.
 ///
@@ -694,16 +693,16 @@ class _CoinActionRow extends StatelessWidget {
             .toLowerCase();
 
     final bool isGnusPage = pageSymbol == 'gnus';
-    final String? pageCoinGeckoId = routeCoinGeckoId ?? marketData?.id;
-    // Same order as the Assets price lookup: an explicit id wins, the symbol
-    // is only a fallback for coins that have none.
-    final bool canReceive =
-        walletCoin != null ||
-        networkCoins.any(
-          (coin) => coin.coinGeckoId != null
-              ? coin.coinGeckoId == pageCoinGeckoId
-              : coin.symbol?.toLowerCase() == pageSymbol,
-        );
+    final String? pageCoinGeckoId =
+        routeCoinGeckoId ?? walletCoin?.coinGeckoId ?? marketData?.id;
+    // Checked against the live network even when the route carries a wallet
+    // coin: the network can change while this page stays open. Same order as
+    // the Assets price lookup: an explicit id wins, the symbol is a fallback.
+    final bool canReceive = networkCoins.any(
+      (coin) => coin.coinGeckoId != null
+          ? coin.coinGeckoId == pageCoinGeckoId
+          : coin.symbol?.toLowerCase() == pageSymbol,
+    );
     // Only the GNUS page reads the gate: reading it builds the app-level cubit,
     // which starts SDK and balance reads.
     final gate = isGnusPage

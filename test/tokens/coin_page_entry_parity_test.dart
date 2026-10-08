@@ -431,6 +431,40 @@ void main() {
 
       expect(find.widgetWithText(GWButton, 'Receive'), findsOneWidget);
     });
+    testWidgets('a wallet coin on the route loses Receive once the network '
+        'changes', (tester) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      const bsc = Network(
+        name: 'BNB Smart Chain',
+        chainId: 56,
+        rpcUrl: 'https://bsc.invalid',
+      );
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(
+            coinGeckoId: 'ethereum',
+            symbol: 'eth',
+            walletCoin: _eth,
+            network: 'Ethereum',
+          ),
+          resolveMarketData: (_) async => {},
+          initialState: const WalletDetailsState(
+            selectedNetwork: bsc,
+            coins: [
+              Coin(name: 'BNB', symbol: 'BNB', coinGeckoId: 'binancecoin'),
+            ],
+            coinsNetwork: bsc,
+            coinsStatus: WalletStatus.successful,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Receive'), findsNothing);
+    });
   });
 
   group('TokenInfoScreen - resolves its own market data', () {
