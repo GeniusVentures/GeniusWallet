@@ -751,27 +751,44 @@ jobs:
       - name: Build Flutter
         shell: bash
         env:
-          GW_BANXA_API_KEY: ${{ secrets.BANXA_API_KEY }}
+          BANXA_PROD_KEY: ${{ secrets.BANXA_API_KEY }}
+          BANXA_SANDBOX_KEY: ${{ secrets.BANXA_SANDBOX_API_KEY }}
+          GW_SQUID_INTEGRATOR_ID: ${{ secrets.SQUID_INTEGRATOR_ID }}
         run: |
+          # main and tags ship to users, so they get production Banxa. Every
+          # other build is a testnet build: Banxa sandbox, buying ETH because
+          # the sandbox does not list GNUS.
+          if [ "$GITHUB_REF_NAME" = "main" ] || [ "${IS_TAG:-}" = "true" ]; then
+            GW_BANXA_API_KEY="${BANXA_PROD_KEY:-}"
+            GW_BANXA_SANDBOX=false
+            GW_BANXA_TEST_COIN=
+          else
+            GW_BANXA_API_KEY="${BANXA_SANDBOX_KEY:-}"
+            GW_BANXA_SANDBOX=true
+            GW_BANXA_TEST_COIN=ETH
+          fi
           # Flutter passes defines base64-encoded, which the plain secret mask
           # misses in --verbose logs, so mask that form too.
           if [ -n "${GW_BANXA_API_KEY:-}" ]; then
             echo "::add-mask::$(printf 'GW_BANXA_API_KEY=%s' "$GW_BANXA_API_KEY" | base64 | tr -d '\n')"
           fi
+          if [ -n "${GW_SQUID_INTEGRATOR_ID:-}" ]; then
+            echo "::add-mask::$(printf 'GW_SQUID_INTEGRATOR_ID=%s' "$GW_SQUID_INTEGRATOR_ID" | base64 | tr -d '\n')"
+          fi
           if [ "${{ matrix.target }}" = "Windows" ]; then
             # Windows requires a different approach for CMAKE arguments
             set CMAKE_ARGUMENTS=$env:CMAKE_ARGUMENTS
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              flutter build windows --debug ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY"
+              flutter build windows --debug ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY" --dart-define=GW_BANXA_SANDBOX="$GW_BANXA_SANDBOX" --dart-define=GW_BANXA_TEST_COIN="$GW_BANXA_TEST_COIN" --dart-define=GW_SQUID_INTEGRATOR_ID="$GW_SQUID_INTEGRATOR_ID"
             else
-              flutter build windows --release ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY"
+              flutter build windows --release ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY" --dart-define=GW_BANXA_SANDBOX="$GW_BANXA_SANDBOX" --dart-define=GW_BANXA_TEST_COIN="$GW_BANXA_TEST_COIN" --dart-define=GW_SQUID_INTEGRATOR_ID="$GW_SQUID_INTEGRATOR_ID"
             fi
           else
             # Other platforms respect CMAKE_ARGUMENTS environment variable
             if [ "${{ matrix.build-type }}" = "Debug" ]; then
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY"
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --debug ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY" --dart-define=GW_BANXA_SANDBOX="$GW_BANXA_SANDBOX" --dart-define=GW_BANXA_TEST_COIN="$GW_BANXA_TEST_COIN" --dart-define=GW_SQUID_INTEGRATOR_ID="$GW_SQUID_INTEGRATOR_ID"
             else
-              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY" --verbose
+              CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build ${FLUTTER_BUILD_PLATFORM} --release ${EXTRA_ARGS} ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY" --dart-define=GW_BANXA_SANDBOX="$GW_BANXA_SANDBOX" --dart-define=GW_BANXA_TEST_COIN="$GW_BANXA_TEST_COIN" --dart-define=GW_SQUID_INTEGRATOR_ID="$GW_SQUID_INTEGRATOR_ID" --verbose
             fi
           fi
 
@@ -779,12 +796,29 @@ jobs:
         if: ${{ matrix.target == 'Android' && matrix.build-type == 'Release' }}
         shell: bash
         env:
-          GW_BANXA_API_KEY: ${{ secrets.BANXA_API_KEY }}
+          BANXA_PROD_KEY: ${{ secrets.BANXA_API_KEY }}
+          BANXA_SANDBOX_KEY: ${{ secrets.BANXA_SANDBOX_API_KEY }}
+          GW_SQUID_INTEGRATOR_ID: ${{ secrets.SQUID_INTEGRATOR_ID }}
         run: |
+          # main and tags ship to users, so they get production Banxa. Every
+          # other build is a testnet build: Banxa sandbox, buying ETH because
+          # the sandbox does not list GNUS.
+          if [ "$GITHUB_REF_NAME" = "main" ] || [ "${IS_TAG:-}" = "true" ]; then
+            GW_BANXA_API_KEY="${BANXA_PROD_KEY:-}"
+            GW_BANXA_SANDBOX=false
+            GW_BANXA_TEST_COIN=
+          else
+            GW_BANXA_API_KEY="${BANXA_SANDBOX_KEY:-}"
+            GW_BANXA_SANDBOX=true
+            GW_BANXA_TEST_COIN=ETH
+          fi
           # Flutter passes defines base64-encoded, which the plain secret mask
           # misses in --verbose logs, so mask that form too.
           if [ -n "${GW_BANXA_API_KEY:-}" ]; then
             echo "::add-mask::$(printf 'GW_BANXA_API_KEY=%s' "$GW_BANXA_API_KEY" | base64 | tr -d '\n')"
+          fi
+          if [ -n "${GW_SQUID_INTEGRATOR_ID:-}" ]; then
+            echo "::add-mask::$(printf 'GW_SQUID_INTEGRATOR_ID=%s' "$GW_SQUID_INTEGRATOR_ID" | base64 | tr -d '\n')"
           fi
           # Swap key.properties to UPLOAD key for AAB (Google re-signs with release key)
           echo "Swapping key.properties to UPLOAD key (for AAB)..."
@@ -794,7 +828,7 @@ jobs:
           echo "storeFile=upload-keystore.jks" >> android/key.properties
 
           echo "Building Android App Bundle (AAB) for Google Play..."
-          CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build appbundle --release --target-platform android-arm,android-arm64 ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY"
+          CMAKE_ARGUMENTS="${CMAKE_ARGUMENTS}" flutter build appbundle --release --target-platform android-arm,android-arm64 ${FLUTTER_VERSION_ARGS} --dart-define=GW_BANXA_API_KEY="$GW_BANXA_API_KEY" --dart-define=GW_BANXA_SANDBOX="$GW_BANXA_SANDBOX" --dart-define=GW_BANXA_TEST_COIN="$GW_BANXA_TEST_COIN" --dart-define=GW_SQUID_INTEGRATOR_ID="$GW_SQUID_INTEGRATOR_ID"
           echo "AAB built at: build/app/outputs/bundle/release/app-release.aab"
           ls -la build/app/outputs/bundle/release/
 
