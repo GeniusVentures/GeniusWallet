@@ -253,7 +253,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       if (context.mounted) {
         showToast(
           context,
-          "WalletKit failed to initialize. Please restart the app.",
+          "WalletConnect couldn't start. Check your connection, then try "
+          "again.",
           type: ToastType.error,
         );
       }
