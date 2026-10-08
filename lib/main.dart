@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show AppExitType;
 
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -170,6 +171,9 @@ Future<void> main() async {
 
       if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
         await windowManager.ensureInitialized();
+        if (Platform.isLinux) {
+          await windowManager.setPreventClose(true);
+        }
         windowManager.addListener(MyWindowListener(geniusApi));
       }
 
@@ -272,6 +276,13 @@ class MyWindowListener extends WindowListener {
     final result = geniusApi.shutdownSDK();
     debugPrint("Window closed. GeniusApi shutdown: $result");
 
+    // On Linux, destroying the GTK window disposes the Flutter view while the
+    // engine still runs, and its GL teardown aborts the process. Quitting
+    // through the engine leaves the window alone until the process is gone.
+    if (Platform.isLinux) {
+      await WidgetsBinding.instance.exitApplication(AppExitType.required);
+      return;
+    }
     await windowManager.destroy();
   }
 }
