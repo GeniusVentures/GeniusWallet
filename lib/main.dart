@@ -23,6 +23,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/dev/dev_tools_host.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/network/connectivity_fallback.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
@@ -108,6 +109,8 @@ Future<void> main() async {
       };
     },
     appRunner: () async {
+      await assumeOnlineWithoutNetworkManager();
+
       try {
         await initHive();
       } on FileSystemException catch (e) {

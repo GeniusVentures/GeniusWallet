@@ -46,6 +46,8 @@ dependencies:
   cached_network_image: ^3.4.1
   html_unescape: ^2.0.0
   connectivity_plus: 7.0.0
+  # The Linux connectivity fallback replaces the platform instance directly.
+  connectivity_plus_platform_interface: ^2.1.0
   reown_walletkit: ^1.5.1
   # The desktop Pay stub imports its platform interface directly.
   walletconnect_pay: 1.1.0
