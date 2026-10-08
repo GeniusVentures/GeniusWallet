@@ -61,7 +61,7 @@ Widget _host() => BlocProvider(
         // when CoinGecko does not cover it. No `coinGeckoId` either, so the
         // page goes straight to `uncovered` rather than fetching. The coin is
         // in the wallet's list for the selected network, which keeps Receive.
-        args: const TokenInfoArgs(walletCoin: _xyz),
+        args: const TokenInfoArgs(walletCoin: _xyz, network: 'Polygon Amoy'),
       ),
     ),
   ),

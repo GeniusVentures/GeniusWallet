@@ -294,6 +294,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                       routeSymbol: widget.args.symbol,
                       routeCoinGeckoId: widget.args.coinGeckoId,
                       walletCoin: widget.args.walletCoin,
+                      routeNetwork: widget.args.network,
                       // A list loaded for another chain says nothing about
                       // what this network holds.
                       networkCoins:
@@ -664,6 +665,7 @@ class _CoinActionRow extends StatelessWidget {
     required this.routeSymbol,
     required this.routeCoinGeckoId,
     required this.walletCoin,
+    required this.routeNetwork,
     required this.networkCoins,
     required this.selectedCoin,
     required this.selectedWallet,
@@ -674,6 +676,7 @@ class _CoinActionRow extends StatelessWidget {
   final String? routeSymbol;
   final String? routeCoinGeckoId;
   final Coin? walletCoin;
+  final String? routeNetwork;
   final List<Coin> networkCoins;
   final Coin? selectedCoin;
   final Wallet? selectedWallet;
@@ -698,11 +701,16 @@ class _CoinActionRow extends StatelessWidget {
     // Checked against the live network even when the route carries a wallet
     // coin: the network can change while this page stays open. Same order as
     // the Assets price lookup: an explicit id wins, the symbol is a fallback.
-    final bool canReceive = networkCoins.any(
-      (coin) => coin.coinGeckoId != null
-          ? coin.coinGeckoId == pageCoinGeckoId
-          : coin.symbol?.toLowerCase() == pageSymbol,
-    );
+    // A wallet coin also has to be on the network it was opened on: USDC
+    // shares one CoinGecko id across chains, so the list match alone would
+    // keep Receive on another chain's page.
+    final bool canReceive =
+        (walletCoin == null || routeNetwork == selectedNetwork?.name) &&
+        networkCoins.any(
+          (coin) => coin.coinGeckoId != null
+              ? coin.coinGeckoId == pageCoinGeckoId
+              : coin.symbol?.toLowerCase() == pageSymbol,
+        );
     // Only the GNUS page reads the gate: reading it builds the app-level cubit,
     // which starts SDK and balance reads.
     final gate = isGnusPage

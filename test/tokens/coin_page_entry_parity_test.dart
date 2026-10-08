@@ -465,6 +465,39 @@ void main() {
 
       expect(find.widgetWithText(GWButton, 'Receive'), findsNothing);
     });
+    testWidgets('an Ethereum USDC page loses Receive on BNB, where USDC '
+        'shares its CoinGecko id', (tester) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+
+      const bsc = Network(
+        name: 'BNB Smart Chain',
+        chainId: 56,
+        rpcUrl: 'https://bsc.invalid',
+      );
+      const ethUsdc = Coin(symbol: 'USDC', coinGeckoId: 'usd-coin');
+      await tester.pumpWidget(
+        _host(
+          args: const TokenInfoArgs(
+            coinGeckoId: 'usd-coin',
+            symbol: 'usdc',
+            walletCoin: ethUsdc,
+            network: 'Ethereum',
+          ),
+          resolveMarketData: (_) async => {},
+          initialState: const WalletDetailsState(
+            selectedNetwork: bsc,
+            coins: [Coin(symbol: 'USDC', coinGeckoId: 'usd-coin')],
+            coinsNetwork: bsc,
+            coinsStatus: WalletStatus.successful,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.widgetWithText(GWButton, 'Receive'), findsNothing);
+    });
   });
 
   group('TokenInfoScreen - resolves its own market data', () {
