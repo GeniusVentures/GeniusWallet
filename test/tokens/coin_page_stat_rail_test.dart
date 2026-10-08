@@ -53,8 +53,10 @@ Widget _host() => BlocProvider(
         // The state this test exists for. Reachable from the wallet's own
         // Assets list, which looks the coin up by symbol and passes null
         // when CoinGecko does not cover it. No `coinGeckoId` either, so the
-        // page goes straight to `uncovered` rather than fetching.
-        args: const TokenInfoArgs(),
+        // page goes straight to `uncovered` rather than fetching. The Assets
+        // list always passes the wallet's own coin, which is what keeps
+        // Receive on this page.
+        args: const TokenInfoArgs(walletCoin: Coin(symbol: 'XYZ')),
       ),
     ),
   ),

@@ -292,7 +292,15 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     // no-data route.
                     _CoinActionRow(
                       routeSymbol: widget.args.symbol,
+                      routeCoinGeckoId: widget.args.coinGeckoId,
                       walletCoin: widget.args.walletCoin,
+                      // A list loaded for another chain says nothing about
+                      // what this network holds.
+                      networkCoins:
+                          selectedNetwork != null &&
+                              state.coinsNetwork == selectedNetwork
+                          ? state.coins
+                          : const [],
                       selectedCoin: selectedCoin,
                       selectedWallet: selectedWallet,
                       selectedNetwork: selectedNetwork,
@@ -621,8 +629,9 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 /// for Receive/Buy GNUS. Both `onPressed` bodies are unchanged from the
 /// glyph-era row, comments included: only the chrome around them is new.
 ///
-///  * **Receive** needs no market price, so it renders on the no-market-data
-///    route too.
+///  * **Receive** shows only when this coin is on the wallet's current
+///    network: the route carries a wallet coin, or [networkCoins] holds one
+///    matching this page. It needs no market price.
 ///  * **Bridge** shows on every GNUS page, disabled with a caption when the
 ///    selected wallet cannot bridge.
 ///
@@ -654,7 +663,9 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 class _CoinActionRow extends StatelessWidget {
   const _CoinActionRow({
     required this.routeSymbol,
+    required this.routeCoinGeckoId,
     required this.walletCoin,
+    required this.networkCoins,
     required this.selectedCoin,
     required this.selectedWallet,
     required this.selectedNetwork,
@@ -662,7 +673,9 @@ class _CoinActionRow extends StatelessWidget {
   });
 
   final String? routeSymbol;
+  final String? routeCoinGeckoId;
   final Coin? walletCoin;
+  final List<Coin> networkCoins;
   final Coin? selectedCoin;
   final Wallet? selectedWallet;
   final Network? selectedNetwork;
@@ -681,6 +694,16 @@ class _CoinActionRow extends StatelessWidget {
             .toLowerCase();
 
     final bool isGnusPage = pageSymbol == 'gnus';
+    final String? pageCoinGeckoId = routeCoinGeckoId ?? marketData?.id;
+    // Same order as the Assets price lookup: an explicit id wins, the symbol
+    // is only a fallback for coins that have none.
+    final bool canReceive =
+        walletCoin != null ||
+        networkCoins.any(
+          (coin) => coin.coinGeckoId != null
+              ? coin.coinGeckoId == pageCoinGeckoId
+              : coin.symbol?.toLowerCase() == pageSymbol,
+        );
     // Only the GNUS page reads the gate: reading it builds the app-level cubit,
     // which starts SDK and balance reads.
     final gate = isGnusPage
@@ -749,30 +772,31 @@ class _CoinActionRow extends StatelessWidget {
               },
             ),
           ),
-        GWButton(
-          variant: GWButtonVariant.gradientOutline,
-          size: GWButtonSize.sm,
-          label: 'Receive',
-          leading: const Icon(Icons.call_received),
-          onPressed: () => ResponsiveDrawer.show<void>(
-            context: context,
-            // **The name comes from `selectedCoin` ONLY, never `marketData`.**
-            // The QR shows the WALLET's address on the wallet's network, and
-            // arriving here from Markets that network has nothing to do with
-            // the coin you were reading about - titling this "Receive Bitcoin"
-            // over an Ethereum address would be worse than saying less. When
-            // there is no coin the title is just "Receive", which is what put
-            // **"Receive null"** on screen before this.
-            title: selectedCoin?.name == null
-                ? 'Receive'
-                : 'Receive ${selectedCoin!.name}',
-            child: CryptoAddressQR(
-              iconPath: selectedCoin?.iconPath,
-              address: selectedWallet?.address ?? "",
-              network: selectedNetwork?.name ?? "",
+        if (canReceive)
+          GWButton(
+            variant: GWButtonVariant.gradientOutline,
+            size: GWButtonSize.sm,
+            label: 'Receive',
+            leading: const Icon(Icons.call_received),
+            onPressed: () => ResponsiveDrawer.show<void>(
+              context: context,
+              // **The name comes from `selectedCoin` ONLY, never `marketData`.**
+              // The QR shows the WALLET's address on the wallet's network, and
+              // arriving here from Markets that network has nothing to do with
+              // the coin you were reading about - titling this "Receive Bitcoin"
+              // over an Ethereum address would be worse than saying less. When
+              // there is no coin the title is just "Receive", which is what put
+              // **"Receive null"** on screen before this.
+              title: selectedCoin?.name == null
+                  ? 'Receive'
+                  : 'Receive ${selectedCoin!.name}',
+              child: CryptoAddressQR(
+                iconPath: selectedCoin?.iconPath,
+                address: selectedWallet?.address ?? "",
+                network: selectedNetwork?.name ?? "",
+              ),
             ),
           ),
-        ),
         if (isGnusPage)
           BridgeButton(gate: gate, onPressed: () => openGnusBridge(context)),
         if (isGnusPage)
