@@ -16,6 +16,7 @@ import 'package:genius_wallet/components/scaffold/gw_screen.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
+import 'package:genius_wallet/settings/developer_settings_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -55,11 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Map<String, dynamic> _crdtConfig = {};
   bool _crdtLoading = true;
 
-  SgnsNet _sgnsNet = SgnsNet.dev;
-
   // ── Status messages ──
-  String? _advancedStatus;
-  String? _sgnsNetStatus;
   String? _logStatus;
   String? _networkStatus;
   String? _crdtStatus;
@@ -74,7 +71,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadAllConfigs() async {
     await Future.wait([
-      _loadSgnsNet(),
       _loadLogConfig(),
       _loadNetworkConfig(),
       _loadCrdtConfig(),
@@ -109,72 +105,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(data));
   }
 
-  Future<void> _loadSgnsNet() async {
-    final net = await _api.sgnsNet();
-    if (!mounted) {
-      return;
-    }
-    setState(() => _sgnsNet = net);
-  }
-
-  Future<void> _saveSgnsNet(SgnsNet net) async {
-    try {
-      final changed = await _api.setSgnsNet(net);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _sgnsNet = net;
-        _sgnsNetStatus = changed
-            ? 'Saved ✅ — Restart required for changes'
-            : _sgnsNetStatus;
-      });
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      setState(() => _sgnsNetStatus = 'Error: $e');
-    }
-  }
-
   Future<void> _setDeveloperMode(bool on) async {
-    final api = _api;
-    if (on) {
-      setState(() => _advancedStatus = null);
-      await DeveloperMode.instance.setEnabled(true);
-      return;
-    }
     final walletCubit = context.read<WalletDetailsCubit>();
     final networks = context.read<NetworkProvider>().networks;
-    try {
-      await DeveloperMode.instance.setEnabled(false);
-      if (!mounted) {
-        return;
-      }
-      if (walletCubit.state.selectedNetwork?.testnet ?? false) {
-        await NetworkSelection.apply(
-          context: context,
-          walletCubit: walletCubit,
-          network: restoreSelectedNetwork(networks, allowTestnets: false),
-        );
-      }
-      // Leaving developer mode must not leave the SDK on a non-default net.
-      final changed = await api.setSgnsNet(SgnsNet.dev);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _sgnsNet = SgnsNet.dev;
-        _sgnsNetStatus = null;
-        _advancedStatus = changed
-            ? 'SDK network reset to Dev net ✅ — Restart required for changes'
-            : null;
-      });
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      setState(() => _advancedStatus = 'Error: $e');
+    final turnedOff = await context
+        .read<DeveloperSettingsCubit>()
+        .setDeveloperMode(on);
+    if (!turnedOff || !mounted || DeveloperMode.isOn) {
+      return;
+    }
+    if (walletCubit.state.selectedNetwork?.testnet ?? false) {
+      await NetworkSelection.apply(
+        context: context,
+        walletCubit: walletCubit,
+        network: restoreSelectedNetwork(networks, allowTestnets: false),
+      );
     }
   }
 
@@ -254,45 +199,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
       maxContentWidth: GeniusBreakpoints.medium,
       child: ValueListenableBuilder<bool>(
         valueListenable: DeveloperMode.instance,
-        builder: (context, developerMode, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: GeniusWalletConsts.space12,
-          children: [
-            _buildSectionCard(
-              title: 'Appearance',
-              icon: Icons.brightness_6,
-              status: null,
-              loading: false,
-              action: null,
-              child: const _AppearanceControl(),
-            ),
-            _buildSectionCard(
-              title: 'Advanced',
-              icon: Icons.developer_mode,
-              status: _advancedStatus,
-              loading: false,
-              action: null,
-              child: _DeveloperModeSwitch(
-                value: developerMode,
-                onChanged: _setDeveloperMode,
+        builder: (context, developerMode, _) =>
+            BlocBuilder<DeveloperSettingsCubit, DeveloperSettingsState>(
+              builder: (context, dev) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: GeniusWalletConsts.space12,
+                children: [
+                  _buildSectionCard(
+                    title: 'Appearance',
+                    icon: Icons.brightness_6,
+                    status: null,
+                    loading: false,
+                    action: null,
+                    child: const _AppearanceControl(),
+                  ),
+                  _buildSectionCard(
+                    title: 'Advanced',
+                    icon: Icons.developer_mode,
+                    status: dev.status,
+                    loading: false,
+                    action: null,
+                    child: _DeveloperModeSwitch(
+                      value: developerMode,
+                      onChanged: dev.busy ? null : _setDeveloperMode,
+                    ),
+                  ),
+                  if (developerMode) ...[
+                    const GWKicker('Developer'),
+                    _buildSectionCard(
+                      title: 'SDK Network',
+                      icon: Icons.hub,
+                      status: dev.netStatus,
+                      loading: false,
+                      action: null,
+                      child: _SdkNetSelect(
+                        value: dev.net,
+                        onChanged: context
+                            .read<DeveloperSettingsCubit>()
+                            .selectNet,
+                      ),
+                    ),
+                    _buildLogSection(),
+                    _buildNetworkSection(),
+                    _buildCrdtSection(),
+                  ],
+                ],
               ),
             ),
-            if (developerMode) ...[
-              const GWKicker('Developer'),
-              _buildSectionCard(
-                title: 'SDK Network',
-                icon: Icons.hub,
-                status: _sgnsNetStatus,
-                loading: false,
-                action: null,
-                child: _SdkNetSelect(value: _sgnsNet, onChanged: _saveSgnsNet),
-              ),
-              _buildLogSection(),
-              _buildNetworkSection(),
-              _buildCrdtSection(),
-            ],
-          ],
-        ),
       ),
     );
   }
@@ -581,7 +534,7 @@ class _DeveloperModeSwitch extends StatelessWidget {
   const _DeveloperModeSwitch({required this.value, required this.onChanged});
 
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
