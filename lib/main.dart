@@ -28,6 +28,7 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/network/connectivity_fallback.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -165,6 +166,7 @@ Future<void> main() async {
       await geniusApi.loadStoredWallets();
 
       GWAppearance.instance.load();
+      DeveloperMode.instance.load();
 
       if ((await geniusApi.getWallets().first).isEmpty) {
         byPassSGNUSConnecton(geniusApi);
