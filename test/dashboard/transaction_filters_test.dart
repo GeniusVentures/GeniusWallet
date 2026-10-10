@@ -463,11 +463,6 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
     }
 
-    Widget host(List<Transaction> txs, [GWColors? gw]) => MaterialApp(
-      theme: ThemeData(extensions: [gw ?? GWColors.dark()]),
-      home: Scaffold(body: _PhonePage(txs: txs)),
-    );
-
     /// The drawer's own rows, so a `find.text` cannot match the page behind the
     /// sheet - which is still mounted while the sheet is up.
     Finder drawerRow(String label) => find.descendant(
@@ -485,7 +480,7 @@ void main() {
       tester,
     ) async {
       surface(tester);
-      await tester.pumpWidget(host(const []));
+      await tester.pumpWidget(const _PhoneHost(txs: []));
       await tester.pumpAndSettle();
 
       expect(find.byType(TransactionsFilterTrigger), findsOneWidget);
@@ -495,7 +490,9 @@ void main() {
       expect(find.text(emptyTransactionsTitle), findsOneWidget);
 
       // One row is all it takes to earn the control back.
-      await tester.pumpWidget(host([_tx(type: TransactionType.escrow)]));
+      await tester.pumpWidget(
+        _PhoneHost(txs: [_tx(type: TransactionType.escrow)]),
+      );
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.filter_alt_outlined), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -509,7 +506,7 @@ void main() {
           '${platform.name}', (tester) async {
         debugDefaultTargetPlatformOverride = platform;
         surface(tester);
-        await tester.pumpWidget(host(some()));
+        await tester.pumpWidget(_PhoneHost(txs: some()));
         await tester.pumpAndSettle();
 
         // The platform's touch floor on both axes; the glyph is 22.
@@ -526,7 +523,7 @@ void main() {
       tester,
     ) async {
       surface(tester);
-      await tester.pumpWidget(host(some()));
+      await tester.pumpWidget(_PhoneHost(txs: some()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Filter transactions'));
@@ -558,7 +555,7 @@ void main() {
         tester,
       ) async {
         surface(tester);
-        await tester.pumpWidget(host(some(), gwFor(mode)));
+        await tester.pumpWidget(_PhoneHost(txs: some(), gw: gwFor(mode)));
         await tester.pumpAndSettle();
 
         expect(find.byType(TransactionRow), findsNWidgets(4));
@@ -610,7 +607,7 @@ void main() {
       tester,
     ) async {
       surface(tester);
-      await tester.pumpWidget(host(some()));
+      await tester.pumpWidget(_PhoneHost(txs: some()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Filter transactions'));
@@ -641,7 +638,7 @@ void main() {
       tester,
     ) async {
       surface(tester);
-      await tester.pumpWidget(host(const []));
+      await tester.pumpWidget(const _PhoneHost(txs: []));
       await tester.pumpAndSettle();
       expect(find.text(emptyTransactionsTitle), findsOneWidget);
       expect(find.text('Show all'), findsNothing);
@@ -650,7 +647,7 @@ void main() {
       expect(find.byIcon(Icons.sync_alt), findsOneWidget);
 
       // History exists; `Received` matches none of it.
-      await tester.pumpWidget(host(some()));
+      await tester.pumpWidget(_PhoneHost(txs: some()));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Filter transactions'));
       await tester.pumpAndSettle();
@@ -679,7 +676,7 @@ void main() {
       tester,
     ) async {
       surface(tester);
-      await tester.pumpWidget(host(some()));
+      await tester.pumpWidget(_PhoneHost(txs: some()));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Filter transactions'));
       await tester.pumpAndSettle();
@@ -789,4 +786,18 @@ double _contrastRatio(Color a, Color b) {
   final la = a.computeLuminance();
   final lb = b.computeLuminance();
   return (la > lb ? la + 0.05 : lb + 0.05) / (la > lb ? lb + 0.05 : la + 0.05);
+}
+
+/// The phone transactions page in a themed app, for the filter-control tests.
+class _PhoneHost extends StatelessWidget {
+  const _PhoneHost({required this.txs, this.gw});
+
+  final List<Transaction> txs;
+  final GWColors? gw;
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    theme: ThemeData(extensions: [gw ?? GWColors.dark()]),
+    home: Scaffold(body: _PhonePage(txs: txs)),
+  );
 }
