@@ -6,12 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
+import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -173,22 +175,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(title: const Text('Settings')),
       padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       maxContentWidth: GeniusBreakpoints.medium,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: GeniusWalletConsts.space12,
-        children: [
-          _buildSectionCard(
-            title: 'Appearance',
-            icon: Icons.brightness_6,
-            status: null,
-            loading: false,
-            action: null,
-            child: const _AppearanceControl(),
-          ),
-          _buildLogSection(),
-          _buildNetworkSection(),
-          _buildCrdtSection(),
-        ],
+      child: ValueListenableBuilder<bool>(
+        valueListenable: DeveloperMode.instance,
+        builder: (context, developerMode, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: GeniusWalletConsts.space12,
+          children: [
+            _buildSectionCard(
+              title: 'Appearance',
+              icon: Icons.brightness_6,
+              status: null,
+              loading: false,
+              action: null,
+              child: const _AppearanceControl(),
+            ),
+            _buildSectionCard(
+              title: 'Advanced',
+              icon: Icons.developer_mode,
+              status: null,
+              loading: false,
+              action: null,
+              child: _DeveloperModeSwitch(
+                value: developerMode,
+                onChanged: DeveloperMode.instance.setEnabled,
+              ),
+            ),
+            if (developerMode) ...[
+              const GWKicker('Developer'),
+              _buildLogSection(),
+              _buildNetworkSection(),
+              _buildCrdtSection(),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -469,6 +488,23 @@ class _AppearanceControl extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _DeveloperModeSwitch extends StatelessWidget {
+  const _DeveloperModeSwitch({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return GWSwitch(
+      label: 'Developer mode',
+      description: 'Shows SDK diagnostics, the SDK network and EVM testnets.',
+      value: value,
+      onChanged: onChanged,
     );
   }
 }

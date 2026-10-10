@@ -22,3 +22,4 @@ const String selectedNetworkKeyRpcUrl = 'selected_network_rpc_url';
 // preferences
 const String preferencesBoxName = 'preferences';
 const String appearanceModeKey = 'appearance_mode';
+const String developerModeKey = 'developer_mode';
