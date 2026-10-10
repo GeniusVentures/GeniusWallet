@@ -613,7 +613,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(TransactionRow), findsNWidgets(2));
 
-      await tester.tap(find.byTooltip('Clear filter'));
+      // 6px above the 32px pill: still inside its 48px tap target.
+      final pill = tester.getRect(find.byTooltip('Clear filter'));
+      await tester.tapAt(pill.topCenter - const Offset(0, 6));
       await tester.pumpAndSettle();
 
       // Back to unfiltered, and the chip row is GONE rather than emptied - it

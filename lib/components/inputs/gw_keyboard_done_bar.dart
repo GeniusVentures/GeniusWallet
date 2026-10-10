@@ -323,9 +323,10 @@ class _GWKeyboardDoneBarOverlay extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
-  /// 44, the platform toolbar height and Apple's minimum target in one - a
-  /// platform number, not a spacing token.
-  static const double _height = 44;
+  /// The bar height is also every control's tap target: Apple's 44pt floor on
+  /// iOS, Material's 48dp on Android. Platform numbers, not spacing tokens.
+  static double _heightFor(TargetPlatform platform) =>
+      platform == TargetPlatform.android ? 48 : 44;
 
   /// 8pt clearance, the gap iOS 26 leaves under a floating toolbar.
   static const double _gap = GeniusWalletConsts.space4;
@@ -413,12 +414,11 @@ class _GWKeyboardDoneBarOverlay extends StatelessWidget {
                   borderRadius: _shape,
                 ),
                 child: SizedBox(
-                  height: _height,
+                  height: _heightFor(Theme.of(context).platform),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     // The tap target is the bar's full height, not the
-                    // glyph's - at 44 that is exactly Apple's floor, so the
-                    // line is now load-bearing rather than generous.
+                    // glyph's, which is what puts it on the platform floor.
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
