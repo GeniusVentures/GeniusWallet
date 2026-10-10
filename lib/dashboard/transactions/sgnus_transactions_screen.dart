@@ -6,6 +6,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 
 class SgnusTransactionsScreen extends StatefulWidget {
   /// Forwarded verbatim to [TransactionsSlimView.page]: true selects the page's
@@ -55,14 +56,8 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final txController = context
-        .read<GeniusApi>()
-        .getSGNUSTransactionsController();
-
-    return StreamBuilder<List<Transaction>>(
-      stream: txController.stream,
-      builder: (context, snapshot) {
-        final allTx = snapshot.data ?? [];
+    return BlocBuilder<SgnusTransactionsCubit, List<Transaction>>(
+      builder: (context, allTx) {
         final sgnusTx = allTx.where((tx) => tx.isSGNUS == true).toList();
 
         final view = BlocBuilder<OrdersCubit, OrdersState>(

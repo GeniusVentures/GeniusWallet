@@ -11,6 +11,7 @@ import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -33,14 +34,6 @@ Transaction _plain() => Transaction(
   transactionStatus: TransactionStatus.completed,
   type: TransactionType.transfer,
 );
-
-/// Answers only the SGNUS feed, with no rows of its own.
-class _SgnusApi extends UnusedGeniusApi {
-  final _feed = SGNUSTransactionsController();
-
-  @override
-  SGNUSTransactionsController getSGNUSTransactionsController() => _feed;
-}
 
 /// Two orders; `ord_new` is the more recent, so it is the first row. [open]
 /// adds that many unpaid ones.
@@ -114,7 +107,10 @@ Future<GoRouter> _pump(
   await tester.pumpWidget(
     MultiBlocProvider(
       providers: [
-        RepositoryProvider<GeniusApi>.value(value: _SgnusApi()),
+        BlocProvider(
+          create: (_) =>
+              SgnusTransactionsCubit(SGNUSTransactionsController().stream),
+        ),
         BlocProvider<WalletDetailsCubit>.value(value: wallets),
         BlocProvider(create: (_) => TransactionsCubit(initial: [_plain()])),
         BlocProvider(

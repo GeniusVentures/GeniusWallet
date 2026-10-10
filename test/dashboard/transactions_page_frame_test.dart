@@ -40,8 +40,8 @@ import '../banxa/fake_banxa_api.dart';
 ///
 ///  * **The SGNUS branch.** Every pump here leaves `selectedWallet` null, so
 ///    `isSgnusWallet` is false and [TransactionsStream] mounts. Reaching
-///    [SgnusTransactionsScreen] needs an `AppBloc`, a `GeniusApi` in the tree
-///    and a live stream controller — apparatus far past what a frame assertion
+///    [SgnusTransactionsScreen] needs an `AppBloc` and an
+///    `SgnusTransactionsCubit` — apparatus far past what a frame assertion
 ///    earns. Its `page` pass-through is unexercised by any automated test.
 ///  * **`RefreshIndicator`'s pull gesture.** Preserved untouched by this plan,
 ///    but which scrollable now captures the drag is a live-screen question.
