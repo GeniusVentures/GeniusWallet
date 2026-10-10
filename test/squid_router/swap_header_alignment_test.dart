@@ -92,37 +92,49 @@ const _wallet = Wallet(
   address: '0xSWAPSWAPSWAPSWAPSWAPSWAPSWAPSWAPSWAPSWAP',
 );
 
-Widget _swapHost() => BlocProvider<WalletDetailsCubit>(
-  create: (_) => _SeededWalletDetailsCubit(
-    geniusApi: _UnusedApi(),
-    networkTokensProvider: NetworkTokensProvider(),
-    selectedWallet: _wallet,
-  ),
-  child: MaterialApp(
-    theme: ThemeData(extensions: [GWColors.dark()]),
-    home: const Scaffold(
-      body: SwapScreen(swapAvailable: true, provider: _EmptySwapProvider()),
+class _SwapHost extends StatelessWidget {
+  const _SwapHost();
+
+  @override
+  Widget build(BuildContext context) => BlocProvider<WalletDetailsCubit>(
+    create: (_) => _SeededWalletDetailsCubit(
+      geniusApi: _UnusedApi(),
+      networkTokensProvider: NetworkTokensProvider(),
+      selectedWallet: _wallet,
     ),
-  ),
-);
+    child: MaterialApp(
+      theme: ThemeData(extensions: [GWColors.dark()]),
+      home: const Scaffold(
+        body: SwapScreen(swapAvailable: true, provider: _EmptySwapProvider()),
+      ),
+    ),
+  );
+}
 
 /// The `/assets` page, the reference every other page title is measured
 /// against - the same host `transactions_page_frame_test.dart` uses for the
 /// same comparison, one coin so the header sits above a funded wallet.
-Widget _assetsHost() => BlocProvider(
-  create: (_) => WalletDetailsCubit(
-    initialState: const WalletDetailsState(
-      coins: [Coin(name: 'GeniusAI', symbol: 'GNUS', iconPath: '', balance: 1)],
-      coinsStatus: WalletStatus.successful,
+class _AssetsHost extends StatelessWidget {
+  const _AssetsHost();
+
+  @override
+  Widget build(BuildContext context) => BlocProvider(
+    create: (_) => WalletDetailsCubit(
+      initialState: const WalletDetailsState(
+        coins: [
+          Coin(name: 'GeniusAI', symbol: 'GNUS', iconPath: '', balance: 1),
+        ],
+        coinsStatus: WalletStatus.successful,
+      ),
+      geniusApi: _UnusedApi(),
+      networkTokensProvider: NetworkTokensProvider(),
     ),
-    geniusApi: _UnusedApi(),
-    networkTokensProvider: NetworkTokensProvider(),
-  ),
-  child: MaterialApp(
-    theme: ThemeData(extensions: [GWColors.dark()]),
-    home: AssetsScreen(resolveMarketData: (_) async => const {}),
-  ),
-);
+    child: MaterialApp(
+      theme: ThemeData(extensions: [GWColors.dark()]),
+      home: AssetsScreen(resolveMarketData: (_) async => const {}),
+    ),
+  );
+}
 
 /// Sets the window to [width] x [height] LOGICAL pixels and tears it back
 /// down. A leaked surface changes every file that runs after this one.
@@ -137,7 +149,7 @@ void _surface(WidgetTester tester, double width, [double height = 844]) {
 /// NOT `pumpAndSettle`: `Loading()` may animate forever, and `pumpAndSettle`
 /// would hang the suite rather than fail it.
 Future<void> _mountSwap(WidgetTester tester) async {
-  await tester.pumpWidget(_swapHost());
+  await tester.pumpWidget(const _SwapHost());
   await tester.pump();
   await tester.pump();
 }
@@ -258,7 +270,7 @@ void main() {
     await _mountSwap(tester);
     final Rect swapTitle = tester.getRect(find.text(_title));
 
-    await tester.pumpWidget(_assetsHost());
+    await tester.pumpWidget(const _AssetsHost());
     await tester.pumpAndSettle();
     final Rect assetsTitle = tester.getRect(find.text('Assets'));
 

@@ -34,14 +34,20 @@ Finder _island() =>
 Color _glyphColour(WidgetTester tester, Finder glyph) =>
     tester.widget<Icon>(glyph).color!;
 
-void main() {
-  final gw = GWColors.dark();
+/// A decimal-pad field wrapped in the bar, as every amount screen mounts it.
+class _AmountField extends StatelessWidget {
+  const _AmountField({
+    required this.node,
+    required this.platform,
+    this.enabled = true,
+  });
 
-  Widget amountField({
-    required FocusNode node,
-    required bool Function() platform,
-    bool enabled = true,
-  }) => GWKeyboardDoneBar(
+  final FocusNode node;
+  final bool Function() platform;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) => GWKeyboardDoneBar(
     enabled: enabled,
     isTouchPlatform: platform,
     child: TextField(
@@ -49,6 +55,10 @@ void main() {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
     ),
   );
+}
+
+void main() {
+  final gw = GWColors.dark();
 
   testWidgets(
     'the bar appears on focus, and the tick takes away both the bar and the '
@@ -58,7 +68,7 @@ void main() {
       addTearDown(node.dispose);
 
       await tester.pumpWidget(
-        gwHost(amountField(node: node, platform: _touch)),
+        gwHost(_AmountField(node: node, platform: _touch)),
       );
       expect(
         _tick(),
@@ -109,7 +119,7 @@ void main() {
     final node = FocusNode();
     addTearDown(node.dispose);
 
-    await tester.pumpWidget(gwHost(amountField(node: node, platform: _touch)));
+    await tester.pumpWidget(gwHost(_AmountField(node: node, platform: _touch)));
     await tester.tap(find.byType(TextField));
     await tester.pumpAndSettle();
     expect(_tick(), findsOneWidget);
@@ -136,7 +146,7 @@ void main() {
       gwHost(
         Column(
           children: [
-            amountField(node: amount, platform: _touch),
+            _AmountField(node: amount, platform: _touch),
             TextField(focusNode: recipient),
           ],
         ),
@@ -161,7 +171,7 @@ void main() {
     final node = FocusNode();
     addTearDown(node.dispose);
 
-    await tester.pumpWidget(gwHost(amountField(node: node, platform: _touch)));
+    await tester.pumpWidget(gwHost(_AmountField(node: node, platform: _touch)));
     await tester.tap(find.byType(TextField));
     await tester.pumpAndSettle();
     expect(_tick(), findsOneWidget);
@@ -193,7 +203,7 @@ void main() {
                   child: Navigator(
                     onGenerateRoute: (settings) => MaterialPageRoute<void>(
                       builder: (_) => Scaffold(
-                        body: amountField(node: node, platform: _touch),
+                        body: _AmountField(node: node, platform: _touch),
                       ),
                     ),
                   ),
@@ -240,7 +250,7 @@ void main() {
                 useRootNavigator: true,
                 builder: (_) => SizedBox(
                   height: 300,
-                  child: amountField(node: node, platform: _touch),
+                  child: _AmountField(node: node, platform: _touch),
                 ),
               ),
               child: const Text('open'),
@@ -275,7 +285,7 @@ void main() {
     tester.view.viewInsets = const FakeViewPadding(bottom: 900);
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(gwHost(amountField(node: node, platform: _touch)));
+    await tester.pumpWidget(gwHost(_AmountField(node: node, platform: _touch)));
     await tester.tap(find.byType(TextField));
     await tester.pumpAndSettle();
 
@@ -301,7 +311,7 @@ void main() {
       addTearDown(node.dispose);
 
       await tester.pumpWidget(
-        gwHost(amountField(node: node, platform: _touch)),
+        gwHost(_AmountField(node: node, platform: _touch)),
       );
       await tester.tap(find.byType(TextField));
       await tester.pumpAndSettle();
@@ -327,7 +337,7 @@ void main() {
     addTearDown(node.dispose);
 
     await tester.pumpWidget(
-      gwHost(amountField(node: node, platform: _notTouch)),
+      gwHost(_AmountField(node: node, platform: _notTouch)),
     );
     await tester.tap(find.byType(TextField));
     await tester.pumpAndSettle();
@@ -346,7 +356,7 @@ void main() {
     // Swap's "You Receive" side: focusable for selection, `readOnly`, so it
     // opens no keyboard.
     await tester.pumpWidget(
-      gwHost(amountField(node: node, platform: _touch, enabled: false)),
+      gwHost(_AmountField(node: node, platform: _touch, enabled: false)),
     );
     await tester.tap(find.byType(TextField));
     await tester.pumpAndSettle();
@@ -362,7 +372,7 @@ void main() {
 
     // Swap, Bridge, Banxa and the slippage drawer are all this shape: one
     // numeric field on the surface, so there is nowhere to step.
-    await tester.pumpWidget(gwHost(amountField(node: node, platform: _touch)));
+    await tester.pumpWidget(gwHost(_AmountField(node: node, platform: _touch)));
     await tester.tap(find.byType(TextField));
     await tester.pumpAndSettle();
 
@@ -396,8 +406,8 @@ void main() {
       gwHost(
         Column(
           children: [
-            amountField(node: first, platform: _touch),
-            amountField(node: second, platform: _touch),
+            _AmountField(node: first, platform: _touch),
+            _AmountField(node: second, platform: _touch),
           ],
         ),
       ),
@@ -446,8 +456,8 @@ void main() {
       gwHost(
         Column(
           children: [
-            amountField(node: typed, platform: _touch),
-            amountField(node: readOnly, platform: _touch, enabled: false),
+            _AmountField(node: typed, platform: _touch),
+            _AmountField(node: readOnly, platform: _touch, enabled: false),
           ],
         ),
       ),
@@ -487,14 +497,14 @@ void main() {
           body: Builder(
             builder: (context) => Column(
               children: [
-                amountField(node: behind, platform: _touch),
+                _AmountField(node: behind, platform: _touch),
                 TextButton(
                   onPressed: () => showModalBottomSheet<void>(
                     context: context,
                     useRootNavigator: true,
                     builder: (_) => SizedBox(
                       height: 300,
-                      child: amountField(node: inSheet, platform: _touch),
+                      child: _AmountField(node: inSheet, platform: _touch),
                     ),
                   ),
                   child: const Text('open'),
@@ -535,8 +545,8 @@ void main() {
       gwHost(
         Column(
           children: [
-            amountField(node: first, platform: _touch),
-            amountField(node: second, platform: _touch),
+            _AmountField(node: first, platform: _touch),
+            _AmountField(node: second, platform: _touch),
           ],
         ),
       ),
