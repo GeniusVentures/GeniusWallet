@@ -1,0 +1,42 @@
+name: OSS Scanner Docker build
+
+on:
+  pull_request:
+    paths:
+      - '.oss-scanner/**'
+      - '.github/workflows/oss-scanner-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scanner-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source without credentials
+        uses: actions/checkout@v5
+        with:
+          submodules: false
+          persist-credentials: false
+
+      - name: Check scanner target and safety
+        run: |
+          set -euo pipefail
+          grep -Fx 'repo: https://github.com/GeniusVentures/GeniusWallet#develop' .oss-scanner/project.yaml
+          grep -Fx 'primary_contact: admin@gnus.ai' .oss-scanner/project.yaml
+          grep -Fx 'FROM ghcr.io/geniusventures/almalinux-8:latest' .oss-scanner/Dockerfile
+          test -s .oss-scanner/threat_model.md
+          ! grep -nE 'GNUS_TOKEN_1|GH_TOKEN|secrets\\.|--mount=type=secret' .oss-scanner/Dockerfile
+
+      - name: Build Flutter Dart bundle in public AlmaLinux image
+        run: docker build --pull --progress=plain -f .oss-scanner/Dockerfile -t genius-wallet-oss:check .
+
+      - name: Run transfer validation and math tests offline
+        run: |
+          docker run --rm --network none --entrypoint /bin/bash genius-wallet-oss:check -euo pipefail -c '
+            cd /src
+            test -d build/flutter_assets
+            flutter test --no-pub test/send/built_tx_matches_test.dart test/markets_sort_test.dart test/assets_totals_test.dart
+          '
