@@ -12,6 +12,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
@@ -281,10 +282,8 @@ class _FilterTrigger extends StatelessWidget {
       );
     }
 
-    return StreamBuilder<List<Transaction>>(
-      stream: context.read<GeniusApi>().getSGNUSTransactionsController().stream,
-      builder: (context, snapshot) =>
-          trigger(snapshot.data ?? const <Transaction>[]),
+    return BlocBuilder<SgnusTransactionsCubit, List<Transaction>>(
+      builder: (context, transactions) => trigger(transactions),
     );
   }
 }

@@ -20,6 +20,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_tools_host.dart';
 import 'package:genius_wallet/hive/init.dart';
@@ -426,6 +427,11 @@ class MyApp extends StatelessWidget {
         providers: [
           BlocProvider<TransactionsCubit>(
             create: (_) => TransactionsCubit(), // Or with initial state
+          ),
+          BlocProvider<SgnusTransactionsCubit>(
+            create: (context) => SgnusTransactionsCubit(
+              context.read<GeniusApi>().getSGNUSTransactionsController().stream,
+            ),
           ),
           BlocProvider(
             create: (_) => WalletDetailsCubit(
