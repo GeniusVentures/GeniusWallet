@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
@@ -70,13 +71,10 @@ void main() {
       expect(node.hasFocus, isTrue);
       expect(_tick(), findsOneWidget);
 
-      // Apple's 44pt floor, on the InkWell and not on the glyph: the target is
-      // the bar's full height by way of `CrossAxisAlignment.stretch`, which is
-      // the line a well-meaning tidy-up would delete. Since the iOS 26 restyle
-      // the bar is 44 rather than 48, so the vertical axis sits exactly ON the
-      // floor and the horizontal one is carried by the button's own padding.
+      // The target is the bar's full height (48 on the default Android test
+      // platform) by way of `CrossAxisAlignment.stretch`, not the glyph's.
       final target = tester.getSize(_target(_tick()));
-      expect(target.height, 44.0);
+      expect(target.height, 48.0);
       expect(
         target.width,
         96.0,
@@ -292,35 +290,35 @@ void main() {
     );
   });
 
-  testWidgets('the island is inset from both screen edges, and is 44 tall', (
-    tester,
-  ) async {
-    final node = FocusNode();
-    addTearDown(node.dispose);
+  for (final (platform, height) in const [
+    (TargetPlatform.iOS, 44.0),
+    (TargetPlatform.android, 48.0),
+  ]) {
+    testWidgets('the island is inset from both screen edges, and is '
+        '${height.toInt()} tall on ${platform.name}', (tester) async {
+      debugDefaultTargetPlatformOverride = platform;
+      final node = FocusNode();
+      addTearDown(node.dispose);
 
-    await tester.pumpWidget(gwHost(amountField(node: node, platform: _touch)));
-    await tester.tap(find.byType(TextField));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        gwHost(amountField(node: node, platform: _touch)),
+      );
+      await tester.tap(find.byType(TextField));
+      await tester.pumpAndSettle();
 
-    final island = tester.getRect(_island());
-    // space10 (20) is `GWScreen`'s own horizontal page padding, so the island
-    // lines up with the form it floats over instead of cutting across it. The
-    // full-bleed band this replaced measured 0 and 800 here.
-    expect(island.left, 20.0);
-    expect(island.right, 800.0 - 20.0);
-    expect(
-      island.height,
-      44.0,
-      reason:
-          'the platform toolbar height, down from the 48 (space24) the '
-          'pre-iOS-26 band used to buy headroom over the 44pt target floor',
-    );
-    // Three controls on a 44pt bar, and they are not allowed to grow it: the
-    // chevrons take Apple's floor plus the island's own 16pt gutter either
-    // side of a 22pt glyph.
-    expect(tester.getSize(_target(_previous())), const Size(54.0, 44.0));
-    expect(tester.getSize(_target(_next())), const Size(54.0, 44.0));
-  });
+      final island = tester.getRect(_island());
+      // space10 (20) is `GWScreen`'s own horizontal page padding, so the island
+      // lines up with the form it floats over instead of cutting across it. The
+      // full-bleed band this replaced measured 0 and 800 here.
+      expect(island.left, 20.0);
+      expect(island.right, 800.0 - 20.0);
+      // The bar height is the tap-target floor: 44pt on iOS, 48dp on Android.
+      expect(island.height, height);
+      expect(tester.getSize(_target(_previous())), Size(54.0, height));
+      expect(tester.getSize(_target(_next())), Size(54.0, height));
+      debugDefaultTargetPlatformOverride = null;
+    });
+  }
 
   testWidgets('off a touch platform the child renders untouched', (
     tester,

@@ -1088,12 +1088,7 @@ class _LiveFilterRow extends StatelessWidget {
         : GeniusWalletConsts.space3;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        wall,
-        GeniusWalletConsts.space3,
-        wall,
-        GeniusWalletConsts.space2,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: wall),
       child: Row(
         children: [
           Flexible(
@@ -1124,63 +1119,78 @@ class _LiveFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
-    return Semantics(
-      button: true,
-      label: 'Clear filter: ${filter.label}',
-      excludeSemantics: true,
+    // The 32px pill keeps its look; the padding around it is transparent hit
+    // area, so the tap target reaches 48 (the outer detector loses to the
+    // InkWell inside the pill, so a tap clears once).
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
       onTap: onClear,
-      child: Tooltip(
-        message: 'Clear filter',
-        child: GWHoverable(
-          builder: (hovered) => Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              onTap: onClear,
-              borderRadius: BorderRadius.circular(
-                GeniusWalletConsts.radiusPill,
-              ),
-              child: Container(
-                height: GeniusWalletConsts.space16,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: GeniusWalletConsts.space4,
-                ),
-                decoration: BoxDecoration(
-                  color: hovered ? GWDecorations.hoverFill : Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: GeniusWalletConsts.space4,
+        ),
+        child: Semantics(
+          button: true,
+          label: 'Clear filter: ${filter.label}',
+          excludeSemantics: true,
+          onTap: onClear,
+          child: Tooltip(
+            message: 'Clear filter',
+            child: GWHoverable(
+              builder: (hovered) => Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: onClear,
                   borderRadius: BorderRadius.circular(
                     GeniusWalletConsts.radiusPill,
                   ),
-                  // Brand as FOREGROUND, the same token the header trigger
-                  // takes when it is live, so the two marks of one state are
-                  // one colour. A non-text edge answers to WCAG 1.4.11's 3:1.
-                  border: Border.all(color: gw.brandPrimaryOnSurface),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    badgeGlyph(
-                      badgeSpec(filter.badgeKind!, gw),
-                      color: gw.textSecondary,
-                      size: 13,
+                  child: Container(
+                    height: GeniusWalletConsts.space16,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: GeniusWalletConsts.space4,
                     ),
-                    const SizedBox(width: GeniusWalletConsts.space3),
-                    Flexible(
-                      child: Text(
-                        filter.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GeniusWalletTypography.labelMd.copyWith(
-                          color: gw.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    decoration: BoxDecoration(
+                      color: hovered
+                          ? GWDecorations.hoverFill
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusPill,
                       ),
+                      // Brand as FOREGROUND, the same token the header trigger
+                      // takes when it is live, so the two marks of one state are
+                      // one colour. A non-text edge answers to WCAG 1.4.11's 3:1.
+                      border: Border.all(color: gw.brandPrimaryOnSurface),
                     ),
-                    const SizedBox(width: GeniusWalletConsts.space3),
-                    Icon(
-                      Icons.close,
-                      size: 13,
-                      color: hovered ? gw.textPrimary : gw.textSecondary,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        badgeGlyph(
+                          badgeSpec(filter.badgeKind!, gw),
+                          color: gw.textSecondary,
+                          size: 13,
+                        ),
+                        const SizedBox(width: GeniusWalletConsts.space3),
+                        Flexible(
+                          child: Text(
+                            filter.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GeniusWalletTypography.labelMd.copyWith(
+                              color: gw.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: GeniusWalletConsts.space3),
+                        Icon(
+                          Icons.close,
+                          size: 13,
+                          color: hovered ? gw.textPrimary : gw.textSecondary,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),

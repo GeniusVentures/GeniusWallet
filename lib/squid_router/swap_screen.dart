@@ -1009,7 +1009,9 @@ class _SwapScreenState extends State<SwapScreen> {
                                     // Glyph centred on the 32px title line. On touch the box grows to a
                                     // 48x48 target downward; a mouse keeps 48x32 so the hover circle stays
                                     // centred. Explicit density and `shrinkWrap` make the box exact.
-                                    padding: const EdgeInsets.only(top: 4),
+                                    padding: const EdgeInsets.only(
+                                      top: GeniusWalletConsts.space2,
+                                    ),
                                     alignment: Alignment.topCenter,
                                     constraints: BoxConstraints.tightFor(
                                       width: 48,
