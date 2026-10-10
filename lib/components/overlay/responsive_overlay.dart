@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -669,18 +671,37 @@ class MobileOverlay extends StatelessWidget {
           // "Genius Wallet" and whose actions held the desktop control track
           // inside a horizontal SingleChildScrollView. See MobileHeader.
           appBar: const MobileHeader(),
-          // Single-child Stack kept deliberately (D-05, quick task
-          // 260731-gow): the dev bubble that used to be this Stack's second
-          // child now mounts above the root Navigator via
-          // lib/dev/dev_tools_host.dart, so a drawer's ModalBarrier no
-          // longer eats its taps. Scaffold lays its body out under LOOSE
-          // constraints, so a Stack expands to the full body box while a
-          // bare child may size to itself - dropping this Stack would
-          // silently change body sizing for every page in the shell.
-          body: Stack(children: [child]),
+          extendBody: true,
+          body: _MobileShellBody(child: child),
           bottomNavigationBar: const _MobileTabBar(),
         );
       },
+    );
+  }
+}
+
+/// Under `extendBody` Scaffold reports the bar's whole box, dock overhang
+/// included, as bottom padding (and 0 while the keyboard covers the bar).
+/// Pad by that minus the overhang, then remove it so pages' SafeArea is as before.
+class _MobileShellBody extends StatelessWidget {
+  final Widget child;
+  const _MobileShellBody({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final pad = math.max(
+      0.0,
+      MediaQuery.paddingOf(context).bottom - _kDockOverhang,
+    );
+    return MediaQuery.removePadding(
+      context: context,
+      removeBottom: true,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: pad),
+        // Scaffold lays its body out under LOOSE constraints, so a Stack
+        // expands to the full body box while a bare child may size to itself.
+        child: Stack(children: [child]),
+      ),
     );
   }
 }
