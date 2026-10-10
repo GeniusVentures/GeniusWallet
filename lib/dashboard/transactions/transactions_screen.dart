@@ -258,32 +258,59 @@ class _FilterTrigger extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget trigger(List<Transaction> transactions) {
-      return BlocBuilder<OrdersCubit, OrdersState>(
-        builder: (context, ordersState) {
-          final orders = ordersState.orders?.orders ?? const <Order>[];
-          return TransactionsFilterTrigger(
-            transactions: scopeTransactions(
-              transactions: transactions,
-              sgnusOnly: sgnus,
-              orderRows: orders.map(orderAsTransaction),
-            ),
-            openOrders: openBuyOrderCount(orders),
-            selected: selected,
-            onChanged: onChanged,
-          );
-        },
-      );
-    }
-
     if (!sgnus) {
       return BlocBuilder<TransactionsCubit, List<Transaction>>(
-        builder: (context, transactions) => trigger(transactions),
+        builder: (context, transactions) => _ScopedFilterTrigger(
+          transactions: transactions,
+          sgnus: false,
+          selected: selected,
+          onChanged: onChanged,
+        ),
       );
     }
 
     return BlocBuilder<SgnusTransactionsCubit, List<Transaction>>(
-      builder: (context, transactions) => trigger(transactions),
+      builder: (context, transactions) => _ScopedFilterTrigger(
+        transactions: transactions,
+        sgnus: true,
+        selected: selected,
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+/// The filter trigger over [transactions] plus buy-order rows, scoped to
+/// SGNUS when [sgnus] is set.
+class _ScopedFilterTrigger extends StatelessWidget {
+  const _ScopedFilterTrigger({
+    required this.transactions,
+    required this.sgnus,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final List<Transaction> transactions;
+  final bool sgnus;
+  final Filters selected;
+  final ValueChanged<Filters> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<OrdersCubit, OrdersState>(
+      builder: (context, ordersState) {
+        final orders = ordersState.orders?.orders ?? const <Order>[];
+        return TransactionsFilterTrigger(
+          transactions: scopeTransactions(
+            transactions: transactions,
+            sgnusOnly: sgnus,
+            orderRows: orders.map(orderAsTransaction),
+          ),
+          openOrders: openBuyOrderCount(orders),
+          selected: selected,
+          onChanged: onChanged,
+        );
+      },
     );
   }
 }
