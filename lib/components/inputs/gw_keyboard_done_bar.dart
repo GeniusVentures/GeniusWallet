@@ -7,81 +7,16 @@ import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
-/// Apple's input accessory view, as a wrapper: a floating toolbar carrying
-/// leading previous/next chevrons and a trailing confirm tick, riding just
-/// above the on-screen keyboard for as long as the field inside holds focus.
-///
-/// WHY IT EXISTS. `TextInputType.numberWithOptions(decimal: true)` and
-/// `TextInputType.number` open the iOS decimal/number pad, and that keyboard
-/// has no return key at all. `textInputAction` therefore has nothing to set:
-/// the field cannot be dismissed FROM the keyboard, and Flutter's own
-/// `onTapOutside` default is a no-op on Android and iOS (`EditableText`'s
-/// `_defaultOnTapOutside` only unfocuses on the three desktop platforms). So a
-/// decimal field on a phone has, out of the box, no exit at all. Jakub hit
-/// exactly this on the Swap amount and could not tell how to get out.
-///
-/// It supplies BOTH exits, so no call site can ship half of the pair: the bar
-/// is the visible affordance, and the [TapRegion] below restores
-/// tap-anywhere-else as the shortcut.
-///
-/// HOW IT WATCHES. Focus is observed from descendants, the same shape
-/// `GWFocusRing` uses and for the same reason: call sites do not have to own a
-/// `FocusNode`, so wrapping a field is one line and works for a bare
-/// `TextField`, a `GWTextField`, or anything else that focuses.
-///
-/// WHERE IT RENDERS. The ROOT overlay, never the nearest one. Two of the
-/// wired call sites sit inside a `ResponsiveDrawer`, which pushes with
-/// `useRootNavigator: true` while the screens themselves live under
-/// `router.dart`'s ShellRoute navigator. An entry inserted into the nearest
-/// overlay would land in the shell's and paint UNDER the sheet. The root
-/// overlay's entries are painted in insertion order, and this one is inserted
-/// after the sheet's route, so it is on top.
-///
-/// TOUCH PLATFORMS ONLY. There is no on-screen keyboard to sit above anywhere
-/// else, and the desktop platforms already unfocus on an outside tap by
-/// themselves. The gate is [GeniusBreakpoints.isMobileApp], NOT
-/// `useDesktopLayout`: the latter is a WIDTH test (`width > medium &&
-/// !isMobileApp`), so a desktop window dragged narrower than 768 reports
-/// "not desktop" and would have grown a keyboard bar with no keyboard under
-/// it. "Is there a soft keyboard" is a platform question.
-///
-/// WHY IT FLOATS RATHER THAN SITS ON THE KEYBOARD. The first version drew the
-/// pre-iOS-26 convention: a full-bleed 48pt band, flat fill, hairline on top,
-/// flush against the keyboard - a Flutter tracing of `UIToolbar` as
-/// `inputAccessoryView`. Jakub tested it on iOS 26.6 and it did not read as
-/// native, because iOS 26 moved the goalposts twice. The system keyboard grew
-/// a margin with rounded top corners, so nothing sits flush against it any
-/// more (FB17978212; Apple's answer was "file feedback"), and toolbars moved
-/// to Liquid Glass: rounded, inset, translucent, floating clear of what they
-/// overlay. Apple's own above-keyboard Done became a checkmark in such a bar.
-///
-/// A genuinely native accessory view is not on the table - Flutter has no
-/// framework support (issue #124784, open since 2023), `keyboard_actions`
-/// draws a Flutter widget exactly like this one, and the one package claiming
-/// native is 0.0.4 with 314 downloads, which is not a dependency a wallet
-/// takes. So this matches what iOS 26 LOOKS like rather than becoming it.
-///
-/// WHY GLYPHS AND NOT THE WORD "DONE". The first island shipped the word,
-/// reasoning that a bare checkmark is a glyph the system teaches and this app
-/// does not. iOS 26 settled that: Safari's own accessory bar is now icons
-/// end to end (a key, a card, a pin, and a checkmark to dismiss), so the
-/// checkmark IS the taught glyph on the platform this component imitates, and
-/// spelling it out is the divergence rather than the safe default. The word's
-/// tap target is kept to the pixel anyway - see [_GWKeyboardBarButton].
-///
-/// WHY THE CHEVRONS ARE REAL. Safari's leading pair steps between the fields
-/// of the form. Reproducing them as decoration would be worse than omitting
-/// them, so every wrapper with [enabled] set registers itself as a navigable
-/// stop and the pair walks that list in reading order. A wrapper built with
-/// `enabled: false` is deliberately NOT a stop: it opens no keyboard, so
-/// stepping onto it would take the bar away mid-navigation. Most surfaces here
-/// hold a single numeric field and correctly show both chevrons disabled;
-/// `settings_screen.dart`, with four numeric rows, is where they do work.
+/// A floating toolbar (previous/next chevrons, a Done tick) above the soft
+/// keyboard while the wrapped field has focus, plus tap-outside-to-dismiss.
+/// The iOS number pad has no return key, so a numeric field needs this exit.
 class GWKeyboardDoneBar extends StatefulWidget {
   const GWKeyboardDoneBar({
     super.key,
     required this.child,
     this.enabled = true,
+    // A platform test, not useDesktopLayout's width test: a desktop window
+    // dragged narrow has no soft keyboard to sit above.
     this.isTouchPlatform = GeniusBreakpoints.isMobileApp,
   });
 
@@ -89,23 +24,12 @@ class GWKeyboardDoneBar extends StatefulWidget {
   final Widget child;
 
   /// When false the wrapper is inert and the child renders untouched - for a
-  /// field that takes focus but opens no keyboard.
-  ///
-  /// The case that forced it: Swap's "You Receive" amount is `readOnly`, so it
-  /// is focusable for selection and copy but never summons a keyboard. Wrapped
-  /// unconditionally, tapping it would raise a keyboard bar with no keyboard
-  /// under it. Same flag, same reason, as `GWFocusRing.enabled` one widget out
-  /// in that very file.
+  /// field that takes focus but opens no keyboard (a `readOnly` amount). Such
+  /// a wrapper is also not a stop for the chevrons.
   final bool enabled;
 
-  /// The touch-platform test, defaulting to the real one.
-  ///
-  /// `@visibleForTesting`, not premature configurability: the real function
-  /// reads `Platform.isIOS`, which `flutter test` cannot override the way
-  /// `debugDefaultTargetPlatformOverride` overrides `defaultTargetPlatform` -
-  /// the suite runs on macOS, so without this seam the bar would be compiled
-  /// out of every test and the behaviour would have no runnable check at all.
-  /// Same shape as `MarketsHeroCard.fetchHistoricalPrices`.
+  /// The touch-platform test. A seam because the real one reads
+  /// `Platform.isIOS`, which `flutter test` cannot override.
   @visibleForTesting
   final bool Function() isTouchPlatform;
 
@@ -114,27 +38,14 @@ class GWKeyboardDoneBar extends StatefulWidget {
 }
 
 class _GWKeyboardDoneBarState extends State<GWKeyboardDoneBar> {
-  /// Every wrapper that can currently raise a keyboard, app-wide.
-  ///
-  /// The chevrons need to know their siblings, and no call site can be asked
-  /// to hand-list them: the numeric rows in `settings_screen.dart` are built
-  /// from a map, so the set is not knowable where the wrapper is written. A
-  /// registry each wrapper joins on its own is the only place the answer
-  /// exists. Membership is exactly "would focusing this raise a keyboard", so
-  /// an `enabled: false` wrapper (Swap's read-only "You Receive") never joins,
-  /// and neither does one off a touch platform.
-  ///
-  /// Static state on a State class, deliberately: it is a set of live State
-  /// objects, every member removes itself in [dispose], and there is exactly
-  /// one keyboard per app so there is nothing to scope it to.
+  /// Every wrapper that can currently raise a keyboard, app-wide, so the
+  /// chevrons can find their siblings without call sites listing them. Static
+  /// because there is one keyboard per app; members leave in [dispose].
   static final Set<_GWKeyboardDoneBarState> _registry =
       <_GWKeyboardDoneBarState>{};
 
-  /// Owned rather than left implicit, because navigation has to reach INTO
-  /// this wrapper from a sibling: [_takeFocus] walks down from here to find
-  /// the field, and [_updateNeighbours] reads `enclosingScope` off it to keep
-  /// a bar inside a modal sheet from stepping onto a field on the screen
-  /// underneath it.
+  /// Owned so siblings can reach in: [_takeFocus] walks down from it to the
+  /// field, and [_updateNeighbours] compares its `enclosingScope`.
   final FocusNode _node = FocusNode(debugLabel: 'GWKeyboardDoneBar');
 
   OverlayEntry? _entry;
@@ -228,6 +139,8 @@ class _GWKeyboardDoneBarState extends State<GWKeyboardDoneBar> {
       _entry!.markNeedsBuild();
       return;
     }
+    // The root overlay: a field inside a root-navigator sheet would otherwise
+    // get a bar in the shell's overlay, painted under the sheet.
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
     if (overlay == null) {
       return;
@@ -262,18 +175,9 @@ class _GWKeyboardDoneBarState extends State<GWKeyboardDoneBar> {
     return box.localToGlobal(Offset.zero) & box.size;
   }
 
-  /// Works out which stop the chevrons point at, once per bar appearance.
-  ///
-  /// Reading order, top then left, which is what the app's traversal order
-  /// already is: `WidgetsApp` wraps everything in a `FocusTraversalGroup`
-  /// whose default policy is `ReadingOrderTraversalPolicy`. Sorting by
-  /// geometry rather than by registration order also survives a reordered or
-  /// re-keyed list, which registration order would not.
-  ///
-  /// Computed here, off a focus change, rather than inside the overlay's
-  /// builder: reading another subtree's transform mid-build is asking for a
-  /// stale or dirty layout, and by the time focus moves the frame that placed
-  /// every field has already been laid out.
+  /// Picks the chevrons' targets in reading order (top, then left), sorted by
+  /// geometry so a reordered list still steps correctly. Runs on focus change,
+  /// not in the overlay builder, so it never reads a mid-build layout.
   void _updateNeighbours() {
     _previous = null;
     _next = null;
@@ -329,14 +233,9 @@ class _GWKeyboardDoneBarState extends State<GWKeyboardDoneBar> {
     _firstFocusable(_node)?.requestFocus();
   }
 
-  /// The shallowest focusable node under [node] - the field itself.
-  ///
-  /// Pre-order on purpose. `FocusNode.traversalDescendants` is POST-order, so
-  /// on a `GWTextField` carrying a suffix button it would hand back the
-  /// button, whose node is a child of the field's own. Walking down from the
-  /// top instead reaches the field first and stops, and skips the wrapper
-  /// nodes on the way (this one and `GWFocusRing`'s), which report
-  /// `canRequestFocus: false`.
+  /// The shallowest focusable node under [node] - the field itself. Pre-order
+  /// on purpose: `traversalDescendants` is post-order and would return a
+  /// suffix button inside the field instead.
   static FocusNode? _firstFocusable(FocusNode node) {
     for (final child in node.children) {
       if (child.canRequestFocus && !child.skipTraversal) {
@@ -399,10 +298,8 @@ class _GWKeyboardDoneBarState extends State<GWKeyboardDoneBar> {
   }
 }
 
-/// The bar as the overlay paints it. A widget rather than a `_buildBar()`, so
-/// it rebuilds on its own when `MediaQuery` reports a new keyboard inset -
-/// which is what makes it track the keyboard through the animation instead of
-/// jumping to the settled height.
+/// The bar as the overlay paints it. Rebuilds on its own when `MediaQuery`
+/// reports a new keyboard inset, so it tracks the keyboard's slide.
 class _GWKeyboardDoneBarOverlay extends StatelessWidget {
   const _GWKeyboardDoneBarOverlay({
     required this.focused,
@@ -421,31 +318,19 @@ class _GWKeyboardDoneBarOverlay extends StatelessWidget {
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
-  /// 44, the platform toolbar height and Apple's minimum target in one - not a
-  /// spacing token, the same way `kHeaderControlSize` and
-  /// `kGWSectionTitleHeaderHeight` are not. The previous 48 (`space24`) came
-  /// from wanting headroom over the 44 floor once a hairline was taken off the
-  /// top; the island has no hairline eating into its box, so the platform
-  /// number is available exactly.
+  /// 44, the platform toolbar height and Apple's minimum target in one - a
+  /// platform number, not a spacing token.
   static const double _height = 44;
 
-  /// The clearance between the island and whatever it floats over. `space4` is
-  /// 8pt, the separation iOS 26 puts between a floating toolbar and the
-  /// content below it, and the smallest gap that still reads as detached
-  /// rather than as a misaligned edge.
+  /// 8pt clearance, the gap iOS 26 leaves under a floating toolbar.
   static const double _gap = GeniusWalletConsts.space4;
 
-  /// The inset from both screen edges. `space10` is 20pt, which is `GWScreen`'s
-  /// own horizontal page padding - so the island's edges land on the same two
-  /// vertical lines as the form content it floats over, instead of cutting
-  /// across it at an offset of their own.
+  /// 20pt, `GWScreen`'s horizontal page padding, so the island's edges line up
+  /// with the form content it floats over.
   static const double _inset = GeniusWalletConsts.space10;
 
-  /// `radius2xl` (16) - gnus.ai's `--radius-2xl`, and the radius
-  /// `GWGradientBorderCard` already uses for the app's floating glass panel,
-  /// which is exactly what this is. Not `radiusPill`: at 44 tall a pill caps at
-  /// a 22 radius, and Done's 16pt trailing padding would then sit inside the
-  /// cap's arc rather than clear of it.
+  /// The radius `GWGradientBorderCard` uses for floating glass. Not a pill: at
+  /// 44 tall the cap's arc would swallow Done's 16pt trailing gutter.
   static const BorderRadius _shape = BorderRadius.all(
     Radius.circular(GeniusWalletConsts.radius2xl),
   );
@@ -454,34 +339,13 @@ class _GWKeyboardDoneBarOverlay extends StatelessWidget {
   /// frosted-glass strength rather than two.
   static const double _blurSigma = 24;
 
-  /// The trailing control keeps the footprint the word "Done" had, so swapping
-  /// four letters for one glyph cannot cost anyone the target. The word
-  /// measured 97x44 in the widget-test font (which draws every glyph one em
-  /// wide, so 4 x 16 plus 16 a side) and roughly 76 wide in Inter, where the
-  /// letters are narrower than an em; 96 is the 4-pt-grid step that covers
-  /// both and, being a fixed width rather than a measured string, does not
-  /// move again if the type step or the font changes. Deliberately one point
-  /// under the test-font figure and 20 over the shipping one - see the note in
-  /// the test.
+  /// The Done tick keeps the tap footprint the word "Done" had (about 76pt in
+  /// Inter, 97 in the test font), fixed so a font change cannot shrink it.
   static const double _doneTargetWidth = 96;
 
-  /// The opaque floor under the glass, and it is a floor rather than a taste
-  /// call. A `BackdropFilter` blurs but does not lighten or darken, so the
-  /// label's contrast is decided by whatever the fill lets through. Measured
-  /// against the extremes the bar could ever float over:
-  ///
-  /// | fill alpha | dark label over white | light label over black |
-  /// |---|---|---|
-  /// | 224 (88%) | 4.74:1 | **4.26:1** X |
-  /// | 235 (92%) | 5.44:1 | 4.70:1 |
-  /// | **240 (94%)** | **5.81:1** | **4.93:1** |
-  ///
-  /// Light mode binds, as it always does here: a fill translucent enough to
-  /// look like glass cannot hold AA for a dark label over dark content. 240 is
-  /// the first step with real margin on both sides. Over the app's own canvas
-  /// the numbers are 6.83:1 dark and 5.60:1 light, i.e. within a rounding step
-  /// of the opaque values this replaced (6.81:1 / 5.61:1). The blur therefore
-  /// buys motion and depth at the edges, not see-through.
+  /// A contrast floor, not a taste call: the blur does not lighten or darken,
+  /// so the fill alone decides contrast. 240 is the lowest alpha keeping the
+  /// glyphs above 4.5:1 over pure white and pure black in both modes.
   static const int _fillAlpha = 240;
 
   @override
@@ -620,18 +484,14 @@ class _GWKeyboardBarButton extends StatelessWidget {
   /// semantics tree.
   final VoidCallback? onTap;
 
-  /// The tap target's width. Defaults to the glyph plus a gutter either side;
-  /// anything wider grows INWARD from the island's edge, so the glyph keeps
-  /// its 16pt gutter and only the invisible half of the target moves.
+  /// The tap target's width. Anything over the default grows inward from the
+  /// island's edge, so the glyph keeps its 16pt gutter.
   final double width;
 
-  /// Half the 44pt bar, which is where iOS puts a toolbar glyph, and the
-  /// `GWButtonSize.lg` icon step this app already draws at that size.
+  /// Half the 44pt bar, where iOS sizes a toolbar glyph.
   static const double _glyphSize = 22;
 
-  /// `space8` (16) either side, the same gutter the word "Done" had, so the
-  /// outermost glyphs sit on the island's own 16pt inset rather than drifting
-  /// closer to its edge than the label did.
+  /// 16pt either side, the gutter the word "Done" had.
   static const double _gutter = GeniusWalletConsts.space8;
 
   /// 54: past the 44 floor, and the width at which the two chevrons read as

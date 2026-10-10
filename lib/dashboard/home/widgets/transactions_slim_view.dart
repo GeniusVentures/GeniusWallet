@@ -153,14 +153,9 @@ Map<Filters, int> filterCounts(List<Transaction> txs) {
   };
 }
 
-/// SGNUS scoping only, NO filter applied, then the Banxa order rows appended -
-/// the ONE list that every reader of "how much history exists" takes.
-///
-/// The page's list, its filtered-empty "you have N" and the header funnel's
-/// drawer counts all call this, so they can never disagree (T-12-14). Counts
-/// computed over an already-filtered list would read 0 for every inactive
-/// filter. Orders come after the scoping: they are keyed by address, not by
-/// chain.
+/// SGNUS scoping, NO filter, then the Banxa order rows (keyed by address, so
+/// unscoped) - the one list the page, its "you have N" and the drawer counts
+/// all read, so they never disagree. Filtering first would zero every count.
 List<Transaction> scopeTransactions({
   required List<Transaction> transactions,
   required bool sgnusOnly,
@@ -233,13 +228,9 @@ class TransactionsSlimView extends StatefulWidget {
   /// Runs the orders fetch again from the error state.
   final VoidCallback? onRetryBuyOrders;
 
-  /// The live filter, when something ABOVE this widget owns it.
-  ///
-  /// The PAGE owns it: its trigger lives in `GWPageHeader.trailing`
-  /// (`transactions_screen.dart`), two widgets above this one, so the value
-  /// cannot live down here. Null means nobody above claimed it and the view
-  /// keeps its own - which is the DASHBOARD panel, unchanged and with no
-  /// call-site edit.
+  /// The live filter, when something above owns it - the page, whose trigger
+  /// sits in its header. Null means the view keeps its own (the dashboard
+  /// panel).
   final Filters? selectedFilter;
 
   /// Where a filter change goes when the owner is above. Null keeps the change
@@ -379,13 +370,9 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   /// since been replaced there by [TransactionsFilterTrigger] in the page
   /// header; the wide route has always had the better control in [_FilterRail].
   ///
-  /// **[_TransactionFilterBar] now has no reachable call site, and the one
-  /// below is dead.** This method is entered only from `build`'s
-  /// `widget.page ? _page(...) : _panel(...)`, so `widget.page` is false here
-  /// and the ternary on the trailing always takes the `GWViewAllLink` arm. The
-  /// widget is kept rather than deleted because that is a design call, not a
-  /// mechanical one; the dead arm is what keeps it referenced. Delete the arm
-  /// and the whole control (plus [_FilterChip]) goes with it.
+  /// **The [_TransactionFilterBar] arm below is dead** (`widget.page` is false
+  /// here); it is kept only so the widget stays referenced until someone makes
+  /// the design call to delete it, along with [_FilterChip].
   Widget _panel(
     BuildContext context,
     GWColors gw,
@@ -828,10 +815,8 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       }
     }
 
-    // No end-of-list terminus. The page carried a "No more transactions" line
-    // under the last row until 2026-08-09, gated to `limit == null` so it never
-    // reached the capped panel. It went out on the phone walk: the last row IS
-    // the end of the list, and a label saying so is a sentence the user has to
+    // No "No more transactions" line under the last row: the last row IS the
+    // end of the list, and a label saying so is a sentence the user has to
     // read to learn nothing.
 
     // A Column, not a shrink-wrapped ListView: `entries` is already fully
@@ -855,20 +840,9 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   }
 }
 
-/// The PAGE's filter control, for `GWPageHeader.trailing` on a phone.
-///
-/// A page-level control at page level: the filter is a property of the whole
-/// `/transactions` route, not of the card the rows happen to sit in, and the
-/// header row already exists so the glyph costs nothing vertically.
-///
-/// PUBLIC, unlike [_TransactionFilterBar] and [_FilterRail], because its call
-/// site is another file - `transactions_screen.dart` mounts it in the header
-/// while the list it filters is mounted two widgets below. It still lives here
-/// because [Filters], [filterCounts] and the other filter presentations do.
-///
-/// [transactions] is the SCOPED list ([scopeTransactions]), the same one the
-/// view itself filters - so the counts in the drawer and the "N of M" above the
-/// list can never disagree about how much history exists.
+/// The page's filter control, for `GWPageHeader.trailing` on a phone, where it
+/// costs no vertical space. [transactions] must be the [scopeTransactions] list
+/// the view filters, so the drawer counts match the list.
 class TransactionsFilterTrigger extends StatelessWidget {
   const TransactionsFilterTrigger({
     super.key,
@@ -886,23 +860,16 @@ class TransactionsFilterTrigger extends StatelessWidget {
   /// Buy orders row of the drawer while above zero.
   final int openOrders;
 
-  /// The trigger's box: 44 x 44, Apple's minimum on both axes. The glyph inside
-  /// it is 22, so the box is the target rather than the mark.
-  ///
-  /// This widget is [GWPageHeader.trailing], and the header lays its trailing
-  /// out beside the identity block with `CrossAxisAlignment.center`, so a
-  /// trailing taller than the 32px title line sets the identity row's height.
-  /// On `/transactions` that row is already 44 tall - the Buy GNUS button
-  /// beside this one is `GWButtonSize.sm` - so a 44 funnel costs no height.
-  /// (The centred Swap and Buy headers are a different case: their glyphs are
-  /// 48x32 for exactly this reason.)
+  /// 44 x 44, Apple's minimum target, around a 22 glyph. Taller than the 32px
+  /// title line, which costs nothing here: the Buy GNUS button beside it
+  /// already makes that header row 44 tall.
   static const double _triggerSize = 44;
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
-    // The same rule the wide rail already answers to (15-03): a control that
+    // The same rule the wide rail already answers to: a control that
     // filters an empty set is an offer the app cannot honour, and here it would
     // sit directly above the "no transactions yet" block, two statements on one
     // screen contradicting each other.
@@ -983,19 +950,9 @@ class TransactionsFilterTrigger extends StatelessWidget {
   }
 }
 
-/// The picker behind [TransactionsFilterTrigger]: the app's own drawer, with
-/// the app's own row.
-///
-/// All ten filters are here, nothing behind an overflow. The `⋯` menu exists
-/// only because a 376px dashboard panel cannot show nine of them; a full-width
-/// sheet can, which is the same reason [_FilterRail] unrolls them on a wide
-/// page.
-///
-/// Rows are [GWSelectRow] in its COMPACT form - a bare 21px glyph in the
-/// leading slot. **The check glyph is not optional and must not be
-/// hand-rolled:** the row's gradient tint and brand edge measure 1.39:1 and
-/// 1.60:1 on the panel, so only its `Icons.check_circle` carries selection for
-/// WCAG 1.4.11. Passing `selected:` is what buys all three.
+/// The drawer behind [TransactionsFilterTrigger], every filter shown. Rows are
+/// compact [GWSelectRow]s; pass `selected:`, never a hand-rolled check - the
+/// row's tint alone is under 3:1, so its check glyph carries selection.
 class _FilterDrawerBody extends StatelessWidget {
   const _FilterDrawerBody({
     required this.selected,
@@ -1025,7 +982,7 @@ class _FilterDrawerBody extends StatelessWidget {
         onChanged(f);
       }
 
-      // Phase 39 D-07's open-order signal, kept now that the chip it used to
+      // The open-order count on Purchase, kept now that the chip it used to
       // ride on is gone from the phone.
       final int open = f == Filters.purchase ? openOrders : 0;
 
@@ -1104,11 +1061,9 @@ class _FilterDrawerBody extends StatelessWidget {
   }
 }
 
-/// The live filter, named on a row of its own above the list.
-///
-/// It exists ONLY while a filter is on - 0px idle. It is also the only place a
-/// live filter can be DROPPED without opening anything, which matters because
-/// the trigger that set it lives in the page header, off the card entirely.
+/// The live filter, named on a row above the list while one is on (0px idle).
+/// The one place to drop a filter without opening anything, since the trigger
+/// that set it sits in the page header, off the card.
 class _LiveFilterRow extends StatelessWidget {
   const _LiveFilterRow({
     required this.filter,
@@ -1157,10 +1112,8 @@ class _LiveFilterRow extends StatelessWidget {
   }
 }
 
-/// The live filter itself: its badge mark, its name, and a dismiss.
-///
-/// The mark is `badgeSpec`'s, like every other filter surface in this file, so
-/// the chip and the rows it filtered carry one glyph.
+/// The live filter itself: its `badgeSpec` mark (the same glyph its rows
+/// carry), its name, and a dismiss.
 class _LiveFilterChip extends StatelessWidget {
   const _LiveFilterChip({required this.filter, required this.onClear});
 

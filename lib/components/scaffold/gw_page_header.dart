@@ -100,28 +100,9 @@ class GWPageHeader extends StatelessWidget {
   /// are additive and null-defaulted, so no other caller's tree changes.
   final Widget? titleTrailing;
 
-  /// Centres the title (and subtitle) instead of left-aligning it, with
-  /// [trailing] pinned to the right edge ON THE TITLE'S OWN LINE. For the
-  /// focused-form pages (Swap and Buy) whose header sits INSIDE the centred
-  /// column rather than in the page's left gutter. Defaults to false, so the
-  /// content tabs (Transactions / Markets / News) render exactly what they
-  /// render today.
-  ///
-  /// **The trailing centres on the title, not on title + subtitle.** Centred
-  /// against the whole identity block it drifted down by half the subtitle -
-  /// measured 22px below the title's centre on the phone Swap header (title
-  /// centre y=40, glyph centre y=62 at 390x844). Jakub, 2026-08-10: the glyph
-  /// must sit on the title's line the way `/transactions` puts its filter
-  /// trigger on the "Transactions" line.
-  ///
-  /// **A caller owes a trailing no taller than the 32px title line.** The title
-  /// line is a `Stack`, which is as tall as its tallest child, so a 48-tall
-  /// control makes the line 48, pushes the title 8px down its own header and
-  /// grows the header by 16 (measured on Swap: 108 against 92, title at y=32
-  /// against the y=24 "Assets" and "Transactions" sit on). Swap and Buy both
-  /// pass a 48x32 `IconButton` for exactly this reason; 32 clears WCAG 2.2 SC
-  /// 2.5.8's 24x24 floor and Android's 48dp horizontally, and is under Apple's
-  /// 44pt vertically - the price of the alignment.
+  /// Centres the title (and subtitle), with [trailing] pinned right on the
+  /// title's own line - for focused-form pages (Swap, Buy). A trailing taller
+  /// than the 32px title line grows the header, so callers keep it within 32.
   final bool centered;
 
   /// Pulls [trailing] up against the title instead of pushing it to the far
@@ -173,8 +154,9 @@ class GWPageHeader extends StatelessWidget {
     // any width without moving it.
     //
     // The Stack wraps the TITLE LINE and not the whole title + subtitle block,
-    // so the trailing centres on the title (see [centered] for the 22px it was
-    // off by, and for the height a caller owes in return).
+    // so the trailing centres on the title; centred on the whole block it sat
+    // half a subtitle low. The Stack is as tall as its tallest child, which is
+    // why [centered] asks callers for a trailing within the 32px title line.
     final Widget titleBlock = Column(
       crossAxisAlignment: centered
           ? CrossAxisAlignment.center

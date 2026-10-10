@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
@@ -10,8 +11,8 @@ import 'package:hive_ce/hive.dart';
 
 import '../banxa/gw_pump.dart';
 
-/// Sketch 189 C / 194 A: at phone width the feed is one hero story and then ONE
-/// digest panel; the refresh glyph is a desktop-only control.
+/// At phone width the feed is one hero story and then ONE digest panel; the
+/// refresh glyph shows on mouse platforms only, whatever the window width.
 ///
 /// The feed is seeded into the Hive cache so `fetchCoinTelegraphNews` returns
 /// it without touching the network.
@@ -97,11 +98,32 @@ void main() {
     await end(tester);
   });
 
-  testWidgets('desktop: the refresh glyph is still there', (tester) async {
-    await pumpScreen(tester, const Size(1280, 900));
+  testWidgets('phone: a search matching only the hero counts it', (
+    tester,
+  ) async {
+    await pumpScreen(tester, const Size(390, 844));
 
-    expect(find.byTooltip('Refresh'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), articles[0].title);
+    await tester.pump(const Duration(milliseconds: 300));
+    tester.takeException();
+
+    expect(find.text('1 RESULTS'), findsOneWidget);
+    expect(find.textContaining('No headlines match'), findsNothing);
 
     await end(tester);
   });
+
+  for (final size in const [Size(1280, 900), Size(390, 844)]) {
+    testWidgets('desktop at ${size.width.toInt()}px keeps the refresh glyph', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      await pumpScreen(tester, size);
+
+      expect(find.byTooltip('Refresh'), findsOneWidget);
+
+      await end(tester);
+      debugDefaultTargetPlatformOverride = null;
+    });
+  }
 }

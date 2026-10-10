@@ -995,9 +995,8 @@ class _SwapScreenState extends State<SwapScreen> {
                                 // the column's right edge, where it was before
                                 // the GWPageHeader migration (905a2a91). It sits
                                 // on the TITLE's line, not centred on title +
-                                // subtitle (`GWPageHeader.centered`), which is why
-                                // it is a 48x32 box: see
-                                // `swap_header_alignment_test.dart`.
+                                // subtitle (`GWPageHeader.centered`), so it is a
+                                // 48x32 box: 32 high to match the title line.
                                 GWPageHeader(
                                   title: "Swap",
                                   subtitle: "Trade any token across chains",

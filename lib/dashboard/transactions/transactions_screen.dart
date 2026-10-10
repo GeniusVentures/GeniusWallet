@@ -31,13 +31,9 @@ class TransactionsScreen extends StatefulWidget {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
-  /// The page's filter, lifted out of `TransactionsSlimView`'s State: the
-  /// trigger that sets it lives in [GWPageHeader.trailing], two widgets ABOVE
-  /// the list, so the value has to live where both can see it.
-  ///
-  /// It stays on the SCREEN rather than moving into a cubit because it is view
-  /// state and nothing outside this route reads it - the dashboard panel keeps
-  /// its own copy in the slim view, untouched.
+  /// The page's filter, held here because its trigger sits in the header above
+  /// the list. View state only, so no cubit; the dashboard panel keeps its own
+  /// copy in the slim view.
   late Filters _filter = widget.initialFilter ?? Filters.all;
 
   /// A new non-null `?filter=` switches the filter (`router.go(
@@ -56,10 +52,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // No mesh, at either width. The phone page wrapped its body in
-    // `GWMeshBackground` until 2026-08-09, which made `/transactions` the one
-    // content tab with a moving branded field behind its rows while `/assets`
-    // and Crypto News sat on the flat canvas. A bare `Scaffold` paints
+    // No mesh, at either width, so this tab sits on the same flat canvas as
+    // `/assets` and Crypto News. A bare `Scaffold` paints
     // `scaffoldBackgroundColor`, which `theme.dart` sets to `gw.surfaceBase`.
     final Widget page = SafeArea(
       child: RefreshIndicator(
@@ -214,8 +208,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             ),
                             // No Expanded: it would demand a bounded height the
                             // enclosing scroll view cannot give, and "fill the
-                            // window" is exactly the behaviour sketch 023
-                            // removed.
+                            // window" is a behaviour this page deliberately
+                            // dropped.
                             //
                             // No `const` on either branch: both carry the
                             // page's live filter.
@@ -247,19 +241,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 }
 
-/// [TransactionsFilterTrigger] with the transactions it needs.
-///
-/// The trigger has to read the SAME list the page below it renders, for two
-/// reasons: it hides itself on an empty scope, and the drawer it opens prints a
-/// count per filter. So it takes a second subscription to whichever source this
-/// route already chose - a cheap `BlocBuilder` on a cubit that is already in the
-/// tree, or a second listener on the SGNUS feed's broadcast stream - and runs
-/// the rows through [scopeTransactions], the function the list itself uses.
-///
-/// The alternative was passing the list UP from the two data widgets, which
-/// means either a callback fired during their build or moving both data reads
-/// into this screen - and the SGNUS one owns a polling timer that belongs with
-/// its own widget.
+/// [TransactionsFilterTrigger] fed the same list the page renders (it hides on
+/// an empty scope and counts per filter): a second subscription to this route's
+/// source, run through [scopeTransactions] exactly as the list is.
 class _FilterTrigger extends StatelessWidget {
   const _FilterTrigger({
     required this.sgnus,
