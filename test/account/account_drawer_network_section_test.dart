@@ -47,6 +47,7 @@ import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
@@ -256,6 +257,60 @@ Future<void> _open(WidgetTester tester) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // Testnets only appear in developer mode; the picker tests below need them.
+  setUp(() => DeveloperMode.instance.value = true);
+  tearDown(() => DeveloperMode.instance.value = false);
+
+  test('a persisted testnet restores only in developer mode', () {
+    Network restore({required bool allowTestnets}) => restoreSelectedNetwork(
+      _networks,
+      chainId: _netTest.chainId,
+      rpcUrl: _netTest.rpcUrl,
+      allowTestnets: allowTestnets,
+    );
+
+    expect(restore(allowTestnets: false), _netEth);
+    expect(restore(allowTestnets: true), _netTest);
+    expect(
+      restoreSelectedNetwork(_networks, chainId: 1, allowTestnets: true),
+      _netEth,
+    );
+  });
+
+  testWidgets('with developer mode off the picker has no testnets at all', (
+    tester,
+  ) async {
+    DeveloperMode.instance.value = false;
+    await _withHarness(
+      tester,
+      current: _netPoly,
+      body: (walletBox, networkBox, harness) async {
+        await tester.pumpWidget(
+          _openerHost(
+            harness: harness,
+            pending: _Pending(),
+            includeNetwork: true,
+          ),
+        );
+        await _open(tester);
+        await _openPicker(tester);
+
+        expect(find.byKey(const ValueKey('testnet-section')), findsNothing);
+
+        await tester.enterText(
+          find.descendant(
+            of: find.byType(NetworkPicker),
+            matching: find.byType(TextField),
+          ),
+          'delta',
+        );
+        await tester.pump();
+
+        expect(find.byType(GWEmptyState), findsOneWidget);
+      },
+    );
+  });
 
   testWidgets(
     'the DEFAULT caller gets byte-identical behaviour: title "Accounts", no '
