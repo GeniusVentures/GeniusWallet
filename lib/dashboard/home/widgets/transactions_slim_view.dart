@@ -19,7 +19,6 @@ import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
-import 'package:genius_wallet/components/gw_control_track.dart';
 // ponytail: imported for `DashboardScrollContainer` (the page's two cards),
 // which closes an import cycle — dashboard_screen -> transactions_stream ->
 // this file -> dashboard_screen. Dart permits cycles and there is no
@@ -40,7 +39,6 @@ import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
@@ -133,8 +131,7 @@ enum Filters {
   /// Statuses behind the `⋯` trigger, under their own header.
   static const List<Filters> overflowStatuses = [pending, failed];
 
-  /// Whether [f] is only reachable through the overflow menu — the bar uses
-  /// this to decide whether the `⋯` trigger takes the gradient.
+  /// Whether [f] is in [overflowTypes] or [overflowStatuses].
   static bool isInOverflow(Filters f) =>
       overflowTypes.contains(f) || overflowStatuses.contains(f);
 }
@@ -144,8 +141,8 @@ Filters? filterFromQuery(String? value) => Filters.values.asNameMap()[value];
 
 /// How many of [txs] each non-[Filters.all] filter matches.
 ///
-/// Computed once per build and handed to the bar, rather than each menu item
-/// running its own `where().length`.
+/// Computed once per build and handed to the filter control, rather than each
+/// row running its own `where().length`.
 Map<Filters, int> filterCounts(List<Transaction> txs) {
   return {
     for (final f in Filters.values)
@@ -210,7 +207,7 @@ class TransactionsSlimView extends StatefulWidget {
   final bool? isShowOnlySGNUSTransactions;
 
   /// Selects the two-card PAGE layout (filter rail beside the list) over the
-  /// dashboard PANEL (chips + `⋯` menu above the list).
+  /// dashboard PANEL (a capped preview with a `View all` link).
   ///
   /// Defaults to false so both existing const call sites — `transactions_stream
   /// .dart:14` and `sgnus_transactions_screen.dart:48` — keep rendering exactly
@@ -272,8 +269,6 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   /// Each order's stand-in transaction, keyed by identity so a row finds its
   /// order again. Rebuilt every build; the rows read the map of the same build.
   Map<Transaction, Order> _orderRows = const {};
-
-  int get _openBuyOrders => openBuyOrderCount(widget.buyOrders);
 
   /// SGNUS scoping only, NO filter applied — the ONE list that both the menu
   /// counts and the filtered-empty "you have N" number read, so the two can
@@ -353,26 +348,8 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   }
 
   /// The dashboard PANEL - a five-row preview with a `View all` on its title
-  /// row.
-  ///
-  /// Also the narrow branch of [_page]: below 768 a page IS this panel, which
-  /// is the correct answer rather than a compromise. The two differ in two
-  /// places and both key off [TransactionsSlimView.page]: the page is UNCAPPED,
-  /// and the page is where the filter bar now lives.
-  ///
-  /// **The filter bar left the dashboard in phase 25 (Jakub, 2026-08-07).** The
-  /// title row cannot hold both it and the link: measured at 390pt the row's
-  /// content box is 336, against "Transactions" ~112 + the bar's pinned 183
-  /// (`transaction_filters_test.dart`) + the link's ~86 = 381. No spacing token
-  /// closes a 45px gap and the bar cannot shrink - it is icon-only at every
-  /// width by an explicit locked decision (sketches 014, 022). So the bar
-  /// became a full-screen control on the narrow `/transactions` route, and has
-  /// since been replaced there by [TransactionsFilterTrigger] in the page
-  /// header; the wide route has always had the better control in [_FilterRail].
-  ///
-  /// **The [_TransactionFilterBar] arm below is dead** (`widget.page` is false
-  /// here); it is kept only so the widget stays referenced until someone makes
-  /// the design call to delete it, along with [_FilterChip].
+  /// row. Filtering lives on `/transactions` ([TransactionsFilterTrigger] narrow,
+  /// [_FilterRail] wide): the title row has no room for it beside the link.
   Widget _panel(
     BuildContext context,
     GWColors gw,
@@ -383,29 +360,22 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.medium),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // `_panel` has THREE hosts, and BOUNDEDNESS is what actually
-          // distinguishes them - not which host it is. A panel handed a bounded
-          // height fills it and scrolls inside it; a panel handed an unbounded
-          // one must HUG, because `Expanded` under an unbounded main-axis
-          // constraint is a `RenderFlex` assertion, not a layout.
+          // BOUNDEDNESS distinguishes `_panel`'s hosts. A panel handed a
+          // bounded height fills it and scrolls inside it; a panel handed an
+          // unbounded one must HUG, because `Expanded` under an unbounded
+          // main-axis constraint is a `RenderFlex` assertion, not a layout.
           //
           //  * DESKTOP dashboard card - bounded. Fill and scroll, as shipped.
-          //  * PAGE narrow fallback - unbounded, inside the page's own scroll
-          //    view (sketch 023-V3). Hug.
           //  * MOBILE dashboard - unbounded since phase 25, where
           //    `OneColumnDashBoardView` stopped capping its panels so the PAGE
           //    owns the only scroll. Hug, and hugging is precisely what frees
           //    that gesture: a `Column` with no `Expanded` installs no
           //    scrollable, so nothing here competes for the drag.
           //
-          // `widget.page` stays in the test rather than being replaced by the
-          // constraint check alone: it is the cheaper, exact answer for the one
-          // host whose unboundedness is structural rather than incidental.
-          //
           // One bool, read once per layout from a bounded two-value set - what
           // the freeze rule (37639d5) permits, since it is not a dimension
           // derived continuously from constraints.
-          final bool hug = widget.page || !constraints.maxHeight.isFinite;
+          final bool hug = !constraints.maxHeight.isFinite;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,19 +409,10 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                 // history accrues reads as a bug.
                 trailing: scoped.isEmpty
                     ? null
-                    : (widget.page
-                          ? _TransactionFilterBar(
-                              selected: selectedFilter,
-                              counts: filterCounts(scoped),
-                              openOrders: _openBuyOrders,
-                              onChanged: _selectFilter,
-                            )
-                          // `go`, not `push` - `/transactions` is a bottom-nav
-                          // destination, the same call `dashboard_markets.dart`
-                          // makes for `/markets`.
-                          : GWViewAllLink(
-                              onTap: () => context.go('/transactions'),
-                            )),
+                    // `go`, not `push` - `/transactions` is a bottom-nav
+                    // destination, the same call `dashboard_markets.dart`
+                    // makes for `/markets`.
+                    : GWViewAllLink(onTap: () => context.go('/transactions')),
               ),
               // NO header rule here, deliberately (sketch 019 variant B).
               // Every other dashboard panel goes straight from GWSectionTitle
@@ -468,7 +429,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                   txs,
                   scrollable: false,
                   underSectionTitle: true,
-                  limit: widget.page ? null : kDashboardTransactionsCap,
+                  limit: kDashboardTransactionsCap,
                 )
               else
                 Expanded(
@@ -479,7 +440,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                     txs,
                     scrollable: true,
                     underSectionTitle: true,
-                    limit: widget.page ? null : kDashboardTransactionsCap,
+                    limit: kDashboardTransactionsCap,
                   ),
                 ),
               // No footer count. It was removed on the walk: a running total
@@ -1068,7 +1029,7 @@ class _FilterDrawerRow extends StatelessWidget {
       trailing: Text(
         '$count',
         // Tabular figures so the count column does not jitter, at the 13 the
-        // rail and the menu already print theirs at.
+        // rail already prints its counts at.
         style: GeniusWalletTypography.numericBody.copyWith(
           fontSize: 13,
           color: gw.textSecondary,
@@ -1231,373 +1192,8 @@ class _LiveFilterChip extends StatelessWidget {
   }
 }
 
-/// The brand mark an ACTIVE filter label is painted with.
-///
-/// Dark keeps the real `brandCta` stops — as TEXT on the dark `surfaceMenu`
-/// they measure 9.4:1 and 6.8:1. On the LIGHT menu surface (`#EFF2F6`) the
-/// same two stops measure **1.65:1 and 2.28:1** — unreadable, and the same
-/// class of defect UI-SPEC 3.1 still carries. Light therefore degrades the
-/// shader to a flat light-safe brand blue (`brandPrimaryOnSurface`
-/// `#0A6885`, 5.61:1). Collapsing a ShaderMask to a single repeated stop is
-/// the pattern `gw_view_all_link.dart:67` already uses, so there is still
-/// exactly one paint path — no branch in the widget tree.
-///
-/// Keyed off the surface actually being painted on rather than the global
-/// appearance flag, so it cannot disagree with the [GWColors] in scope.
-///
-/// FILE-SCOPE, not a method, because it has a SECOND consumer: the page
-/// filter rail's active-row underline (15-04, sketch 022 variant B2). That
-/// mark is NON-TEXT, so it answers to WCAG 1.4.11's 3:1 rather than AA's
-/// 4.5:1 — and `brandCta`'s blue stop `#0AAEE6` (the theme primitive layer's
-/// gradientBlue) is **2.56:1** on white and fails even that, while the
-/// degraded `#0A6885` is
-/// 6.30:1 and passes. Routing the underline through here is what stops it
-/// becoming a second, separately-drifting colour decision.
-///
-/// The luminance test reads `gw.surfaceMenu` as an APPEARANCE PROXY, not as
-/// "the surface I am painting on" — the rail underline sits on the card, not
-/// on the menu. That is deliberate: one token decides the branch for every
-/// consumer, so the two marks cannot degrade at different thresholds. Do not
-/// "fix" it into a per-surface argument.
-/// Body moved to `GeniusWalletGradient.brandCtaText` on 2026-07-26, when the
-/// navbar's Connect field became a third consumer (sketch 043 variant 4A).
-/// The name and both call sites stay — the reasoning above is the shared
-/// contract now, kept here because this file is where it was earned.
-LinearGradient _activeLabelShader(GWColors gw) =>
-    GeniusWalletGradient.brandCtaText(gw.surfaceMenu);
-
-/// F1 two-tier filter control (sketch 014): four icon chips on the title row,
-/// everything else behind a `⋯` menu with live counts.
-///
-/// Private to this file — it has exactly one call site, so it does not earn a
-/// public component or a file of its own (the pattern `dashboard_screen.dart`
-/// already uses for `_TimeframeSegment`).
-///
-/// Every dimension here is a fixed literal or a 4-pt token. No `FittedBox`, no
-/// `AutoSizeText`: `BoxFit.scaleDown` derives a continuous scale from the
-/// available space, which is the class of thing 37639d5 banned. The overflow
-/// menu (`_overflowTrigger`) is what keeps the bar fitting instead.
-class _TransactionFilterBar extends StatelessWidget {
-  const _TransactionFilterBar({
-    required this.selected,
-    required this.counts,
-    required this.onChanged,
-    this.openOrders = 0,
-  });
-
-  final Filters selected;
-  final Map<Filters, int> counts;
-  final ValueChanged<Filters> onChanged;
-
-  /// Buy orders not yet finished; shown on that chip when above zero.
-  final int openOrders;
-
-  /// Chip edge: the 32 the panel has always drawn, where the bar shares a row
-  /// with `GWSectionTitle` and has no width to spare.
-  static const double chipSize = 32;
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-
-    // Geometry is deliberately IDENTICAL to the chart's `_TimeframeSegment`
-    // (dashboard_screen.dart): 3px track padding, hairline border, radiusPill,
-    // 2px between chips. The two controls sit on the same dashboard and were
-    // drifting apart — pill vs radiusMd, 3 vs 4 padding — which read as two
-    // different design languages on one screen. Timeframe is the approved
-    // shape (sketch 006/008), so the filter bar moves to it, not the reverse.
-    //
-    // The container itself now lives in `GWControlTrack`
-    // (`lib/components/gw_control_track.dart`) — the same one
-    // `_TimeframeSegment` and the Buy GNUS orders track build on, so this
-    // track and the other two can no longer drift apart by editing one file.
-    //
-    // GWControlTrack inserts its 2px gap between EVERY top-level child it is
-    // given. This bar's old geometry only ever had that gap between the
-    // PRIMARY CHIPS — the divider supplies its own `space2` horizontal
-    // padding on both sides (that IS its separation from its neighbours;
-    // there was never a second, additional 2px gap on top of it) and the
-    // overflow trigger sits flush against the divider's padding too. Passing
-    // chips/divider/trigger as three separate top-level children to
-    // GWControlTrack would add two 2px gaps that never existed before,
-    // widening this bar by 4px (proven by `transaction_filters_test.dart`'s
-    // pixel-pinned `expect(bar.width, 183)`, which is the authority here).
-    // So the pre-existing inner `Row` — chips with their own gaps, then the
-    // divider, then the trigger — is passed to `GWControlTrack` as a SINGLE
-    // child, keeping its rendered geometry byte-for-byte unchanged while
-    // still routing the outer fill/border/radius/track-padding through the
-    // shared container.
-    return GWControlTrack(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < Filters.primary.length; i++) ...[
-              if (i > 0) const SizedBox(width: 2),
-              _chip(gw, Filters.primary[i]),
-            ],
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space2,
-              ),
-              child: SizedBox(
-                width: 1,
-                height: 20,
-                child: ColoredBox(color: gw.borderSubtle),
-              ),
-            ),
-            _overflowTrigger(context, gw),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _chip(GWColors gw, Filters f) => _FilterChip(
-    filter: f,
-    active: f == selected,
-    size: chipSize,
-    count: f == Filters.purchase ? openOrders : 0,
-    // Tapping the active chip clears back to All — the
-    // `emptySelectionAllowed` behaviour the segmented button had.
-    onTap: () => onChanged(f == selected ? Filters.all : f),
-  );
-
-  Widget _overflowTrigger(BuildContext context, GWColors gw) {
-    // A filter chosen from the menu leaves no mark on the title row, so
-    // without this the list reads as unfiltered while showing a partial list.
-    final bool filtered = Filters.isInOverflow(selected);
-
-    return PopupMenuButton<Filters>(
-      padding: EdgeInsets.zero,
-      tooltip: filtered ? 'Filtered: ${selected.label}' : 'More filters',
-      color: gw.surfaceMenu,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        side: BorderSide(color: gw.borderSubtle),
-      ),
-      position: PopupMenuPosition.under,
-      onSelected: (f) => onChanged(f == selected ? Filters.all : f),
-      itemBuilder: (context) => [
-        _header(gw, 'More types'),
-        for (final f in Filters.overflowTypes) _menuItem(gw, f),
-        // Colour pinned, not inherited: the app-wide `dividerTheme` is
-        // `colorScheme.surfaceContainerHighest`, so a bare PopupMenuDivider
-        // would be the one hairline in this control not drawn in
-        // `gw.borderSubtle` — same 1px rule as the list separators below.
-        PopupMenuDivider(thickness: 1, color: gw.borderSubtle),
-        _header(gw, 'Status'),
-        for (final f in Filters.overflowStatuses) _menuItem(gw, f),
-      ],
-      child: Container(
-        width: chipSize,
-        height: chipSize,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: filtered ? GeniusWalletGradient.brandCta : null,
-          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-        ),
-        child: Icon(
-          Icons.more_horiz,
-          size: 15,
-          color: filtered ? context.gw.textOnBrand : gw.textSecondary,
-        ),
-      ),
-    );
-  }
-
-  PopupMenuItem<Filters> _header(GWColors gw, String text) {
-    return PopupMenuItem<Filters>(
-      enabled: false,
-      // Non-interactive label — no 40px touch target to honour, so it takes
-      // the tighter step and lets the groups read as headers, not entries.
-      height: GeniusWalletConsts.space16,
-      padding: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space6,
-      ),
-      child: Text(
-        text,
-        style: GeniusWalletTypography.labelMd.copyWith(color: gw.textSecondary),
-      ),
-    );
-  }
-
-  PopupMenuItem<Filters> _menuItem(GWColors gw, Filters f) {
-    final bool active = f == selected;
-    final label = Text(
-      f.label,
-      style: GeniusWalletTypography.labelMd.copyWith(
-        // Opaque white when active because `srcIn` recolours what it is
-        // given — a themed colour would come out muddied by the gradient.
-        color: active ? Colors.white : gw.textPrimary,
-        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-      ),
-    );
-
-    return PopupMenuItem<Filters>(
-      value: f,
-      // 40px is the height the navbar normalizes every interactive control to
-      // (Buy GNUS and the whole right cluster), so the menu matches the app's
-      // one control rhythm. Material's own default is 48 plus padding, which
-      // is what made these rows read as oversized.
-      height: GeniusWalletConsts.space20,
-      padding: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space6,
-      ),
-      child: Row(
-        children: [
-          // The glyph NEVER changes with selection: same icon, same colour,
-          // active or not. Locked decision — do not tint it, do not gradient
-          // it. Only the label carries the selected state.
-          badgeGlyph(
-            badgeSpec(f.badgeKind!, gw),
-            color: gw.textSecondary,
-            size: 14,
-          ),
-          const SizedBox(width: GeniusWalletConsts.space4),
-          Expanded(
-            child: active
-                ? ShaderMask(
-                    blendMode: BlendMode.srcIn,
-                    shaderCallback: _activeLabelShader(gw).createShader,
-                    child: label,
-                  )
-                : label,
-          ),
-          Text(
-            '${counts[f] ?? 0}',
-            // Tabular figures so the count column does not jitter.
-            style: GeniusWalletTypography.numericBody.copyWith(
-              fontSize: 13,
-              color: gw.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One filter chip. Icon-only in every state at every width — the active one
-/// is marked by its gradient fill alone, never by revealing a label, because a
-/// chip that grows on tap shoves its neighbours sideways under the cursor. The
-/// tooltip carries the name.
-///
-/// Hover plumbing moved into `GWHoverable` (23-05); this widget held no other
-/// state, so it is a `StatelessWidget` now. The design-system hover is still
-/// the "lift chip" (sketch 008 variant D), the standard for ALL interactive
-/// chrome — so an unselected chip lifts onto `surfaceElevated` exactly the way
-/// `_TimeframeTab` does on the chart, and the two controls keep behaving
-/// identically under the same cursor.
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.filter,
-    required this.active,
-    required this.size,
-    required this.onTap,
-    this.count = 0,
-  });
-
-  final Filters filter;
-  final bool active;
-  final double size;
-  final VoidCallback onTap;
-
-  /// A small pill on the chip's corner while above zero.
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-
-    final semanticLabel = count > 0
-        ? '${filter.label}, $count open'
-        : filter.label;
-
-    return Semantics(
-      label: semanticLabel,
-      button: true,
-      selected: active,
-      child: Tooltip(
-        message: filter.label,
-        child: GWHoverable(
-          builder: (hovered) {
-            final bool lifted = hovered && !active;
-
-            final Color fg = active
-                ? context
-                      .gw
-                      .textOnBrand // 10.6:1 / 7.7:1 on the two stops
-                : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
-
-            // InkWell for focus + Enter/Space (WCAG 2.1.1 Level A). The chip
-            // draws only a glyph, so `label` + excludeSemantics is what gives
-            // a screen reader the filter's name instead of nothing.
-            return Semantics(
-              button: true,
-              selected: active,
-              label: semanticLabel,
-              excludeSemantics: true,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Material(
-                    type: MaterialType.transparency,
-                    child: InkWell(
-                      onTap: onTap,
-                      hoverColor: Colors.transparent,
-                      borderRadius: BorderRadius.circular(
-                        GeniusWalletConsts.radiusPill,
-                      ),
-                      child: AnimatedContainer(
-                        // 120ms matches _TimeframeTab; the two controls must settle
-                        // at the same speed or the dashboard feels assembled from
-                        // parts.
-                        duration: const Duration(milliseconds: 120),
-                        height: size,
-                        width: size,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          // Active is the brandCta GRADIENT, never a flat blue —
-                          // the app-wide rule the 260721-0ze brand sweep set.
-                          gradient: active
-                              ? GeniusWalletGradient.brandCta
-                              : null,
-                          color: active
-                              ? null
-                              : (lifted
-                                    ? gw.surfaceElevated
-                                    : Colors.transparent),
-                          borderRadius: BorderRadius.circular(
-                            GeniusWalletConsts.radiusPill,
-                          ),
-                        ),
-                        child: badgeGlyph(
-                          badgeSpec(filter.badgeKind!, gw),
-                          color: fg,
-                          size: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (count > 0)
-                    Positioned(
-                      top: -5,
-                      right: -5,
-                      child: IgnorePointer(child: _OpenCountPill(count: count)),
-                    ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-/// The open-order count on the Buy orders chip. Opaque underneath so the
-/// warning wash reads the same over the chip's gradient and over the track.
+/// The open-order count beside the drawer's Buy orders row. Opaque underneath
+/// so the warning wash reads the same on any surface.
 class _OpenCountPill extends StatelessWidget {
   const _OpenCountPill({required this.count});
 
@@ -1641,20 +1237,8 @@ class _OpenCountPill extends StatelessWidget {
   }
 }
 
-/// The PAGE filter control: the `⋯` menu unrolled into a permanent rail
+/// The wide PAGE filter control: every filter as a permanent rail of rows
 /// (sketch 020 variant B, active mark locked by sketch 022 variant B2).
-///
-/// The overflow menu exists ONLY because a 376px dashboard panel cannot show
-/// nine filters. A 1280px page can, so on the page the same rows live in a
-/// `Column` instead of a popup — this is not a new control, it is [_menuItem]
-/// with the popup taken off.
-///
-/// Private to this file with one call site, same as [_TransactionFilterBar].
-/// Deliberately NOT factored into a shared "chip or row" abstraction with
-/// [_FilterChip]: the two disagree on geometry (32px square vs 40px row), on
-/// tap semantics (the chip toggles back to All, the rail does not) and on the
-/// active mark (gradient fill vs w700 + underline). An abstraction over three
-/// disagreements is the abstraction `./CLAUDE.md` says not to write.
 class _FilterRail extends StatelessWidget {
   const _FilterRail({
     required this.selected,
@@ -1674,8 +1258,7 @@ class _FilterRail extends StatelessWidget {
       filter: f,
       count: count,
       active: f == selected,
-      // Tap the active row to clear back to All — the same toggle the panel's
-      // chips use (`_TransactionFilterBar._chip`). With no All element in the
+      // Tap the active row to clear back to All. With no All element in the
       // rail, this IS the way back to unfiltered, so it is a feature, not the
       // misfire it would be if an explicit All also existed.
       onTap: () => onChanged(f == selected ? Filters.all : f),
@@ -1693,8 +1276,7 @@ class _FilterRail extends StatelessWidget {
           // No All element at all (sketch 023, walk 2). It was tried as a row,
           // then as a summary; both read as clutter above the first real group.
           // The way back to unfiltered is the tap-the-active-row-to-clear
-          // toggle in [row] below — the same affordance the panel's chips use.
-          // The rail therefore opens straight on the first group header, and
+          // toggle in [row] below. The rail therefore opens straight on the first group header, and
           // there is no leading rule to be asymmetric with.
           _groupHeader(gw, 'Type'),
           for (final f in Filters.primary) row(f, counts[f] ?? 0),
@@ -1707,10 +1289,9 @@ class _FilterRail extends StatelessWidget {
     );
   }
 
-  /// The rail's group separator. Colour PINNED, not inherited — same reason the
-  /// menu's `PopupMenuDivider` pins it: the app-wide `dividerTheme` is a
-  /// different colour, and this hairline must match the list separators and the
-  /// menu's.
+  /// The rail's group separator. Colour PINNED, not inherited: the app-wide
+  /// `dividerTheme` is a different colour, and this hairline must match the
+  /// list separators.
   ///
   /// Shared by BOTH boundaries. Before sketch 023 the Status boundary had one
   /// and the All boundary did not, which is the asymmetry that made `All 11`
@@ -1720,9 +1301,6 @@ class _FilterRail extends StatelessWidget {
     child: Divider(height: 1, thickness: 1, color: gw.borderSubtle),
   );
 
-  /// The same type treatment `_TransactionFilterBar._header` gives the menu's
-  /// group labels. The WORDING differs from the menu's "More types" on
-  /// purpose: unrolled, nothing is "more".
   Widget _groupHeader(GWColors gw, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(
       GeniusWalletConsts.space6,
@@ -1737,14 +1315,9 @@ class _FilterRail extends StatelessWidget {
   );
 }
 
-/// One rail row: `_menuItem`'s geometry byte for byte, plus the navbar's
-/// active-tab mark.
-///
-/// Hover plumbing moved into `GWHoverable` (23-05); this widget held no other
-/// state, so it is a `StatelessWidget` now, exactly like [_FilterChip] — the
-/// sketch-008 "lift chip" at 120ms, which is the standard for ALL interactive
-/// chrome in this app and is matched to `_TimeframeTab` so the controls settle
-/// at one speed.
+/// One rail row with the navbar's active-tab mark. Hover is the sketch-008
+/// "lift chip" at 120ms, the standard for interactive chrome, matched to
+/// `_TimeframeTab` so the controls settle at one speed.
 class _RailRow extends StatelessWidget {
   const _RailRow({
     required this.filter,
@@ -1763,8 +1336,8 @@ class _RailRow extends StatelessWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
     // The glyph NEVER changes with selection: same mark, same
-    // `textSecondary`, active or not. That is the rule locked at `_menuItem`
-    // and restated by all five variants in sketch 022 — do not tint it, do not
+    // `textSecondary`, active or not. That is the rule locked by all five
+    // variants in sketch 022 — do not tint it, do not
     // swap it, do not gradient it. Only the label carries the selected state.
     //
     // `Filters.all` is the one value with no `badgeKind`, so it needs its own
@@ -1785,8 +1358,8 @@ class _RailRow extends StatelessWidget {
       label: filter.label,
       button: true,
       selected: active,
-      // No Tooltip, unlike `_FilterChip`: the rail SHOWS its labels, which is
-      // the entire reason it exists.
+      // No Tooltip: the rail SHOWS its labels, which is the entire reason it
+      // exists.
       child: GWHoverable(
         builder: (hovered) {
           final bool lifted = hovered && !active;
@@ -1798,10 +1371,10 @@ class _RailRow extends StatelessWidget {
             // decoration's SHAPE and ignores its colour, so the AnimatedContainer
             // hit-tests across its full area even while its fill is transparent.
             // A tap in the dead zone between the label and the count selects the
-            // row either way. `_FilterChip` relies on the same thing.
+            // row either way.
             onTap: onTap,
             child: AnimatedContainer(
-              // 120ms, matched to `_FilterChip` and `_TimeframeTab`.
+              // 120ms, matched to `_TimeframeTab`.
               duration: const Duration(milliseconds: 120),
               height: GeniusWalletConsts.space20,
               decoration: BoxDecoration(
@@ -1862,13 +1435,16 @@ class _RailRow extends StatelessWidget {
                               // under the cursor is exactly what the 120ms hover
                               // exists to avoid.
                               //
-                              // Painted through `_activeLabelShader`, NOT through
-                              // `brandCta` directly. This rule is a NON-TEXT mark
-                              // and answers to WCAG 1.4.11's 3:1; the raw blue
-                              // stop fails that on white while the function's
-                              // light degradation passes. See its doc comment for
-                              // the measured ratios.
-                              gradient: active ? _activeLabelShader(gw) : null,
+                              // `brandCtaText`, NOT raw `brandCta`. This rule is a
+                              // NON-TEXT mark and answers to WCAG 1.4.11's 3:1;
+                              // the raw blue stop is 2.56:1 on white, the light
+                              // degradation 6.30:1. `surfaceMenu` is read as an
+                              // appearance proxy, not as the surface beneath.
+                              gradient: active
+                                  ? GeniusWalletGradient.brandCtaText(
+                                      gw.surfaceMenu,
+                                    )
+                                  : null,
                             ),
                           ),
                         ],
