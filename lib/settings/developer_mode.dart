@@ -16,11 +16,11 @@ class DeveloperMode extends ValueNotifier<bool> {
     value = Hive.box(preferencesBoxName).get(developerModeKey) == true;
   }
 
+  /// Persists first, so a failed write leaves [value] unchanged. Always writes:
+  /// an early return on `enabled == value` would drop an on that overlaps a
+  /// pending off, since [value] only moves once its write lands.
   Future<void> setEnabled(bool enabled) async {
-    if (enabled == value) {
-      return;
-    }
-    value = enabled;
     await Hive.box(preferencesBoxName).put(developerModeKey, enabled);
+    value = enabled;
   }
 }

@@ -31,6 +31,7 @@ import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 import 'package:genius_wallet/screens/splash.dart';
 import 'package:genius_wallet/send/send_screen.dart';
 import 'package:genius_wallet/services/coins_service.dart';
+import 'package:genius_wallet/settings/developer_settings_cubit.dart';
 import 'package:genius_wallet/settings/settings_screen.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
@@ -259,7 +260,19 @@ final geniusWalletRouter = GoRouter(
           builder: (_, state) =>
               SubmitLogsScreen(initialMessage: state.extra as String?),
         ),
-        GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+        GoRoute(
+          path: '/settings',
+          builder: (context, _) => BlocProvider(
+            create: (context) {
+              final api = context.read<GeniusApi>();
+              return DeveloperSettingsCubit(
+                readNet: api.sgnsNet,
+                writeNet: api.setSgnsNet,
+              )..load();
+            },
+            child: const SettingsScreen(),
+          ),
+        ),
         // Moved INSIDE the shell on 2026-07-28 (sketch 071). It was the only
         // screen in the app outside it, which is why it was the only screen
         // with no navigation: from a coin you could not reach News without
