@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -343,9 +344,12 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets("phone: the funnel does not change the header's height", (
+  // iOS: a 44pt funnel rides inside Buy GNUS's 44 row. Android's 48dp funnel
+  // makes that row 4px taller, by design.
+  testWidgets("iPhone: the funnel does not change the header's height", (
     tester,
   ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     _surface(tester, 390, 800);
 
     // Funnel present: a non-empty wallet.
@@ -369,5 +373,6 @@ void main() {
     expect(buyGnus, 44);
     expect(withFunnel, buyGnus + GeniusWalletConsts.space8);
     expect(tester.takeException(), isNull);
+    debugDefaultTargetPlatformOverride = null;
   });
 }

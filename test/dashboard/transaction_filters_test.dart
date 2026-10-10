@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
@@ -500,21 +501,26 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('the trigger is a 44x44 target', (tester) async {
-      surface(tester);
-      await tester.pumpWidget(host(some()));
-      await tester.pumpAndSettle();
+    for (final (platform, side) in const [
+      (TargetPlatform.iOS, 44.0),
+      (TargetPlatform.android, 48.0),
+    ]) {
+      testWidgets('the trigger is a ${side.toInt()}px target on '
+          '${platform.name}', (tester) async {
+        debugDefaultTargetPlatformOverride = platform;
+        surface(tester);
+        await tester.pumpWidget(host(some()));
+        await tester.pumpAndSettle();
 
-      // 44 on both axes - Apple's minimum. The header row this sits in is
-      // already 44 tall because Buy GNUS (`GWButtonSize.sm`) shares it, so the
-      // funnel costs the page no height; `transactions_page_frame_test.dart`
-      // measures that on the real page. The GLYPH is 22.
-      expect(
-        tester.getSize(find.byType(TransactionsFilterTrigger)),
-        const Size(44, 44),
-      );
-      expect(tester.takeException(), isNull);
-    });
+        // The platform's touch floor on both axes; the glyph is 22.
+        expect(
+          tester.getSize(find.byType(TransactionsFilterTrigger)),
+          Size(side, side),
+        );
+        expect(tester.takeException(), isNull);
+        debugDefaultTargetPlatformOverride = null;
+      });
+    }
 
     testWidgets('the drawer offers every filter, nothing behind an overflow', (
       tester,

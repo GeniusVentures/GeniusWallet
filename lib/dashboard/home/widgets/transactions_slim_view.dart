@@ -860,10 +860,11 @@ class TransactionsFilterTrigger extends StatelessWidget {
   /// Buy orders row of the drawer while above zero.
   final int openOrders;
 
-  /// 44 x 44, Apple's minimum target, around a 22 glyph. Taller than the 32px
-  /// title line, which costs nothing here: the Buy GNUS button beside it
+  /// The touch floor around a 22 glyph: Apple's 44pt, Material's 48dp on
+  /// Android. Taller than the 32px title line; the Buy GNUS button beside it
   /// already makes that header row 44 tall.
-  static const double _triggerSize = 44;
+  static double _triggerSizeFor(TargetPlatform platform) =>
+      platform == TargetPlatform.android ? 48 : 44;
 
   @override
   Widget build(BuildContext context) {
@@ -892,9 +893,9 @@ class TransactionsFilterTrigger extends StatelessWidget {
       onPressed: () => _open(context),
       padding: EdgeInsets.zero,
       // Tight, not `min*`: a minimum leaves `IconButton` free to grow.
-      constraints: const BoxConstraints.tightFor(
-        width: _triggerSize,
-        height: _triggerSize,
+      constraints: BoxConstraints.tightFor(
+        width: _triggerSizeFor(Theme.of(context).platform),
+        height: _triggerSizeFor(Theme.of(context).platform),
       ),
       // STANDARD, explicitly: `VisualDensity` shrinks the MINIMUM of the
       // constraints above, and `ThemeData`'s default is COMPACT on every
