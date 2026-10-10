@@ -40,7 +40,7 @@ Transaction _tx({
 /// `surfaceMenu` (and the rest) from `GeniusWalletColors.surfaceMenu`, a
 /// GLOBAL getter keyed off [GWAppearance] — so constructing a "light" instance
 /// while the global is dark hands back DARK values. Every light iteration in
-/// this file used to do exactly that, which meant `_activeLabelShader`'s
+/// this file used to do exactly that, which meant `brandCtaText`'s
 /// luminance branch took the dark arm in both parameterisations and the light
 /// degradation was never painted. Parameterising over [GWAppearanceMode] and
 /// building the [GWColors] from the flag is what makes the two agree by
@@ -431,12 +431,9 @@ void main() {
   // app's own drawer, and the live filter is named on a dismissible chip above
   // the list.
   //
-  // **This group replaces `bar fits the title row`.** That group measured
-  // `_TransactionFilterBar` on this same surface - the narrow `page: true`
-  // branch - which was the bar's last live call site; this change removed that
-  // call, so those pixel pins (52 x 289) now have nothing to measure. The bar
-  // itself is still in the file, referenced only from a dead arm in `_panel`;
-  // see that method's doc comment.
+  // **This group replaces `bar fits the title row`,** which measured the old
+  // icon-chip filter bar on this same surface. That bar is gone, so its pixel
+  // pins (52 x 289) have nothing to measure.
   //
   // What the pins protected is not lost, it moved: the 44pt touch target is
   // asserted on the trigger below, and the "a live filter must never be
@@ -722,12 +719,6 @@ void main() {
         ),
       );
 
-      expect(
-        find.byWidgetPredicate(
-          (w) => w.runtimeType.toString() == '_TransactionFilterBar',
-        ),
-        findsNothing,
-      );
       expect(find.byIcon(Icons.filter_alt_outlined), findsNothing);
       expect(find.byType(GWViewAllLink), findsOneWidget);
       expect(tester.takeException(), isNull);
