@@ -975,57 +975,6 @@ class _FilterDrawerBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-
-    Widget row(Filters f) {
-      void onTap() {
-        Navigator.of(context).pop();
-        onChanged(f);
-      }
-
-      // The open-order count on Purchase, kept now that the chip it used to
-      // ride on is gone from the phone.
-      final int open = f == Filters.purchase ? openOrders : 0;
-
-      final Widget select = GWSelectRow(
-        // `Filters.all` is the one value with no `badgeKind`, so it needs its
-        // own mark - the neutral ledger glyph [_RailRow] answers this with.
-        leading: f.badgeKind == null
-            ? Icon(Icons.list_alt_outlined, size: 21, color: gw.textSecondary)
-            : badgeGlyph(
-                badgeSpec(f.badgeKind!, gw),
-                color: gw.textSecondary,
-                size: 21,
-              ),
-        title: f.label,
-        titleTrailing: open > 0 ? _OpenCountPill(count: open) : null,
-        trailing: Text(
-          '${f == Filters.all ? total : counts[f] ?? 0}',
-          // Tabular figures so the count column does not jitter, at the 13 the
-          // rail and the menu already print theirs at.
-          style: GeniusWalletTypography.numericBody.copyWith(
-            fontSize: 13,
-            color: gw.textSecondary,
-          ),
-        ),
-        selected: f == selected,
-        onTap: onTap,
-      );
-
-      if (open == 0) {
-        return select;
-      }
-      // The pill is a bare number; the label is what a screen reader hears.
-      return Semantics(
-        button: true,
-        selected: f == selected,
-        label: '${f.label}, $open open',
-        onTap: onTap,
-        excludeSemantics: true,
-        child: select,
-      );
-    }
-
     // The group split is [_FilterRail]'s, so the two page presentations name
     // the same things the same way. `All` joins Type because it is the way back
     // out of one.
@@ -1044,9 +993,18 @@ class _FilterDrawerBody extends StatelessWidget {
           ),
           child: GWKicker('Type', dense: true),
         ),
-        row(Filters.all),
-        for (final f in Filters.primary) row(f),
-        for (final f in Filters.overflowTypes) row(f),
+        for (final f in [
+          Filters.all,
+          ...Filters.primary,
+          ...Filters.overflowTypes,
+        ])
+          _FilterDrawerRow(
+            filter: f,
+            count: f == Filters.all ? total : counts[f] ?? 0,
+            openOrders: f == Filters.purchase ? openOrders : 0,
+            selected: f == selected,
+            onChanged: onChanged,
+          ),
         const Padding(
           padding: EdgeInsets.fromLTRB(
             GeniusWalletConsts.space6,
@@ -1056,8 +1014,81 @@ class _FilterDrawerBody extends StatelessWidget {
           ),
           child: GWKicker('Status', dense: true),
         ),
-        for (final f in Filters.overflowStatuses) row(f),
+        for (final f in Filters.overflowStatuses)
+          _FilterDrawerRow(
+            filter: f,
+            count: counts[f] ?? 0,
+            openOrders: 0,
+            selected: f == selected,
+            onChanged: onChanged,
+          ),
       ],
+    );
+  }
+}
+
+/// One drawer row: the filter's mark, name, count, and (on Purchase) the open
+/// buy-order pill. Tapping closes the drawer and applies the filter.
+class _FilterDrawerRow extends StatelessWidget {
+  const _FilterDrawerRow({
+    required this.filter,
+    required this.count,
+    required this.openOrders,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final Filters filter;
+  final int count;
+  final int openOrders;
+  final bool selected;
+  final ValueChanged<Filters> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    void onTap() {
+      Navigator.of(context).pop();
+      onChanged(filter);
+    }
+
+    final Widget select = GWSelectRow(
+      // `Filters.all` is the one value with no `badgeKind`, so it needs its
+      // own mark - the neutral ledger glyph [_RailRow] answers this with.
+      leading: filter.badgeKind == null
+          ? Icon(Icons.list_alt_outlined, size: 21, color: gw.textSecondary)
+          : badgeGlyph(
+              badgeSpec(filter.badgeKind!, gw),
+              color: gw.textSecondary,
+              size: 21,
+            ),
+      title: filter.label,
+      titleTrailing: openOrders > 0 ? _OpenCountPill(count: openOrders) : null,
+      trailing: Text(
+        '$count',
+        // Tabular figures so the count column does not jitter, at the 13 the
+        // rail and the menu already print theirs at.
+        style: GeniusWalletTypography.numericBody.copyWith(
+          fontSize: 13,
+          color: gw.textSecondary,
+        ),
+      ),
+      selected: selected,
+      onTap: onTap,
+    );
+
+    if (openOrders == 0) {
+      return select;
+    }
+    // The pill is a bare number; the label is what a screen reader hears.
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${filter.label}, $openOrders open',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: select,
     );
   }
 }
@@ -1152,9 +1183,7 @@ class _LiveFilterChip extends StatelessWidget {
                       horizontal: GeniusWalletConsts.space4,
                     ),
                     decoration: BoxDecoration(
-                      color: hovered
-                          ? GWDecorations.hoverFill
-                          : Colors.transparent,
+                      color: hovered ? GWDecorations.hoverFill : null,
                       borderRadius: BorderRadius.circular(
                         GeniusWalletConsts.radiusPill,
                       ),
