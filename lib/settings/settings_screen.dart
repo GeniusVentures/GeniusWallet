@@ -13,8 +13,6 @@ import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
-import 'package:genius_wallet/network/network_dropdown_selector.dart';
-import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/settings/developer_settings_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -23,7 +21,6 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// SPD log levels exposed in dropdown order (most verbose → silent).
 const _spdlogLevels = [
@@ -103,24 +100,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     final file = File('${dir.path}/$fileName');
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(data));
-  }
-
-  Future<void> _setDeveloperMode(bool on) async {
-    final walletCubit = context.read<WalletDetailsCubit>();
-    final networks = context.read<NetworkProvider>().networks;
-    final turnedOff = await context
-        .read<DeveloperSettingsCubit>()
-        .setDeveloperMode(on);
-    if (!turnedOff || !mounted || DeveloperMode.isOn) {
-      return;
-    }
-    if (walletCubit.state.selectedNetwork?.testnet ?? false) {
-      await NetworkSelection.apply(
-        context: context,
-        walletCubit: walletCubit,
-        network: restoreSelectedNetwork(networks, allowTestnets: false),
-      );
-    }
   }
 
   Future<void> _loadLogConfig() async {
@@ -221,7 +200,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     action: null,
                     child: _DeveloperModeSwitch(
                       value: developerMode,
-                      onChanged: dev.busy ? null : _setDeveloperMode,
+                      onChanged: dev.busy
+                          ? null
+                          : context
+                                .read<DeveloperSettingsCubit>()
+                                .setDeveloperMode,
                     ),
                   ),
                   if (developerMode) ...[
@@ -234,9 +217,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       action: null,
                       child: _SdkNetSelect(
                         value: dev.net,
-                        onChanged: context
-                            .read<DeveloperSettingsCubit>()
-                            .selectNet,
+                        onChanged: dev.busy
+                            ? null
+                            : context.read<DeveloperSettingsCubit>().selectNet,
                       ),
                     ),
                     _buildLogSection(),
@@ -551,10 +534,11 @@ class _SdkNetSelect extends StatelessWidget {
   const _SdkNetSelect({required this.value, required this.onChanged});
 
   final SgnsNet value;
-  final ValueChanged<SgnsNet> onChanged;
+  final ValueChanged<SgnsNet>? onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final onChanged = this.onChanged;
     return GWSelect<SgnsNet>(
       label: 'SDK network (applied on restart)',
       value: value,
@@ -563,11 +547,13 @@ class _SdkNetSelect extends StatelessWidget {
         GWSelectItem(value: SgnsNet.test, label: 'Test net'),
         GWSelectItem(value: SgnsNet.main, label: 'Main net'),
       ],
-      onChanged: (net) {
-        if (net != null) {
-          onChanged(net);
-        }
-      },
+      onChanged: onChanged == null
+          ? null
+          : (net) {
+              if (net != null) {
+                onChanged(net);
+              }
+            },
     );
   }
 }
