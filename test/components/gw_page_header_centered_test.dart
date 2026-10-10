@@ -62,6 +62,53 @@ void main() {
     expect(title.center.dx, lessThan(trailing.left));
   });
 
+  testWidgets("with a subtitle, a centred trailing sits on the title's centre "
+      'line', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        centered: true,
+        trailing: const SizedBox(
+          key: Key('glyph'),
+          width: 48,
+          height: 32,
+          child: Icon(Icons.tune),
+        ),
+      ),
+    );
+
+    final column = tester.getRect(find.byType(GWPageHeader));
+    final title = tester.getRect(find.text('Swap'));
+    final trailing = tester.getRect(find.byKey(const Key('glyph')));
+
+    // Centred on the whole identity block (title + gap + subtitle) it sat
+    // 22px below the title's own centre on the phone Swap header.
+    expect(trailing.center.dy, moreOrLessEquals(title.center.dy, epsilon: 0.5));
+    // And the glyph did not buy that by pulling the title off the column's
+    // centre, or off the column's right edge.
+    expect(title.center.dx, moreOrLessEquals(column.center.dx, epsilon: 0.5));
+    expect(trailing.right, moreOrLessEquals(column.right, epsilon: 0.5));
+  });
+
+  testWidgets('a 32-tall trailing does not grow the header', (tester) async {
+    await tester.pumpWidget(_host(centered: true));
+    final bare = tester.getSize(find.byType(GWPageHeader)).height;
+
+    await tester.pumpWidget(
+      _host(
+        centered: true,
+        trailing: const SizedBox(
+          width: 48,
+          height: 32,
+          child: Icon(Icons.tune),
+        ),
+      ),
+    );
+
+    // The title line is 32 tall, so a 48x32 box rides inside it. A 48-tall one
+    // would make the line 48 and the header 16 taller.
+    expect(tester.getSize(find.byType(GWPageHeader)).height, bare);
+  });
+
   testWidgets('default stays left-aligned for the content tabs', (
     tester,
   ) async {

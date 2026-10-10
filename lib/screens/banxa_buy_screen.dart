@@ -165,6 +165,21 @@ class _BuyPage extends StatelessWidget {
                             color: gw.textSecondary,
                             size: 24,
                           ),
+                          // 48x32, not 48x48: the header puts this on the TITLE's line, a
+                          // `Stack` as tall as its tallest child, so a 48-tall control would
+                          // grow the header by 16 and push the title 8px down (see
+                          // `GWPageHeader.centered`). `shrinkWrap` and an explicit standard
+                          // density make the constraint the final word - the default density is
+                          // compact on desktop, and the default tap target pads back out to 48.
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(
+                            width: 48,
+                            height: 32,
+                          ),
+                          visualDensity: VisualDensity.standard,
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           tooltip: 'Buy orders',
                           onPressed: () =>
                               context.go('/transactions?filter=purchase'),
