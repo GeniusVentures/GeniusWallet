@@ -28,11 +28,12 @@ RUN git config --global --add url."https://github.com/".insteadOf "git@github.co
  && git submodule sync --recursive \
  && git submodule update --init --recursive
 
-# Build the Dart/Flutter application bundle (offline-friendly). This prepares
+# Build the Linux x86_64 Dart/Flutter asset bundle (offline-friendly).
+# Without --target-platform, Flutter defaults to Android and requires Android SDK. This prepares
 # application Dart, assets, package sources and toolchain for the scanner.
 # Native Linux desktop/C++ integration needs a separate full-build verification.
 RUN flutter pub get \
- && flutter build bundle --release --no-pub \
+ && flutter build bundle --release --no-pub --target-platform linux-x64 \
  && test -d build/flutter_assets
 
 CMD ["/bin/bash"]
