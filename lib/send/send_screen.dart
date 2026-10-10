@@ -8,6 +8,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -203,28 +204,30 @@ class _SendBodyState extends State<_SendBody> {
                 errorText: state.recipientError,
               ),
               const SizedBox(height: GeniusWalletConsts.space6),
-              GWTextField(
-                controller: _amountController,
-                label: 'Amount',
-                hint: '0.0',
-                errorText: state.amountError,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+              GWKeyboardDoneBar(
+                child: GWTextField(
+                  controller: _amountController,
+                  label: 'Amount',
+                  hint: '0.0',
+                  errorText: state.amountError,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  suffix: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(coinSymbol),
+                      const SizedBox(width: GeniusWalletConsts.space4),
+                      GWButton(
+                        label: 'MAX',
+                        variant: GWButtonVariant.ghost,
+                        size: GWButtonSize.sm,
+                        onPressed: state.busy ? null : cubit.useMax,
+                      ),
+                    ],
+                  ),
+                  onChanged: cubit.setAmount,
                 ),
-                suffix: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(coinSymbol),
-                    const SizedBox(width: GeniusWalletConsts.space4),
-                    GWButton(
-                      label: 'MAX',
-                      variant: GWButtonVariant.ghost,
-                      size: GWButtonSize.sm,
-                      onPressed: state.busy ? null : cubit.useMax,
-                    ),
-                  ],
-                ),
-                onChanged: cubit.setAmount,
               ),
               if (state.error != null) ...[
                 const SizedBox(height: GeniusWalletConsts.space6),

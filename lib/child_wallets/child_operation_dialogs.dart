@@ -8,6 +8,7 @@ import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
     show ChildWallet, minionsToGnus;
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -481,31 +482,33 @@ class _AmountDialogState extends State<_AmountDialog> {
               children: [
                 Text(widget.fromToSentence),
                 const SizedBox(height: GeniusWalletConsts.space6),
-                GWTextField(
-                  controller: _controller,
-                  label: 'Amount',
-                  hint: '0.0',
-                  errorText: _error,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+                GWKeyboardDoneBar(
+                  child: GWTextField(
+                    controller: _controller,
+                    label: 'Amount',
+                    hint: '0.0',
+                    errorText: _error,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    suffix: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('GNUS'),
+                        const SizedBox(width: GeniusWalletConsts.space4),
+                        GWButton(
+                          label: 'MAX',
+                          variant: GWButtonVariant.ghost,
+                          size: GWButtonSize.sm,
+                          onPressed: () => setState(() {
+                            _controller.text = minionsToGnus(balance);
+                            _error = null;
+                          }),
+                        ),
+                      ],
+                    ),
+                    onChanged: (_) => setState(() => _error = null),
                   ),
-                  suffix: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('GNUS'),
-                      const SizedBox(width: GeniusWalletConsts.space4),
-                      GWButton(
-                        label: 'MAX',
-                        variant: GWButtonVariant.ghost,
-                        size: GWButtonSize.sm,
-                        onPressed: () => setState(() {
-                          _controller.text = minionsToGnus(balance);
-                          _error = null;
-                        }),
-                      ),
-                    ],
-                  ),
-                  onChanged: (_) => setState(() => _error = null),
                 ),
                 if (lockReason != null) ...[
                   const SizedBox(height: GeniusWalletConsts.space6),

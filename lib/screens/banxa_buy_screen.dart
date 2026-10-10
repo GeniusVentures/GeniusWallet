@@ -20,6 +20,7 @@ import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -568,14 +569,18 @@ class _AmountFieldState extends State<_AmountField> {
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Amount in ${widget.fiatCode}',
-      child: GWTextField(
-        controller: _controller,
-        hint: '0',
-        textStyle: GeniusWalletTypography.numericHeadline,
-        prefix: widget.symbol.isEmpty ? null : Text(widget.symbol),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-        onChanged: widget.onChanged,
+      child: GWKeyboardDoneBar(
+        child: GWTextField(
+          controller: _controller,
+          hint: '0',
+          textStyle: GeniusWalletTypography.numericHeadline,
+          prefix: widget.symbol.isEmpty ? null : Text(widget.symbol),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+          ],
+          onChanged: widget.onChanged,
+        ),
       ),
     );
   }
