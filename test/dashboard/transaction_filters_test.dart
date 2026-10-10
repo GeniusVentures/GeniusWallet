@@ -8,14 +8,9 @@ import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
-/// Two checks in one file: the filter PREDICATES (pure unit, most of the file)
-/// and the one thing units cannot see — the phone page's filter CONTROL, the
-/// header funnel and the drawer it opens.
-///
-/// The headline test is the coverage loop: sketch 011 found that `swap`,
-/// `purchase` and `process` were reachable by NO filter, so those transactions
-/// could only ever be found under "All". That is a findability bug, not a
-/// styling preference, and this file is what keeps it closed.
+/// The filter predicates, plus the phone page's header funnel and drawer.
+/// The headline is the coverage loop: every transaction type must be
+/// reachable by some filter other than "All".
 
 Transaction _tx({
   TransactionType? type,
@@ -447,11 +442,9 @@ void main() {
   // invisible" rule the `⋯` menu introduced is asserted twice - on the trigger's
   // tooltip and on the chip row.
   group('the phone page filter control', () {
-    /// Two escrow rows, a mint and a swap: four transactions across three
-    /// filters, so `Escrow` is a real subset (2 of 4) rather than everything.
-    ///
-    /// None of the three labels collides with a transaction row's own copy the
-    /// way `Sent` does - the same reason the old group reached for escrow.
+    /// Four transactions across three filters, so `Escrow` is a real subset
+    /// (2 of 4). None of the labels collides with a row's own copy the way
+    /// `Sent` does.
     List<Transaction> some() => [
       _tx(type: TransactionType.escrow),
       _tx(type: TransactionType.escrow),
@@ -459,12 +452,9 @@ void main() {
       _tx(type: TransactionType.swap),
     ];
 
-    /// A REAL phone surface, not a `SizedBox` inside the harness's 800x600.
-    ///
-    /// Both halves need it. `_page` picks its narrow branch off the incoming
-    /// constraints, and `ResponsiveDrawer` picks the bottom SHEET over the
-    /// desktop side panel off `MediaQuery.sizeOf` - so at the default surface
-    /// this group would silently test the wide page and the desktop drawer.
+    /// A real phone surface: the narrow page branch and the bottom-sheet drawer
+    /// both key off screen size, so the default 800x600 would silently test the
+    /// wide page and the desktop drawer.
     void surface(WidgetTester tester) {
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3.0;
@@ -740,12 +730,9 @@ void main() {
   });
 }
 
-/// The page's two halves as `TransactionsScreen` wires them: the trigger in the
-/// header slot and the list below it, with ONE filter between them.
-///
-/// Pumping them together is the only way to exercise sketch 195's state lift -
-/// the control and the list it filters are no longer the same widget, so a test
-/// that pumps `TransactionsSlimView` alone can no longer reach a filter at all.
+/// The header trigger and the list as `TransactionsScreen` wires them, sharing
+/// ONE filter. They are separate widgets, so pumping `TransactionsSlimView`
+/// alone cannot reach a filter at all.
 class _PhonePage extends StatefulWidget {
   const _PhonePage({required this.txs});
 

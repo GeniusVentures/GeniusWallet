@@ -5,22 +5,15 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 
 import '../banxa/gw_pump.dart';
 
-/// `GWKeyboardDoneBar` - the way out of the iOS decimal pad, which has no
-/// return key of its own.
-///
-/// The suite runs on macOS, so the component's real gate
-/// (`GeniusBreakpoints.isMobileApp`, i.e. `Platform.isIOS`) answers false here
-/// and cannot be overridden the way `defaultTargetPlatform` can. Every test
-/// below therefore passes the `@visibleForTesting` seam explicitly, including
-/// the one that pins the desktop half.
+/// `GWKeyboardDoneBar`: the way out of the iOS decimal pad. The real gate is
+/// `Platform.isIOS`, which is false on the test host and cannot be overridden,
+/// so every test passes the `@visibleForTesting` seam explicitly.
 bool _touch() => true;
 
 bool _notTouch() => false;
 
-/// The confirm control. This was `find.text('Done')` until the iOS 26 pass
-/// swapped the word for the glyph Safari's own accessory bar uses; every
-/// assertion that used to name the word now names the tick, and nothing else
-/// about those assertions changed.
+/// The confirm control: a tick glyph, as in Safari's accessory bar, not the
+/// word "Done".
 Finder _tick() => find.byIcon(Icons.check);
 
 Finder _previous() => find.byIcon(Icons.keyboard_arrow_up);

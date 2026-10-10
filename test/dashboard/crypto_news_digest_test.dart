@@ -11,11 +11,9 @@ import 'package:hive_ce/hive.dart';
 
 import '../banxa/gw_pump.dart';
 
-/// At phone width the feed is one hero story and then ONE digest panel; the
-/// refresh glyph shows on mouse platforms only, whatever the window width.
-///
-/// The feed is seeded into the Hive cache so `fetchCoinTelegraphNews` returns
-/// it without touching the network.
+/// At phone width the feed is one hero story then ONE digest panel; refresh
+/// shows on mouse platforms only. The feed is seeded into the Hive cache so
+/// `fetchCoinTelegraphNews` never touches the network.
 void main() {
   late Directory dir;
   final articles = [

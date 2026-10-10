@@ -49,10 +49,8 @@ import '../swap/fake_swap_provider.dart';
 const String _title = 'Swap';
 const String _subtitle = 'Trade any token across chains';
 
-/// `WalletDetailsCubit` takes a `GeniusApi` neither screen here touches - the
-/// same four-line stand-in `swap_flip_centring_test.dart` and
-/// `transactions_page_frame_test.dart` both use. It satisfies the type and
-/// throws loudly rather than returning a silent null.
+/// `WalletDetailsCubit` needs a `GeniusApi` neither screen touches; this
+/// satisfies the type and throws loudly rather than returning a silent null.
 class _UnusedApi implements GeniusApi {
   @override
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
