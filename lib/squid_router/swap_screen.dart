@@ -993,7 +993,11 @@ class _SwapScreenState extends State<SwapScreen> {
                                 // the middle of a 1536 frame left the two
                                 // agreeing on nothing. Settings icon stays on
                                 // the column's right edge, where it was before
-                                // the GWPageHeader migration (905a2a91).
+                                // the GWPageHeader migration (905a2a91). It sits
+                                // on the TITLE's line, not centred on title +
+                                // subtitle (`GWPageHeader.centered`), which is why
+                                // it is a 48x32 box: see
+                                // `swap_header_alignment_test.dart`.
                                 GWPageHeader(
                                   title: "Swap",
                                   subtitle: "Trade any token across chains",
@@ -1003,6 +1007,22 @@ class _SwapScreenState extends State<SwapScreen> {
                                       Icons.tune,
                                       color: gw.textSecondary,
                                       size: 24,
+                                    ),
+                                    // 48x32, not 48x48: the header puts this on the TITLE's line, a
+                                    // `Stack` as tall as its tallest child, so a 48-tall control would
+                                    // grow the header by 16 and push the title 8px down (see
+                                    // `GWPageHeader.centered`). `shrinkWrap` and an explicit standard
+                                    // density make the constraint the final word - the default density is
+                                    // compact on desktop, and the default tap target pads back out to 48.
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints.tightFor(
+                                      width: 48,
+                                      height: 32,
+                                    ),
+                                    visualDensity: VisualDensity.standard,
+                                    style: IconButton.styleFrom(
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     onPressed: () {
                                       SwapSettingsDrawer.show(
