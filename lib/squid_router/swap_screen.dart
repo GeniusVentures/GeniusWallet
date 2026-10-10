@@ -995,8 +995,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                 // the column's right edge, where it was before
                                 // the GWPageHeader migration (905a2a91). It sits
                                 // on the TITLE's line, not centred on title +
-                                // subtitle (`GWPageHeader.centered`), so it is a
-                                // 48x32 box: 32 high to match the title line.
+                                // subtitle (`GWPageHeader.centered`).
                                 GWPageHeader(
                                   title: "Swap",
                                   subtitle: "Trade any token across chains",
@@ -1007,16 +1006,20 @@ class _SwapScreenState extends State<SwapScreen> {
                                       color: gw.textSecondary,
                                       size: 24,
                                     ),
-                                    // 48x32, not 48x48: the header puts this on the TITLE's line, a
-                                    // `Stack` as tall as its tallest child, so a 48-tall control would
-                                    // grow the header by 16 and push the title 8px down (see
-                                    // `GWPageHeader.centered`). `shrinkWrap` and an explicit standard
-                                    // density make the constraint the final word - the default density is
-                                    // compact on desktop, and the default tap target pads back out to 48.
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints.tightFor(
+                                    // Glyph centred on the 32px title line. On touch the box grows to a
+                                    // 48x48 target downward; a mouse keeps 48x32 so the hover circle stays
+                                    // centred. Explicit density and `shrinkWrap` make the box exact.
+                                    padding: const EdgeInsets.only(top: 4),
+                                    alignment: Alignment.topCenter,
+                                    constraints: BoxConstraints.tightFor(
                                       width: 48,
-                                      height: 32,
+                                      height:
+                                          const {
+                                            TargetPlatform.android,
+                                            TargetPlatform.iOS,
+                                          }.contains(Theme.of(context).platform)
+                                          ? 48
+                                          : 32,
                                     ),
                                     visualDensity: VisualDensity.standard,
                                     style: IconButton.styleFrom(

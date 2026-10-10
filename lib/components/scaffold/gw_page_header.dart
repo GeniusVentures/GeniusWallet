@@ -100,9 +100,9 @@ class GWPageHeader extends StatelessWidget {
   /// are additive and null-defaulted, so no other caller's tree changes.
   final Widget? titleTrailing;
 
-  /// Centres the title (and subtitle), with [trailing] pinned right on the
-  /// title's own line - for focused-form pages (Swap, Buy). A trailing taller
-  /// than the 32px title line grows the header, so callers keep it within 32.
+  /// Centres the title (and subtitle), with [trailing] pinned to the top right
+  /// - for focused-form pages (Swap, Buy). Callers place their glyph on the
+  /// 32px title line inside a full-size tap target.
   final bool centered;
 
   /// Pulls [trailing] up against the title instead of pushing it to the far
@@ -115,7 +115,7 @@ class GWPageHeader extends StatelessWidget {
   /// connect two facts about the same token.
   ///
   /// Has no effect when [centered] is true - that path puts the trailing in a
-  /// `Stack` on the title line instead of the row, so there is nothing to hug.
+  /// `Stack` over the title block instead of the row, so there is nothing to hug.
   final bool trailingHugsTitle;
 
   /// Optional one-line subtitle rendered under the title row. Defaults to
@@ -153,32 +153,17 @@ class GWPageHeader extends StatelessWidget {
     // centres the text against the FULL width and lets the trailing widget be
     // any width without moving it.
     //
-    // The Stack wraps the TITLE LINE and not the whole title + subtitle block,
-    // so the trailing centres on the title; centred on the whole block it sat
-    // half a subtitle low. The Stack is as tall as its tallest child, which is
-    // why [centered] asks callers for a trailing within the 32px title line.
-    final Widget titleBlock = Column(
+    // The trailing pins to the TOP right of the whole title + subtitle block,
+    // so a 48px tap target fits beside both lines without growing the header;
+    // callers align their glyph to the 32px title line inside that target.
+    final Widget lines = Column(
       crossAxisAlignment: centered
           ? CrossAxisAlignment.center
           : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         centered
-            ? (trailing == null
-                  ? titleText
-                  // `Center`, not the bare Text: an `Align` with no width
-                  // factor takes the full bounded width and centres its child
-                  // inside it, so the title is centred against the whole line
-                  // while the Text keeps its own intrinsic box. Drop it and the
-                  // Stack shrinks to the width of the word, which is the
-                  // "centred on what the trailing leaves" failure.
-                  : Stack(
-                      alignment: Alignment.centerRight,
-                      children: [
-                        Center(child: titleText),
-                        trailing!,
-                      ],
-                    ))
+            ? titleText
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 // Default `MainAxisSize.max` claims the full width, which is
@@ -204,6 +189,17 @@ class GWPageHeader extends StatelessWidget {
         ],
       ],
     );
+    // `Align`, not the bare Column: it takes the full width, so the text centres
+    // on the whole line rather than on what the trailing leaves.
+    final Widget titleBlock = centered && trailing != null
+        ? Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Align(alignment: Alignment.topCenter, child: lines),
+              trailing!,
+            ],
+          )
+        : lines;
 
     // [leading] and [trailing] both sit beside the WHOLE identity block, not
     // inside the title Row, so both centre against title + subtitle together.
