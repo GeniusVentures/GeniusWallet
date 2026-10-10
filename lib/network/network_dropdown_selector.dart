@@ -9,6 +9,7 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
+import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -173,7 +174,10 @@ class _NetworkPickerState extends State<NetworkPicker> {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final query = _query.trim().toLowerCase();
-    final matches = widget.networks
+    final visible = DeveloperMode.isOn
+        ? widget.networks
+        : widget.networks.where((n) => !n.testnet);
+    final matches = visible
         .where((n) => (n.name ?? '').toLowerCase().contains(query))
         .toList();
     final mainnets = matches.where((n) => !n.testnet).toList();
@@ -288,13 +292,8 @@ class _NetworkSection extends StatelessWidget {
 
 class NetworkDropdownSelector extends StatefulWidget {
   final Function(Network selectedNetwork)? onNetworkSelected;
-  final Network? initialSelected;
 
-  const NetworkDropdownSelector({
-    super.key,
-    this.onNetworkSelected,
-    this.initialSelected,
-  });
+  const NetworkDropdownSelector({super.key, this.onNetworkSelected});
 
   @override
   State<NetworkDropdownSelector> createState() =>
@@ -302,45 +301,19 @@ class NetworkDropdownSelector extends StatefulWidget {
 }
 
 class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
-  Network? selectedNetwork;
-  int? savedChainId;
-  String? savedRpcUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSavedNetwork();
-  }
-
-  void _loadSavedNetwork() async {
-    final box = Hive.box(networkBoxName);
-    final chainId = box.get(selectedNetworkKeyChainId) as int?;
-    final rpcUrl = box.get(selectedNetworkKeyRpcUrl) as String?;
-
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      savedChainId = chainId;
-      savedRpcUrl = rpcUrl;
-    });
-  }
-
-  void _showNetworkDrawer(List<Network> networks) async {
+  void _showNetworkDrawer(List<Network> networks, Network current) async {
     final walletCubit = context.read<WalletDetailsCubit>();
     final selected = await NetworkPicker.show(
       context,
       networks: networks,
-      current: selectedNetwork,
+      current: current,
     );
 
     if (!mounted) {
       return;
     }
 
-    if (selected != null && selected != selectedNetwork) {
-      setState(() => selectedNetwork = selected);
-
+    if (selected != null && selected != current) {
       if (widget.onNetworkSelected != null) {
         widget.onNetworkSelected!(selected);
       }
@@ -360,6 +333,11 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
   @override
   Widget build(BuildContext context) {
     final networks = Provider.of<NetworkProvider>(context).networks;
+    // The cubit, not local state: leaving developer mode moves a testnet
+    // selection there, and this chip has to follow.
+    final cubitNetwork = context.select<WalletDetailsCubit, Network?>(
+      (cubit) => cubit.state.selectedNetwork,
+    );
 
     if (networks.isEmpty) {
       final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
@@ -371,22 +349,21 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       );
     }
 
-    selectedNetwork ??= networks.firstWhere(
-      (n) => n.chainId == savedChainId && n.rpcUrl == savedRpcUrl,
-      orElse: () => widget.initialSelected ?? networks.first,
-    );
+    final selectedNetwork =
+        cubitNetwork ??
+        restoreSelectedNetwork(networks, allowTestnets: DeveloperMode.isOn);
 
     return Tooltip(
       message: "Select network",
       child: TextButton(
         style: navContextChipStyle(context),
-        onPressed: () => _showNetworkDrawer(networks),
+        onPressed: () => _showNetworkDrawer(networks, selectedNetwork),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: GeniusWalletConsts.space4,
           children: [
             Image.asset(
-              selectedNetwork?.iconPath ?? "",
+              selectedNetwork.iconPath ?? "",
               width: 20,
               height: 20,
               errorBuilder: (context, error, stackTrace) =>

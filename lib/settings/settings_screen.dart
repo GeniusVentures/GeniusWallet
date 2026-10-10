@@ -13,6 +13,8 @@ import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
+import 'package:genius_wallet/network/network_dropdown_selector.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -20,6 +22,7 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// SPD log levels exposed in dropdown order (most verbose → silent).
 const _spdlogLevels = [
@@ -141,8 +144,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await DeveloperMode.instance.setEnabled(true);
       return;
     }
+    final walletCubit = context.read<WalletDetailsCubit>();
+    final networks = context.read<NetworkProvider>().networks;
     try {
       await DeveloperMode.instance.setEnabled(false);
+      if (!mounted) {
+        return;
+      }
+      if (walletCubit.state.selectedNetwork?.testnet ?? false) {
+        await NetworkSelection.apply(
+          context: context,
+          walletCubit: walletCubit,
+          network: restoreSelectedNetwork(networks, allowTestnets: false),
+        );
+      }
       // Leaving developer mode must not leave the SDK on a non-default net.
       final changed = await api.setSgnsNet(SgnsNet.dev);
       if (!mounted) {

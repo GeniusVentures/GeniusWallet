@@ -26,6 +26,7 @@ import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/send/send_cubit.dart' show settlePendingSends;
+import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:local_secure_storage/local_secure_storage.dart'
@@ -189,9 +190,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     final networks = networkProvider.networks;
 
-    final selectedNetwork = networks.firstWhere(
-      (n) => n.chainId == chainId && n.rpcUrl == rpcUrl,
-      orElse: () => networks.first,
+    final selectedNetwork = restoreSelectedNetwork(
+      networks,
+      chainId: chainId,
+      rpcUrl: rpcUrl,
+      allowTestnets: DeveloperMode.isOn,
     );
 
     final selectedWallet = WalletDetailsCubit.restoreSelectedWallet(
