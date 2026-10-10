@@ -16,13 +16,17 @@ class SgnusTransactionsScreen extends StatefulWidget {
   /// `/transactions` route opts in.
   final bool page;
 
-  /// Forwarded to [TransactionsSlimView.initialFilter].
-  final Filters? initialFilter;
+  /// Forwarded to [TransactionsSlimView.selectedFilter] and
+  /// [TransactionsSlimView.onFilterChanged]. Both null on the dashboard, whose
+  /// panel keeps its own filter.
+  final Filters? selectedFilter;
+  final ValueChanged<Filters>? onFilterChanged;
 
   const SgnusTransactionsScreen({
     super.key,
     this.page = false,
-    this.initialFilter,
+    this.selectedFilter,
+    this.onFilterChanged,
   });
 
   @override
@@ -70,7 +74,8 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
             buyOrdersStatus: ordersState.status,
             onRetryBuyOrders: () =>
                 unawaited(context.read<OrdersCubit>().fetchOrders()),
-            initialFilter: widget.initialFilter,
+            selectedFilter: widget.selectedFilter,
+            onFilterChanged: widget.onFilterChanged,
           ),
         );
 

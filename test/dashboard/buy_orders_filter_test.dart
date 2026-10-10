@@ -7,6 +7,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
@@ -129,7 +130,7 @@ Future<GoRouter> _pump(
       ),
     ),
   );
-  // The phone layout's background animates forever, so it cannot settle.
+  // `settle: false` is for a screen that still animates forever.
   if (settle) {
     await tester.pumpAndSettle();
   } else {
@@ -239,36 +240,56 @@ void main() {
     expect(find.byType(TransactionRow), findsNWidgets(2));
   });
 
-  testWidgets('Buy orders is a chip in the bar, not in the More menu', (
-    tester,
-  ) async {
-    await _pump(tester, at: '/transactions', width: 600, settle: false);
+  // The phone page has no chip row: Buy orders is one row of the header
+  // funnel's drawer, beside the other nine filters and nothing behind a menu.
+  Finder openPill() => find.byWidgetPredicate(
+    (w) => w.runtimeType.toString() == '_OpenCountPill',
+  );
+  Finder buyOrdersRow() => find.widgetWithText(GWSelectRow, 'Buy orders');
 
-    expect(find.byTooltip('Buy orders'), findsOneWidget);
+  Future<void> openDrawer(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Filter transactions'));
+    await tester.pumpAndSettle();
+  }
 
-    await tester.tap(find.byTooltip('More filters'));
-    await tester.pump(const Duration(milliseconds: 300));
+  testWidgets('Buy orders is a row in the filter drawer, with no chip bar '
+      'and no More menu', (tester) async {
+    await _pump(tester, at: '/transactions', width: 600);
+
+    expect(find.byTooltip('Buy orders'), findsNothing);
+    expect(find.byTooltip('More filters'), findsNothing);
+
+    await openDrawer(tester);
+    expect(buyOrdersRow(), findsOneWidget);
     expect(find.text('Escrow'), findsOneWidget);
-    expect(find.text('Buy orders'), findsNothing);
   });
 
-  testWidgets('the Buy orders chip counts the open orders and says so', (
+  testWidgets('picking Buy orders in the drawer filters the page to the '
+      'orders', (tester) async {
+    await _pump(tester, at: '/transactions', width: 600);
+    expect(find.byType(TransactionRow), findsNWidgets(3));
+
+    await openDrawer(tester);
+    await tester.tap(buyOrdersRow());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TransactionRow), findsNWidgets(2));
+    expect(find.byTooltip('Filtered: Buy orders'), findsOneWidget);
+  });
+
+  testWidgets('the Buy orders row counts the open orders and says so', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    await _pump(
-      tester,
-      at: '/transactions',
-      width: 600,
-      settle: false,
-      open: 2,
-    );
+    await _pump(tester, at: '/transactions', width: 600, open: 2);
+    await openDrawer(tester);
 
     expect(
-      find.descendant(
-        of: find.byTooltip('Buy orders'),
-        matching: find.text('2'),
-      ),
+      find.descendant(of: buyOrdersRow(), matching: openPill()),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: openPill(), matching: find.text('2')),
       findsOneWidget,
     );
     expect(find.bySemanticsLabel('Buy orders, 2 open'), findsWidgets);
@@ -277,16 +298,12 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('with nothing open the chip carries no count', (tester) async {
-    await _pump(tester, at: '/transactions', width: 600, settle: false);
+  testWidgets('with nothing open the row carries no pill', (tester) async {
+    await _pump(tester, at: '/transactions', width: 600);
+    await openDrawer(tester);
 
-    expect(
-      find.descendant(
-        of: find.byTooltip('Buy orders'),
-        matching: find.byType(Text),
-      ),
-      findsNothing,
-    );
+    expect(buyOrdersRow(), findsOneWidget);
+    expect(openPill(), findsNothing);
   });
 
   testWidgets('with no orders, its empty state offers Buy GNUS', (
@@ -324,7 +341,7 @@ void main() {
         body: TransactionsSlimView(
           transactions: [_plain()],
           page: true,
-          initialFilter: Filters.purchase,
+          selectedFilter: Filters.purchase,
           buyOrdersStatus: status,
           onRetryBuyOrders: () => retries++,
         ),

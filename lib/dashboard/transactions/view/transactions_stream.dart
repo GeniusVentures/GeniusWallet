@@ -17,10 +17,18 @@ class TransactionsStream extends StatelessWidget {
   /// `/transactions` route opts in.
   final bool page;
 
-  /// Forwarded to [TransactionsSlimView.initialFilter].
-  final Filters? initialFilter;
+  /// Forwarded to [TransactionsSlimView.selectedFilter] and
+  /// [TransactionsSlimView.onFilterChanged]. Both null on the dashboard, whose
+  /// panel keeps its own filter.
+  final Filters? selectedFilter;
+  final ValueChanged<Filters>? onFilterChanged;
 
-  const TransactionsStream({super.key, this.page = false, this.initialFilter});
+  const TransactionsStream({
+    super.key,
+    this.page = false,
+    this.selectedFilter,
+    this.onFilterChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +43,8 @@ class TransactionsStream extends StatelessWidget {
               buyOrdersStatus: ordersState.status,
               onRetryBuyOrders: () =>
                   unawaited(context.read<OrdersCubit>().fetchOrders()),
-              initialFilter: initialFilter,
+              selectedFilter: selectedFilter,
+              onFilterChanged: onFilterChanged,
             );
           },
         );

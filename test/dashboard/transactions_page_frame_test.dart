@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show GeniusApi;
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
+import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -13,6 +15,7 @@ import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -102,7 +105,12 @@ Widget _host({List<Transaction>? txs}) => MultiBlocProvider(
     BlocProvider(create: (_) => OrdersCubit(api: FakeBanxaApi())),
   ],
   child: MaterialApp(
-    theme: ThemeData(extensions: [GWColors.dark()]),
+    // `scaffoldBackgroundColor` mirrors `lib/theme/theme.dart:66`, which is what
+    // a bare `Scaffold` paints in the real app.
+    theme: ThemeData(
+      extensions: [GWColors.dark()],
+      scaffoldBackgroundColor: GWColors.dark().surfaceBase,
+    ),
     home: const TransactionsScreen(),
   ),
 );
@@ -202,12 +210,9 @@ void main() {
     // branch and renders identically either way. Logged for 15-06 in
     // `deferred-items.md`.
     await tester.pumpWidget(_host(txs: const []));
-    // `pump`, NOT `pumpAndSettle`: below 768 the page mounts
-    // `GWMeshBackground`, whose controller `..repeat()`s forever, so
-    // pumpAndSettle times out. Every other test here runs at 1000px+, where no
-    // mesh mounts and settling is still correct.
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    // The page can settle at phone width now: it no longer mounts
+    // `GWMeshBackground`, whose controller `..repeat()`ed forever below 768.
+    await tester.pumpAndSettle();
 
     // At 360 the xxl cap is inert, so this gutter is the Padding's alone.
     // Delete the Padding and the content sits on the window bezel — the defect
@@ -284,15 +289,11 @@ void main() {
 
   // ── The phone page (quick task 260806-hfe) ────────────────────────────────
   //
-  // Both use `pump`, not `pumpAndSettle` — below 768 the page mounts
-  // `GWMeshBackground`, whose controller repeats forever.
-
   testWidgets('phone: a never-transacted wallet gets the empty state, and no '
       'filter control', (tester) async {
     _surface(tester, 360, 800);
     await tester.pumpWidget(_host(txs: const []));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
 
     // BRANCH 1. The page title stays — only the panel's duplicate went.
     expect(find.byType(GWPageHeader), findsOneWidget);
@@ -307,33 +308,66 @@ void main() {
       findsNothing,
       reason: 'the filter bar must be hidden entirely on an empty scope',
     );
+    expect(
+      find.byTooltip('Filter transactions'),
+      findsNothing,
+      reason: 'and so must the header funnel',
+    );
     // The narrow page must never re-emit the panel's own title (the duplicate
     // "Transactions" this phase removed), empty scope included.
     expect(find.byType(GWSectionTitle), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('phone: the filter chips are a real touch target', (
+  testWidgets('phone: the page paints the flat canvas, no mesh', (
     tester,
   ) async {
-    // 320 is the stress case, not 360: if the wider chips fit here they fit
-    // on every phone.
-    _surface(tester, 320, 800);
+    _surface(tester, 360, 800);
     await tester.pumpWidget(_host());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    // Settles: with no repeating mesh controller there is nothing left to tick.
+    await tester.pumpAndSettle();
 
-    // 44 chip + GWControlTrack's 3px padding each side + its 1px hairline each
-    // side = 52. Measuring the track rather than the private _FilterChip keeps
-    // this assertion on a public surface; the border is in the number because
-    // it is in the painted control.
+    // `/transactions` was the last content page still wrapping itself in the
+    // branded mesh while `/assets` and Crypto News sat on `surfaceBase`.
+    expect(find.byType(GWMeshBackground), findsNothing);
+    final scaffold = find.byType(Scaffold).first;
     expect(
-      tester.getSize(find.byType(GWControlTrack)).height,
-      closeTo(44 + 6 + 2, 0.01),
-      reason: 'phone chips must be 44 (44pt iOS), not the panel-inline 32',
+      tester.widget<Scaffold>(scaffold).backgroundColor,
+      isNull,
+      reason: 'a bare Scaffold, so it paints the theme canvas',
     );
-    // The whole point of the audit: the wider bar must still FIT at 320, which
-    // it only does because the phone page gives it its own row.
+    expect(
+      Theme.of(tester.element(scaffold)).scaffoldBackgroundColor,
+      GWColors.dark().surfaceBase,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets("phone: the funnel does not change the header's height", (
+    tester,
+  ) async {
+    _surface(tester, 390, 800);
+
+    // Funnel present: a non-empty wallet.
+    await tester.pumpWidget(_host());
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Filter transactions'), findsOneWidget);
+    final withFunnel = tester.getSize(find.byType(GWPageHeader)).height;
+    final buyGnus = tester.getSize(find.byType(GWButton)).height;
+
+    // Funnel absent: an empty wallet leaves Buy GNUS alone in the header. A
+    // blank tree in between, or the cubit created for the first pump survives.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(_host(txs: const []));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Filter transactions'), findsNothing);
+    final withoutFunnel = tester.getSize(find.byType(GWPageHeader)).height;
+
+    expect(withFunnel, withoutFunnel);
+    // Buy GNUS (`GWButtonSize.sm`, 44) is what sets the row; the funnel is
+    // 44 too, so it rides inside it. 44 + the header's own space8 below.
+    expect(buyGnus, 44);
+    expect(withFunnel, buyGnus + GeniusWalletConsts.space8);
     expect(tester.takeException(), isNull);
   });
 }
