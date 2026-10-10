@@ -55,6 +55,25 @@ class NetworkSelection {
       type: ToastType.success,
     );
 
+    await _persist(network);
+  }
+
+  /// Moves [walletCubit] off an EVM testnet to the first allowed mainnet and
+  /// persists it. Takes no context so it still runs after the caller's screen
+  /// is gone.
+  static Future<void> leaveTestnets(
+    WalletDetailsCubit walletCubit,
+    List<Network> networks,
+  ) async {
+    if (!(walletCubit.state.selectedNetwork?.testnet ?? false)) {
+      return;
+    }
+    final network = restoreSelectedNetwork(networks, allowTestnets: false);
+    walletCubit.selectNetwork(network);
+    await _persist(network);
+  }
+
+  static Future<void> _persist(Network network) async {
     final box = Hive.box(networkBoxName);
     await box.put(selectedNetworkKeyChainId, network.chainId);
     await box.put(selectedNetworkKeyRpcUrl, network.rpcUrl);

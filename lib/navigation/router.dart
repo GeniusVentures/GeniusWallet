@@ -25,8 +25,10 @@ import 'package:genius_wallet/dev/design_gallery_screen.dart';
 import 'package:genius_wallet/dev/token_probe_screen.dart';
 import 'package:genius_wallet/logs/submit_logs_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
+import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 import 'package:genius_wallet/screens/splash.dart';
 import 'package:genius_wallet/send/send_screen.dart';
@@ -265,9 +267,15 @@ final geniusWalletRouter = GoRouter(
           builder: (context, _) => BlocProvider(
             create: (context) {
               final api = context.read<GeniusApi>();
+              final walletCubit = context.read<WalletDetailsCubit>();
+              final networkProvider = context.read<NetworkProvider>();
               return DeveloperSettingsCubit(
                 readNet: api.sgnsNet,
                 writeNet: api.setSgnsNet,
+                leaveTestnets: () => NetworkSelection.leaveTestnets(
+                  walletCubit,
+                  networkProvider.networks,
+                ),
               )..load();
             },
             child: const SettingsScreen(),
