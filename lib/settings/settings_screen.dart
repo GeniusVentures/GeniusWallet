@@ -52,7 +52,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Map<String, dynamic> _crdtConfig = {};
   bool _crdtLoading = true;
 
+  SgnsNet _sgnsNet = SgnsNet.dev;
+
   // ── Status messages ──
+  String? _advancedStatus;
+  String? _sgnsNetStatus;
   String? _logStatus;
   String? _networkStatus;
   String? _crdtStatus;
@@ -67,6 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadAllConfigs() async {
     await Future.wait([
+      _loadSgnsNet(),
       _loadLogConfig(),
       _loadNetworkConfig(),
       _loadCrdtConfig(),
@@ -75,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Reads a merged config file from the SDK directory.
   Future<Map<String, dynamic>> _readSdkJson(String fileName) async {
-    final file = File('${_api.jsonFilePath}$fileName');
+    final file = File('${await _api.jsonFilePath}$fileName');
     if (!await file.exists()) {
       return {};
     }
@@ -93,12 +98,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String fileName,
     Map<String, dynamic> data,
   ) async {
-    final dir = Directory(_api.overridesDirPath);
+    final dir = Directory(await _api.overridesDirPath);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
     final file = File('${dir.path}/$fileName');
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(data));
+  }
+
+  Future<void> _loadSgnsNet() async {
+    final net = await _api.sgnsNet();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _sgnsNet = net);
+  }
+
+  Future<void> _saveSgnsNet(SgnsNet net) async {
+    try {
+      final changed = await _api.setSgnsNet(net);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _sgnsNet = net;
+        _sgnsNetStatus = changed
+            ? 'Saved ✅ — Restart required for changes'
+            : _sgnsNetStatus;
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _sgnsNetStatus = 'Error: $e');
+    }
+  }
+
+  Future<void> _setDeveloperMode(bool on) async {
+    final api = _api;
+    if (on) {
+      setState(() => _advancedStatus = null);
+      await DeveloperMode.instance.setEnabled(true);
+      return;
+    }
+    try {
+      await DeveloperMode.instance.setEnabled(false);
+      // Leaving developer mode must not leave the SDK on a non-default net.
+      final changed = await api.setSgnsNet(SgnsNet.dev);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _sgnsNet = SgnsNet.dev;
+        _sgnsNetStatus = null;
+        _advancedStatus = changed
+            ? 'SDK network reset to Dev net ✅ — Restart required for changes'
+            : null;
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _advancedStatus = 'Error: $e');
+    }
   }
 
   Future<void> _loadLogConfig() async {
@@ -192,16 +254,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionCard(
               title: 'Advanced',
               icon: Icons.developer_mode,
-              status: null,
+              status: _advancedStatus,
               loading: false,
               action: null,
               child: _DeveloperModeSwitch(
                 value: developerMode,
-                onChanged: DeveloperMode.instance.setEnabled,
+                onChanged: _setDeveloperMode,
               ),
             ),
             if (developerMode) ...[
               const GWKicker('Developer'),
+              _buildSectionCard(
+                title: 'SDK Network',
+                icon: Icons.hub,
+                status: _sgnsNetStatus,
+                loading: false,
+                action: null,
+                child: _SdkNetSelect(value: _sgnsNet, onChanged: _saveSgnsNet),
+              ),
               _buildLogSection(),
               _buildNetworkSection(),
               _buildCrdtSection(),
@@ -505,6 +575,31 @@ class _DeveloperModeSwitch extends StatelessWidget {
       description: 'Shows SDK diagnostics, the SDK network and EVM testnets.',
       value: value,
       onChanged: onChanged,
+    );
+  }
+}
+
+class _SdkNetSelect extends StatelessWidget {
+  const _SdkNetSelect({required this.value, required this.onChanged});
+
+  final SgnsNet value;
+  final ValueChanged<SgnsNet> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return GWSelect<SgnsNet>(
+      label: 'SDK network (applied on restart)',
+      value: value,
+      items: const [
+        GWSelectItem(value: SgnsNet.dev, label: 'Dev net'),
+        GWSelectItem(value: SgnsNet.test, label: 'Test net'),
+        GWSelectItem(value: SgnsNet.main, label: 'Main net'),
+      ],
+      onChanged: (net) {
+        if (net != null) {
+          onChanged(net);
+        }
+      },
     );
   }
 }

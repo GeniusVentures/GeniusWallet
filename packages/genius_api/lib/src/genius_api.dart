@@ -276,6 +276,71 @@ void writeHexAscii(Uint8List bytes, Uint8List out) {
 /// aligned.
 String _padHexEven(String hex) => hex.length.isOdd ? '0$hex' : hex;
 
+/// SuperGenius network ids (sgns_version.hpp). [dev] is the bundled default.
+enum SgnsNet {
+  dev(144),
+  test(963),
+  main(369);
+
+  const SgnsNet(this.netId);
+
+  final int netId;
+}
+
+File _sgnsOverrideFile(Directory overridesDir) =>
+    File('${overridesDir.path}/sgns_config.json');
+
+/// The net chosen in `overrides/sgns_config.json`; anything missing, unreadable
+/// or not one of [SgnsNet]'s ids reads as [SgnsNet.dev].
+Future<SgnsNet> readSgnsNet(Directory overridesDir) async {
+  final file = _sgnsOverrideFile(overridesDir);
+  if (!await file.exists()) {
+    return SgnsNet.dev;
+  }
+  try {
+    final decoded = jsonDecode(await file.readAsString());
+    final netId = decoded is Map ? decoded['net_id'] : null;
+    return SgnsNet.values.firstWhere(
+      (n) => n.netId == netId,
+      orElse: () => SgnsNet.dev,
+    );
+  } catch (e) {
+    debugPrint('Failed to parse sgns_config override: $e');
+    return SgnsNet.dev;
+  }
+}
+
+/// Persists [net] for the next SDK start; [SgnsNet.dev] deletes the override.
+/// Returns whether the effective net changed.
+Future<bool> writeSgnsNet(Directory overridesDir, SgnsNet net) async {
+  final previous = await readSgnsNet(overridesDir);
+  final file = _sgnsOverrideFile(overridesDir);
+  if (net == SgnsNet.dev) {
+    if (await file.exists()) {
+      await file.delete();
+    }
+  } else {
+    await overridesDir.create(recursive: true);
+    await file.writeAsString(jsonEncode({'net_id': net.netId}));
+  }
+  return previous != net;
+}
+
+/// The bundled sgns_config with only `net_id` overridden; no other override
+/// key is read, so a tampered file cannot change bootstrap nodes or keys.
+Future<String> mergeSgnsConfig(
+  String bundledJson,
+  Directory overridesDir,
+) async {
+  final net = await readSgnsNet(overridesDir);
+  if (net == SgnsNet.dev) {
+    return bundledJson;
+  }
+  final merged = jsonDecode(bundledJson) as Map<String, dynamic>;
+  merged['net_id'] = net.netId;
+  return jsonEncode(merged);
+}
+
 /// Writes [tokenId]'s hex bytes into [out], or all zeros (the default token)
 /// when null. Mirrors the parse every other token-id wrapper already has.
 @visibleForTesting
@@ -316,7 +381,6 @@ class GeniusApi {
   final _sgnusTransactionsController = SGNUSTransactionsController();
   final _walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
   late String _address;
-  late final String _basePath;
   bool _isSdkInitialized = false;
   // Memoized deliberately, never reset: initSDK()'s only caller is
   // AppBloc._onInitializeSDK, gated by router.dart's sdkStatus ==
@@ -339,9 +403,18 @@ class GeniusApi {
 
   bool get isSdkInitialized => _isSdkInitialized;
 
-  String get jsonFilePath => _basePath;
+  /// The SDK's config folder, with a trailing slash. Usable before init.
+  Future<String> get jsonFilePath async =>
+      '${(await appDataDirectory()).path}/';
 
-  String get overridesDirPath => '$_basePath$_overridesDirName';
+  Future<String> get overridesDirPath async =>
+      '${await jsonFilePath}$_overridesDirName';
+
+  Future<SgnsNet> sgnsNet() async =>
+      readSgnsNet(Directory(await overridesDirPath));
+
+  Future<bool> setSgnsNet(SgnsNet net) async =>
+      writeSgnsNet(Directory(await overridesDirPath), net);
 
   Set<String> get networkConfigOverrideKeys => _networkConfigOverrideKeys;
 
@@ -434,8 +507,8 @@ class GeniusApi {
 
     await _initializeAndroidKeyStore();
 
-    _basePath = await prepareConfigFiles();
-    final basePathPtr = _basePath.toNativeUtf8();
+    final basePath = await prepareConfigFiles();
+    final basePathPtr = basePath.toNativeUtf8();
 
     final devConfig = await rootBundle.loadString('assets/dev_config.json');
     final devConfigPtr = devConfig.toNativeUtf8();
@@ -463,9 +536,9 @@ class GeniusApi {
       )!;
       final twLib = _ffiBridgePrebuilt.twLib;
       final twData = twLib.TWPrivateKeyData(privateKey.nativehandle.cast());
-      final keyBytes = twLib
-          .TWDataBytes(twData)
-          .asTypedList(twLib.TWDataSize(twData));
+      final keyBytes = twLib.TWDataBytes(
+        twData,
+      ).asTypedList(twLib.TWDataSize(twData));
       final length = keyBytes.length * 2;
       final keyPtr = calloc<Uint8>(length + 1);
       final hexBuf = keyPtr.asTypedList(length + 1);
@@ -837,7 +910,7 @@ class GeniusApi {
       final sgnsConfig = await rootBundle.loadString('assets/sgns_config.json');
       await File(
         '${directory.path}/sgns_config.json',
-      ).writeAsString(sgnsConfig);
+      ).writeAsString(await mergeSgnsConfig(sgnsConfig, overridesDir));
 
       await _writeMergedConfig(
         directory: directory,

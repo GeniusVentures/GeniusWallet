@@ -200,7 +200,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       return;
     }
 
-    final base = _normalizedBasePath(geniusApi.jsonFilePath);
+    final base = _normalizedBasePath(await geniusApi.jsonFilePath);
     final probes = <_AttachmentProbe>[];
     for (final name in _candidateLogNames) {
       final file = File('$base$name');
@@ -287,7 +287,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       _statusMessage = 'Preparing feedback payload...';
     });
 
-    final normalizedBasePath = _normalizedBasePath(geniusApi.jsonFilePath);
+    final normalizedBasePath = _normalizedBasePath(
+      await geniusApi.jsonFilePath,
+    );
 
     final candidateLogs = _candidateLogNames.map(
       (name) => File('$normalizedBasePath$name'),
