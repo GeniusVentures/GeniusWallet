@@ -131,6 +131,39 @@ void main() {
     expect(_tick(), findsNothing);
   });
 
+  testWidgets('focus moving to an unwrapped field retires the bar at once', (
+    tester,
+  ) async {
+    final amount = FocusNode();
+    final recipient = FocusNode();
+    addTearDown(amount.dispose);
+    addTearDown(recipient.dispose);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 900);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      gwHost(
+        Column(
+          children: [
+            amountField(node: amount, platform: _touch),
+            TextField(focusNode: recipient),
+          ],
+        ),
+      ),
+    );
+    amount.requestFocus();
+    await tester.pumpAndSettle();
+    expect(_tick(), findsOneWidget);
+
+    recipient.requestFocus();
+    await tester.pumpAndSettle();
+    expect(
+      _tick(),
+      findsNothing,
+      reason: 'the keyboard is still up, but it belongs to another field',
+    );
+  });
+
   testWidgets('a field disposed while focused leaves no bar behind', (
     tester,
   ) async {

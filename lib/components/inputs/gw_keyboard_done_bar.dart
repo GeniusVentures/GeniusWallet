@@ -98,10 +98,15 @@ class _GWKeyboardDoneBarState extends State<GWKeyboardDoneBar> {
       _showBar();
       return;
     }
-    // NOT removed here. The keyboard takes about a quarter of a second to
-    // slide out, and a bar that vanished on the first frame of that would pop
-    // rather than ride it down. The overlay drops itself once the inset
-    // reaches zero.
+    // Focus went to another input, whose keyboard stays up: drop the bar now.
+    // A wrapped sibling inserts its own bar in this same focus change.
+    final next = FocusManager.instance.primaryFocus;
+    if (next != null && next is! FocusScopeNode) {
+      _removeBar();
+      return;
+    }
+    // Keyboard dismissal: NOT removed here, so the bar rides the keyboard down
+    // instead of popping. The overlay drops itself once the inset reaches zero.
     _entry?.markNeedsBuild();
   }
 

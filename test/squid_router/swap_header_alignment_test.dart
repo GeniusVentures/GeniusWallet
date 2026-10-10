@@ -28,6 +28,7 @@
 // Re-implemented on develop (quick 261009-wwk). The component change is not
 // opt-in here: `GWPageHeader`'s centred form puts its trailing on the title's
 // line unconditionally, and Swap and Buy are its only two callers.
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -183,22 +184,23 @@ void _expectCentredHeaderWithGlyphOnTitle(WidgetTester tester, String where) {
 
   // ── 2. The glyph on the title's LINE ─────────────────────────────────────
   //
-  // Was 62 against a title centre of 40. Within a pixel, not "roughly": both
-  // sit in one `Alignment.centerRight` Stack over the title line now, so they
-  // are equal by construction and any drift means the trailing left it.
+  // The glyph, not its 48x48 tap target, is what sits on the title line.
+  final Rect glyph = tester.getRect(find.byIcon(Icons.tune));
   expect(
-    trigger.center.dy,
+    glyph.center.dy,
     moreOrLessEquals(title.center.dy, epsilon: 1),
-    reason: 'trigger=${trigger.center.dy} title=${title.center.dy} at $where',
+    reason: 'glyph=${glyph.center.dy} title=${title.center.dy} at $where',
   );
 
-  // And it must not have bought that by growing the header. A `Stack` is as
-  // tall as its tallest child, so a 48-tall trigger would centre on the title
-  // just as well while making the title line 48 and pushing "Swap" 8px down
-  // its own header - measured exactly that: a 108px header with its title at
-  // y=32, against 92 and y=24 here.
+  // The full-size target must not push the title down its own header.
   expect(title.top, header.top, reason: 'the title owns the header top');
-  expect(trigger.size, const Size(48, 32), reason: 'trigger box at $where');
+  // A touch target on phones; a mouse keeps the slimmer box.
+  final touch = defaultTargetPlatform == TargetPlatform.android;
+  expect(
+    trigger.size,
+    Size(48, touch ? 48 : 32),
+    reason: 'tap target at $where',
+  );
 
   // ── 3. The right EDGE, not "somewhere after the title" ───────────────────
   //
@@ -229,11 +231,13 @@ void main() {
     // is genuinely narrower than the frame - the situation the 2026-07-26
     // centring decision was about. Nothing in this header switches on the
     // width any more, and these assertions are how that stays true.
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
     _surface(tester, 1400, 1000);
     await _mountSwap(tester);
 
     _expectCentredHeaderWithGlyphOnTitle(tester, '1400');
     expect(tester.takeException(), isNull);
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('phone: the title sits at the same Y as the Assets title', (

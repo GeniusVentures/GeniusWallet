@@ -89,7 +89,9 @@ void main() {
     expect(trailing.right, moreOrLessEquals(column.right, epsilon: 0.5));
   });
 
-  testWidgets('a 32-tall trailing does not grow the header', (tester) async {
+  testWidgets('a 48x48 tap target does not grow a header with a subtitle', (
+    tester,
+  ) async {
     await tester.pumpWidget(_host(centered: true));
     final bare = tester.getSize(find.byType(GWPageHeader)).height;
 
@@ -98,15 +100,18 @@ void main() {
         centered: true,
         trailing: const SizedBox(
           width: 48,
-          height: 32,
+          height: 48,
           child: Icon(Icons.tune),
         ),
       ),
     );
 
-    // The title line is 32 tall, so a 48x32 box rides inside it. A 48-tall one
-    // would make the line 48 and the header 16 taller.
+    // The target spans the title line and the subtitle beside it.
     expect(tester.getSize(find.byType(GWPageHeader)).height, bare);
+    expect(
+      tester.getRect(find.text('Swap')).top,
+      tester.getRect(find.byType(GWPageHeader)).top,
+    );
   });
 
   testWidgets('default stays left-aligned for the content tabs', (
