@@ -426,10 +426,9 @@ void main() {
     });
   });
 
-  // The phone page's filter control, as sketch 195 scheme G2 rebuilt it: the
-  // trigger left the card for `GWPageHeader.trailing`, the picker became the
-  // app's own drawer, and the live filter is named on a dismissible chip above
-  // the list.
+  // The phone page's filter control: the trigger lives in
+  // `GWPageHeader.trailing`, the picker is the app's own drawer, and the live
+  // filter is named on a dismissible chip above the list.
   //
   // **This group replaces `bar fits the title row`,** which measured the old
   // icon-chip filter bar on this same surface. That bar is gone, so its pixel
@@ -526,7 +525,7 @@ void main() {
       await tester.tap(find.byTooltip('Filter transactions'));
       await tester.pumpAndSettle();
 
-      // The drawer is `ResponsiveDrawer`'s, with the header Jakub asked for.
+      // The drawer is `ResponsiveDrawer`'s, with a "Filter" header.
       expect(find.text('Filter'), findsOneWidget);
       // Ten rows: All plus the nine identities, Buy orders among them. The `⋯`
       // menu exists only because a 376px dashboard panel cannot show nine
@@ -770,9 +769,8 @@ class _PhonePageState extends State<_PhonePage> {
   }
 }
 
-/// WCAG relative-luminance contrast ratio, via [Color.computeLuminance] - the
-/// same helper `test/theme/theme_contrast_test.dart` uses, kept local because
-/// that file is a test entry point rather than a library.
+/// WCAG relative-luminance contrast ratio, via [Color.computeLuminance]. Kept
+/// local because the theme contrast suite is a test entry point, not a library.
 double _contrastRatio(Color a, Color b) {
   final la = a.computeLuminance();
   final lb = b.computeLuminance();

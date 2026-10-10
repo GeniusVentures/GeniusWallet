@@ -320,13 +320,8 @@ void main() {
     // panel five rows, uncapped page all eight - so `compact` is exercised
     // (see `_setPhoneWidth`) rather than only the harness's 800px default.
     //
-    // These two used to be three, and they used to assert the cap THROUGH
-    // `endOfTransactionsLabel`: the terminus was gated on `limit == null`, so
-    // its absence proved the panel was capped and its presence proved the page
-    // was not. Jakub removed the label on 2026-08-09, so the row counts below
-    // now carry the cap on their own. The third test, which pinned the
-    // terminus's own type scale to `bodySm`, has NO successor - its entire
-    // subject is gone.
+    // There is no end-of-list label to prove the cap through, so the row
+    // counts below carry it on their own.
     testWidgets('phone: the panel caps at five rows', (tester) async {
       _setPhoneWidth(tester);
       await tester.pumpWidget(host(height: null));
