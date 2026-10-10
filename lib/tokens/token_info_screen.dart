@@ -16,6 +16,7 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
@@ -978,15 +979,17 @@ class CoinConvertCardState extends State<CoinConvertCard> {
               // `brandPrimaryStrong` before - structurally, not by oversight: a
               // `BorderSide` takes a single `Color`, so no `InputBorder` can be
               // a gradient, which is the whole reason `GWFocusRing` exists.
-              GWTextField(
-                controller: _tokenAmountController,
-                label: "Token amount",
-                focusRing: true,
-                fill: gw.surfaceWell,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+              GWKeyboardDoneBar(
+                child: GWTextField(
+                  controller: _tokenAmountController,
+                  label: "Token amount",
+                  focusRing: true,
+                  fill: gw.surfaceWell,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: (_) => _calculateTotalValue(),
                 ),
-                onChanged: (_) => _calculateTotalValue(),
               ),
               // The card's one computed answer, given the same frame as the
               // facts it is computed from (070-A). It was a bare right-aligned
