@@ -125,15 +125,9 @@ final Finder rowFinder = find.byWidgetPredicate(
   (w) => w.runtimeType.toString() == '_RailRow',
 );
 
-/// The narrow page's marker, now that it has no filter control of its own.
-///
-/// This used to be a `_TransactionFilterBar` finder: below 768 the page drew a
-/// flat filter track, so the bar's presence WAS the narrow branch. Sketch 195
-/// moved that control into `GWPageHeader.trailing`, which is the route's
-/// widget and not this one's, so the branch has to be identified by its CARDS
-/// instead - one on the narrow page, two on the wide (the rail's and the
-/// list's). That is a stronger marker anyway: it is the layout itself rather
-/// than a control that happened to live in it.
+/// Identifies the layout branch by its cards: one on the narrow page, two on
+/// the wide (rail and list). The narrow filter control lives in the route's
+/// header, not in this widget, so it cannot serve as the marker.
 final Finder cardFinder = find.byType(DashboardScrollContainer);
 
 /// A `Text` finder scoped to the rail — see trap (b) in the header comment.
