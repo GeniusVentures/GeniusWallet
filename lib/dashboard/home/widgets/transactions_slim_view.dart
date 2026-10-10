@@ -1336,9 +1336,8 @@ class _RailRow extends StatelessWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
     // The glyph NEVER changes with selection: same mark, same
-    // `textSecondary`, active or not. That is the rule locked by all five
-    // variants in sketch 022 — do not tint it, do not
-    // swap it, do not gradient it. Only the label carries the selected state.
+    // `textSecondary`, active or not. Do not tint it, swap it, or gradient
+    // it. Only the label carries the selected state.
     //
     // `Filters.all` is the one value with no `badgeKind`, so it needs its own
     // glyph. A neutral ledger mark meaning "everything", listed by sketch 021

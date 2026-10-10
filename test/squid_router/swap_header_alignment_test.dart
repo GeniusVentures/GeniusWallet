@@ -1,33 +1,8 @@
-// The `/swap` PAGE HEADER: the only centred one in the app, and the only one
-// whose trailing rides the title's line rather than the whole identity block.
-//
-// Two decisions live in this file and neither may quietly eat the other.
-//
-//  * **Jakub, 2026-07-26 - CENTRED, at every width.** The form sits in a 560px
-//    column; a title in the page's left gutter agreed with nothing on screen.
-//    Left-alignment on the phone was tried on 2026-08-10 - the argument being
-//    that at 390 the column IS the page, and that every other tab reads left -
-//    and rejected on device the same hour, subtitle included. The centring
-//    cases below are the successor to that experiment's assertions: if they
-//    fail because someone re-inset the title, the answer is that it was
-//    already tried.
-//  * **Jakub, 2026-08-10 - the settings glyph on the TITLE's line**, the way
-//    `/transactions` puts its filter trigger on the "Transactions" line. That
-//    request was never withdrawn and survives the revert above.
-//
-// **Measured, not eyeballed**, because both are the kind of defect that looks
-// fine in a screenshot: before the fix the glyph's centre sat at y=62 against
-// a title centre of y=40 - 22px low, because `GWPageHeader` lays a plain
-// `trailing` out beside the WHOLE identity block (title + `space2` + subtitle)
-// rather than on the title's own line.
-//
-// **This file pumps the REAL screens**, both of them, for the reason
-// `transactions_page_frame_test.dart` states: a hand-copied replica of the
-// frame cannot fail when the frame changes.
-//
-// Re-implemented on develop (quick 261009-wwk). The component change is not
-// opt-in here: `GWPageHeader`'s centred form puts its trailing on the title's
-// line unconditionally, and Swap and Buy are its only two callers.
+// The `/swap` page header is centred at every width. Its settings glyph sits
+// on the title's line, in a tap target that is 48x48 on touch platforms and
+// 48x32 with a mouse, pinned to the top-right of the title+subtitle block so
+// the header does not grow. The real Swap and Assets screens are pumped
+// because a hand-copied replica cannot fail when the frame changes.
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,8 +36,7 @@ class _EmptySwapProvider extends FakeSwapProvider {
   const _EmptySwapProvider();
 }
 
-/// Seeds `WalletDetailsCubit.state` after construction, the pattern
-/// `swap_flip_centring_test.dart` established. `SwapScreen._loadTokens`
+/// Seeds `WalletDetailsCubit.state` after construction. `SwapScreen._loadTokens`
 /// force-unwraps `selectedWallet!.address`, so a wallet is not optional here.
 class _SeededWalletDetailsCubit extends WalletDetailsCubit {
   _SeededWalletDetailsCubit({
@@ -112,8 +86,7 @@ class _SwapHost extends StatelessWidget {
 }
 
 /// The `/assets` page, the reference every other page title is measured
-/// against - the same host `transactions_page_frame_test.dart` uses for the
-/// same comparison, one coin so the header sits above a funded wallet.
+/// against, with one coin so the header sits above a funded wallet.
 class _AssetsHost extends StatelessWidget {
   const _AssetsHost();
 
@@ -174,10 +147,8 @@ void _expectCentredHeaderWithGlyphOnTitle(WidgetTester tester, String where) {
   // ── 1. CENTRED, both lines ───────────────────────────────────────────────
   //
   // Against the header's own box, which is the focused column: that is what
-  // "centred over the form" means, and it is what the 2026-07-26 decision
-  // bought. A title inset into the column's left edge - the 2026-08-10
-  // experiment - puts `title.center.dx` roughly a third of the way across and
-  // fails here, which is the point.
+  // "centred over the form" means. A title inset into the column's left edge
+  // puts `title.center.dx` roughly a third of the way across and fails here.
   expect(
     title.center.dx,
     moreOrLessEquals(header.center.dx, epsilon: 0.5),
@@ -238,9 +209,8 @@ void main() {
     tester,
   ) async {
     // 1400: over `medium` (768), and wide enough that the 560px focused column
-    // is genuinely narrower than the frame - the situation the 2026-07-26
-    // centring decision was about. Nothing in this header switches on the
-    // width any more, and these assertions are how that stays true.
+    // is genuinely narrower than the frame. Nothing in this header switches on
+    // the width, and these assertions are how that stays true.
     debugDefaultTargetPlatformOverride = TargetPlatform.windows;
     _surface(tester, 1400, 1000);
     await _mountSwap(tester);
@@ -253,19 +223,14 @@ void main() {
   testWidgets('phone: the title sits at the same Y as the Assets title', (
     tester,
   ) async {
-    // **Jakub, 2026-08-10, the load-bearing half of this file.** The title
-    // must land on the same line as every other page's, and Swap is the one
-    // page that could miss: it is the only header with a subtitle AND a
-    // trailing, so anything that grows its title line moves the title down
-    // while Assets and Transactions stay put. The 48x48 trigger did exactly
-    // that - Swap's title at y=32 against Assets' y=24.
+    // The title must land on the same line as every other page's. Swap is the
+    // only header with a subtitle AND a trailing, so anything that grows its
+    // title line (a full 48x48 trigger, say) moves the title down while Assets
+    // stays put.
     //
-    // Both screens are pumped HERE rather than the number being copied from
-    // `transactions_page_frame_test.dart`, so this is a comparison and not two
-    // literals that can drift apart silently. It is the ABSOLUTE y, not an
-    // offset into the header: the two pages share a gutter
-    // (`GeniusBreakpoints.pageTitleGap`) and the whole question is whether
-    // they still land on the same screen pixel through it.
+    // Both screens are pumped here so this is a comparison, not two literals
+    // that can drift apart. It is the ABSOLUTE y: the pages share a gutter
+    // (`GeniusBreakpoints.pageTitleGap`) and must land on the same pixel.
     _surface(tester, 390);
     await _mountSwap(tester);
     final Rect swapTitle = tester.getRect(find.text(_title));

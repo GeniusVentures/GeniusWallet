@@ -183,7 +183,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                           // the ONLY page-level empty state now. A search MISS
                           // no longer blanks the page - the hero stays put and
                           // the "Results" section (wide) or the digest panel
-                          // (narrow) reports the miss inline (Jakub's call).
+                          // (narrow) reports the miss inline.
                           return GWEmptyState(
                             icon: Icons.article_outlined,
                             title: 'No news right now',
@@ -404,8 +404,8 @@ class _NewsMagazine extends StatelessWidget {
             ] else ...[
               // WIDE: the hero ALWAYS sits at flex 3, so a single filtered
               // result looks identical to the hero in the full magazine
-              // instead of sprawling edge-to-edge (Jakub: "one huge article
-              // should look the same as finding a few"). When there is no
+              // instead of sprawling edge-to-edge: one result looks the same
+              // as finding a few. When there is no
               // "Next up", the right 2/5 is an empty spacer that reserves the
               // band width - it does NOT stretch the hero. IntrinsicHeight
               // also keeps the stretch-Row self-bounding in the page's
@@ -441,11 +441,9 @@ class _NewsMagazine extends StatelessWidget {
                 // renders the shared 26px gap.
                 const GWSectionTitle(title: 'Results'),
                 if (results!.isEmpty)
-                  // The `top: space4` this used to carry was a second gap
-                  // stacked under the title's own, which pushed this branch to
-                  // 34 while the grid branch beside it sat at 26. Removed
-                  // 2026-08-06 so the empty message sits on exactly the same
-                  // rhythm as the grid it replaces.
+                  // No top padding: the title already pays the gap, and a
+                  // second one would put this branch at 34 while the grid
+                  // branch it replaces sits at 26.
                   Text(
                     'No headlines match “$query”.',
                     style: GeniusWalletTypography.bodyMd.copyWith(
