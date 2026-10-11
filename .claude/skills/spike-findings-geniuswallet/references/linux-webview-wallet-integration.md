@@ -7,7 +7,7 @@ From idea `linux-inapp-webview`:
 - One Linux bundle for every distro: no build-time WebKit link; load libwebkit2gtk-4.1, else 4.0,
   at runtime; no WebKit means the app still runs and links open in the system browser.
 - Call isAvailable() before creating a web view; fall back to url_launcher and say so.
-- Route every external link through launchWebSite (13 call sites today, incl. Privacy Policy/Terms,
+- Route every external link through launchWebSite (9 call sites today, incl. Privacy Policy/Terms,
   news, explorer links); Banxa's checkout fallback and support link stay deliberate exceptions.
 - Nothing may draw over a web view and no rounded clip/transform may sit above one: hide the view
   while an overlay/route is above it.
@@ -51,7 +51,7 @@ Reference implementation: `sources/005-wallet-surfaces-in-app/wallet-changes.dif
    - `lib/web/web_utils.dart` - the definition itself
 
    That is 9 calls plus the definition (one more reference in
-   `test/dashboard/transaction_recovery_states_test.dart`). The idea's "13 call sites" figure came
+   `test/dashboard/transaction_recovery_states_test.dart`). The idea's "9 call sites" figure came
    from the session; re-count at build time.
 4. **Two deliberate `launchUrl` exceptions** stay direct, not through `launchWebSite`:
    - `lib/banxa/checkout/checkout_screen.dart` - external fallback when there is no WebKit

@@ -1461,7 +1461,6 @@ Plans:
 
 Phases 26, 29, 30, 31 (PRs #233-#235, #244). Full roadmap: `milestones/v2.0-ROADMAP.md`; requirements: `milestones/v2.0-REQUIREMENTS.md`.
 
----
 
 # Milestone v3.0: Child wallets & account linking — IN PROGRESS
 
@@ -1491,6 +1490,7 @@ for the full dependency reasoning.
 - [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
 - [ ] **Phase 39: Banxa integration hardening** - A redesigned Buy GNUS page: GNUS only, address prefilled, no Banxa key in the app, and a sandbox mode for real test buys
 - [ ] **Phase 40: Always-available GNUS bridge** - A Bridge button on the GNUS coin page, always shown, enabled when the selected wallet can bridge and disabled with a reason when it cannot
+- [ ] **Phase 41: Linux in-app webview** - Web content opens inside the Linux app, with a system-browser fallback when WebKit is missing
 
 ## Phase Details
 
@@ -1610,6 +1610,7 @@ Plans:
 **Depends on**: Phase 38
 **Requirements**: BUY-01, BUY-02, BUY-03, BUY-04, BUY-05, BUY-06, BUY-07, BUY-08, BUY-09, BUY-10, BUY-11, BUY-12, BUY-13, BUY-14
 **Context**: 2026-09-30 audit and UX research (`39-UX-RESEARCH.md`).
+
   - Blocker: Banxa's `/v2/crypto/buy` for partner `gnus` lists 120 coins and GNUS is not one of them, so the page cannot buy GNUS today. Listing GNUS is a Banxa-side action; confirm before building the GNUS-only form.
   - Fiat: 29 currencies. Debit/credit card is offered for all of them; a second method appears only for EUR (SEPA, PayPal), AUD, CAD, CLP, ZAR, MXN. "Only debit card" is Banxa's per-currency offer, not an app filter.
   - The production API key is hardcoded (`banxa_api_services.dart:14`, in git since `274da454`) and printed on every order lookup; key rotation is a Banxa dashboard action.
@@ -1671,3 +1672,16 @@ Plans:
 | 38. Account tree switcher | 3/3 | Awaiting human verification (live walk) | - |
 | 39. Banxa integration hardening | 13/13 | Awaiting human verification (live walk); 2 gates blocked on Banxa listing GNUS | - |
 | 40. Always-available GNUS bridge | 0/4 | Ready to execute | - |
+
+### Phase 41: Linux in-app webview
+
+**Goal:** On Linux, news articles, the Web browser page, legal pages, explorer links and Banxa checkout open inside the wallet window, as they do on Windows, macOS and mobile. One bundle runs on every distro: WebKitGTK is loaded at runtime, and when it is missing the app still runs and links open in the system browser.
+**Requirements**: TBD
+**Depends on:** none (independent of 34-40)
+**Research:** spikes 003-007, `.claude/skills/spike-findings-geniuswallet/references/linux-webview-*.md`
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 41 to break down)
+
