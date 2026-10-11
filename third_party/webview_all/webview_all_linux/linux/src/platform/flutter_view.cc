@@ -154,6 +154,26 @@ static gboolean overlay_get_child_position_cb(GtkOverlay *overlay,
   return TRUE;
 }
 
+// Clicks inside a page never reach Flutter's input widget (its input shape has
+// a hole there), so a press that does arrive is on Flutter UI and the keyboard
+// must leave WebKit. This listens on the generic event signal because FlView
+// consumes button-press-event, which ends the emission before a later handler.
+static gboolean flutter_input_event_cb(GtkWidget *, GdkEvent *event,
+                                       gpointer user_data) {
+  if (event->type != GDK_BUTTON_PRESS) {
+    return FALSE;
+  }
+  WebviewAllLinuxPlugin *self = static_cast<WebviewAllLinuxPlugin *>(user_data);
+  GHashTableIter iter;
+  gpointer key = nullptr;
+  gpointer value = nullptr;
+  g_hash_table_iter_init(&iter, self->webviews);
+  while (g_hash_table_iter_next(&iter, &key, &value)) {
+    release_linux_webview_focus(static_cast<LinuxWebView *>(value));
+  }
+  return FALSE;
+}
+
 template <typename WidgetType>
 static void clear_weak_widget_pointer(WidgetType **widget,
                                       WebviewAllLinuxPlugin *self) {
@@ -212,6 +232,10 @@ static void attach_linux_webview_host(WebviewAllLinuxPlugin *self,
     g_signal_connect(self->flutter_input_widget, "map",
                      G_CALLBACK(flutter_view_layout_changed_cb), self);
   }
+  g_signal_connect(self->flutter_input_widget != nullptr
+                       ? self->flutter_input_widget
+                       : self->flutter_view,
+                   "event", G_CALLBACK(flutter_input_event_cb), self);
   schedule_flutter_view_input_region_update(self);
 }
 
