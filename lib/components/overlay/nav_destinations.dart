@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
 
 /// One navigable destination: a route, a label and a glyph.
@@ -64,7 +63,7 @@ final List<NavDestination> allDestinations = [
     path: '/web',
     label: 'Web',
     icon: FontAwesomeIcons.globe.data,
-    visible: !Platform.isLinux,
+    visible: inAppWeb,
   ),
   const NavDestination(
     path: '/logs',
