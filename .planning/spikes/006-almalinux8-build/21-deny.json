@@ -1,0 +1,61 @@
+{
+ "summary": {
+  "js": 5,
+  "permission": 1,
+  "page": 2,
+  "nav": 1,
+  "server": 1
+ },
+ "events": [
+  {
+   "at": "2026-10-11T14:48:32.792933",
+   "category": "server",
+   "message": "serving camera page on http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:33.080022",
+   "category": "nav",
+   "message": "ALLOW http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:33.084079",
+   "category": "page",
+   "message": "started http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:33.144612",
+   "category": "page",
+   "message": "FINISHED http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:34.225288",
+   "category": "js",
+   "message": "devices: [\"audioinput\"]"
+  },
+  {
+   "at": "2026-10-11T14:48:36.160966",
+   "category": "js",
+   "message": "gum(video): calling"
+  },
+  {
+   "at": "2026-10-11T14:48:36.162526",
+   "category": "js",
+   "message": "gum(video): REJECTED OverconstrainedError: Invalid constraint"
+  },
+  {
+   "at": "2026-10-11T14:48:39.166552",
+   "category": "js",
+   "message": "gum(audio): calling"
+  },
+  {
+   "at": "2026-10-11T14:48:39.169344",
+   "category": "permission",
+   "message": "request types=[microphone] -> DENY"
+  },
+  {
+   "at": "2026-10-11T14:48:39.172528",
+   "category": "js",
+   "message": "gum(audio): REJECTED NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission."
+  }
+ ]
+}
