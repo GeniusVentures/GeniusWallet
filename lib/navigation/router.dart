@@ -41,6 +41,7 @@ import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/web/web_overlay_gate.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -153,6 +154,7 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     ShellRoute(
+      observers: [WebOverlayGate.shellPopupRoutes],
       builder: (context, state, child) {
         if (!GeniusBreakpoints.useDesktopOverlay(context) ||
             GeniusBreakpoints.isMobileApp()) {
