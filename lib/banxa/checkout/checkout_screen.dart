@@ -12,6 +12,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_rules.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_webview.dart';
+import 'package:genius_wallet/banxa/checkout/checkout_webview_linux.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_webview_windows.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -24,6 +25,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -41,13 +43,21 @@ Widget defaultCheckoutHost(
   VoidCallback onReturn,
   VoidCallback onLoadError,
 ) {
-  return switch (checkoutHostKind(Platform.operatingSystem)) {
+  return switch (checkoutHostKind(
+    Platform.operatingSystem,
+    linuxWebView: linuxInAppWeb,
+  )) {
     CheckoutHostKind.webview => CheckoutWebView(
       uri: uri,
       onReturn: onReturn,
       onLoadError: onLoadError,
     ),
     CheckoutHostKind.windows => CheckoutWebViewWindows(
+      uri: uri,
+      onReturn: onReturn,
+      onLoadError: onLoadError,
+    ),
+    CheckoutHostKind.linux => CheckoutWebViewLinux(
       uri: uri,
       onReturn: onReturn,
       onLoadError: onLoadError,
@@ -212,6 +222,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final uri = Uri.tryParse(widget.checkoutUrl);
     final trusted = uri != null && isTrustedCheckoutUrl(uri);
     final wide = GeniusBreakpoints.useDesktopLayout(context);
+    final hostKind = checkoutHostKind(
+      Platform.operatingSystem,
+      linuxWebView: linuxInAppWeb,
+    );
 
     return BlocBuilder<OrdersCubit, OrdersState>(
       builder: (context, state) {
@@ -294,6 +308,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           },
           child: _CheckoutFrame(
             modal: wide,
+            clip: hostKind != CheckoutHostKind.linux,
             child: Column(
               children: [
                 _CheckoutHeader(
@@ -334,9 +349,14 @@ CheckoutStepState _payStep(BanxaOrderStatus? status) {
 /// Desktop: a dialog-sized card centred over the dimmed app. Phone: the whole
 /// screen, so Banxa's form gets every pixel of width.
 class _CheckoutFrame extends StatelessWidget {
-  const _CheckoutFrame({required this.modal, required this.child});
+  const _CheckoutFrame({
+    required this.modal,
+    required this.clip,
+    required this.child,
+  });
 
   final bool modal;
+  final bool clip;
   final Widget child;
 
   @override
@@ -362,7 +382,8 @@ class _CheckoutFrame extends StatelessWidget {
           ),
           child: Material(
             color: gw.surfaceBase,
-            clipBehavior: Clip.antiAlias,
+            // A rounded clip hides the native WebKitGTK view entirely.
+            clipBehavior: clip ? Clip.antiAlias : Clip.none,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
               side: BorderSide(color: gw.borderSubtle),

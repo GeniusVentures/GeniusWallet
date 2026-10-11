@@ -131,6 +131,17 @@ void main() {
       expect(checkoutHostKind('linux'), CheckoutHostKind.external);
     });
 
+    test('linux embeds only when WebKitGTK loaded', () {
+      expect(
+        checkoutHostKind('linux', linuxWebView: true),
+        CheckoutHostKind.linux,
+      );
+      expect(
+        checkoutHostKind('windows', linuxWebView: true),
+        CheckoutHostKind.windows,
+      );
+    });
+
     for (final os in ['android', 'ios', 'macos']) {
       test('$os uses the webview', () {
         expect(checkoutHostKind(os), CheckoutHostKind.webview);

@@ -45,12 +45,17 @@ bool allowsCheckoutNavigation(Uri? uri) {
   return const {'https', 'about'}.contains(uri.scheme);
 }
 
-/// Linux has no embeddable webview, so it hands checkout to the system browser.
-enum CheckoutHostKind { webview, windows, external }
+/// Linux embeds WebKitGTK when the system has it, and otherwise hands checkout
+/// to the system browser.
+enum CheckoutHostKind { webview, windows, linux, external }
 
-CheckoutHostKind checkoutHostKind(String operatingSystem) {
+CheckoutHostKind checkoutHostKind(
+  String operatingSystem, {
+  bool linuxWebView = false,
+}) {
   return switch (operatingSystem) {
     'windows' => CheckoutHostKind.windows,
+    'linux' when linuxWebView => CheckoutHostKind.linux,
     'linux' => CheckoutHostKind.external,
     _ => CheckoutHostKind.webview,
   };
