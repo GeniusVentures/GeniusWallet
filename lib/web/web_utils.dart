@@ -23,8 +23,16 @@ Future<void> probeLinuxInAppWeb() async {
   }
 }
 
+/// The one rule for in-app versus system browser: only Linux without WebKitGTK
+/// leaves the app.
+bool opensInApp(String os, {required bool linuxWebKit}) =>
+    os != 'linux' || linuxWebKit;
+
+bool get inAppWeb =>
+    opensInApp(Platform.operatingSystem, linuxWebKit: linuxInAppWeb);
+
 void launchWebSite(BuildContext context, String url) async {
-  if (Platform.isLinux) {
+  if (!inAppWeb) {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

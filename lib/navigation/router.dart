@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -43,6 +41,7 @@ import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -224,7 +223,7 @@ final geniusWalletRouter = GoRouter(
             );
           },
         ),
-        if (!Platform.isLinux)
+        if (inAppWeb)
           GoRoute(
             path: '/web',
             builder: ((context, state) {

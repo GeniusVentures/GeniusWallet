@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 
 import 'web_chrome_helpers.dart';
+import 'web_view_linux.dart';
 import 'web_view_mobile.dart';
 import 'web_view_windows.dart';
 
@@ -15,6 +16,12 @@ class WebViewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     if (Platform.isWindows) {
       return WebViewWindows(
+        url: url ?? kWebHomeUrl,
+        includeBackButton: includeBackButton,
+      );
+    }
+    if (Platform.isLinux) {
+      return WebViewLinux(
         url: url ?? kWebHomeUrl,
         includeBackButton: includeBackButton,
       );
