@@ -53,6 +53,8 @@ Our Linux builds are tested on **Ubuntu 22 and newer for x86\_64**, and on **Deb
    ./genius_wallet
    ```
 
+**Optional: WebKitGTK.** It is recommended, not required. With it, news, legal pages, the Web tab and the Banxa checkout open inside the app; without it they open in your browser. The wallet loads it at run time, so install it any time: `libwebkit2gtk-4.1-0` (Ubuntu 22.04 and newer, Debian 12), `libwebkit2gtk-4.0-37` (Ubuntu 20.04), `webkit2gtk4.1` (Fedora), `webkit2gtk3` (AlmaLinux 8).
+
 ---
 
 ## Android
