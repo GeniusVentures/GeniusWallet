@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/components/overlay/nav_destinations.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
 void main() {
@@ -16,5 +17,10 @@ void main() {
         expect(opensInApp(os, linuxWebKit: false), isTrue, reason: os);
       }
     });
+  });
+
+  test('the Web tab is in the nav exactly when pages open in the app', () {
+    final web = allDestinations.singleWhere((d) => d.path == '/web');
+    expect(web.visible, inAppWeb);
   });
 }
