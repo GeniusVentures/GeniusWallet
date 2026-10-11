@@ -107,6 +107,17 @@ void root_method_call_cb(FlMethodChannel* channel,
   const gchar* method = fl_method_call_get_name(method_call);
   FlValue* args = fl_method_call_get_args(method_call);
 
+  if (strcmp(method, "isAvailable") == 0) {
+    respond(method_call,
+            success_response(fl_value_new_bool(webkit_runtime_load())));
+    return;
+  }
+  if (!webkit_runtime_load()) {
+    respond(method_call, error_response("webview_unavailable",
+                                        "WebKitGTK could not be loaded."));
+    return;
+  }
+
   if (strcmp(method, "createWebView") == 0) {
     LinuxWebView* webview = create_linux_webview(self);
     if (webview == nullptr) {

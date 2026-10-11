@@ -14,6 +14,14 @@ class LinuxWebViewPlatform extends WebViewPlatform {
     WebViewPlatform.instance = LinuxWebViewPlatform();
   }
 
+  /// Whether a WebKitGTK library could be loaded. When false, creating a web
+  /// view fails with `PlatformException(webview_unavailable)`.
+  static Future<bool> isAvailable() async =>
+      await LinuxWebViewController.rootChannel.invokeMethod<bool>(
+        'isAvailable',
+      ) ??
+      false;
+
   @override
   LinuxWebViewController createPlatformWebViewController(
     PlatformWebViewControllerCreationParams params,

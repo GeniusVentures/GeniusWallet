@@ -5,7 +5,7 @@
 
 #include <flutter_linux/flutter_linux.h>
 #include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
+#include "webview/webkit_runtime.h"
 
 constexpr const gchar *kLinuxWebViewInstanceKey = "webview_all_linux_instance";
 
