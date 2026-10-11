@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -592,7 +593,15 @@ class WebViewLinuxState extends State<WebViewLinux> {
         horizontal: GeniusWalletConsts.space6,
         vertical: GeniusWalletConsts.space4,
       ),
-      child: _buildOmniboxField(),
+      child: (widget.includeBackButton ?? false)
+          ? Row(
+              children: [
+                const WebPageCloseButton(),
+                const SizedBox(width: GeniusWalletConsts.space4),
+                Expanded(child: _buildOmniboxField()),
+              ],
+            )
+          : _buildOmniboxField(),
     );
   }
 
@@ -773,5 +782,29 @@ class WebViewLinuxState extends State<WebViewLinux> {
   String _getFaviconUrl(String url) {
     final Uri uri = Uri.parse(url);
     return "https://www.google.com/s2/favicons?domain=${uri.host}&sz=32";
+  }
+}
+
+/// Leaves a page that was opened from a link, back to the screen that opened it.
+/// It sits on the omnibox's own fill because the bar behind it is dark in both modes.
+class WebPageCloseButton extends StatelessWidget {
+  const WebPageCloseButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: context.gw.surfaceWell,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
+        border: Border.all(color: context.gw.borderSubtle, width: 1),
+      ),
+      child: GWButton.icon(
+        icon: Icon(Icons.cancel, size: 20, color: context.gw.textPrimary),
+        tooltip: 'Close',
+        semanticLabel: 'Close',
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+    );
   }
 }
