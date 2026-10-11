@@ -1,0 +1,40 @@
+diff -ru pristine/webview_all_linux/linux/src/platform/flutter_view.cc b/webview_all_linux/linux/src/platform/flutter_view.cc
+--- a/webview_all_linux/linux/src/platform/flutter_view.cc	2026-10-11 11:49:15.274900468 -0300
++++ b/webview_all_linux/linux/src/platform/flutter_view.cc	2026-10-11 11:38:58.336745268 -0300
+@@ -262,6 +262,7 @@
+     return;
+   }
+ 
++  if (g_getenv("SPIKE_NO_SHAPE") != nullptr) { return; }
+   GtkWidget *input_widget = self->flutter_input_widget;
+   if (!gtk_widget_get_realized(input_widget) ||
+       !gtk_widget_get_has_window(input_widget) ||
+diff -ru pristine/webview_all_linux/linux/src/webview/linux_webview.cc b/webview_all_linux/linux/src/webview/linux_webview.cc
+--- a/webview_all_linux/linux/src/webview/linux_webview.cc	2026-10-11 11:49:15.304900460 -0300
++++ b/webview_all_linux/linux/src/webview/linux_webview.cc	2026-10-11 11:45:21.168236404 -0300
+@@ -773,7 +773,12 @@
+   // without this navigator.mediaDevices is undefined. 2.38 lacks it entirely.
+   // Access stays gated by the Dart onPermissionRequest callback.
+   webkit_settings_set_enable_media_stream(
+-      webkit_web_view_get_settings(webview->web_view), TRUE);
++      webkit_web_view_get_settings(webview->web_view),
++      g_getenv("SPIKE_NO_MEDIA_STREAM") == nullptr);
++  if (g_getenv("SPIKE_MOCK_CAPTURE") != nullptr) {
++    webkit_settings_set_enable_mock_capture_devices(
++        webkit_web_view_get_settings(webview->web_view), TRUE);
++  }
+   g_object_set_data(G_OBJECT(webview->web_view), kLinuxWebViewInstanceKey,
+                     webview);
+   webview->pending_nav_decisions =
+diff -ru pristine/webview_all_linux/linux/src/webview/webview_method_handler.cc b/webview_all_linux/linux/src/webview/webview_method_handler.cc
+--- a/webview_all_linux/linux/src/webview/webview_method_handler.cc	2026-10-11 11:49:15.304900460 -0300
++++ b/webview_all_linux/linux/src/webview/webview_method_handler.cc	2026-10-11 11:39:29.437411233 -0300
+@@ -78,7 +78,7 @@
+       G_OBJECT(container),
+       reinterpret_cast<gpointer *>(&webview->clip_container));
+ 
+-  gtk_layout_put(GTK_LAYOUT(container), GTK_WIDGET(webview->web_view), 0, 0);
++  if (g_getenv("SPIKE_EMPTY_LAYOUT") == nullptr) { gtk_layout_put(GTK_LAYOUT(container), GTK_WIDGET(webview->web_view), 0, 0); }
+   gtk_overlay_add_overlay(overlay, container);
+   gtk_overlay_set_overlay_pass_through(overlay, container, FALSE);
+   return container;
