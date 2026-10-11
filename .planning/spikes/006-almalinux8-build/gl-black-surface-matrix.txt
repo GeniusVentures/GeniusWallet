@@ -1,0 +1,28 @@
+Flutter surface black while a WebKitWebView is mounted (AlmaLinux 8 container, GTK 3.22.30,
+WebKitGTK 2.54.0, mesa 23.1.4 llvmpipe, WSLg XWayland, GDK_BACKEND=x11).
+Pixel sampled from the Flutter button row (100,10) and log pane (100,650) of `import -window`.
+WebKit area (640,300) rendered in every row.
+
+variant                                              flutter px     result
+plain `flutter create` app, no plugin (control)       (254,247,255)  renders  -> 00-control-plain-flutter.png
+spike app, defaults                                   (0,0,0)        BLACK    -> 01-example-com.png
+LIBGL_ALWAYS_SOFTWARE=1                               (0,0,0)        BLACK
+GDK_GL=disable                                        (0,0,0)        BLACK
+LIBGL_ALWAYS_INDIRECT=1                               (0,0,0)        BLACK
+docker --ipc=host (MIT-SHM)                           (0,0,0)        BLACK
+FLUTTER_ENGINE_SWITCH enable-software-rendering       (0,0,0)        BLACK
+GDK_GL=software-draw                                  (0,0,0)        BLACK
+GDK_GL=legacy                                         (0,0,0)        BLACK
+GDK_GL=always                                         (0,0,0)        BLACK
+WEBKIT_DISABLE_COMPOSITING_MODE=1                     (0,0,0)        BLACK
+WEBKIT_DISABLE_DMABUF_RENDERER=1                      (0,0,0)        BLACK
+WEBKIT_SKIA_ENABLE_CPU_RENDERING=1 (+ both above)     (0,0,0)        BLACK
+plugin loaded, overlay installed, no WebViewWidget    (254,247,255)  renders  -> 02-noweb.png
+input-shape update skipped (SPIKE_NO_SHAPE)           (0,0,0)        BLACK
+clip GtkLayout mounted but WebKitWebView not put in   (254,247,255)  renders  -> 06-empty-layout.png
+GDK_GL=gles                                           (255,251,255)  renders  -> 08-gdkgl-gles.png (slightly washed out)
+window resized to 1000x650                            (0,0,0)        BLACK, but web view follows the new layout -> 04-after-resize.png
+
+Reading: the trigger is the WebKitWebView child itself, and the only working lever is GDK's GL
+backend (GLX desktop GL -> black, EGL/GLES -> renders). Dart keeps laying out (resize moves the
+web view), so frames are produced but not presented. Not reproduced outside this container.

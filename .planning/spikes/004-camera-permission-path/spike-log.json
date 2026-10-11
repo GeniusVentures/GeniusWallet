@@ -1,0 +1,86 @@
+{
+ "summary": {
+  "js": 6,
+  "permission": 2,
+  "page": 4,
+  "nav": 2,
+  "server": 1
+ },
+ "events": [
+  {
+   "at": "2026-10-11T11:16:17.375802",
+   "category": "server",
+   "message": "serving camera page on http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T11:16:17.737630",
+   "category": "nav",
+   "message": "ALLOW http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T11:16:17.785881",
+   "category": "page",
+   "message": "started http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T11:16:17.807256",
+   "category": "page",
+   "message": "FINISHED http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T11:16:24.045216",
+   "category": "js",
+   "message": "gum: calling"
+  },
+  {
+   "at": "2026-10-11T11:16:24.045370",
+   "category": "js",
+   "message": "gum: REJECTED TypeError: undefined is not an object (evaluating 'navigator.mediaDevices.getUserMedia')"
+  },
+  {
+   "at": "2026-10-11T11:16:26.135222",
+   "category": "js",
+   "message": "notify: denied"
+  },
+  {
+   "at": "2026-10-11T11:16:29.233643",
+   "category": "permission",
+   "message": "request types=[camera] -> GRANT"
+  },
+  {
+   "at": "2026-10-11T11:16:29.237942",
+   "category": "js",
+   "message": "geo: REJECTED code=2 Failed to connect to geolocation service"
+  },
+  {
+   "at": "2026-10-11T11:16:40.505973",
+   "category": "nav",
+   "message": "ALLOW http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T11:16:40.508949",
+   "category": "page",
+   "message": "started http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T11:16:40.545216",
+   "category": "page",
+   "message": "FINISHED http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T11:16:43.611878",
+   "category": "js",
+   "message": "notify: denied"
+  },
+  {
+   "at": "2026-10-11T11:16:46.710550",
+   "category": "permission",
+   "message": "request types=[camera] -> DENY"
+  },
+  {
+   "at": "2026-10-11T11:16:46.727099",
+   "category": "js",
+   "message": "geo: REJECTED code=1 User denied Geolocation"
+  }
+ ]
+}

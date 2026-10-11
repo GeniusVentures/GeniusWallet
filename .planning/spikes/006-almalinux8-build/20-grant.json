@@ -1,0 +1,61 @@
+{
+ "summary": {
+  "js": 5,
+  "permission": 1,
+  "page": 2,
+  "nav": 1,
+  "server": 1
+ },
+ "events": [
+  {
+   "at": "2026-10-11T14:48:15.197136",
+   "category": "server",
+   "message": "serving camera page on http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:15.442195",
+   "category": "nav",
+   "message": "ALLOW http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:15.446574",
+   "category": "page",
+   "message": "started http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:15.497825",
+   "category": "page",
+   "message": "FINISHED http://127.0.0.1:8765/"
+  },
+  {
+   "at": "2026-10-11T14:48:16.582538",
+   "category": "js",
+   "message": "devices: [\"audioinput\"]"
+  },
+  {
+   "at": "2026-10-11T14:48:18.514503",
+   "category": "js",
+   "message": "gum(video): calling"
+  },
+  {
+   "at": "2026-10-11T14:48:18.515960",
+   "category": "js",
+   "message": "gum(video): REJECTED OverconstrainedError: Invalid constraint"
+  },
+  {
+   "at": "2026-10-11T14:48:21.520858",
+   "category": "js",
+   "message": "gum(audio): calling"
+  },
+  {
+   "at": "2026-10-11T14:48:21.523408",
+   "category": "permission",
+   "message": "request types=[microphone] -> GRANT"
+  },
+  {
+   "at": "2026-10-11T14:48:21.529003",
+   "category": "js",
+   "message": "gum(audio): RESOLVED tracks=audio:RDP Source"
+  }
+ ]
+}

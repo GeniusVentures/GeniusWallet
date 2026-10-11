@@ -1,0 +1,7 @@
+# Ubuntu 24.04 + WebKitGTK 4.1 (2.52) + what the wallet bundle needs at runtime (keyring, secret store).
+FROM gw007-u2404
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      gnome-keyring dbus dbus-x11 libsecret-1-0 libsecret-tools python3-gi gir1.2-webkit2-4.1 gir1.2-gtk-3.0 \
+      libstdc++6 libayatana-appindicator3-1 fonts-noto-core \
+    && rm -rf /var/lib/apt/lists/*
