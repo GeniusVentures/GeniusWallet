@@ -1,7 +1,7 @@
 #ifndef WEBVIEW_ALL_LINUX_DOWNLOAD_POLICY_H_
 #define WEBVIEW_ALL_LINUX_DOWNLOAD_POLICY_H_
 
-#include <webkit2/webkit2.h>
+#include "webview/webkit_runtime.h"
 
 // Owned by a single WebView and destroyed before that WebView is released.
 class DownloadPolicy {

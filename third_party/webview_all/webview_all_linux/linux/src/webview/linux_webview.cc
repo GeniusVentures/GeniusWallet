@@ -658,14 +658,8 @@ static gboolean load_failed_with_tls_errors_cb(WebKitWebView *widget,
     return FALSE;
   }
 
-  gchar *host = nullptr;
-  if (failing_uri != nullptr) {
-    GUri *uri = g_uri_parse(failing_uri, G_URI_FLAGS_NONE, nullptr);
-    if (uri != nullptr) {
-      host = g_strdup(g_uri_get_host(uri));
-      g_uri_unref(uri);
-    }
-  }
+  gchar *host = failing_uri != nullptr ? webkit_compat_uri_host(failing_uri)
+                                       : nullptr;
 
   PendingTlsError *pending = g_new0(PendingTlsError, 1);
   pending->certificate = certificate != nullptr
@@ -774,6 +768,11 @@ LinuxWebView *create_linux_webview(WebviewAllLinuxPlugin *self) {
   webview->web_view = WEBKIT_WEB_VIEW(
       webkit_web_view_new_with_user_content_manager(webview->content_manager));
   g_object_ref_sink(webview->web_view);
+  // WebKitGTK >= 2.40 builds getUserMedia in but leaves it off by default;
+  // without this navigator.mediaDevices is undefined. 2.38 lacks it entirely.
+  // Access stays gated by the Dart onPermissionRequest callback.
+  webkit_settings_set_enable_media_stream(
+      webkit_web_view_get_settings(webview->web_view), TRUE);
   g_object_set_data(G_OBJECT(webview->web_view), kLinuxWebViewInstanceKey,
                     webview);
   webview->pending_nav_decisions =
