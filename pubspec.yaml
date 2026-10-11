@@ -41,6 +41,13 @@ dependencies:
   webview_flutter_wkwebview: ^3.25.1
   permission_handler: ^12.0.3
   webview_windows: ^0.4.0
+  # Linux in-app web: vendored, patched webview_all (WebKitGTK loaded at runtime).
+  webview_all:
+    path: third_party/webview_all/webview_all
+  webview_all_linux:
+    path: third_party/webview_all/webview_all_linux
+  webview_platform_interface:
+    path: third_party/webview_all/webview_platform_interface
   sentry_flutter: ^9.0.0
   xml: ^6.5.0
   cached_network_image: ^3.4.1
