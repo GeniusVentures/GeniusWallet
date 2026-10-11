@@ -1,0 +1,281 @@
+## 1.4.4
+
+* Fix a certificate API deprecation warning when building for iOS and macOS.
+* Block HTTP resources on HTTPS pages by default on OHOS.
+
+## 1.4.3
+
+* Fix the soft keyboard not appearing in some Canvas-based web apps on Android.
+* Improve focus switching between WebViews and Flutter text fields on Android and OHOS.
+* Improve focus switching between WebViews and Flutter controls on Windows.
+
+## 1.4.2
+
+* Disable Windows DevTools menu and keyboard entry points by default; enable them explicitly when needed.
+* Add Windows controls for DevTools, browser shortcuts, and downloads, configurable at creation and at runtime.
+* Fix Windows WebViews remaining blank or frozen after being hidden and shown with an opacity animation.
+* Preserve custom iframe sandbox restrictions when disabling JavaScript on Web.
+* Add per-WebView download controls on Linux.
+
+## 1.4.1
+
+* Fix a crash when exiting Windows applications.
+
+## 1.4.0
+
+* Fix registration, rendering, and communication conflicts with other WebView plugins.
+* Unify native plugin entry point and Apple External API names.
+* Fix Linux WebView positioning, clipping, and pointer input while scrolling or partially visible.
+
+## 1.3.10
+
+* Fix Windows rendering failures on affected devices and improve frame capture and resize stability.
+* Stop repeated Windows surface errors and provide a **Refresh** action when rendering needs recovery.
+* Clear Windows website data without starting graphics capture or creating a Flutter texture.
+
+## 1.3.9
+
+* Fix WebView2 startup failures in some Windows desktop applications.
+* Improve Windows initialization, retry, and multiple-WebView stability.
+* Provide clearer startup errors and a WebView2 Runtime installation option when required.
+
+## 1.3.8
+
+* Add Promise-aware `callAsyncJavaScript` with structured arguments, timeouts, consistent JSON results, and typed JavaScript errors.
+* Add document-start user scripts with capability checks and safe removal on Android, iOS, macOS, Windows, and Linux.
+* Add `WebViewDataManager.clearAllWebsiteData()` for logout cleanup, with explicit cleared, unsupported, and failed data categories.
+* Add `OffscreenWebViewSession` for deterministic offscreen-controller cleanup on Android, iOS, macOS, Windows, and Linux.
+* Make shared WebView2 environment configuration safely reusable and available to Windows website-data cleanup.
+
+## 1.3.7
+
+* Add Android WebAuthn and passkey configuration through `setWebAuthenticationSupport` for associated apps and eligible browser apps.
+* Fix a Windows issue where WebView2 could continue intercepting desktop clicks after the application window was minimized or the WebView was hidden or removed.
+* Improve Windows WebView display and rendering recovery across application lifecycle changes, WebView visibility changes, window movement, display changes, and DPI changes.
+* Add deterministic Windows WebView2 cleanup through `WindowsWebViewController.dispose()`, including safe disposal during initialization and automatic fallback cleanup.
+
+## 1.3.6
+
+* Fix Linux system input routing so WebKitGTK receives pointer, keyboard, and wheel input without disabling Flutter controls or allowing clicks to pass through the application window.
+* Keep Linux native WebView position and visibility correct across HiDPI displays, viewport edges, controller changes, application lifecycle changes, and when enclosing Flutter widgets are hidden or leave the visible area.
+* Improve Linux `GtkOverlay` layout and cleanup, prevent older position updates from overriding current state, and safely hide the WebView for transforms that GTK cannot display accurately.
+
+## 1.3.5
+
+* Refine documentation details.
+
+## 1.3.4
+
+* Apply Linux media gesture settings to modern WebKitGTK autoplay policies and reliably open page-requested windows in the current WebView.
+* Apply Windows navigation decisions to page-initiated main-frame loads and same-window popups while preserving controller request methods, headers, and bodies.
+* Isolate Windows local files and assets behind private per-controller hosts, reject unsafe paths, clear stale mappings, and improve WebView2 decision and download callback reliability.
+* Preserve exact binary response bytes and final redirect URLs on Web, and bound retained response history by both entry count and total size.
+* Complete OHOS bridge object release handshakes and safely finish stale permission, authentication, dialog, and custom-view callbacks instead of leaking or crashing.
+* Contain Android and OHOS navigation callback failures, harden JavaScript channel names on supported platforms, and reject unsafe Linux file and asset paths.
+* Keep Windows native builds on C++17 without imposing C++20 or legacy coroutine flags on applications.
+
+## 1.3.3
+
+* Prevent Windows WebView2 from blocking when application callbacks fail or do not complete, using safe defaults to keep the WebView running.
+* Fix Linux native view position and visibility synchronization when a `WebViewWidget` switches controllers.
+* Fix WKWebView JavaScript channel cleanup ordering and safely handle configuration limited by the operating system version.
+* Contain critical application callback failures on Web and OHOS so uncaught errors do not interrupt WebView operation.
+
+## 1.3.2
+
+* Improve Windows WebView2 startup recovery and resource cleanup, including safe retries after initialization failures and protection against stale resize updates.
+* Show a centered Windows startup error with **Install Webview2** linking to Microsoft's official download page and **Refresh** retrying initialization.
+* Validate Web iframe attribute names and prevent overriding the controller-managed `id`, `src`, and `srcdoc` attributes.
+* Improve Web navigation history so back and forward restore the correct URL, HTML, or fetched response without replaying POST requests, while explicit reload still fetches fresh content.
+* Prevent an older concurrent Web request from replacing a newer navigation and limit controller-managed history to 100 entries.
+* Improve Web cookie safety and accuracy by rejecting foreign-domain writes, restricting reads to the current document context, clearing visible cookie paths more thoroughly, and tolerating malformed encoded values.
+* Prevent Linux navigation, authentication, TLS, permission, and JavaScript dialog callbacks from indefinitely blocking the WebView when an application callback fails or does not complete.
+* Improve Android cookie parsing for encoded names, values containing `=`, and malformed encoded values, improve native WebView access from Android host code, and support both legacy and Built-in Kotlin Android builds.
+* Improve iOS WebView cleanup when an application terminates, a scene disconnects, or the Flutter engine detaches, and add native `WKWebView` lookup from a `FlutterPluginRegistrar`.
+* Tolerate encoded names and malformed encoded cookie values on OHOS, and add an isolated OHOS Flutter command helper that does not alter the stock Flutter package configuration.
+* Update the Web implementation to use `web 1.1.1`.
+
+## 1.3.1
+
+* Make macOS capabilities version-aware: use native background color and magnification APIs where available, fall back to older JavaScript preferences, and log safe no-ops for WebKit features with no public macOS API.
+* Keep fetch-backed and strictly sandboxed Web HTML in opaque origins while restoring supported controller features through a source-validated, navigation-scoped message bridge; harden content-type decoding and synchronous dialog fallbacks.
+* Enforce Linux `enableZoom`, reject Android POST requests whose custom headers cannot be preserved, and safely handle future Android file chooser modes.
+* Serialize OHOS file-access setup before local loads and propagate native ArkWeb load failures instead of reporting false success.
+* Convert Windows WebView2 environment, texture, and capture initialization failures into diagnosable platform errors instead of native assertion crashes.
+
+## 1.3.0
+
+* Use weak-reference callbacks and finalizer-based automatic cleanup so built-in Windows, Linux, and Web controllers release platform resources after becoming unreachable; OHOS continues to use its existing instance-manager lifecycle.
+* The Linux plugin installs the GTK overlay automatically, so runner source changes are no longer required.
+
+## 1.2.1
+
+* Ignore `setBackgroundColor` on macOS and log the skipped call, avoiding application exceptions caused by unimplemented WKWebView `opaque` / `backgroundColor`.
+* Improve the `examples/platform` Linux platform by attaching the Flutter view to a `GtkOverlay` before creating WebKitGTK views.
+
+## 1.2.0
+
+* Complete `webview_flutter_platform_interface` coverage across the federated platform packages.
+* Add Linux WebKitGTK-specific controller creation parameters and runtime settings for developer extras, JavaScript window opening, media playback, page cache, file URL access, text zoom/font sizing, page zoom, and DevTools opening.
+* Add Web iframe-specific creation parameters and runtime attribute setters for `allow`, `sandbox`, `referrerpolicy`, and custom iframe attributes while preserving custom sandbox values across JavaScript mode changes.
+* Add OHOS ArkWeb-specific controller creation parameters and runtime WebSettings setters for DOM storage, JavaScript window opening, multiple windows, viewport/overview mode, zoom controls, file access, media gesture policy, support zoom, text zoom, and full-screen rotation.
+* Add explicit cross-platform `loadFileWithParams` controller overrides.
+* Return `null` for platform SSL auth error certificates when the native platform does not provide certificate data.
+* Validate generic WebView cookies before forwarding them to platform cookie stores.
+* Avoid replaying OHOS sub-frame navigation requests as main-frame loads after navigation delegate approval.
+* Include platform-specific request metadata and response details when reporting HTTP status errors where available.
+* Decode OHOS JavaScript evaluation results through JSON so strings, arrays, objects, booleans, and numbers match the structured result behavior of the other platforms where possible.
+* Make OHOS POST `loadRequest` calls with custom headers fail explicitly instead of silently dropping headers, and document the ArkWeb limitation.
+* Return the default WebView2 permission decision for unsupported Windows permission kinds instead of surfacing empty resource requests to applications.
+* Deny Linux permission requests that contain no recognized resource types instead of surfacing empty resource requests to applications.
+* Add main wrapper forwarding tests for `WebViewController`, `NavigationDelegate`, permission requests, and `WebViewWidget`.
+* Add shared analyzer lint configuration for the main and federated platform packages.
+* Add `examples/platform` to local validation and audit its path package lockfile versions against the workspace release version.
+* Update the example Android project to the current Flutter Gradle template shape so it no longer applies the Kotlin Gradle plugin from the app module.
+* Migrate the example iOS and macOS projects to Swift Package Manager-only integration and remove their template CocoaPods integration.
+* Restore the example app's `cupertino_icons` dependency so Web release builds have all referenced icon fonts.
+* Add regression coverage for Linux permission request grant/deny dispatch and Web user-agent reset behavior.
+* Complete OHOS permission request grant coverage for camera, microphone, MIDI sysex, and protected media resources, with unknown resources denied safely.
+* Remove a Web JavaScript dialog bridge runtime type check that triggered Flutter Web wasm dry-run warnings, and add multi-WebView dialog bridge coverage.
+* Add Windows and Linux request body/header handling and HTTP status error coverage for `loadRequest`.
+* Add Windows and Linux native local storage clearing.
+* Complete OHOS HTTP error and SSL auth callback bridging.
+* Harden the Web implementation with same-origin JavaScript execution, JavaScript channels, console forwarding, alert/confirm/prompt forwarding, scrolling, scrollbars, over-scroll, JavaScript mode, zoom, and permission request coverage where browsers allow it.
+* Add an explicit Web `PlatformSslAuthError` implementation that reports unsupported recoverable certificate decisions instead of leaving the platform interface methods missing.
+* Add `WebWebViewWidgetCreationParams` so the Web platform matches the platform-specific widget creation-params pattern used by other federated packages.
+
+## 1.1.2
+
+* Align `WebViewCookieManager.getCookies({required Uri domain})` with the upstream `webview_flutter` public API.
+
+## 1.1.1
+
+* Update the example app to use `abutil` for platform detection.
+* Simplify the example app's OHOS and Web platform branches.
+* Synchronize platform package license files with the main package license.
+
+## 1.1.0
+
+* Add OpenHarmony platform implementation support.
+* Improve cookie API coverage:
+  * Add the common `WebViewCookieManager.getCookies({required Uri domain})` API to the main plugin wrapper.
+  * Implement and validate cross-platform cookie reads for the federated platform packages.
+  * Add Windows WebView2-specific cookie APIs for full cookie metadata and deletion workflows.
+* Harden the Web platform implementation:
+  * Preserve logical `currentUrl()` values for `loadHtmlString` and XHR-backed `loadRequest` calls instead of exposing internal `data:` iframe URLs.
+  * Resolve Flutter web assets through the generated `assets/` directory and encode asset path segments correctly.
+  * Report XHR-backed load failures through `onWebResourceError` and keep unsupported user agent overrides from being reported as applied.
+  * Validate and encode browser-visible cookies before writing to `document.cookie`, and document iframe and browser cookie limitations.
+* Improve the Linux platform implementation:
+  * Fix native WebView visibility synchronization so a stable Flutter frame no longer collapses the GTK/WebKit view to `0x0`.
+  * Harden Linux frame, cookie, and JavaScript channel inputs to avoid invalid native state and unsafe script injection.
+* Keep federated platform package changelogs aligned with the main `webview_all` updates.
+* Synchronize the main plugin and federated platform package versions.
+
+## 1.0.3
+
+* doc update
+* dep update
+
+## 1.0.2
+
+* doc update
+
+## 1.0.1
+
+* doc update
+
+## 1.0.0
+
+* add linux support
+
+## 0.9.3
+
+* bug fix
+
+## 0.9.2
+
+* bug fix
+
+## 0.9.1
+
+* refactor: breaking changes
+
+## 0.5.3
+
+* update dependences
+    * fix the error opaque is not implemented on MacOs
+
+## 0.5.2
+
+* doc update  
+
+## 0.5.1
+
+* big dep update  
+* bug fix
+
+## 0.4.5
+
+* dep update  
+* bug fix
+
+## 0.4.3
+
+* dep update
+
+## 0.4.1
+
+* refactor
+
+## 0.3.7
+
+* dep update
+
+## 0.3.6
+
+* doc update
+
+## 0.3.5
+
+* doc update
+
+## 0.3.4
+
+* doc update
+
+## 0.3.3
+
+* doc update
+
+## 0.3.1
+
+* fix bugs about web
+
+## 0.2.4
+
+* dep update
+
+## 0.2.3
+
+* doc update
+
+## 0.2.2
+
+* fix bugs about web
+
+## 0.2.1
+
+* run successfully
+
+## 0.1.3
+
+* fix bugs
+
+## 0.1.2
+
+* fix bugs
+
+## 0.1.1
+
+* Our story begins

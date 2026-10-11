@@ -1,0 +1,35 @@
+name: webview_all_linux
+description: A Flutter plugin that provides a WebView widget on Linux using WebKitGTK.
+repository: https://github.com/abandoft/webview_all
+homepage: https://github.com/abandoft/webview_all
+issue_tracker: https://github.com/abandoft/webview_all/issues
+version: 1.4.4
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+flutter:
+  plugin:
+    implements: webview_all
+    platforms:
+      linux:
+        pluginClass: WebviewAllLinuxPlugin
+        dartPluginClass: LinuxWebViewPlatform
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path: ^1.9.1
+  webview_platform_interface: ^1.4.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+topics:
+  - webview
+  - webview-flutter
+  - linux
+  - browser
+  - webkitgtk
