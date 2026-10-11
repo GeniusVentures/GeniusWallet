@@ -1676,12 +1676,15 @@ Plans:
 ### Phase 41: Linux in-app webview
 
 **Goal:** On Linux, news articles, the Web browser page, legal pages, explorer links and Banxa checkout open inside the wallet window, as they do on Windows, macOS and mobile. One bundle runs on every distro: WebKitGTK is loaded at runtime, and when it is missing the app still runs and links open in the system browser.
-**Requirements**: TBD
+**Requirements**: LWV-01, LWV-02, LWV-03, LWV-04, LWV-05, LWV-06, LWV-07, LWV-08, LWV-09
 **Depends on:** none (independent of 34-40)
 **Research:** spikes 003-007, `.claude/skills/spike-findings-geniuswallet/references/linux-webview-*.md`
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 41 to break down)
+- [ ] 41-01-PLAN.md — vendored plugin (pristine + patch commits) loads WebKit at runtime in the real wallet; CI headers and link check; INSTALL note (wave 1)
+- [ ] 41-02-PLAN.md — a News article opens in-app on Linux; focus hand-back and hide-under-popups proven (wave 2)
+- [ ] 41-03-PLAN.md — close control like Windows, Web tab follows the probe, no-WebKit fallback walked (wave 3)
+- [ ] 41-04-PLAN.md — Banxa checkout in the Linux dialog, one permission rule, menu over the page (wave 4)
 
