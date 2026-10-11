@@ -1,0 +1,8 @@
+# Runtime-only image for walking a prebuilt Flutter Linux bundle. PKGS picks the WebKit flavour.
+ARG BASE=ubuntu:24.04
+FROM ${BASE}
+ARG PKGS
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends ${PKGS} \
+      libegl1 libgles2 libgl1 libgl1-mesa-dri fonts-dejavu-core ca-certificates \
+    && rm -rf /var/lib/apt/lists/*

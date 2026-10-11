@@ -1,0 +1,35 @@
+name: spike_app
+description: Spike 003/004 - webview_all_linux on WebKitGTK 4.0 and the camera permission path.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_all:
+    path: ../webview_all/webview_all
+
+# webview_all depends on every federated package by version; point them all at
+# the local (patched) clone so the Linux implementation is the vendored one.
+dependency_overrides:
+  webview_platform_interface:
+    path: ../webview_all/webview_platform_interface
+  webview_all_linux:
+    path: ../webview_all/webview_all_linux
+  webview_all_android:
+    path: ../webview_all/webview_all_android
+  webview_all_wkwebview:
+    path: ../webview_all/webview_all_wkwebview
+  webview_all_windows:
+    path: ../webview_all/webview_all_windows
+  webview_all_ohos:
+    path: ../webview_all/webview_all_ohos
+  webview_all_web:
+    path: ../webview_all/webview_all_web
+
+flutter:
+  uses-material-design: true

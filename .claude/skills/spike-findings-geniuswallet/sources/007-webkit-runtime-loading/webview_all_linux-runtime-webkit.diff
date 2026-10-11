@@ -1,0 +1,768 @@
+diff --git a/webview_all_linux/lib/src/linux_webview_platform.dart b/webview_all_linux/lib/src/linux_webview_platform.dart
+index 47c0629..6502380 100644
+--- a/webview_all_linux/lib/src/linux_webview_platform.dart
++++ b/webview_all_linux/lib/src/linux_webview_platform.dart
+@@ -14,6 +14,14 @@ class LinuxWebViewPlatform extends WebViewPlatform {
+     WebViewPlatform.instance = LinuxWebViewPlatform();
+   }
+ 
++  /// Whether a WebKitGTK library could be loaded. When false, creating a web
++  /// view fails with `PlatformException(webview_unavailable)`.
++  static Future<bool> isAvailable() async =>
++      await LinuxWebViewController.rootChannel.invokeMethod<bool>(
++        'isAvailable',
++      ) ??
++      false;
++
+   @override
+   LinuxWebViewController createPlatformWebViewController(
+     PlatformWebViewControllerCreationParams params,
+diff --git a/webview_all_linux/linux/CMakeLists.txt b/webview_all_linux/linux/CMakeLists.txt
+index 46af8f4..bf4dfaf 100644
+--- a/webview_all_linux/linux/CMakeLists.txt
++++ b/webview_all_linux/linux/CMakeLists.txt
+@@ -7,7 +7,9 @@ cmake_policy(VERSION 3.10...3.24)
+ set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
+ 
+ find_package(PkgConfig REQUIRED)
+-pkg_check_modules(WEBKIT REQUIRED IMPORTED_TARGET webkit2gtk-4.1)
++# Headers only. WebKitGTK is dlopen()ed at runtime (4.1, else 4.0) so the app
++# starts without it; the libsoup 2 code paths need the 4.0 headers to build.
++pkg_check_modules(WEBKIT REQUIRED webkit2gtk-4.0)
+ 
+ add_library(${PLUGIN_NAME} SHARED
+   "src/common/method_channel_utils.cc"
+@@ -18,6 +20,7 @@ add_library(${PLUGIN_NAME} SHARED
+   "src/webview/download_policy.cc"
+   "src/webview/webview_javascript.cc"
+   "src/webview/webview_method_handler.cc"
++  "src/webview/webkit_runtime.cc"
+ )
+ 
+ apply_standard_settings(${PLUGIN_NAME})
+@@ -31,7 +34,9 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
+ target_include_directories(${PLUGIN_NAME} PRIVATE
+   "${CMAKE_CURRENT_SOURCE_DIR}/include"
+   "${CMAKE_CURRENT_SOURCE_DIR}/src"
++  ${WEBKIT_INCLUDE_DIRS}
+ )
+ target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
+-target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
+-target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::WEBKIT)
++target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK ${CMAKE_DL_LIBS})
++# A WebKit call that bypasses the dlsym table fails the build, not the launch.
++target_link_options(${PLUGIN_NAME} PRIVATE "-Wl,--no-undefined")
+diff --git a/webview_all_linux/linux/src/plugin/root_channel.cc b/webview_all_linux/linux/src/plugin/root_channel.cc
+index 625ca61..1f3f5dc 100644
+--- a/webview_all_linux/linux/src/plugin/root_channel.cc
++++ b/webview_all_linux/linux/src/plugin/root_channel.cc
+@@ -107,6 +107,17 @@ void root_method_call_cb(FlMethodChannel* channel,
+   const gchar* method = fl_method_call_get_name(method_call);
+   FlValue* args = fl_method_call_get_args(method_call);
+ 
++  if (strcmp(method, "isAvailable") == 0) {
++    respond(method_call,
++            success_response(fl_value_new_bool(webkit_runtime_load())));
++    return;
++  }
++  if (!webkit_runtime_load()) {
++    respond(method_call, error_response("webview_unavailable",
++                                        "WebKitGTK could not be loaded."));
++    return;
++  }
++
+   if (strcmp(method, "createWebView") == 0) {
+     LinuxWebView* webview = create_linux_webview(self);
+     if (webview == nullptr) {
+diff --git a/webview_all_linux/linux/src/plugin/webview_all_linux_plugin_private.h b/webview_all_linux/linux/src/plugin/webview_all_linux_plugin_private.h
+index edfa2fc..694df50 100644
+--- a/webview_all_linux/linux/src/plugin/webview_all_linux_plugin_private.h
++++ b/webview_all_linux/linux/src/plugin/webview_all_linux_plugin_private.h
+@@ -5,7 +5,7 @@
+ 
+ #include <flutter_linux/flutter_linux.h>
+ #include <gtk/gtk.h>
+-#include <webkit2/webkit2.h>
++#include "webview/webkit_runtime.h"
+ 
+ constexpr const gchar *kLinuxWebViewInstanceKey = "webview_all_linux_instance";
+ 
+diff --git a/webview_all_linux/linux/src/webview/download_policy.h b/webview_all_linux/linux/src/webview/download_policy.h
+index 1b8c374..3a96dd4 100644
+--- a/webview_all_linux/linux/src/webview/download_policy.h
++++ b/webview_all_linux/linux/src/webview/download_policy.h
+@@ -1,7 +1,7 @@
+ #ifndef WEBVIEW_ALL_LINUX_DOWNLOAD_POLICY_H_
+ #define WEBVIEW_ALL_LINUX_DOWNLOAD_POLICY_H_
+ 
+-#include <webkit2/webkit2.h>
++#include "webview/webkit_runtime.h"
+ 
+ // Owned by a single WebView and destroyed before that WebView is released.
+ class DownloadPolicy {
+diff --git a/webview_all_linux/linux/src/webview/linux_webview.cc b/webview_all_linux/linux/src/webview/linux_webview.cc
+index 5c134eb..e56be5f 100644
+--- a/webview_all_linux/linux/src/webview/linux_webview.cc
++++ b/webview_all_linux/linux/src/webview/linux_webview.cc
+@@ -658,14 +658,8 @@ static gboolean load_failed_with_tls_errors_cb(WebKitWebView *widget,
+     return FALSE;
+   }
+ 
+-  gchar *host = nullptr;
+-  if (failing_uri != nullptr) {
+-    GUri *uri = g_uri_parse(failing_uri, G_URI_FLAGS_NONE, nullptr);
+-    if (uri != nullptr) {
+-      host = g_strdup(g_uri_get_host(uri));
+-      g_uri_unref(uri);
+-    }
+-  }
++  gchar *host = failing_uri != nullptr ? webkit_compat_uri_host(failing_uri)
++                                       : nullptr;
+ 
+   PendingTlsError *pending = g_new0(PendingTlsError, 1);
+   pending->certificate = certificate != nullptr
+@@ -774,6 +768,11 @@ LinuxWebView *create_linux_webview(WebviewAllLinuxPlugin *self) {
+   webview->web_view = WEBKIT_WEB_VIEW(
+       webkit_web_view_new_with_user_content_manager(webview->content_manager));
+   g_object_ref_sink(webview->web_view);
++  // WebKitGTK >= 2.40 builds getUserMedia in but leaves it off by default;
++  // without this navigator.mediaDevices is undefined. 2.38 lacks it entirely.
++  // Access stays gated by the Dart onPermissionRequest callback.
++  webkit_settings_set_enable_media_stream(
++      webkit_web_view_get_settings(webview->web_view), TRUE);
+   g_object_set_data(G_OBJECT(webview->web_view), kLinuxWebViewInstanceKey,
+                     webview);
+   webview->pending_nav_decisions =
+diff --git a/webview_all_linux/linux/src/webview/webkit_runtime.cc b/webview_all_linux/linux/src/webview/webkit_runtime.cc
+new file mode 100644
+index 0000000..54289af
+--- /dev/null
++++ b/webview_all_linux/linux/src/webview/webkit_runtime.cc
+@@ -0,0 +1,100 @@
++#define GW_WEBKIT_NO_REDIRECT
++#include "webview/webkit_runtime.h"
++
++#include <dlfcn.h>
++
++GwWebKitApi gw_webkit = {};
++
++template <typename T>
++static void resolve(void *handle, const char *name, T &slot,
++                    const char **missing) {
++  slot = reinterpret_cast<T>(dlsym(handle, name));
++  if (slot == nullptr && missing != nullptr && *missing == nullptr) {
++    *missing = name;
++  }
++}
++
++static gboolean load() {
++  // 4.1 first: on distros that ship both, 4.0 is the legacy package. Only one
++  // may load, since libsoup 2 and 3 abort when mapped into the same process.
++  static const char *const kLibraries[] = {"libwebkit2gtk-4.1.so.0",
++                                           "libwebkit2gtk-4.0.so.37"};
++  void *handle = nullptr;
++  const char *library = nullptr;
++  for (const char *candidate : kLibraries) {
++    handle = dlopen(candidate, RTLD_NOW | RTLD_LOCAL);
++    if (handle != nullptr) {
++      library = candidate;
++      break;
++    }
++  }
++  if (handle == nullptr) {
++    g_warning("webview_all_linux: WebKitGTK unavailable: %s", dlerror());
++    return FALSE;
++  }
++
++  const char *missing = nullptr;
++#define GW_RESOLVE_REQUIRED(name) resolve(handle, #name, gw_webkit.name, &missing);
++  GW_WEBKIT_REQUIRED(GW_RESOLVE_REQUIRED)
++#undef GW_RESOLVE_REQUIRED
++
++  resolve(handle, "soup_message_get_status", gw_webkit.soup3_message_get_status,
++          nullptr);
++  if (gw_webkit.soup3_message_get_status != nullptr) {
++    resolve(handle, "soup_message_get_method",
++            gw_webkit.soup3_message_get_method, &missing);
++    resolve(handle, "soup_message_get_request_headers",
++            gw_webkit.soup3_message_get_request_headers, &missing);
++    resolve(handle, "soup_message_get_response_headers",
++            gw_webkit.soup3_message_get_response_headers, &missing);
++    resolve(handle, "soup_message_set_request_body_from_bytes",
++            gw_webkit.soup3_message_set_request_body_from_bytes, &missing);
++    resolve(handle, "soup_session_send_and_read_async",
++            gw_webkit.soup3_session_send_and_read_async, &missing);
++    resolve(handle, "soup_session_send_and_read_finish",
++            gw_webkit.soup3_session_send_and_read_finish, &missing);
++    resolve(handle, "g_uri_parse", gw_webkit.g_uri_parse, &missing);
++    resolve(handle, "g_uri_get_host", gw_webkit.g_uri_get_host, &missing);
++    resolve(handle, "g_uri_unref", gw_webkit.g_uri_unref, &missing);
++  } else {
++#define GW_RESOLVE_SOUP2(name) resolve(handle, #name, gw_webkit.name, &missing);
++    GW_WEBKIT_SOUP2(GW_RESOLVE_SOUP2)
++#undef GW_RESOLVE_SOUP2
++  }
++
++  resolve(handle, "webkit_web_view_evaluate_javascript",
++          gw_webkit.evaluate_javascript, nullptr);
++  resolve(handle, "webkit_web_view_evaluate_javascript_finish",
++          gw_webkit.evaluate_javascript_finish, nullptr);
++  if (gw_webkit.evaluate_javascript == nullptr ||
++      gw_webkit.evaluate_javascript_finish == nullptr) {
++    gw_webkit.evaluate_javascript = nullptr;
++    gw_webkit.evaluate_javascript_finish = nullptr;
++    resolve(handle, "webkit_web_view_run_javascript", gw_webkit.run_javascript,
++            &missing);
++    resolve(handle, "webkit_web_view_run_javascript_finish",
++            gw_webkit.run_javascript_finish, &missing);
++    resolve(handle, "webkit_javascript_result_unref",
++            gw_webkit.javascript_result_unref, &missing);
++  }
++
++  // Never dlclose: WebKit registers GTypes and threads that outlive us.
++  if (missing != nullptr) {
++    g_warning("webview_all_linux: %s lacks %s", library, missing);
++    return FALSE;
++  }
++  g_message("webview_all_linux: loaded %s (WebKitGTK %u.%u.%u, %s, %s)",
++            library, gw_webkit.webkit_get_major_version(),
++            gw_webkit.webkit_get_minor_version(),
++            gw_webkit.webkit_get_micro_version(),
++            gw_webkit.soup3_message_get_status != nullptr ? "libsoup3"
++                                                          : "libsoup2",
++            gw_webkit.evaluate_javascript != nullptr ? "evaluate_javascript"
++                                                     : "run_javascript");
++  return TRUE;
++}
++
++gboolean webkit_runtime_load() {
++  static const gboolean loaded = load();
++  return loaded;
++}
+diff --git a/webview_all_linux/linux/src/webview/webkit_runtime.h b/webview_all_linux/linux/src/webview/webkit_runtime.h
+new file mode 100644
+index 0000000..deedd62
+--- /dev/null
++++ b/webview_all_linux/linux/src/webview/webkit_runtime.h
+@@ -0,0 +1,521 @@
++#ifndef WEBVIEW_ALL_LINUX_WEBKIT_RUNTIME_H_
++#define WEBVIEW_ALL_LINUX_WEBKIT_RUNTIME_H_
++
++// WebKitGTK is loaded with dlopen() (4.1 + libsoup3, else 4.0 + libsoup2) so
++// the app starts on distros that ship either API, or none. Every WebKit, JSC
++// and libsoup call goes through gw_webkit; -Wl,--no-undefined rejects a miss.
++
++#include <libsoup/soup.h>
++#include <webkit2/webkit2.h>
++
++// Present in every WebKitGTK 2.38+ (4.0 and 4.1) and libsoup 2/3.
++#define GW_WEBKIT_REQUIRED(X)                                                  \
++  X(jsc_value_get_type)                                                        \
++  X(jsc_value_is_boolean)                                                      \
++  X(jsc_value_is_null)                                                         \
++  X(jsc_value_is_number)                                                       \
++  X(jsc_value_is_string)                                                       \
++  X(jsc_value_is_undefined)                                                    \
++  X(jsc_value_to_boolean)                                                      \
++  X(jsc_value_to_double)                                                       \
++  X(jsc_value_to_json)                                                         \
++  X(jsc_value_to_string)                                                       \
++  X(soup_cookie_free)                                                          \
++  X(soup_cookie_get_domain)                                                    \
++  X(soup_cookie_get_name)                                                      \
++  X(soup_cookie_get_path)                                                      \
++  X(soup_cookie_get_value)                                                     \
++  X(soup_cookie_new)                                                           \
++  X(soup_message_get_type)                                                     \
++  X(soup_message_headers_append)                                               \
++  X(soup_message_headers_foreach)                                              \
++  X(soup_message_headers_get_content_type)                                     \
++  X(soup_message_new)                                                          \
++  X(soup_session_new)                                                          \
++  X(webkit_get_major_version)                                                  \
++  X(webkit_get_minor_version)                                                  \
++  X(webkit_get_micro_version)                                                  \
++  X(webkit_authentication_request_authenticate)                                \
++  X(webkit_authentication_request_cancel)                                      \
++  X(webkit_authentication_request_get_host)                                    \
++  X(webkit_authentication_request_get_realm)                                   \
++  X(webkit_authentication_request_get_type)                                    \
++  X(webkit_cookie_manager_add_cookie)                                          \
++  X(webkit_cookie_manager_add_cookie_finish)                                   \
++  X(webkit_cookie_manager_get_cookies)                                         \
++  X(webkit_cookie_manager_get_cookies_finish)                                  \
++  X(webkit_cookie_manager_get_type)                                            \
++  X(webkit_credential_free)                                                    \
++  X(webkit_credential_new)                                                     \
++  X(webkit_download_cancel)                                                    \
++  X(webkit_download_get_web_view)                                              \
++  X(webkit_javascript_result_get_js_value)                                     \
++  X(webkit_navigation_action_get_request)                                      \
++  X(webkit_navigation_policy_decision_get_navigation_action)                   \
++  X(webkit_navigation_policy_decision_get_type)                                \
++  X(webkit_network_error_quark)                                                \
++  X(webkit_permission_request_allow)                                           \
++  X(webkit_permission_request_deny)                                            \
++  X(webkit_permission_request_get_type)                                        \
++  X(webkit_policy_decision_get_type)                                           \
++  X(webkit_policy_decision_ignore)                                             \
++  X(webkit_policy_decision_use)                                                \
++  X(webkit_policy_decision_use_with_policies)                                  \
++  X(webkit_script_dialog_close)                                                \
++  X(webkit_script_dialog_confirm_set_confirmed)                                \
++  X(webkit_script_dialog_get_dialog_type)                                      \
++  X(webkit_script_dialog_get_message)                                          \
++  X(webkit_script_dialog_prompt_get_default_text)                              \
++  X(webkit_script_dialog_prompt_set_text)                                      \
++  X(webkit_script_dialog_ref)                                                  \
++  X(webkit_script_dialog_unref)                                                \
++  X(webkit_settings_get_user_agent)                                            \
++  X(webkit_settings_set_allow_file_access_from_file_urls)                      \
++  X(webkit_settings_set_allow_universal_access_from_file_urls)                 \
++  X(webkit_settings_set_default_font_size)                                     \
++  X(webkit_settings_set_default_monospace_font_size)                           \
++  X(webkit_settings_set_enable_developer_extras)                               \
++  X(webkit_settings_set_enable_javascript)                                     \
++  X(webkit_settings_set_enable_media_stream)                                   \
++  X(webkit_settings_set_enable_page_cache)                                     \
++  X(webkit_settings_set_javascript_can_open_windows_automatically)             \
++  X(webkit_settings_set_media_playback_allows_inline)                          \
++  X(webkit_settings_set_media_playback_requires_user_gesture)                  \
++  X(webkit_settings_set_minimum_font_size)                                     \
++  X(webkit_settings_set_user_agent)                                            \
++  X(webkit_settings_set_zoom_text_only)                                        \
++  X(webkit_uri_request_get_http_headers)                                       \
++  X(webkit_uri_request_get_http_method)                                        \
++  X(webkit_uri_request_get_uri)                                                \
++  X(webkit_uri_request_new)                                                    \
++  X(webkit_uri_response_get_http_headers)                                      \
++  X(webkit_uri_response_get_mime_type)                                         \
++  X(webkit_uri_response_get_status_code)                                       \
++  X(webkit_uri_response_get_uri)                                               \
++  X(webkit_user_content_manager_add_script)                                    \
++  X(webkit_user_content_manager_new)                                           \
++  X(webkit_user_content_manager_register_script_message_handler)               \
++  X(webkit_user_content_manager_remove_all_scripts)                            \
++  X(webkit_user_content_manager_unregister_script_message_handler)             \
++  X(webkit_user_media_permission_is_for_audio_device)                          \
++  X(webkit_user_media_permission_is_for_video_device)                          \
++  X(webkit_user_media_permission_request_get_type)                             \
++  X(webkit_user_script_new)                                                    \
++  X(webkit_user_script_unref)                                                  \
++  X(webkit_web_context_allow_tls_certificate_for_host)                         \
++  X(webkit_web_context_clear_cache)                                            \
++  X(webkit_web_context_get_cookie_manager)                                     \
++  X(webkit_web_context_get_default)                                            \
++  X(webkit_web_context_get_website_data_manager)                               \
++  X(webkit_web_inspector_show)                                                 \
++  X(webkit_web_resource_get_response)                                          \
++  X(webkit_web_resource_get_uri)                                               \
++  X(webkit_web_view_can_go_back)                                               \
++  X(webkit_web_view_can_go_forward)                                            \
++  X(webkit_web_view_get_context)                                               \
++  X(webkit_web_view_get_estimated_load_progress)                               \
++  X(webkit_web_view_get_inspector)                                             \
++  X(webkit_web_view_get_main_resource)                                         \
++  X(webkit_web_view_get_settings)                                              \
++  X(webkit_web_view_get_title)                                                 \
++  X(webkit_web_view_get_type)                                                  \
++  X(webkit_web_view_get_uri)                                                   \
++  X(webkit_web_view_go_back)                                                   \
++  X(webkit_web_view_go_forward)                                                \
++  X(webkit_web_view_load_bytes)                                                \
++  X(webkit_web_view_load_html)                                                 \
++  X(webkit_web_view_load_request)                                              \
++  X(webkit_web_view_load_uri)                                                  \
++  X(webkit_web_view_new_with_user_content_manager)                             \
++  X(webkit_web_view_reload)                                                    \
++  X(webkit_web_view_set_background_color)                                      \
++  X(webkit_web_view_set_zoom_level)                                            \
++  X(webkit_website_data_manager_clear)                                         \
++  X(webkit_website_data_manager_clear_finish)                                  \
++  X(webkit_website_data_manager_get_type)                                      \
++  X(webkit_website_policies_new_with_policies)
++
++// libsoup 2 only (webkit2gtk-4.0); required when libsoup 3 is absent.
++#define GW_WEBKIT_SOUP2(X)                                                     \
++  X(soup_buffer_free)                                                          \
++  X(soup_buffer_get_as_bytes)                                                  \
++  X(soup_message_body_flatten)                                                 \
++  X(soup_message_set_request)                                                  \
++  X(soup_session_queue_message)                                                \
++  X(soup_uri_free)                                                             \
++  X(soup_uri_get_host)                                                         \
++  X(soup_uri_new)
++
++#define GW_WEBKIT_FIELD(name) decltype(&::name) name;
++
++// Symbols that differ by WebKit or libsoup version are typed by hand: the
++// build headers (webkit2gtk-4.0, libsoup 2) may not declare them.
++struct GwWebKitApi {
++  GW_WEBKIT_REQUIRED(GW_WEBKIT_FIELD)
++  GW_WEBKIT_SOUP2(GW_WEBKIT_FIELD)
++
++  // WebKitGTK >= 2.40.
++  void (*evaluate_javascript)(WebKitWebView *, const gchar *, gssize,
++                              const gchar *, const gchar *, GCancellable *,
++                              GAsyncReadyCallback, gpointer);
++  JSCValue *(*evaluate_javascript_finish)(WebKitWebView *, GAsyncResult *,
++                                          GError **);
++  // Deprecated in 2.40, the only way to run JS before it.
++  void (*run_javascript)(WebKitWebView *, const gchar *, GCancellable *,
++                         GAsyncReadyCallback, gpointer);
++  WebKitJavascriptResult *(*run_javascript_finish)(WebKitWebView *,
++                                                   GAsyncResult *, GError **);
++  void (*javascript_result_unref)(WebKitJavascriptResult *);
++
++  // libsoup 3 (webkit2gtk-4.1). SoupMessage is opaque there.
++  guint (*soup3_message_get_status)(SoupMessage *);
++  const char *(*soup3_message_get_method)(SoupMessage *);
++  SoupMessageHeaders *(*soup3_message_get_request_headers)(SoupMessage *);
++  SoupMessageHeaders *(*soup3_message_get_response_headers)(SoupMessage *);
++  void (*soup3_message_set_request_body_from_bytes)(SoupMessage *,
++                                                    const char *, GBytes *);
++  void (*soup3_session_send_and_read_async)(SoupSession *, SoupMessage *, int,
++                                            GCancellable *,
++                                            GAsyncReadyCallback, gpointer);
++  GBytes *(*soup3_session_send_and_read_finish)(SoupSession *, GAsyncResult *,
++                                                GError **);
++
++  // GLib >= 2.66 (GUri); always present alongside libsoup 3.
++  gpointer (*g_uri_parse)(const gchar *, guint, GError **);
++  const gchar *(*g_uri_get_host)(gpointer);
++  void (*g_uri_unref)(gpointer);
++};
++
++extern GwWebKitApi gw_webkit;
++
++// Loads WebKitGTK on first call and caches the result. FALSE means no usable
++// WebKitGTK; nothing else in gw_webkit may be called then.
++gboolean webkit_runtime_load();
++
++#ifndef GW_WEBKIT_NO_REDIRECT
++#define jsc_value_get_type (gw_webkit.jsc_value_get_type)
++#define jsc_value_is_boolean (gw_webkit.jsc_value_is_boolean)
++#define jsc_value_is_null (gw_webkit.jsc_value_is_null)
++#define jsc_value_is_number (gw_webkit.jsc_value_is_number)
++#define jsc_value_is_string (gw_webkit.jsc_value_is_string)
++#define jsc_value_is_undefined (gw_webkit.jsc_value_is_undefined)
++#define jsc_value_to_boolean (gw_webkit.jsc_value_to_boolean)
++#define jsc_value_to_double (gw_webkit.jsc_value_to_double)
++#define jsc_value_to_json (gw_webkit.jsc_value_to_json)
++#define jsc_value_to_string (gw_webkit.jsc_value_to_string)
++#define soup_cookie_free (gw_webkit.soup_cookie_free)
++#define soup_cookie_get_domain (gw_webkit.soup_cookie_get_domain)
++#define soup_cookie_get_name (gw_webkit.soup_cookie_get_name)
++#define soup_cookie_get_path (gw_webkit.soup_cookie_get_path)
++#define soup_cookie_get_value (gw_webkit.soup_cookie_get_value)
++#define soup_cookie_new (gw_webkit.soup_cookie_new)
++#define soup_message_get_type (gw_webkit.soup_message_get_type)
++#define soup_message_headers_append (gw_webkit.soup_message_headers_append)
++#define soup_message_headers_foreach (gw_webkit.soup_message_headers_foreach)
++#define soup_message_headers_get_content_type                                  \
++  (gw_webkit.soup_message_headers_get_content_type)
++#define soup_message_new (gw_webkit.soup_message_new)
++#define soup_session_new (gw_webkit.soup_session_new)
++#define webkit_authentication_request_authenticate                             \
++  (gw_webkit.webkit_authentication_request_authenticate)
++#define webkit_authentication_request_cancel                                   \
++  (gw_webkit.webkit_authentication_request_cancel)
++#define webkit_authentication_request_get_host                                 \
++  (gw_webkit.webkit_authentication_request_get_host)
++#define webkit_authentication_request_get_realm                                \
++  (gw_webkit.webkit_authentication_request_get_realm)
++#define webkit_authentication_request_get_type                                 \
++  (gw_webkit.webkit_authentication_request_get_type)
++#define webkit_cookie_manager_add_cookie                                       \
++  (gw_webkit.webkit_cookie_manager_add_cookie)
++#define webkit_cookie_manager_add_cookie_finish                                \
++  (gw_webkit.webkit_cookie_manager_add_cookie_finish)
++#define webkit_cookie_manager_get_cookies                                      \
++  (gw_webkit.webkit_cookie_manager_get_cookies)
++#define webkit_cookie_manager_get_cookies_finish                               \
++  (gw_webkit.webkit_cookie_manager_get_cookies_finish)
++#define webkit_cookie_manager_get_type (gw_webkit.webkit_cookie_manager_get_type)
++#define webkit_credential_free (gw_webkit.webkit_credential_free)
++#define webkit_credential_new (gw_webkit.webkit_credential_new)
++#define webkit_download_cancel (gw_webkit.webkit_download_cancel)
++#define webkit_download_get_web_view (gw_webkit.webkit_download_get_web_view)
++#define webkit_javascript_result_get_js_value                                  \
++  (gw_webkit.webkit_javascript_result_get_js_value)
++#define webkit_navigation_action_get_request                                   \
++  (gw_webkit.webkit_navigation_action_get_request)
++#define webkit_navigation_policy_decision_get_navigation_action                \
++  (gw_webkit.webkit_navigation_policy_decision_get_navigation_action)
++#define webkit_navigation_policy_decision_get_type                             \
++  (gw_webkit.webkit_navigation_policy_decision_get_type)
++#define webkit_network_error_quark (gw_webkit.webkit_network_error_quark)
++#define webkit_permission_request_allow                                        \
++  (gw_webkit.webkit_permission_request_allow)
++#define webkit_permission_request_deny (gw_webkit.webkit_permission_request_deny)
++#define webkit_permission_request_get_type                                     \
++  (gw_webkit.webkit_permission_request_get_type)
++#define webkit_policy_decision_get_type (gw_webkit.webkit_policy_decision_get_type)
++#define webkit_policy_decision_ignore (gw_webkit.webkit_policy_decision_ignore)
++#define webkit_policy_decision_use (gw_webkit.webkit_policy_decision_use)
++#define webkit_policy_decision_use_with_policies                               \
++  (gw_webkit.webkit_policy_decision_use_with_policies)
++#define webkit_script_dialog_close (gw_webkit.webkit_script_dialog_close)
++#define webkit_script_dialog_confirm_set_confirmed                             \
++  (gw_webkit.webkit_script_dialog_confirm_set_confirmed)
++#define webkit_script_dialog_get_dialog_type                                   \
++  (gw_webkit.webkit_script_dialog_get_dialog_type)
++#define webkit_script_dialog_get_message                                       \
++  (gw_webkit.webkit_script_dialog_get_message)
++#define webkit_script_dialog_prompt_get_default_text                           \
++  (gw_webkit.webkit_script_dialog_prompt_get_default_text)
++#define webkit_script_dialog_prompt_set_text                                   \
++  (gw_webkit.webkit_script_dialog_prompt_set_text)
++#define webkit_script_dialog_ref (gw_webkit.webkit_script_dialog_ref)
++#define webkit_script_dialog_unref (gw_webkit.webkit_script_dialog_unref)
++#define webkit_settings_get_user_agent (gw_webkit.webkit_settings_get_user_agent)
++#define webkit_settings_set_allow_file_access_from_file_urls                   \
++  (gw_webkit.webkit_settings_set_allow_file_access_from_file_urls)
++#define webkit_settings_set_allow_universal_access_from_file_urls              \
++  (gw_webkit.webkit_settings_set_allow_universal_access_from_file_urls)
++#define webkit_settings_set_default_font_size                                  \
++  (gw_webkit.webkit_settings_set_default_font_size)
++#define webkit_settings_set_default_monospace_font_size                        \
++  (gw_webkit.webkit_settings_set_default_monospace_font_size)
++#define webkit_settings_set_enable_developer_extras                            \
++  (gw_webkit.webkit_settings_set_enable_developer_extras)
++#define webkit_settings_set_enable_javascript                                  \
++  (gw_webkit.webkit_settings_set_enable_javascript)
++#define webkit_settings_set_enable_media_stream                                \
++  (gw_webkit.webkit_settings_set_enable_media_stream)
++#define webkit_settings_set_enable_page_cache                                  \
++  (gw_webkit.webkit_settings_set_enable_page_cache)
++#define webkit_settings_set_javascript_can_open_windows_automatically          \
++  (gw_webkit.webkit_settings_set_javascript_can_open_windows_automatically)
++#define webkit_settings_set_media_playback_allows_inline                       \
++  (gw_webkit.webkit_settings_set_media_playback_allows_inline)
++#define webkit_settings_set_media_playback_requires_user_gesture               \
++  (gw_webkit.webkit_settings_set_media_playback_requires_user_gesture)
++#define webkit_settings_set_minimum_font_size                                  \
++  (gw_webkit.webkit_settings_set_minimum_font_size)
++#define webkit_settings_set_user_agent (gw_webkit.webkit_settings_set_user_agent)
++#define webkit_settings_set_zoom_text_only                                     \
++  (gw_webkit.webkit_settings_set_zoom_text_only)
++#define webkit_uri_request_get_http_headers                                    \
++  (gw_webkit.webkit_uri_request_get_http_headers)
++#define webkit_uri_request_get_http_method                                     \
++  (gw_webkit.webkit_uri_request_get_http_method)
++#define webkit_uri_request_get_uri (gw_webkit.webkit_uri_request_get_uri)
++#define webkit_uri_request_new (gw_webkit.webkit_uri_request_new)
++#define webkit_uri_response_get_http_headers                                   \
++  (gw_webkit.webkit_uri_response_get_http_headers)
++#define webkit_uri_response_get_mime_type                                      \
++  (gw_webkit.webkit_uri_response_get_mime_type)
++#define webkit_uri_response_get_status_code                                    \
++  (gw_webkit.webkit_uri_response_get_status_code)
++#define webkit_uri_response_get_uri (gw_webkit.webkit_uri_response_get_uri)
++#define webkit_user_content_manager_add_script                                 \
++  (gw_webkit.webkit_user_content_manager_add_script)
++#define webkit_user_content_manager_new (gw_webkit.webkit_user_content_manager_new)
++#define webkit_user_content_manager_register_script_message_handler            \
++  (gw_webkit.webkit_user_content_manager_register_script_message_handler)
++#define webkit_user_content_manager_remove_all_scripts                         \
++  (gw_webkit.webkit_user_content_manager_remove_all_scripts)
++#define webkit_user_content_manager_unregister_script_message_handler          \
++  (gw_webkit.webkit_user_content_manager_unregister_script_message_handler)
++#define webkit_user_media_permission_is_for_audio_device                       \
++  (gw_webkit.webkit_user_media_permission_is_for_audio_device)
++#define webkit_user_media_permission_is_for_video_device                       \
++  (gw_webkit.webkit_user_media_permission_is_for_video_device)
++#define webkit_user_media_permission_request_get_type                          \
++  (gw_webkit.webkit_user_media_permission_request_get_type)
++#define webkit_user_script_new (gw_webkit.webkit_user_script_new)
++#define webkit_user_script_unref (gw_webkit.webkit_user_script_unref)
++#define webkit_web_context_allow_tls_certificate_for_host                      \
++  (gw_webkit.webkit_web_context_allow_tls_certificate_for_host)
++#define webkit_web_context_clear_cache (gw_webkit.webkit_web_context_clear_cache)
++#define webkit_web_context_get_cookie_manager                                  \
++  (gw_webkit.webkit_web_context_get_cookie_manager)
++#define webkit_web_context_get_default (gw_webkit.webkit_web_context_get_default)
++#define webkit_web_context_get_website_data_manager                            \
++  (gw_webkit.webkit_web_context_get_website_data_manager)
++#define webkit_web_inspector_show (gw_webkit.webkit_web_inspector_show)
++#define webkit_web_resource_get_response                                       \
++  (gw_webkit.webkit_web_resource_get_response)
++#define webkit_web_resource_get_uri (gw_webkit.webkit_web_resource_get_uri)
++#define webkit_web_view_can_go_back (gw_webkit.webkit_web_view_can_go_back)
++#define webkit_web_view_can_go_forward (gw_webkit.webkit_web_view_can_go_forward)
++#define webkit_web_view_get_context (gw_webkit.webkit_web_view_get_context)
++#define webkit_web_view_get_estimated_load_progress                            \
++  (gw_webkit.webkit_web_view_get_estimated_load_progress)
++#define webkit_web_view_get_inspector (gw_webkit.webkit_web_view_get_inspector)
++#define webkit_web_view_get_main_resource                                      \
++  (gw_webkit.webkit_web_view_get_main_resource)
++#define webkit_web_view_get_settings (gw_webkit.webkit_web_view_get_settings)
++#define webkit_web_view_get_title (gw_webkit.webkit_web_view_get_title)
++#define webkit_web_view_get_type (gw_webkit.webkit_web_view_get_type)
++#define webkit_web_view_get_uri (gw_webkit.webkit_web_view_get_uri)
++#define webkit_web_view_go_back (gw_webkit.webkit_web_view_go_back)
++#define webkit_web_view_go_forward (gw_webkit.webkit_web_view_go_forward)
++#define webkit_web_view_load_bytes (gw_webkit.webkit_web_view_load_bytes)
++#define webkit_web_view_load_html (gw_webkit.webkit_web_view_load_html)
++#define webkit_web_view_load_request (gw_webkit.webkit_web_view_load_request)
++#define webkit_web_view_load_uri (gw_webkit.webkit_web_view_load_uri)
++#define webkit_web_view_new_with_user_content_manager                          \
++  (gw_webkit.webkit_web_view_new_with_user_content_manager)
++#define webkit_web_view_reload (gw_webkit.webkit_web_view_reload)
++#define webkit_web_view_set_background_color                                   \
++  (gw_webkit.webkit_web_view_set_background_color)
++#define webkit_web_view_set_zoom_level (gw_webkit.webkit_web_view_set_zoom_level)
++#define webkit_website_data_manager_clear                                      \
++  (gw_webkit.webkit_website_data_manager_clear)
++#define webkit_website_data_manager_clear_finish                               \
++  (gw_webkit.webkit_website_data_manager_clear_finish)
++#define webkit_website_data_manager_get_type                                   \
++  (gw_webkit.webkit_website_data_manager_get_type)
++#define webkit_website_policies_new_with_policies                              \
++  (gw_webkit.webkit_website_policies_new_with_policies)
++
++// Version-dependent calls, chosen by which symbols the loaded library has.
++
++inline gboolean gw_soup3() {
++  return gw_webkit.soup3_message_get_status != nullptr;
++}
++
++inline void webkit_web_view_evaluate_javascript_rt(
++    WebKitWebView *web_view, const gchar *script, gssize length,
++    const gchar *world_name, const gchar *source_uri,
++    GCancellable *cancellable, GAsyncReadyCallback callback,
++    gpointer user_data) {
++  if (gw_webkit.evaluate_javascript != nullptr) {
++    gw_webkit.evaluate_javascript(web_view, script, length, world_name,
++                                  source_uri, cancellable, callback,
++                                  user_data);
++    return;
++  }
++  gw_webkit.run_javascript(web_view, script, cancellable, callback, user_data);
++}
++
++inline JSCValue *webkit_web_view_evaluate_javascript_finish_rt(
++    WebKitWebView *web_view, GAsyncResult *result, GError **error) {
++  if (gw_webkit.evaluate_javascript_finish != nullptr) {
++    return gw_webkit.evaluate_javascript_finish(web_view, result, error);
++  }
++  WebKitJavascriptResult *js_result =
++      gw_webkit.run_javascript_finish(web_view, result, error);
++  if (js_result == nullptr) {
++    return nullptr;
++  }
++  JSCValue *value = JSC_VALUE(
++      g_object_ref(webkit_javascript_result_get_js_value(js_result)));
++  gw_webkit.javascript_result_unref(js_result);
++  return value;
++}
++
++#define webkit_web_view_evaluate_javascript webkit_web_view_evaluate_javascript_rt
++#define webkit_web_view_evaluate_javascript_finish                             \
++  webkit_web_view_evaluate_javascript_finish_rt
++
++inline SoupStatus soup_message_get_status(SoupMessage *message) {
++  if (gw_soup3()) {
++    return static_cast<SoupStatus>(gw_webkit.soup3_message_get_status(message));
++  }
++  return static_cast<SoupStatus>(message->status_code);
++}
++
++inline const gchar *soup_message_get_method(SoupMessage *message) {
++  return gw_soup3() ? gw_webkit.soup3_message_get_method(message)
++                    : message->method;
++}
++
++inline SoupMessageHeaders *soup_message_get_request_headers(
++    SoupMessage *message) {
++  return gw_soup3() ? gw_webkit.soup3_message_get_request_headers(message)
++                    : message->request_headers;
++}
++
++inline SoupMessageHeaders *soup_message_get_response_headers(
++    SoupMessage *message) {
++  return gw_soup3() ? gw_webkit.soup3_message_get_response_headers(message)
++                    : message->response_headers;
++}
++
++inline void soup_message_set_request_body_from_bytes(SoupMessage *message,
++                                                     const gchar *content_type,
++                                                     GBytes *bytes) {
++  if (gw_soup3()) {
++    gw_webkit.soup3_message_set_request_body_from_bytes(message, content_type,
++                                                        bytes);
++    return;
++  }
++  gsize size = 0;
++  gconstpointer data = g_bytes_get_data(bytes, &size);
++  gw_webkit.soup_message_set_request(message, content_type, SOUP_MEMORY_COPY,
++                                     static_cast<const char *>(data), size);
++}
++
++inline void webkit_runtime_soup2_queue_cb(SoupSession *, SoupMessage *message,
++                                          gpointer user_data) {
++  GTask *task = G_TASK(user_data);
++  if (SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code)) {
++    g_task_return_new_error(task, G_IO_ERROR, G_IO_ERROR_FAILED, "%s",
++                            message->reason_phrase != nullptr
++                                ? message->reason_phrase
++                                : "Transport error");
++  } else {
++    SoupBuffer *buffer =
++        gw_webkit.soup_message_body_flatten(message->response_body);
++    g_task_return_pointer(task, gw_webkit.soup_buffer_get_as_bytes(buffer),
++                          reinterpret_cast<GDestroyNotify>(g_bytes_unref));
++    gw_webkit.soup_buffer_free(buffer);
++  }
++  g_object_unref(task);
++}
++
++inline void soup_session_send_and_read_async(SoupSession *session,
++                                             SoupMessage *message,
++                                             int io_priority,
++                                             GCancellable *cancellable,
++                                             GAsyncReadyCallback callback,
++                                             gpointer user_data) {
++  if (gw_soup3()) {
++    gw_webkit.soup3_session_send_and_read_async(
++        session, message, io_priority, cancellable, callback, user_data);
++    return;
++  }
++  GTask *task = g_task_new(session, cancellable, callback, user_data);
++  // soup_session_queue_message() takes ownership of one reference.
++  gw_webkit.soup_session_queue_message(
++      session, SOUP_MESSAGE(g_object_ref(message)),
++      webkit_runtime_soup2_queue_cb, task);
++}
++
++inline GBytes *soup_session_send_and_read_finish(SoupSession *session,
++                                                 GAsyncResult *result,
++                                                 GError **error) {
++  if (gw_soup3()) {
++    return gw_webkit.soup3_session_send_and_read_finish(session, result,
++                                                        error);
++  }
++  return static_cast<GBytes *>(
++      g_task_propagate_pointer(G_TASK(result), error));
++}
++
++inline gchar *webkit_compat_uri_host(const gchar *uri_string) {
++  gchar *host = nullptr;
++  if (gw_webkit.g_uri_parse != nullptr) {
++    gpointer uri = gw_webkit.g_uri_parse(uri_string, 0, nullptr);
++    if (uri != nullptr) {
++      host = g_strdup(gw_webkit.g_uri_get_host(uri));
++      gw_webkit.g_uri_unref(uri);
++    }
++    return host;
++  }
++  SoupURI *uri = gw_webkit.soup_uri_new(uri_string);
++  if (uri != nullptr) {
++    host = g_strdup(gw_webkit.soup_uri_get_host(uri));
++    gw_webkit.soup_uri_free(uri);
++  }
++  return host;
++}
++#endif // GW_WEBKIT_NO_REDIRECT
++
++#endif // WEBVIEW_ALL_LINUX_WEBKIT_RUNTIME_H_

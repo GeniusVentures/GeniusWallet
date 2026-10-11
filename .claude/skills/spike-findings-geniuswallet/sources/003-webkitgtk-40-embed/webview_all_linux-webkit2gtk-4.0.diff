@@ -1,0 +1,202 @@
+diff --git a/webview_all_linux/linux/CMakeLists.txt b/webview_all_linux/linux/CMakeLists.txt
+index 46af8f4..d958389 100644
+--- a/webview_all_linux/linux/CMakeLists.txt
++++ b/webview_all_linux/linux/CMakeLists.txt
+@@ -7,7 +7,9 @@ cmake_policy(VERSION 3.10...3.24)
+ set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
+ 
+ find_package(PkgConfig REQUIRED)
+-pkg_check_modules(WEBKIT REQUIRED IMPORTED_TARGET webkit2gtk-4.1)
++# 4.1 (libsoup3) first; fall back to 4.0 (libsoup2) for older distros such as
++# Ubuntu 20.04 and RHEL/AlmaLinux 8 that only ship the 4.0 API.
++pkg_search_module(WEBKIT REQUIRED IMPORTED_TARGET webkit2gtk-4.1 webkit2gtk-4.0)
+ 
+ add_library(${PLUGIN_NAME} SHARED
+   "src/common/method_channel_utils.cc"
+diff --git a/webview_all_linux/linux/src/webview/linux_webview.cc b/webview_all_linux/linux/src/webview/linux_webview.cc
+index 5c134eb..3dff0e2 100644
+--- a/webview_all_linux/linux/src/webview/linux_webview.cc
++++ b/webview_all_linux/linux/src/webview/linux_webview.cc
+@@ -1,6 +1,7 @@
+ #include "common/method_channel_utils.h"
+ #include "plugin/webview_all_linux_plugin_private.h"
+ #include "webview/download_policy.h"
++#include "webview/webkit_compat.h"
+ #include "webview/webview_internal.h"
+ 
+ #include <libsoup/soup.h>
+@@ -658,14 +659,8 @@ static gboolean load_failed_with_tls_errors_cb(WebKitWebView *widget,
+     return FALSE;
+   }
+ 
+-  gchar *host = nullptr;
+-  if (failing_uri != nullptr) {
+-    GUri *uri = g_uri_parse(failing_uri, G_URI_FLAGS_NONE, nullptr);
+-    if (uri != nullptr) {
+-      host = g_strdup(g_uri_get_host(uri));
+-      g_uri_unref(uri);
+-    }
+-  }
++  gchar *host = failing_uri != nullptr ? webkit_compat_uri_host(failing_uri)
++                                       : nullptr;
+ 
+   PendingTlsError *pending = g_new0(PendingTlsError, 1);
+   pending->certificate = certificate != nullptr
+@@ -774,6 +769,11 @@ LinuxWebView *create_linux_webview(WebviewAllLinuxPlugin *self) {
+   webview->web_view = WEBKIT_WEB_VIEW(
+       webkit_web_view_new_with_user_content_manager(webview->content_manager));
+   g_object_ref_sink(webview->web_view);
++  // WebKitGTK >= 2.40 builds getUserMedia in but leaves it off by default;
++  // without this navigator.mediaDevices is undefined. 2.38 lacks it entirely.
++  // Access stays gated by the Dart onPermissionRequest callback.
++  webkit_settings_set_enable_media_stream(
++      webkit_web_view_get_settings(webview->web_view), TRUE);
+   g_object_set_data(G_OBJECT(webview->web_view), kLinuxWebViewInstanceKey,
+                     webview);
+   webview->pending_nav_decisions =
+diff --git a/webview_all_linux/linux/src/webview/webkit_compat.h b/webview_all_linux/linux/src/webview/webkit_compat.h
+new file mode 100644
+index 0000000..3c31e7a
+--- /dev/null
++++ b/webview_all_linux/linux/src/webview/webkit_compat.h
+@@ -0,0 +1,119 @@
++#ifndef WEBVIEW_ALL_LINUX_WEBKIT_COMPAT_H_
++#define WEBVIEW_ALL_LINUX_WEBKIT_COMPAT_H_
++
++// Shims that let the plugin build against webkit2gtk-4.0 (WebKitGTK < 2.40,
++// libsoup 2.x, GLib < 2.66), as shipped by Ubuntu 20.04 and RHEL 8. Each shim
++// compiles out when the newer API is present.
++
++#include <libsoup/soup.h>
++#include <webkit2/webkit2.h>
++
++#if !WEBKIT_CHECK_VERSION(2, 40, 0)
++inline void webkit_web_view_evaluate_javascript(
++    WebKitWebView *web_view, const gchar *script, gssize, const gchar *,
++    const gchar *, GCancellable *cancellable, GAsyncReadyCallback callback,
++    gpointer user_data) {
++  webkit_web_view_run_javascript(web_view, script, cancellable, callback,
++                                 user_data);
++}
++
++inline JSCValue *webkit_web_view_evaluate_javascript_finish(
++    WebKitWebView *web_view, GAsyncResult *result, GError **error) {
++  WebKitJavascriptResult *js_result =
++      webkit_web_view_run_javascript_finish(web_view, result, error);
++  if (js_result == nullptr) {
++    return nullptr;
++  }
++  JSCValue *value = JSC_VALUE(
++      g_object_ref(webkit_javascript_result_get_js_value(js_result)));
++  webkit_javascript_result_unref(js_result);
++  return value;
++}
++#endif
++
++#if !SOUP_CHECK_VERSION(3, 0, 0)
++inline SoupStatus soup_message_get_status(SoupMessage *message) {
++  return static_cast<SoupStatus>(message->status_code);
++}
++
++inline const gchar *soup_message_get_method(SoupMessage *message) {
++  return message->method;
++}
++
++inline SoupMessageHeaders *soup_message_get_request_headers(
++    SoupMessage *message) {
++  return message->request_headers;
++}
++
++inline SoupMessageHeaders *soup_message_get_response_headers(
++    SoupMessage *message) {
++  return message->response_headers;
++}
++
++inline void soup_message_set_request_body_from_bytes(SoupMessage *message,
++                                                     const gchar *content_type,
++                                                     GBytes *bytes) {
++  gsize size = 0;
++  gconstpointer data = g_bytes_get_data(bytes, &size);
++  soup_message_set_request(message, content_type, SOUP_MEMORY_COPY,
++                           static_cast<const char *>(data), size);
++}
++
++inline void webkit_compat_queue_message_cb(SoupSession *, SoupMessage *message,
++                                           gpointer user_data) {
++  GTask *task = G_TASK(user_data);
++  if (SOUP_STATUS_IS_TRANSPORT_ERROR(message->status_code)) {
++    g_task_return_new_error(task, G_IO_ERROR, G_IO_ERROR_FAILED, "%s",
++                            message->reason_phrase != nullptr
++                                ? message->reason_phrase
++                                : "Transport error");
++  } else {
++    SoupBuffer *buffer = soup_message_body_flatten(message->response_body);
++    g_task_return_pointer(task, soup_buffer_get_as_bytes(buffer),
++                          reinterpret_cast<GDestroyNotify>(g_bytes_unref));
++    soup_buffer_free(buffer);
++  }
++  g_object_unref(task);
++}
++
++inline void soup_session_send_and_read_async(SoupSession *session,
++                                             SoupMessage *message, int,
++                                             GCancellable *cancellable,
++                                             GAsyncReadyCallback callback,
++                                             gpointer user_data) {
++  GTask *task = g_task_new(session, cancellable, callback, user_data);
++  // soup_session_queue_message() takes ownership of one reference.
++  soup_session_queue_message(session, SOUP_MESSAGE(g_object_ref(message)),
++                             webkit_compat_queue_message_cb, task);
++}
++
++inline GBytes *soup_session_send_and_read_finish(SoupSession *,
++                                                 GAsyncResult *result,
++                                                 GError **error) {
++  return static_cast<GBytes *>(
++      g_task_propagate_pointer(G_TASK(result), error));
++}
++#endif
++
++// GUri arrived in GLib 2.66; older GLib always pairs with libsoup 2.
++inline gchar *webkit_compat_uri_host(const gchar *uri_string) {
++#if GLIB_CHECK_VERSION(2, 66, 0)
++  GUri *uri = g_uri_parse(uri_string, G_URI_FLAGS_NONE, nullptr);
++  if (uri == nullptr) {
++    return nullptr;
++  }
++  gchar *host = g_strdup(g_uri_get_host(uri));
++  g_uri_unref(uri);
++  return host;
++#else
++  SoupURI *uri = soup_uri_new(uri_string);
++  if (uri == nullptr) {
++    return nullptr;
++  }
++  gchar *host = g_strdup(soup_uri_get_host(uri));
++  soup_uri_free(uri);
++  return host;
++#endif
++}
++
++#endif // WEBVIEW_ALL_LINUX_WEBKIT_COMPAT_H_
+diff --git a/webview_all_linux/linux/src/webview/webview_javascript.cc b/webview_all_linux/linux/src/webview/webview_javascript.cc
+index 64de6d5..de2c609 100644
+--- a/webview_all_linux/linux/src/webview/webview_javascript.cc
++++ b/webview_all_linux/linux/src/webview/webview_javascript.cc
+@@ -1,4 +1,5 @@
+ #include "common/method_channel_utils.h"
++#include "webview/webkit_compat.h"
+ #include "webview/webview_internal.h"
+ 
+ #include <cstring>
+diff --git a/webview_all_linux/linux/src/webview/webview_method_handler.cc b/webview_all_linux/linux/src/webview/webview_method_handler.cc
+index f6fe4a1..8878481 100644
+--- a/webview_all_linux/linux/src/webview/webview_method_handler.cc
++++ b/webview_all_linux/linux/src/webview/webview_method_handler.cc
+@@ -1,5 +1,6 @@
+ #include "common/method_channel_utils.h"
+ #include "webview/download_policy.h"
++#include "webview/webkit_compat.h"
+ #include "webview/webview_internal.h"
+ 
+ #include <libsoup/soup.h>
