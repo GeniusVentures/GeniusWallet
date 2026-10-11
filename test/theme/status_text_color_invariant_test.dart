@@ -31,6 +31,7 @@ const _census = <String, ({int count, String reason})>{
   'lib/dev/design_gallery_screen.dart': (count: 2, reason: 'swatch'),
   'lib/web/web_view_windows.dart': (count: 1, reason: 'lock icon'),
   'lib/web/web_view_mobile.dart': (count: 1, reason: 'lock icon'),
+  'lib/web/web_view_linux.dart': (count: 1, reason: 'lock icon'),
   'lib/components/custom_future_builder.dart': (count: 1, reason: 'icon'),
   'lib/components/feedback/gw_error_state.dart': (
     count: 4,
@@ -156,8 +157,8 @@ void main() {
 
     test('the census sums to the audited total', () {
       final total = _census.values.fold<int>(0, (sum, v) => sum + v.count);
-      expect(_census.length, 25);
-      expect(total, 50);
+      expect(_census.length, 26);
+      expect(total, 51);
     });
   });
 }
