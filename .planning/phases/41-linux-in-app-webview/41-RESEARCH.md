@@ -326,7 +326,17 @@ Distribution is tarballs only (`Linux-x86_64-Release.tar.gz`, `Linux-aarch64-Rel
 | A7 | Startup `dlopen` cost is small enough to await before `runApp` | Open Q 4 | Slower first frame; make probe lazy |
 | A8 | TLS errors never proceed by default: with no Dart handler the native callback returns FALSE (WebKit error page) or the pending request times out | Security | Wallet pages could load with bad certs; read the timeout branch before finalising |
 
-## Open Questions (planner must pick defaults)
+## Open Questions (RESOLVED)
+
+Resolved 2026-10-11 by 41-CONTEXT.md and the plan defaults:
+- Q1 RESOLVED: vendored in `third_party/`, pristine import then patch as separate commits, no fork (D-06; 41-01).
+- Q2 RESOLVED: same dialog as Windows with only the rounded clip removed; square bottom corners accepted, no inset (D-02; 41-04).
+- Q3 RESOLVED: no new route; the Linux browser honours `includeBackButton` as Windows does; nothing changes on other platforms (D-03; 41-03).
+- Q4 RESOLVED: awaited at startup and measured once in 41-01 Task 2; above 500 ms is reported as a finding, lazy probing is not built.
+- Q5 RESOLVED: toasts out of scope; only dialogs, bottom sheets and popup menus hide the view (D-04; 41-02, 41-04).
+- Q6 RESOLVED: ship; the real-camera walk is manual-only in 41-VALIDATION.md; on 2.38 the checkout menu's "Open in browser" remains (41-04, T-41-18).
+
+Original questions, kept for the record:
 
 1. **Fork location.** Default: vendor in `third_party/` (two commits: pristine, patch). Fork + SHA pin only if Braian wants it shared.
 2. **Banxa on Linux: desktop dialog vs full screen.** Default: keep the dialog, `Clip.none`, web area inset by the card radius. Fallback if the inset looks wrong or menus over it are poor: Linux uses the phone layout (full screen, `modal: false`), which has no rounded card at all. Needs a visual decision at the walk.

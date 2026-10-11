@@ -227,6 +227,22 @@ Added 2026-10-07 with the Phase 40 context. The mint lands in the earning accoun
 - [ ] **BRDG-07**: The gate is re-read at the moment of the tap, and the stale `isGnusWalletConnected` route gate is removed
 - [ ] **BRDG-08**: BridgeScreen re-checks the gate before calling `bridgeOut` and refuses with the same reason
 
+## Phase 41 Requirements — Linux in-app webview
+
+Added 2026-10-11 with the Phase 41 plans. Scope (41-CONTEXT): Linux behaves like Windows for web content. Toasts over a page, a new page route, and any change on Windows, macOS, Android or iOS are out.
+
+### Linux web (LWV)
+
+- [ ] **LWV-01**: One Linux bundle runs on every distro: WebKitGTK is loaded at runtime (4.1, else 4.0) and neither the executable nor the plugin links WebKit
+- [ ] **LWV-02**: Without WebKitGTK the app still launches, the Web tab is hidden, and links and Banxa checkout open in the system browser as they do today
+- [ ] **LWV-03**: Every external link goes through `launchWebSite`; the checkout browser fallback and the Banxa support link stay the only other `launchUrl` calls
+- [ ] **LWV-04**: On Linux, articles, legal pages and explorer links open in the in-app browser with the close control Windows shows (`includeBackButton` honoured); nothing changes on other platforms
+- [ ] **LWV-05**: The Web tab is shown and works on Linux when WebKitGTK loaded
+- [ ] **LWV-06**: Banxa checkout embeds on Linux in the same desktop dialog as Windows, with the shared navigation allow-list, return-URL match and one camera/microphone permission rule; no rounded clip sits above the view
+- [ ] **LWV-07**: The Linux web view steps aside while a dialog, bottom sheet or popup menu is above it, and comes back without reloading
+- [ ] **LWV-08**: After a page had keyboard focus, clicking a Flutter control gives the keyboard back to Flutter
+- [ ] **LWV-09**: CI installs `webkit2gtk3-devel` on both Linux rows and fails a build that links WebKit; INSTALL.md says WebKitGTK is recommended, not required
+
 ## Beyond v2.0 (deferred)
 
 - **FEE-01** *(deferred 2026-09-18 — business, not engineering)*: Squid enables an integrator fee on
@@ -375,8 +391,23 @@ Added 2026-10-07 with the Phase 40 context. The mint lands in the earning accoun
 | BRDG-07 | Phase 40 — Always-available GNUS bridge | Pending |
 | BRDG-08 | Phase 40 — Always-available GNUS bridge | Pending |
 
+### Phase 41 — Linux in-app webview
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| LWV-01 | Phase 41 — Linux in-app webview (41-01) | Pending |
+| LWV-02 | Phase 41 — Linux in-app webview (41-01, 41-03, 41-04) | Pending |
+| LWV-03 | Phase 41 — Linux in-app webview (41-02) | Pending |
+| LWV-04 | Phase 41 — Linux in-app webview (41-03) | Pending |
+| LWV-05 | Phase 41 — Linux in-app webview (41-03) | Pending |
+| LWV-06 | Phase 41 — Linux in-app webview (41-04) | Pending |
+| LWV-07 | Phase 41 — Linux in-app webview (41-02, 41-04) | Pending |
+| LWV-08 | Phase 41 — Linux in-app webview (41-02) | Pending |
+| LWV-09 | Phase 41 — Linux in-app webview (41-01) | Pending |
+
 **Coverage:**
 
+- Phase 41: **9 LWV** requirements, all mapped to Phase 41
 - v3.0 requirements: **22 total** (6 SWT + 3 LINK + 9 CHILD + 2 PEND + 2 VER), plus **14 BUY** added with Phase 39 (all mapped to Phase 39) and **8 BRDG** added with Phase 40 (all mapped to Phase 40)
 - Mapped to phases: **22/22 ✓** — every v3.0 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases: 34-37 (4 phases), continuing numbering from v1.0/v2.0 (last phase: 33)
