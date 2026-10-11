@@ -6,6 +6,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/web/web_chrome_helpers.dart';
+import 'package:genius_wallet/web/web_overlay_gate.dart';
 import 'package:webview_all/webview_all.dart';
 import 'package:webview_all_linux/webview_all_linux.dart';
 
@@ -363,7 +364,9 @@ class WebViewLinuxState extends State<WebViewLinux> {
   }
 
   Widget _buildWebView(int index) {
-    return WebViewWidget(controller: _controllers[index]);
+    return WebOverlayGate(
+      child: WebViewWidget(controller: _controllers[index]),
+    );
   }
 
   @override
