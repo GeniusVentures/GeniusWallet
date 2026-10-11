@@ -293,9 +293,11 @@ jobs:
           # Ubuntu runners (used by the Android builds, which run without a
           # container) still need apt; containerized-path lld symlink only
           # exists on apt hosts (the Alma image already provides mold).
+          # webkit2gtk3-devel is headers only: the Linux web view plugin loads
+          # WebKitGTK at runtime and must never link it.
           if command -v dnf >/dev/null 2>&1; then
-            if ! rpm -q ninja-build vulkan-loader-devel libsecret-devel libzstd-devel gtk3-devel jq >/dev/null 2>&1; then
-              sudo dnf install -y ninja-build vulkan-loader-devel libsecret-devel libzstd-devel gtk3-devel jq
+            if ! rpm -q ninja-build vulkan-loader-devel libsecret-devel libzstd-devel gtk3-devel webkit2gtk3-devel jq >/dev/null 2>&1; then
+              sudo dnf install -y ninja-build vulkan-loader-devel libsecret-devel libzstd-devel gtk3-devel webkit2gtk3-devel jq
             fi
           else
             sudo apt update
@@ -804,6 +806,22 @@ jobs:
           for sym in GeniusSDKInit GeniusSDKGetBalance TWStringCreateWithUTF8Bytes; do
             grep -qx "$sym" <<<"$exports" || { echo "::error::FFI symbol $sym is no longer exported"; exit 1; }
           done
+
+      - name: Check the Linux bundle loads WebKit only at runtime
+        if: matrix.target == 'Linux'
+        shell: bash
+        run: |
+          b=$(ls -d build/linux/*/release/bundle | head -1)
+          plugin="$b/lib/libwebview_all_linux_plugin.so"
+          [ -f "$plugin" ] || { echo "::error::$plugin is missing"; exit 1; }
+          for f in "$b/genius_wallet" "$plugin"; do
+            if readelf -d "$f" | grep -Ei 'NEEDED.*(webkit|soup|javascriptcore)'; then
+              echo "::error::$f links WebKit at build time"; exit 1
+            fi
+          done
+          n=$(nm -D --undefined-only "$plugin" | awk '{print $2}' | grep -cE '^(webkit_|soup_|jsc_)' || true)
+          echo "$plugin: $n undefined webkit_/soup_/jsc_ symbols"
+          [ "$n" -eq 0 ] || { echo "::error::$n undefined WebKit symbols in the plugin"; exit 1; }
 
       - name: Build Android App Bundle (AAB)
         if: ${{ matrix.target == 'Android' && matrix.build-type == 'Release' }}
