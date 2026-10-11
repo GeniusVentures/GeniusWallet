@@ -1711,6 +1711,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  webview_all:
+    dependency: "direct main"
+    description:
+      path: "third_party/webview_all/webview_all"
+      relative: true
+    source: path
+    version: "1.4.4"
+  webview_all_linux:
+    dependency: "direct main"
+    description:
+      path: "third_party/webview_all/webview_all_linux"
+      relative: true
+    source: path
+    version: "1.4.4"
   webview_flutter:
     dependency: "direct main"
     description:
@@ -1743,6 +1757,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.25.1"
+  webview_platform_interface:
+    dependency: "direct main"
+    description:
+      path: "third_party/webview_all/webview_platform_interface"
+      relative: true
+    source: path
+    version: "1.4.4"
   webview_windows:
     dependency: "direct main"
     description:

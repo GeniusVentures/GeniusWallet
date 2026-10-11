@@ -38,6 +38,7 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/utils/secret_clipboard.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -84,6 +85,7 @@ Future<void> _attachSdkLogsToHint(Hint hint) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await probeLinuxInAppWeb();
 
   // Read on Windows and Linux only. The default, ./.sentry-native, is the
   // install folder there, which a read-only install under /opt cannot write.
