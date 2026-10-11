@@ -682,6 +682,7 @@ Open decisions:
 
 ### Roadmap Evolution
 
+- Phase 41 added (2026-10-11): Linux in-app webview, from spikes 003-007
 - Phase 40 added (2026-09-30): Always-available GNUS bridge
 
 - Phase 39 added (2026-09-30): Banxa integration hardening

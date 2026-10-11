@@ -43,7 +43,7 @@ Show external web content (Banxa checkout, Crypto News, the Web browser page, le
 
 - One Linux bundle for every distro: no build-time WebKit link; load libwebkit2gtk-4.1, else 4.0, at runtime; no WebKit means the app still runs and links open in the system browser.
 - Call isAvailable() before creating a web view; fall back to url_launcher and say so.
-- Route every external link through launchWebSite (13 call sites today, incl. Privacy Policy/Terms, news, explorer links); Banxa's checkout fallback and support link stay deliberate exceptions.
+- Route every external link through launchWebSite (9 call sites today, incl. Privacy Policy/Terms, news, explorer links); Banxa's checkout fallback and support link stay deliberate exceptions.
 - Nothing may draw over a web view and no rounded clip/transform may sit above one: hide the view while an overlay/route is above it.
 - Plugin must hand keyboard focus back to Flutter.
 - CI image needs webkit2gtk3-devel (headers only).
