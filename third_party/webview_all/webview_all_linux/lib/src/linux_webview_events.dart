@@ -22,6 +22,9 @@ extension LinuxWebViewControllerEventHandling on LinuxWebViewController {
         );
         final String url = '${event['url'] ?? ''}';
         _currentUrl = url;
+        // WebKit sends no titleChanged for an untitled page, so the previous
+        // page's title would otherwise outlive the navigation.
+        _title = null;
         _navigationDelegate?.handlePageStarted(url);
         break;
       case 'pageFinished':
