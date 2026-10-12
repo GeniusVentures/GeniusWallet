@@ -696,7 +696,7 @@ class _AccountRowTile extends StatelessWidget {
             )
           : null,
       subtitle: [
-        if (!title.startsWith('0x'))
+        if (!WalletUtils.isAddressLikeName(title))
           WalletUtils.getAddressForDisplay(addressText),
         if (isStartAccount) 'Default account',
       ].join(' · '),
