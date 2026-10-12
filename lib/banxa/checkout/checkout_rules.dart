@@ -36,6 +36,24 @@ bool isBanxaReturn(Uri? uri, {required bool isMainFrame}) {
       uri.path == expected.path;
 }
 
+enum LinuxLoadFailure { returned, loadError, ignore }
+
+/// WebKitGTK names no frame on a navigation request, but it reports a failed
+/// load for the main frame only, and it cannot open the custom-scheme return
+/// link, so that failure is how a main-frame return shows up.
+LinuxLoadFailure classifyLinuxLoadFailure({
+  required bool? isForMainFrame,
+  required String? url,
+}) {
+  if (isForMainFrame != true) {
+    return LinuxLoadFailure.ignore;
+  }
+  final uri = url == null ? null : Uri.tryParse(url);
+  return isBanxaReturn(uri, isMainFrame: true)
+      ? LinuxLoadFailure.returned
+      : LinuxLoadFailure.loadError;
+}
+
 /// Card entry and ID capture share this view, so cleartext http, app links and
 /// script URLs are refused.
 bool allowsCheckoutNavigation(Uri? uri) {
