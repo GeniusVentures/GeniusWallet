@@ -20,7 +20,7 @@ abstract class GeniusBreakpoints {
   }
 
   static bool useDesktopOverlay(BuildContext context) {
-    return MediaQuery.sizeOf(context).width > large && !isMobileApp();
+    return MediaQuery.sizeOf(context).width >= large && !isMobileApp();
   }
 
   static bool isMobileApp() =>
@@ -29,7 +29,7 @@ abstract class GeniusBreakpoints {
   /// Navbar→page-title gap. Shared by the seven pages that mount a
   /// `GWPageHeader` so their titles land on one line; keep it here, not as a
   /// ternary per call site.
-  static double pageTitleGap(BuildContext context) => useDesktopLayout(context)
+  static double pageTitleGap(BuildContext context) => useDesktopOverlay(context)
       ? GeniusWalletConsts.space32
       : GeniusWalletConsts.space12;
 
