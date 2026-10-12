@@ -4,6 +4,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/components/overlay/more_sheet.dart';
+import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -469,7 +470,6 @@ class WalletPill extends StatelessWidget {
                   ? WalletIdentityAvatar(
                       wallet: wallet,
                       networkIconPath: network?.iconPath,
-                      networkIsTestnet: network?.testnet ?? false,
                     )
                   : const _NoWalletAvatar(),
             ),
@@ -509,7 +509,6 @@ class WalletIdentityAvatar extends StatelessWidget {
     super.key,
     required this.wallet,
     this.networkIconPath,
-    this.networkIsTestnet = false,
   });
 
   static const double size = 32;
@@ -518,9 +517,6 @@ class WalletIdentityAvatar extends StatelessWidget {
 
   /// The chain badge at bottom-right; omitted when null.
   final String? networkIconPath;
-
-  /// Testnet artwork is white, so it is tinted to show on a light bar.
-  final bool networkIsTestnet;
 
   @override
   Widget build(BuildContext context) {
@@ -597,7 +593,7 @@ class WalletIdentityAvatar extends StatelessWidget {
                   child: Image.asset(
                     networkIconPath!,
                     fit: BoxFit.contain,
-                    color: networkIsTestnet ? gw.textPrimary : null,
+                    color: networkIconTint(gw, networkIconPath),
                     excludeFromSemantics: true,
                     errorBuilder: (_, _, _) => const SizedBox.shrink(),
                   ),

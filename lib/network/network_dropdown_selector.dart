@@ -8,6 +8,7 @@ import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
+import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -128,9 +129,7 @@ class NetworkSelectField extends StatelessWidget {
                       network?.iconPath ?? "",
                       width: 20,
                       height: 20,
-                      color: (network?.testnet ?? false)
-                          ? context.gw.textPrimary
-                          : null,
+                      color: networkIconTint(context.gw, network?.iconPath),
                       errorBuilder: (context, error, stackTrace) =>
                           const SizedBox(width: 20, height: 20),
                     ),
@@ -303,7 +302,7 @@ class _NetworkSection extends StatelessWidget {
               child: Image.asset(
                 network.iconPath ?? "",
                 fit: BoxFit.contain,
-                color: network.testnet ? context.gw.textPrimary : null,
+                color: networkIconTint(context.gw, network.iconPath),
                 errorBuilder: (context, error, stackTrace) =>
                     const SizedBox(width: 36, height: 36),
               ),
@@ -392,7 +391,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
               selectedNetwork.iconPath ?? "",
               width: 20,
               height: 20,
-              color: selectedNetwork.testnet ? context.gw.textPrimary : null,
+              color: networkIconTint(context.gw, selectedNetwork.iconPath),
               errorBuilder: (context, error, stackTrace) =>
                   const SizedBox(width: 20, height: 20),
             ),
