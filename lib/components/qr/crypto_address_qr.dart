@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -60,6 +61,7 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
     // throws "Unable to load asset" on every build, so blank means no icon.
     final iconPath = widget.iconPath?.trim() ?? '';
     final hasIcon = iconPath.isNotEmpty;
+    final whiteIcon = isWhiteNetworkIcon(iconPath);
 
     // The amber this file worked out -- statusWarning is a FILL token and
     // measures ~1.6:1 on white -- now lives in `GWWarningNote`, along with the
@@ -80,7 +82,17 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
                   // §4.4 always-light chip: the coin logo needs a fixed light
                   // backing regardless of appearance (NOT an appearance token).
                   backgroundColor: Colors.white,
-                  backgroundImage: AssetImage(iconPath),
+                  backgroundImage: whiteIcon ? null : AssetImage(iconPath),
+                  // A white glyph needs dark ink on this fixed-white chip.
+                  child: whiteIcon
+                      ? Image.asset(
+                          iconPath,
+                          width: 16,
+                          height: 16,
+                          // raw-color-ok: fixed ink on an always-white chip
+                          color: Colors.black,
+                        )
+                      : null,
                 ),
                 const SizedBox(width: GeniusWalletConsts.space4),
               ],
@@ -108,7 +120,9 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
           // appearance token.
           backgroundColor: Colors.white,
           // `null` is the API's own way to say "no embedded logo".
-          embeddedImage: hasIcon ? AssetImage(iconPath) : null,
+          // A white glyph over the always-white QR background is invisible
+          // and only blanks modules, so it is left out.
+          embeddedImage: hasIcon && !whiteIcon ? AssetImage(iconPath) : null,
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(36, 36)),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
