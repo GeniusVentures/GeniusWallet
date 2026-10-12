@@ -312,6 +312,8 @@ Run the following script from the root directory:
 ./build.sh
 ```
 
+Building needs the WebKitGTK 4.0 development headers (`libwebkit2gtk-4.0-dev` on Ubuntu 22.04 and older, `webkit2gtk3-devel` on AlmaLinux 8). The app does not link WebKit; it loads 4.1 or 4.0 at run time. Ubuntu 24.04 and newer ship only 4.1, so build there inside the CI image `ghcr.io/geniusventures/almalinux-8` with `webkit2gtk3-devel` installed, the same way CI does.
+
 ### ▶️ Run on Linux
 
 ```bash
