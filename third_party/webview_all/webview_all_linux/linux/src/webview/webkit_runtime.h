@@ -1,3 +1,7 @@
+/**
+ * @file webkit_runtime.h
+ * @brief Runtime-loaded WebKitGTK, libsoup and JavaScriptCore symbol table.
+ */
 #ifndef WEBVIEW_ALL_LINUX_WEBKIT_RUNTIME_H_
 #define WEBVIEW_ALL_LINUX_WEBKIT_RUNTIME_H_
 

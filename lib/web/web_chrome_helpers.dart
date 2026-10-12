@@ -46,10 +46,9 @@ bool isOpenableWebUrl(String? url) {
   return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
 }
 
-/// The active tab after tab [closed] is removed from a strip that now holds
-/// [newLength] tabs. A tab closed before the active one shifts it left; closing
-/// the active tab hands focus to the tab that slid into its place, or to the
-/// last tab when it was the last.
+/// The active tab after tab [closed] is removed, leaving [newLength] tabs: an
+/// earlier close shifts it left, and closing the active tab picks the tab that
+/// slid into its place, clamped to the last.
 int tabIndexAfterClose({
   required int active,
   required int closed,

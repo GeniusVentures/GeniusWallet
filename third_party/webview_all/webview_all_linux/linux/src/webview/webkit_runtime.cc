@@ -1,3 +1,7 @@
+/**
+ * @file webkit_runtime.cc
+ * @brief Loads WebKitGTK 4.1 or 4.0 with dlopen() and resolves its symbols.
+ */
 #define GW_WEBKIT_NO_REDIRECT
 #include "webview/webkit_runtime.h"
 
