@@ -625,31 +625,38 @@ class _TabChip extends StatelessWidget {
                     ),
                     ValueListenableBuilder<int?>(
                       valueListenable: hovered,
+                      // The active tab always offers close, so keyboard,
+                      // touch and screen-reader users can close a tab too.
                       builder: (context, hoveredIndex, _) {
-                        if (hoveredIndex != index) {
+                        if (hoveredIndex != index && !active) {
                           return const SizedBox.shrink();
                         }
                         return Padding(
                           padding: const EdgeInsets.only(
                             left: GeniusWalletConsts.space2,
                           ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(
-                              GeniusWalletConsts.radiusXs,
-                            ),
-                            onTap: () => onClose(index),
-                            child: Container(
-                              padding: const EdgeInsets.all(1),
-                              decoration: BoxDecoration(
-                                color: context.gw.surfaceElevated,
-                                borderRadius: BorderRadius.circular(
-                                  GeniusWalletConsts.radiusXs,
-                                ),
+                          child: Semantics(
+                            button: true,
+                            label: 'Close tab',
+                            excludeSemantics: true,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(
+                                GeniusWalletConsts.radiusXs,
                               ),
-                              child: Icon(
-                                Icons.close,
-                                size: 17,
-                                color: context.gw.textPrimary,
+                              onTap: () => onClose(index),
+                              child: Container(
+                                padding: const EdgeInsets.all(1),
+                                decoration: BoxDecoration(
+                                  color: context.gw.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(
+                                    GeniusWalletConsts.radiusXs,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.close,
+                                  size: 17,
+                                  color: context.gw.textPrimary,
+                                ),
                               ),
                             ),
                           ),
