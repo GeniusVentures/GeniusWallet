@@ -12,6 +12,7 @@ import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/settings/developer_settings_cubit.dart';
@@ -167,13 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Screen wrapper choice: GWScreen (not AppScreenView) — see SUMMARY for
-    // rationale (this screen owns a Scaffold+AppBar today, matching the
-    // sibling /logs route's SubmitLogsScreen pattern; AppScreenView has no
-    // appBar slot at all, so picking it would drop the "Settings" title —
-    // a structural change, not a re-skin).
     return GWScreen(
-      appBar: AppBar(title: const Text('Settings')),
       padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       maxContentWidth: GeniusBreakpoints.medium,
       child: ValueListenableBuilder<bool>(
@@ -184,6 +179,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: GeniusWalletConsts.space12,
                 children: [
+                  const GWPageHeader(title: 'Settings'),
                   _buildSectionCard(
                     title: 'Appearance',
                     icon: Icons.brightness_6,
@@ -262,32 +258,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : 'err'; // default if unknown
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space2),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              entry.key,
-              style: const TextStyle(
-                fontFamily: GeniusWalletTypography.monoFamily,
-              ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final label = Text(
+            entry.key,
+            style: const TextStyle(
+              fontFamily: GeniusWalletTypography.monoFamily,
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: GWSelect<String>(
-              value: currentLevel,
-              items: _spdlogLevels
-                  .map((l) => GWSelectItem(value: l, label: l))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) {
-                  setState(() => _loggerLevels[entry.key] = v);
-                }
-              },
-            ),
-          ),
-        ],
+          );
+          final select = GWSelect<String>(
+            value: currentLevel,
+            items: _spdlogLevels
+                .map((l) => GWSelectItem(value: l, label: l))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) {
+                setState(() => _loggerLevels[entry.key] = v);
+              }
+            },
+          );
+          // Long logger names have no break point, so a narrow row stacks.
+          if (constraints.maxWidth < GeniusBreakpoints.small) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: GeniusWalletConsts.space3,
+              children: [label, select],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(flex: 3, child: label),
+              Expanded(flex: 2, child: select),
+            ],
+          );
+        },
       ),
     );
   }

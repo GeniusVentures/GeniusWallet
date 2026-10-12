@@ -695,9 +695,11 @@ class _AccountRowTile extends StatelessWidget {
               color: gw.textSecondary.withValues(alpha: 0.8),
             )
           : null,
-      subtitle:
-          WalletUtils.getAddressForDisplay(addressText) +
-          (isStartAccount ? ' · Default account' : ''),
+      subtitle: [
+        if (!title.startsWith('0x'))
+          WalletUtils.getAddressForDisplay(addressText),
+        if (isStartAccount) 'Default account',
+      ].join(' · '),
       subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
         fontFamily: GeniusWalletTypography.monoFamily,
         color: locked

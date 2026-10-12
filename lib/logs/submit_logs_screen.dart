@@ -844,7 +844,8 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
+          SizedBox(
+            width: 112,
             child: Text(
               label,
               maxLines: 1,
@@ -857,12 +858,11 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           ),
           const SizedBox(width: GeniusWalletConsts.space4),
           if (tail) ...[_tailBadge(gw), const SizedBox(width: 6)],
-          Flexible(
+          Expanded(
             child: Text(
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.right,
               style: GeniusWalletTypography.bodySm.copyWith(
                 color: valueColor ?? gw.textPrimary,
                 decoration: strike ? TextDecoration.lineThrough : null,

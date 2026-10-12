@@ -25,7 +25,7 @@ class GWRowBadge extends StatelessWidget {
       child: Text(
         label,
         style: GeniusWalletTypography.labelMd.copyWith(
-          fontSize: 9,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.8,
           color: color,
