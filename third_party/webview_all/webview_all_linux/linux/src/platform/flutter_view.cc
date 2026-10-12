@@ -160,7 +160,7 @@ static gboolean overlay_get_child_position_cb(GtkOverlay *overlay,
 // consumes button-press-event, which ends the emission before a later handler.
 static gboolean flutter_input_event_cb(GtkWidget *, GdkEvent *event,
                                        gpointer user_data) {
-  if (event->type != GDK_BUTTON_PRESS) {
+  if (event->type != GDK_BUTTON_PRESS && event->type != GDK_TOUCH_BEGIN) {
     return FALSE;
   }
   WebviewAllLinuxPlugin *self = static_cast<WebviewAllLinuxPlugin *>(user_data);
