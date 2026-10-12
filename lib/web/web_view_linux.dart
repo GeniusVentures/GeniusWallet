@@ -200,9 +200,12 @@ class WebViewLinuxState extends State<WebViewLinux> {
     WebViewController? controller;
     bool retried = false;
 
-    controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
+    controller = WebViewController();
+    // Creating the native view can fail; that shows the retry panel rather
+    // than an uncaught error.
+    final setup = Future.wait([
+      controller.setJavaScriptMode(JavaScriptMode.unrestricted),
+      controller.setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String loadedUrl) {
             _clearFailed(controller!);
@@ -254,7 +257,14 @@ class WebViewLinuxState extends State<WebViewLinux> {
             }
           },
         ),
-      );
+      ),
+    ]);
+    unawaited(
+      setup.then<void>((_) {}).catchError((Object e) {
+        debugPrint('WebViewLinux: setup failed: $e');
+        _markFailed(controller!);
+      }),
+    );
 
     if (url.contains('uniswap.org')) {
       _load(controller, Uri.parse('about:blank'));
@@ -360,6 +370,8 @@ class WebViewLinuxState extends State<WebViewLinux> {
   }
 
   void _closeTab(int index) {
+    // The address field would otherwise keep the closed tab's URL.
+    _urlFocusNode.unfocus();
     _disposeController(_controllers[index]);
     _failedTabs.remove(_controllers[index]);
     // Closing the only tab resets it to a fresh home tab rather than leaving
@@ -573,10 +585,10 @@ class _TabChip extends StatelessWidget {
           // construction.
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: active ? context.gw.surfaceElevated : Colors.transparent,
+            color: active ? context.gw.surfaceElevated : null,
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
             border: Border.all(
-              color: active ? Colors.transparent : context.gw.borderSubtle,
+              color: context.gw.borderSubtle.withAlpha(active ? 0 : 255),
             ),
           ),
           // The active underline is overlaid so it never pushes the content up.
@@ -847,7 +859,7 @@ class _OmniboxCenter extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
         border: Border.all(
-          color: editing ? context.gw.brandPrimary : Colors.transparent,
+          color: context.gw.brandPrimary.withAlpha(editing ? 255 : 0),
           width: 1.5,
         ),
       ),
