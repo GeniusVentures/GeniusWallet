@@ -2,6 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_rules.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:webview_all/webview_all.dart'
+    as linux
+    show WebViewPermissionResourceType;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart'
     show WebviewPermissionDecision, WebviewPermissionKind;
@@ -150,33 +153,40 @@ void main() {
   });
 
   group('checkoutPermissionAllowed', () {
+    bool allowed(Iterable<String> types, {bool onBanxaPage = true}) =>
+        checkoutPermissionAllowed(onBanxaPage: onBanxaPage, types: types);
+
     test('camera and microphone are allowed, alone or together', () {
-      expect(
-        checkoutPermissionAllowed({WebViewPermissionResourceType.camera}),
-        isTrue,
-      );
-      expect(
-        checkoutPermissionAllowed({WebViewPermissionResourceType.microphone}),
-        isTrue,
-      );
-      expect(
-        checkoutPermissionAllowed({
-          WebViewPermissionResourceType.camera,
-          WebViewPermissionResourceType.microphone,
-        }),
-        isTrue,
-      );
+      expect(allowed(['camera']), isTrue);
+      expect(allowed(['microphone']), isTrue);
+      expect(allowed(['camera', 'microphone']), isTrue);
     });
 
     test('anything else, or nothing, is refused', () {
-      expect(checkoutPermissionAllowed({}), isFalse);
-      expect(
-        checkoutPermissionAllowed({
+      expect(allowed([]), isFalse);
+      expect(allowed(['geolocation']), isFalse);
+      expect(allowed(['camera', 'geolocation']), isFalse);
+    });
+
+    test('a page that is not Banxa gets nothing, not even the camera', () {
+      expect(allowed(['camera'], onBanxaPage: false), isFalse);
+      expect(allowed(['camera', 'microphone'], onBanxaPage: false), isFalse);
+    });
+
+    test('the mobile and Linux host types map through their names', () {
+      for (final types in [
+        [
           WebViewPermissionResourceType.camera,
-          const _Other(),
-        }),
-        isFalse,
-      );
+          WebViewPermissionResourceType.microphone,
+        ].map((t) => t.name),
+        [
+          linux.WebViewPermissionResourceType.camera,
+          linux.WebViewPermissionResourceType.microphone,
+        ].map((t) => t.name),
+      ]) {
+        expect(allowed(types), isTrue);
+      }
+      expect(allowed([const _Other().name]), isFalse);
     });
   });
 
@@ -235,10 +245,13 @@ void main() {
 
     test('a page that is not Banxa gets nothing, not even the camera', () {
       for (final url in ['https://bank.example/3ds', 'not a url', '']) {
-        expect(
-          windowsCheckoutPermission(WebviewPermissionKind.camera, url: url),
-          WebviewPermissionDecision.deny,
-        );
+        for (final kind in WebviewPermissionKind.values) {
+          expect(
+            windowsCheckoutPermission(kind, url: url),
+            WebviewPermissionDecision.deny,
+            reason: '$kind on $url',
+          );
+        }
       }
     });
   });

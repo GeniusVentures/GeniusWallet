@@ -61,14 +61,17 @@ CheckoutHostKind checkoutHostKind(
   };
 }
 
-/// Card and ID checks use the camera and microphone; nothing else is granted.
-bool checkoutPermissionAllowed(Set<WebViewPermissionResourceType> types) {
-  return types.isNotEmpty &&
-      types.every(
-        (t) =>
-            t == WebViewPermissionResourceType.camera ||
-            t == WebViewPermissionResourceType.microphone,
-      );
+/// Card and ID checks use the camera and microphone, asked for by a Banxa
+/// page; nothing else is granted. Types go by name because each host has its
+/// own type for them.
+bool checkoutPermissionAllowed({
+  required bool onBanxaPage,
+  required Iterable<String> types,
+}) {
+  final asked = types.toSet();
+  return onBanxaPage &&
+      asked.isNotEmpty &&
+      asked.every(const {'camera', 'microphone'}.contains);
 }
 
 /// The web page cannot reach the camera on its own on Android: the app must
@@ -90,11 +93,11 @@ WebviewPermissionDecision windowsCheckoutPermission(
   required String url,
 }) {
   final uri = Uri.tryParse(url);
-  final trusted = uri != null && isTrustedCheckoutUrl(uri);
-  final wanted =
-      kind == WebviewPermissionKind.camera ||
-      kind == WebviewPermissionKind.microphone;
-  return trusted && wanted
+  final allowed = checkoutPermissionAllowed(
+    onBanxaPage: uri != null && isTrustedCheckoutUrl(uri),
+    types: [kind.name],
+  );
+  return allowed
       ? WebviewPermissionDecision.allow
       : WebviewPermissionDecision.deny;
 }

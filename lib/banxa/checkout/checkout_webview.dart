@@ -98,7 +98,11 @@ class _CheckoutWebViewState extends State<CheckoutWebView> {
   }
 
   Future<void> _onPermissionRequest(WebViewPermissionRequest request) async {
-    if (!_onBanxaPage || !checkoutPermissionAllowed(request.types)) {
+    final allowed = checkoutPermissionAllowed(
+      onBanxaPage: _onBanxaPage,
+      types: request.types.map((t) => t.name),
+    );
+    if (!allowed) {
       await request.deny();
       return;
     }
