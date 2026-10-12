@@ -1058,6 +1058,8 @@ void instance_method_call_cb(FlMethodChannel *channel,
         if (pending->uri != nullptr) {
           webkit_web_view_load_uri(webview->web_view, pending->uri);
         }
+      } else {
+        emit_tls_rejected(webview, pending->uri);
       }
       g_hash_table_remove(webview->pending_tls_errors,
                           GINT_TO_POINTER(request_id));
