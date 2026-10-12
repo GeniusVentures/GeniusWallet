@@ -741,47 +741,66 @@ class _ChartSectionHeader extends StatelessWidget {
 class _CoinIdentity extends StatelessWidget {
   const _CoinIdentity();
 
+  static const double _avatarSize = 30;
+
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return LayoutBuilder(
-      builder: (context, constraints) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset('assets/images/crypto/gnus.png', width: 30, height: 30),
-          const SizedBox(width: GeniusWalletConsts.space3),
-          Flexible(
-            child: Text.rich(
-              // ONE line so "Genius AI" centers in the shared 44px header at the same
-              // baseline as Markets/Assets titles. A two-line name+ticker stack
-              // centred its whole block, pushing the name line visibly higher.
-              TextSpan(
-                style: GeniusWalletTypography.titleLg.copyWith(
-                  color: gw.textPrimary,
-                  letterSpacing: -0.2,
-                  height: 1,
-                ),
-                children: [
-                  const TextSpan(text: 'Genius AI'),
-                  // Beside the timeframe selector a narrow header has no room for
-                  // the ticker, and a cut "Genius AI ·…" says nothing.
-                  if (constraints.maxWidth >=
-                      MediaQuery.textScalerOf(context).scale(190))
-                    TextSpan(
-                      text: '  ·  GNUS',
-                      style: TextStyle(
-                        color: gw.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+    final style = GeniusWalletTypography.titleLg.copyWith(
+      color: gw.textPrimary,
+      letterSpacing: -0.2,
+      height: 1,
+    );
+    final full = TextSpan(
+      style: style,
+      children: [
+        const TextSpan(text: 'Genius AI'),
+        TextSpan(
+          text: '  ·  GNUS',
+          style: TextStyle(
+            color: gw.textSecondary,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+    final scaler = MediaQuery.textScalerOf(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Beside the timeframe selector a narrow header has no room for the
+        // ticker, and a cut "Genius AI ·..." says nothing. Measured with the
+        // real style and text scale rather than a fixed width.
+        final painter = TextPainter(
+          text: full,
+          textDirection: TextDirection.ltr,
+          textScaler: scaler,
+          maxLines: 1,
+        )..layout();
+        final fits =
+            painter.width <=
+            constraints.maxWidth - _avatarSize - GeniusWalletConsts.space3;
+        painter.dispose();
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/crypto/gnus.png',
+              width: _avatarSize,
+              height: _avatarSize,
+            ),
+            const SizedBox(width: GeniusWalletConsts.space3),
+            Flexible(
+              child: Text.rich(
+                // ONE line so "Genius AI" centers in the shared 44px header at
+                // the same baseline as Markets/Assets titles.
+                fits ? full : TextSpan(style: style, text: 'Genius AI'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
