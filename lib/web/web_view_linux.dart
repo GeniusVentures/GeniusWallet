@@ -340,20 +340,13 @@ class WebViewLinuxState extends State<WebViewLinux> {
   }
 
   void _loadUrl() {
-    String input = _urlController.text.trim();
-    if (input.isEmpty) {
+    final target = omniboxTarget(_urlController.text);
+    if (target == null) {
       return;
     }
-    final isLikelyUrl = input.contains('.') && !input.contains(' ');
-    if (!isLikelyUrl) {
-      final query = Uri.encodeComponent(input);
-      input = "https://www.google.com/search?q=$query";
-    } else if (!input.startsWith('http://') && !input.startsWith('https://')) {
-      input = "https://$input";
-    }
-    _load(_controllers[_currentTabIndex], Uri.parse(input));
+    _load(_controllers[_currentTabIndex], target);
     setState(() {
-      _tabUrls[_currentTabIndex] = input;
+      _tabUrls[_currentTabIndex] = target.toString();
     });
   }
 

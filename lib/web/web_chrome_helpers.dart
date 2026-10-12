@@ -60,3 +60,23 @@ int tabIndexAfterClose({
   }
   return active.clamp(0, newLength - 1);
 }
+
+/// Where the omnibox sends [raw]: a URL-looking entry as https unless it names
+/// a scheme, anything else as a Google search. Null when the entry is empty or
+/// not a parseable URL (`https://[x.com`), so the page stays as it is.
+Uri? omniboxTarget(String raw) {
+  var input = raw.trim();
+  if (input.isEmpty) {
+    return null;
+  }
+  final isLikelyUrl = input.contains('.') && !input.contains(' ');
+  if (!isLikelyUrl) {
+    return Uri.tryParse(
+      'https://www.google.com/search?q=${Uri.encodeComponent(input)}',
+    );
+  }
+  if (!input.startsWith('http://') && !input.startsWith('https://')) {
+    input = 'https://$input';
+  }
+  return Uri.tryParse(input);
+}
