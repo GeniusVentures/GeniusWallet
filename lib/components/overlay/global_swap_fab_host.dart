@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
@@ -193,6 +195,9 @@ class PopupRouteObserver extends NavigatorObserver with ChangeNotifier {
     _open.remove(removed);
     if (added is PopupRoute) {
       _open.add(added);
+      // A navigator disposed with the popup open fires no observer callback,
+      // but it does complete the route.
+      unawaited(added.completed.then((_) => _update(removed: added)));
     }
     if (anyOpen != wasOpen) {
       notifyListeners();
