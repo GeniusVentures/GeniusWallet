@@ -387,7 +387,10 @@ class WebViewLinuxState extends State<WebViewLinux> {
     });
   }
 
+  // Leaving the omnibox on a tab switch makes the focus listener drop the old
+  // tab's address, so Enter cannot load it into the new tab.
   void _switchTab(int index) {
+    _urlFocusNode.unfocus();
     setState(() {
       _currentTabIndex = index;
     });
