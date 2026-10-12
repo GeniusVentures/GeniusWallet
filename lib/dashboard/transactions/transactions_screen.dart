@@ -120,7 +120,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     GeniusBreakpoints.pageGutter(context),
                     GeniusBreakpoints.pageTitleGap(context),
                     GeniusBreakpoints.pageGutter(context),
-                    GeniusWalletConsts.space8,
+                    GeniusBreakpoints.pageBottomPad(
+                      context,
+                      GeniusWalletConsts.space8,
+                    ),
                   ),
                   child: ConstrainedBox(
                     // xxl (1536), unified with Markets and News so the three
