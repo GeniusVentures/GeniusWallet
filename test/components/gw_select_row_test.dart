@@ -106,9 +106,10 @@ void main() {
     double midY(String text) => tester.getCenter(find.text(text)).dy;
     expect(midY('TAG'), closeTo(midY('Main'), 2));
     expect(midY('BAL'), closeTo(midY('0xabcd...1234'), 2));
+    // The balance hugs the row's right edge whatever the subtitle's width.
     expect(
       tester.getTopRight(find.text('BAL')).dx,
-      greaterThan(tester.getTopRight(find.text('0xabcd...1234')).dx + 100),
+      greaterThan(tester.getTopRight(find.byType(GWSelectRow)).dx - 60),
     );
   });
 }

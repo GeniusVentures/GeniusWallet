@@ -158,8 +158,12 @@ class GWSelectRow extends StatelessWidget {
                       ),
                       if (subtitle != null)
                         Row(
+                          // Both children are loose, so spaceBetween pins the
+                          // trailing value to the right edge.
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Flexible(
+                              flex: 3,
                               child: Text(
                                 subtitle!,
                                 maxLines: 1,
@@ -173,12 +177,7 @@ class GWSelectRow extends StatelessWidget {
                             ),
                             if (subtitleTrailing != null) ...[
                               const SizedBox(width: GeniusWalletConsts.space4),
-                              Flexible(
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: subtitleTrailing,
-                                ),
-                              ),
+                              Flexible(child: subtitleTrailing!),
                             ],
                           ],
                         ),
