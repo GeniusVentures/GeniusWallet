@@ -17,6 +17,7 @@ import 'package:genius_wallet/dashboard/bridge/bridge_entry.dart'
     show liveBridgeGate;
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
+import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -158,6 +159,7 @@ class BridgeScreenState extends State<BridgeScreen> {
             iconPath ?? "",
             height: 20,
             width: 20,
+            color: networkIconTint(gw, iconPath),
             errorBuilder: (context, error, stackTrace) {
               return const SizedBox(height: 20, width: 20);
             },

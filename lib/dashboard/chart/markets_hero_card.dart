@@ -258,6 +258,7 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
           children: [
             // The remote logo is white-backed, which vanishes on a light card.
             DecoratedBox(
+              position: DecorationPosition.foreground,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: gw.borderSubtle),
