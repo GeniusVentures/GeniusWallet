@@ -37,3 +37,11 @@ String webDisplayHost(String url) {
 /// True only when the scheme is `https` — drives whether the omnibox paints the
 /// secure lock glyph. `http`, `about:blank`, and unparseable input are false.
 bool webIsSecure(String url) => Uri.tryParse(url.trim())?.scheme == 'https';
+
+/// Whether a link may be opened: an absolute https URL with a host. Article,
+/// explorer and deep-link URLs come from outside the app, so anything else
+/// (file:, javascript:, http:) is refused rather than handed to a browser.
+bool isOpenableWebUrl(String? url) {
+  final uri = Uri.tryParse(url ?? '');
+  return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
+}
