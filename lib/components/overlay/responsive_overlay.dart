@@ -701,12 +701,16 @@ class _MobileShellBody extends StatelessWidget {
         // Scaffold lays its body out under LOOSE constraints, so a Stack
         // expands to the full body box while a bare child may size to itself.
         // A phone layout stretched across a tablet window is worse than a
-        // centred column, so the body stops at the `small` breakpoint.
+        // centred column, so the body stops at the `small` breakpoint. Above
+        // the page breakpoint the pages already use their wide layouts and
+        // need the full width.
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: GeniusBreakpoints.small,
+            constraints: BoxConstraints(
+              maxWidth: GeniusBreakpoints.useDesktopLayout(context)
+                  ? double.infinity
+                  : GeniusBreakpoints.small,
             ),
             child: Stack(children: [child]),
           ),
