@@ -27,6 +27,29 @@ void main() {
     });
   });
 
+  group('omniboxTarget', () {
+    test('keeps an explicit http or https url', () {
+      expect(omniboxTarget(' https://a.io/x '), Uri.parse('https://a.io/x'));
+      expect(omniboxTarget('http://a.io'), Uri.parse('http://a.io'));
+    });
+
+    test('adds https to a bare host', () {
+      expect(omniboxTarget('uniswap.org'), Uri.parse('https://uniswap.org'));
+    });
+
+    test('searches anything that is not url-like', () {
+      expect(
+        omniboxTarget('eth price'),
+        Uri.parse('https://www.google.com/search?q=eth%20price'),
+      );
+    });
+
+    test('returns null for empty or unparseable input', () {
+      expect(omniboxTarget('   '), isNull);
+      expect(omniboxTarget('https://[x.com'), isNull);
+    });
+  });
+
   group('tabIndexAfterClose', () {
     int after(int active, int closed, int newLength) => tabIndexAfterClose(
       active: active,
