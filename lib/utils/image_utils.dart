@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-Widget buildTokenIcon({String? iconPath, required double size}) {
+/// [tint] recolours an asset icon, for the white testnet artwork on a light
+/// surface; remote logos are never tinted.
+Widget buildTokenIcon({String? iconPath, required double size, Color? tint}) {
   if (iconPath == null || iconPath.isEmpty) {
     return _defaultIcon(size);
   }
@@ -23,6 +25,7 @@ Widget buildTokenIcon({String? iconPath, required double size}) {
             iconPath,
             height: size,
             width: size,
+            color: tint,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return _defaultIcon(size);

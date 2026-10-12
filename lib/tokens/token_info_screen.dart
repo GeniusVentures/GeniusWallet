@@ -26,12 +26,14 @@ import 'package:genius_wallet/dashboard/bridge/bridge_entry.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
@@ -485,6 +487,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
             ? _marketData!.imageUrl
             : selectedCoin?.iconPath,
         size: 40,
+        tint: networkIconTint(context.gw, selectedCoin?.iconPath),
       ),
       // Sketch 168 E1 (Jakub, 2026-07-31): the price is pulled up against
       // the identity block and separated from it by a vertical hairline,

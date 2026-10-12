@@ -438,7 +438,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
             GeniusBreakpoints.pageGutter(context),
             GeniusBreakpoints.pageTitleGap(context),
             GeniusBreakpoints.pageGutter(context),
-            8,
+            GeniusBreakpoints.pageBottomPad(context, 8),
           ),
           child: ConstrainedBox(
             // `large`, not `xxl` (D-01). A 560 column inside a 1536 frame left
