@@ -344,13 +344,11 @@ class GWButton extends StatelessWidget {
     // transparent fill is untouched (srcIn keeps zero-alpha pixels clear).
     Widget masked = button;
     if (variant == GWButtonVariant.gradientOutline) {
-      // The bright brand gradient is under 2:1 on light surfaces, so light
-      // mode paints the outline and label in the on-surface brand colour.
-      final LinearGradient base = gw.surfaceMenu.computeLuminance() > 0.5
-          ? LinearGradient(
-              colors: [gw.brandPrimaryOnSurface, gw.brandPrimaryOnSurface],
-            )
-          : GeniusWalletGradient.brandCta;
+      // The raw brand gradient is under 2:1 on light surfaces; the shared
+      // text variant falls back to the on-surface brand colour there.
+      final LinearGradient base = GeniusWalletGradient.brandCtaText(
+        gw.surfaceMenu,
+      );
       masked = ShaderMask(
         blendMode: BlendMode.srcIn,
         shaderCallback: (bounds) =>
