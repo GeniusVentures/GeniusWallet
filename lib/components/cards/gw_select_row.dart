@@ -173,7 +173,7 @@ class GWSelectRow extends StatelessWidget {
                             ),
                             if (subtitleTrailing != null) ...[
                               const SizedBox(width: GeniusWalletConsts.space4),
-                              Expanded(
+                              Flexible(
                                 child: Align(
                                   alignment: Alignment.centerRight,
                                   child: subtitleTrailing,

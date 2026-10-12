@@ -93,6 +93,7 @@ class CoinCardRow extends StatelessWidget {
             buildTokenIcon(iconPath: iconPath, size: kGWRowIconSize),
             const SizedBox(width: kGWRowIconToText),
             Expanded(
+              flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -100,7 +101,7 @@ class CoinCardRow extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GeniusWalletTypography.titleMd.copyWith(
                       color: gw.textPrimary,
