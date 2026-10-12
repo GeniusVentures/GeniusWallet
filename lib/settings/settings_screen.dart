@@ -169,7 +169,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return GWScreen(
-      padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+      padding: EdgeInsets.fromLTRB(
+        GeniusWalletConsts.space8,
+        GeniusBreakpoints.pageTitleGap(context),
+        GeniusWalletConsts.space8,
+        GeniusBreakpoints.pageBottomPad(context, GeniusWalletConsts.space8),
+      ),
       maxContentWidth: GeniusBreakpoints.medium,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

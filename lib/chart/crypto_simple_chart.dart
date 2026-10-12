@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_row_rhythm.dart';
 import 'package:genius_wallet/components/effects/gw_hover_row.dart';
+import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -91,7 +92,11 @@ class CryptoSparkLineChart extends StatelessWidget {
         padding: kGWRowPadding,
         child: Row(
           children: [
-            buildTokenIcon(iconPath: iconPath, size: kGWRowIconSize),
+            buildTokenIcon(
+              iconPath: iconPath,
+              size: kGWRowIconSize,
+              tint: networkIconTint(gw, iconPath),
+            ),
             const SizedBox(width: kGWRowIconToText),
             Expanded(
               child: Column(
