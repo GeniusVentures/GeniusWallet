@@ -271,15 +271,19 @@ class WebViewLinuxState extends State<WebViewLinux> {
     });
   }
 
+  // The tab can change while canGoBack is awaited, so both calls use the
+  // controller taken before the first await.
   void _goBack() async {
-    if (await _controllers[_currentTabIndex].canGoBack()) {
-      await _controllers[_currentTabIndex].goBack();
+    final controller = _controllers[_currentTabIndex];
+    if (await controller.canGoBack()) {
+      await controller.goBack();
     }
   }
 
   void _goForward() async {
-    if (await _controllers[_currentTabIndex].canGoForward()) {
-      await _controllers[_currentTabIndex].goForward();
+    final controller = _controllers[_currentTabIndex];
+    if (await controller.canGoForward()) {
+      await controller.goForward();
     }
   }
 
