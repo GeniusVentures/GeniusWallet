@@ -8,7 +8,7 @@ import 'package:webview_all/webview_all.dart';
 import 'package:webview_all_linux/webview_all_linux.dart';
 
 /// Loads Banxa checkout in WebKitGTK inside the app, with the same navigation
-/// rules as the mobile view. Only built after WebKitGTK loaded.
+/// and permission rules as the mobile view. Only built after WebKitGTK loaded.
 class CheckoutWebViewLinux extends StatefulWidget {
   const CheckoutWebViewLinux({
     super.key,
@@ -28,11 +28,14 @@ class CheckoutWebViewLinux extends StatefulWidget {
 class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
   late final WebViewController _controller;
   bool _loading = true;
+  // The request names no origin, so the last main-frame page stands in for it:
+  // a bank or 3-D Secure page never gets the camera.
+  late bool _onBanxaPage = isTrustedCheckoutUrl(widget.uri);
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
+    _controller = WebViewController(onPermissionRequest: _onPermissionRequest)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
@@ -45,7 +48,16 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
             if (!allowsCheckoutNavigation(uri)) {
               return NavigationDecision.prevent;
             }
+            if (request.isMainFrame && uri != null) {
+              _onBanxaPage = isTrustedCheckoutUrl(uri);
+            }
             return NavigationDecision.navigate;
+          },
+          onPageStarted: (url) {
+            final uri = Uri.tryParse(url);
+            if (uri != null) {
+              _onBanxaPage = isTrustedCheckoutUrl(uri);
+            }
           },
           onPageFinished: (_) {
             if (mounted) {
@@ -60,6 +72,18 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
         ),
       )
       ..loadRequest(widget.uri);
+  }
+
+  Future<void> _onPermissionRequest(WebViewPermissionRequest request) async {
+    final allowed = checkoutPermissionAllowed(
+      onBanxaPage: _onBanxaPage,
+      types: request.types.map((t) => t.name),
+    );
+    if (!allowed) {
+      await request.deny();
+      return;
+    }
+    await request.grant();
   }
 
   @override
