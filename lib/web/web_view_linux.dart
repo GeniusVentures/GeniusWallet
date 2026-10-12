@@ -312,7 +312,14 @@ class WebViewLinuxState extends State<WebViewLinux> {
   // A page's title is only ready at onPageFinished, so it is cached here
   // instead of being read during build.
   Future<void> _syncTitle(WebViewController c) async {
-    final t = await c.getTitle();
+    String? t;
+    try {
+      t = await c.getTitle();
+    } catch (e) {
+      // The tab can be closed, and its controller disposed, while this waits.
+      debugPrint('Title read failed: $e');
+      return;
+    }
     if (!mounted) {
       return;
     }
