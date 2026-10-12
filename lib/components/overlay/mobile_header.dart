@@ -8,7 +8,6 @@ import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// The side of both header controls, in logical pixels. Public so the tests
@@ -485,7 +484,7 @@ class WalletPill extends StatelessWidget {
 /// would read as an identity it is not, so that check runs first.
 String? walletMonogram(String walletName) {
   final name = walletName.trim();
-  if (name.isEmpty || WalletUtils.isAddressLikeName(name)) {
+  if (name.isEmpty || RegExp(r'^(0x\S*|\S{20,})$').hasMatch(name)) {
     return null;
   }
   final digits = RegExp(r'(?<!\d)\d{1,2}$').firstMatch(name)?.group(0);
