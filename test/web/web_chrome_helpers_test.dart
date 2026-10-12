@@ -27,6 +27,33 @@ void main() {
     });
   });
 
+  group('tabIndexAfterClose', () {
+    int after(int active, int closed, int newLength) => tabIndexAfterClose(
+      active: active,
+      closed: closed,
+      newLength: newLength,
+    );
+
+    test('closing a tab after the active one leaves the active tab', () {
+      expect(after(0, 2, 2), 0);
+      expect(after(1, 2, 2), 1);
+    });
+
+    test('closing a tab before the active one follows it left', () {
+      expect(after(2, 0, 2), 1);
+      expect(after(2, 1, 2), 1);
+    });
+
+    test('closing the active tab picks the one that slid into its place', () {
+      expect(after(1, 1, 3), 1);
+      expect(after(0, 0, 2), 0);
+    });
+
+    test('closing the active last tab picks the new last', () {
+      expect(after(2, 2, 2), 1);
+    });
+  });
+
   group('webIsSecure', () {
     test('https is secure', () => expect(webIsSecure('https://x.com'), true));
     test(
