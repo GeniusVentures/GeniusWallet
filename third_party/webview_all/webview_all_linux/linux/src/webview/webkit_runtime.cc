@@ -3,6 +3,9 @@
 
 #include <dlfcn.h>
 
+#include <cstdio>
+#include <cstring>
+
 GwWebKitApi gw_webkit = {};
 
 template <typename T>
@@ -14,22 +17,51 @@ static void resolve(void *handle, const char *name, T &slot,
   }
 }
 
+// libsoup 2 and 3 abort the process when mapped into the same one, so a
+// WebKit built for the other major must not be loaded.
+static bool soup_mapped(const char *name) {
+  FILE *maps = fopen("/proc/self/maps", "r");
+  if (maps == nullptr) {
+    return false;
+  }
+  char line[4096];
+  bool found = false;
+  while (!found && fgets(line, sizeof(line), maps) != nullptr) {
+    found = strstr(line, name) != nullptr;
+  }
+  fclose(maps);
+  return found;
+}
+
 static gboolean load() {
   // 4.1 first: on distros that ship both, 4.0 is the legacy package. Only one
-  // may load, since libsoup 2 and 3 abort when mapped into the same process.
-  static const char *const kLibraries[] = {"libwebkit2gtk-4.1.so.0",
-                                           "libwebkit2gtk-4.0.so.37"};
+  // may load. The soname list is fixed, so no environment or path decides what
+  // gets loaded.
+  struct Candidate {
+    const char *library;
+    const char *conflicting_soup;
+  };
+  static const Candidate kLibraries[] = {
+      {"libwebkit2gtk-4.1.so.0", "libsoup-2.4"},
+      {"libwebkit2gtk-4.0.so.37", "libsoup-3.0"}};
   void *handle = nullptr;
   const char *library = nullptr;
-  for (const char *candidate : kLibraries) {
-    handle = dlopen(candidate, RTLD_NOW | RTLD_LOCAL);
+  for (const Candidate &candidate : kLibraries) {
+    if (soup_mapped(candidate.conflicting_soup)) {
+      g_message("webview_all_linux: skipping %s, %s is already loaded",
+                candidate.library, candidate.conflicting_soup);
+      continue;
+    }
+    handle = dlopen(candidate.library, RTLD_NOW | RTLD_LOCAL);
     if (handle != nullptr) {
-      library = candidate;
+      library = candidate.library;
       break;
     }
+    g_message("webview_all_linux: cannot load %s: %s", candidate.library,
+              dlerror());
   }
   if (handle == nullptr) {
-    g_warning("webview_all_linux: WebKitGTK unavailable: %s", dlerror());
+    g_warning("webview_all_linux: WebKitGTK unavailable");
     return FALSE;
   }
 
