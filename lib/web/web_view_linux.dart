@@ -361,7 +361,11 @@ class WebViewLinuxState extends State<WebViewLinux> {
       _controllers.removeAt(index);
       _tabUrls.removeAt(index);
       _tabTitles.removeAt(index);
-      _currentTabIndex = _currentTabIndex > 0 ? _currentTabIndex - 1 : 0;
+      _currentTabIndex = tabIndexAfterClose(
+        active: _currentTabIndex,
+        closed: index,
+        newLength: _controllers.length,
+      );
     });
   }
 
