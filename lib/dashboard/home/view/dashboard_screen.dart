@@ -102,8 +102,9 @@ class DashboardScreenState extends State<DashboardScreen> {
         children: [
           BlocBuilder<AppBloc, AppState>(
             builder: (context, state) {
-              final isDesktopLayout =
-                  MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium;
+              final isDesktopLayout = GeniusBreakpoints.useDesktopLayout(
+                context,
+              );
 
               if (state.subscribeToWalletStatus == AppStatus.loaded &&
                   state.accountStatus == AppStatus.loaded) {
