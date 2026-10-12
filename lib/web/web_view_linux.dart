@@ -215,6 +215,9 @@ class WebViewLinuxState extends State<WebViewLinux> {
             final u = change.url;
             if (u != null) {
               _onNav(controller!, u);
+              // In-page navigation sends no pageFinished, so the title is
+              // refreshed here too.
+              unawaited(_syncTitle(controller));
             }
           },
           onWebResourceError: (WebResourceError error) {
