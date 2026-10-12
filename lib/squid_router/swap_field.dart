@@ -119,7 +119,7 @@ class SwapField extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Text(
                             emptyPlaceholder!,
-                            style: heroStyle.copyWith(color: gw.textPrimary38),
+                            style: heroStyle.copyWith(color: gw.textPrimary60),
                           ),
                         )
                       : GWKeyboardDoneBar(
@@ -151,7 +151,7 @@ class SwapField extends StatelessWidget {
                             decoration: InputDecoration(
                               hintText: "0.0",
                               hintStyle: heroStyle.copyWith(
-                                color: gw.textPrimary38,
+                                color: gw.textPrimary60,
                               ),
                               border: InputBorder.none,
                               // `border` is only the FALLBACK. theme.dart:242 sets

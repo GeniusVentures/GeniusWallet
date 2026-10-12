@@ -803,7 +803,7 @@ class _SwapScreenState extends State<SwapScreen> {
     final background = isRefused
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
-    final foreground = isRefused ? gw.statusErrorText : gw.textPrimary38;
+    final foreground = isRefused ? gw.statusErrorText : gw.textPrimary60;
 
     return Padding(
       // Same edge as the gradient rung above — the two must not disagree, or
@@ -1190,39 +1190,35 @@ class _SwapFromWallet extends StatelessWidget {
 
     final gw = context.gw;
     final short = WalletUtils.getAddressForDisplay(wallet.address);
-    final name = wallet.walletName.isEmpty
+    final name = wallet.walletName.isEmpty || wallet.walletName.startsWith('0x')
         ? short
         : '${wallet.walletName} · $short';
     final label = canSend ? 'Sending from $name' : "Can't sign from $name";
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space6),
-      child: Row(
-        children: [
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GeniusWalletTypography.bodySm.copyWith(
-                color: canSend ? gw.textSecondary : gw.statusErrorText,
-              ),
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GeniusWalletTypography.bodySm.copyWith(
+              color: canSend ? gw.textSecondary : gw.statusErrorText,
             ),
           ),
-          const SizedBox(width: GeniusWalletConsts.space3),
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: gw.brandPrimaryOnSurface,
-              textStyle: GeniusWalletTypography.labelMd,
-            ),
-            onPressed: () => unawaited(AccountDrawer.show(context)),
-            child: const Text('Switch ›'),
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            minimumSize: const Size(44, 44),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            foregroundColor: gw.brandPrimaryOnSurface,
+            textStyle: GeniusWalletTypography.labelMd,
           ),
-        ],
-      ),
+          onPressed: () => unawaited(AccountDrawer.show(context)),
+          child: const Text('Switch ›'),
+        ),
+      ],
     );
   }
 }
