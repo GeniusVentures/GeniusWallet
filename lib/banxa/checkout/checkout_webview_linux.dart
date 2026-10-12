@@ -35,9 +35,10 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController(onPermissionRequest: _onPermissionRequest)
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
+    _controller = WebViewController(onPermissionRequest: _onPermissionRequest);
+    final setup = Future.wait([
+      _controller.setJavaScriptMode(JavaScriptMode.unrestricted),
+      _controller.setNavigationDelegate(
         NavigationDelegate(
           // A navigation request names no frame on WebKitGTK, so it is not
           // where the permission origin or the return link is decided. The
@@ -77,11 +78,12 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
             }
           },
         ),
-      );
+      ),
+    ]);
     // The native view is created on first use and can fail to open.
     unawaited(
-      _controller
-          .loadRequest(widget.uri)
+      setup
+          .then((_) => _controller.loadRequest(widget.uri))
           .catchError((_) => widget.onLoadError()),
     );
   }
