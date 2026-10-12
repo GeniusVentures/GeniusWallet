@@ -70,8 +70,13 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
             }
           },
         ),
-      )
-      ..loadRequest(widget.uri);
+      );
+    // The native view is created on first use and can fail to open.
+    unawaited(
+      _controller
+          .loadRequest(widget.uri)
+          .catchError((_) => widget.onLoadError()),
+    );
   }
 
   Future<void> _onPermissionRequest(WebViewPermissionRequest request) async {
