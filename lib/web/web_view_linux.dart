@@ -607,13 +607,9 @@ class _TabChip extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Image.network(
-                      _faviconUrl(url),
-                      width: 19,
-                      height: 19,
-                      errorBuilder: (context, error, stackTrace) =>
-                          Icon(Icons.language, color: labelColor, size: 19),
-                    ),
+                    // A generic glyph, not a fetched favicon: a favicon service
+                    // would learn every site the user opens.
+                    Icon(Icons.language, color: labelColor, size: 19),
                     const SizedBox(width: GeniusWalletConsts.space2),
                     Expanded(
                       child: Text(
@@ -709,11 +705,6 @@ LinearGradient _activeUnderlineGradient(BuildContext context) {
   }
   final safe = context.gw.brandPrimaryOnSurface;
   return LinearGradient(colors: [safe, safe]);
-}
-
-String _faviconUrl(String url) {
-  final Uri uri = Uri.parse(url);
-  return "https://www.google.com/s2/favicons?domain=${uri.host}&sz=32";
 }
 
 /// The toolbar: back and forward at the left edge, favicon, lock and host in
@@ -903,15 +894,10 @@ class _OmniboxCenter extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Image.network(
-                        _faviconUrl(currentUrl),
-                        width: 16,
-                        height: 16,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.language,
-                          color: context.gw.textPrimary60,
-                          size: 16,
-                        ),
+                      Icon(
+                        Icons.language,
+                        color: context.gw.textPrimary60,
+                        size: 16,
                       ),
                       if (secure) ...[
                         const SizedBox(width: GeniusWalletConsts.space2),
