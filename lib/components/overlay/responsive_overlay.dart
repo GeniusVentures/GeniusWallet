@@ -700,7 +700,17 @@ class _MobileShellBody extends StatelessWidget {
         padding: EdgeInsets.only(bottom: pad),
         // Scaffold lays its body out under LOOSE constraints, so a Stack
         // expands to the full body box while a bare child may size to itself.
-        child: Stack(children: [child]),
+        // A phone layout stretched across a tablet window is worse than a
+        // centred column, so the body stops at the `small` breakpoint.
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: GeniusBreakpoints.small,
+            ),
+            child: Stack(children: [child]),
+          ),
+        ),
       ),
     );
   }
