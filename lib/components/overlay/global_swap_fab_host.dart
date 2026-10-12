@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
 
 /// Wraps the app navigator and floats the global swap FAB over every
@@ -162,10 +163,13 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
     final usesMobileShell =
         !GeniusBreakpoints.useDesktopOverlay(context) ||
         GeniusBreakpoints.isMobileApp();
+    // The Linux web view is a native widget drawn above Flutter, so a FAB on
+    // /web would sit under the page and its clicks would reach the page.
     final hidden =
         usesMobileShell ||
         GlobalSwapFabHost.popupRoutes.anyOpen ||
-        GlobalSwapFabHost._hiddenPaths.contains(path);
+        GlobalSwapFabHost._hiddenPaths.contains(path) ||
+        (path == '/web' && linuxInAppWeb);
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Stack(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
+import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
 
 /// `GlobalSwapFabHost` carries the NAV-02 crash fix (`assert(!_dirty)` on
@@ -62,6 +63,11 @@ GoRouter _router() => GoRouter(
       builder: (context, state) =>
           const Scaffold(body: Text('token detail placeholder')),
     ),
+    GoRoute(
+      path: '/web',
+      builder: (context, state) =>
+          const Scaffold(body: Text('web page placeholder')),
+    ),
   ],
 );
 
@@ -93,6 +99,23 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  for (final (nativeWebView, fabs) in const [(true, 0), (false, 1)]) {
+    testWidgets('on /web the FAB shows only without the native Linux view '
+        '(native=$nativeWebView)', (tester) async {
+      linuxInAppWeb = nativeWebView;
+      addTearDown(() => linuxInAppWeb = false);
+      final router = _router();
+      await tester.pumpWidget(_app(router));
+      await tester.pump();
+
+      router.go('/web');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GWSwapFab), findsNWidgets(fabs));
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('the FAB is hidden on a _hiddenPaths route', (tester) async {
     final router = _router();
