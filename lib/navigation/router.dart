@@ -41,6 +41,7 @@ import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/web/web_chrome_helpers.dart';
 import 'package:genius_wallet/web/web_overlay_gate.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:genius_wallet/web/web_view_screen.dart';
@@ -232,8 +233,10 @@ final geniusWalletRouter = GoRouter(
               final WebViewExtras extras = state.extra != null
                   ? state.extra as WebViewExtras
                   : WebViewExtras();
+              // A deep link can set extra, so a non-https url opens the home
+              // page instead.
               return WebViewScreen(
-                url: extras.url,
+                url: isOpenableWebUrl(extras.url) ? extras.url : null,
                 includeBackButton: extras.includeBackButton,
               );
             }),

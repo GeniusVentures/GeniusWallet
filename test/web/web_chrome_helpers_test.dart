@@ -38,4 +38,29 @@ void main() {
       () => expect(webIsSecure('about:blank'), false),
     );
   });
+
+  group('isOpenableWebUrl', () {
+    test('accepts an absolute https url', () {
+      expect(isOpenableWebUrl('https://gnus.ai/tos.html'), isTrue);
+    });
+
+    test('refuses every other scheme', () {
+      for (final url in [
+        'http://gnus.ai',
+        'file:///etc/passwd',
+        'javascript:alert(1)',
+        'data:text/html,hi',
+        'ftp://gnus.ai',
+        'about:blank',
+      ]) {
+        expect(isOpenableWebUrl(url), isFalse, reason: url);
+      }
+    });
+
+    test('refuses a missing, empty, hostless or unparseable url', () {
+      for (final url in [null, '', 'https://', 'gnus.ai', ' https://gnus.ai']) {
+        expect(isOpenableWebUrl(url), isFalse, reason: '$url');
+      }
+    });
+  });
 }
