@@ -9,7 +9,14 @@ set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
 find_package(PkgConfig REQUIRED)
 # Headers only. WebKitGTK is dlopen()ed at runtime (4.1, else 4.0) so the app
 # starts without it; the libsoup 2 code paths need the 4.0 headers to build.
-pkg_check_modules(WEBKIT REQUIRED webkit2gtk-4.0)
+pkg_check_modules(WEBKIT webkit2gtk-4.0)
+if(NOT WEBKIT_FOUND)
+  message(FATAL_ERROR
+    "webkit2gtk-4.0 development headers not found. They are needed to build, "
+    "not to run. Hosts that ship only 4.1 (Ubuntu 24.04+) can build in the "
+    "AlmaLinux 8 CI image (ghcr.io/geniusventures/almalinux-8, plus "
+    "webkit2gtk3-devel); see README 'Build on Linux'.")
+endif()
 
 add_library(${PLUGIN_NAME} SHARED
   "src/common/method_channel_utils.cc"
