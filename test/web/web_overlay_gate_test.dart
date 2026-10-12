@@ -112,6 +112,22 @@ void main() {
     },
   );
 
+  testWidgets('the child stays hidden until the dialog has faded out', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(shellKey: shellKey));
+    await tester.tap(find.text('dialog'));
+    await tester.pumpAndSettle();
+
+    Navigator.of(tester.element(find.text('dlg')), rootNavigator: true).pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(_offstage(tester), isTrue, reason: 'exit animation still running');
+
+    await tester.pumpAndSettle();
+    expect(_offstage(tester), isFalse);
+  });
+
   testWidgets(
     'a bottom sheet on the shell navigator hides the child until it closes',
     (tester) async {
