@@ -129,7 +129,9 @@ class WebViewLinuxState extends State<WebViewLinux> {
     }
   }
 
-  Future<void> forceDarkModeAndRemoveBanner(int tabIndex) async {
+  Future<void> forceDarkModeAndRemoveBanner(
+    WebViewController controller,
+  ) async {
     const js = '''
       (() => {
         try {
@@ -179,11 +181,11 @@ class WebViewLinuxState extends State<WebViewLinux> {
         } catch (e) {}
       })();
     ''';
-    if (tabIndex < 0 || tabIndex >= _controllers.length) {
+    if (!_controllers.contains(controller)) {
       return;
     }
     await _safeRunJavaScript(
-      _controllers[tabIndex],
+      controller,
       js,
       context: 'forceDarkModeAndRemoveBanner',
     );
@@ -243,7 +245,7 @@ class WebViewLinuxState extends State<WebViewLinux> {
               ''', context: 'uniswap-retry-theme');
               }
             } else {
-              await forceDarkModeAndRemoveBanner(_currentTabIndex);
+              await forceDarkModeAndRemoveBanner(controller);
             }
           },
         ),
