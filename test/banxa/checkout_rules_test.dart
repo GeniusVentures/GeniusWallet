@@ -77,6 +77,42 @@ void main() {
     }
   });
 
+  group('classifyLinuxLoadFailure', () {
+    final returnUrl = BanxaApiService.returnUri.toString();
+
+    test('a main-frame failure on the return link is the return', () {
+      expect(
+        classifyLinuxLoadFailure(isForMainFrame: true, url: returnUrl),
+        LinuxLoadFailure.returned,
+      );
+    });
+
+    test('a subframe failure is ignored, even on the return link', () {
+      expect(
+        classifyLinuxLoadFailure(isForMainFrame: false, url: returnUrl),
+        LinuxLoadFailure.ignore,
+      );
+      expect(
+        classifyLinuxLoadFailure(isForMainFrame: null, url: returnUrl),
+        LinuxLoadFailure.ignore,
+      );
+    });
+
+    test('any other main-frame failure is a load error', () {
+      expect(
+        classifyLinuxLoadFailure(
+          isForMainFrame: true,
+          url: 'https://checkout.banxa.com/x',
+        ),
+        LinuxLoadFailure.loadError,
+      );
+      expect(
+        classifyLinuxLoadFailure(isForMainFrame: true, url: null),
+        LinuxLoadFailure.loadError,
+      );
+    });
+  });
+
   group('allowsCheckoutNavigation', () {
     for (final url in [
       'https://checkout.banxa.com/x',

@@ -298,6 +298,10 @@ static gboolean decide_policy_cb(WebKitWebView *widget,
   fl_value_set_string_take(event, "requestId", fl_value_new_int(request_id));
   fl_value_set_string_take(event, "url",
                            fl_value_new_string(uri != nullptr ? uri : ""));
+  // WebKitGTK raises this decision for subframes too and exposes no frame
+  // identity in the UI process (checked in 2.52 and 2.54), so this flag is a
+  // default, not a fact. Callers must not trust it; load-changed, notify::uri
+  // and load-failed are the main-frame-only signals.
   fl_value_set_string_take(event, "isMainFrame", fl_value_new_bool(true));
   send_event(webview, event);
   return TRUE;

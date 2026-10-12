@@ -39,24 +39,23 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          // A navigation request names no frame on WebKitGTK, so it is not
+          // where the permission origin or the return link is decided. The
+          // return link is let through because WebKit fails it, for the main
+          // frame only, and onWebResourceError picks that up.
           onNavigationRequest: (request) {
             final uri = Uri.tryParse(request.url);
-            if (isBanxaReturn(uri, isMainFrame: request.isMainFrame)) {
-              widget.onReturn();
-              return NavigationDecision.prevent;
+            if (isBanxaReturn(uri, isMainFrame: true) ||
+                allowsCheckoutNavigation(uri)) {
+              return NavigationDecision.navigate;
             }
-            if (!allowsCheckoutNavigation(uri)) {
-              return NavigationDecision.prevent;
-            }
-            if (request.isMainFrame && uri != null) {
-              _onBanxaPage = isTrustedCheckoutUrl(uri);
-            }
-            return NavigationDecision.navigate;
+            return NavigationDecision.prevent;
           },
-          onPageStarted: (url) {
-            final uri = Uri.tryParse(url);
-            if (uri != null) {
-              _onBanxaPage = isTrustedCheckoutUrl(uri);
+          onPageStarted: _onMainFrameUrl,
+          onUrlChange: (change) {
+            final url = change.url;
+            if (url != null) {
+              _onMainFrameUrl(url);
             }
           },
           onPageFinished: (_) {
@@ -65,8 +64,16 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
             }
           },
           onWebResourceError: (error) {
-            if (error.isForMainFrame ?? false) {
-              widget.onLoadError();
+            switch (classifyLinuxLoadFailure(
+              isForMainFrame: error.isForMainFrame,
+              url: error.url,
+            )) {
+              case LinuxLoadFailure.returned:
+                widget.onReturn();
+              case LinuxLoadFailure.loadError:
+                widget.onLoadError();
+              case LinuxLoadFailure.ignore:
+                break;
             }
           },
         ),
@@ -77,6 +84,12 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
           .loadRequest(widget.uri)
           .catchError((_) => widget.onLoadError()),
     );
+  }
+
+  // Load events are main-frame only, so an embedded frame cannot change it.
+  void _onMainFrameUrl(String url) {
+    final uri = Uri.tryParse(url);
+    _onBanxaPage = uri != null && isTrustedCheckoutUrl(uri);
   }
 
   Future<void> _onPermissionRequest(WebViewPermissionRequest request) async {
