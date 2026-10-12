@@ -256,7 +256,14 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            buildTokenIcon(iconPath: data.imageUrl, size: 46),
+            // The remote logo is white-backed, which vanishes on a light card.
+            DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: gw.borderSubtle),
+              ),
+              child: buildTokenIcon(iconPath: data.imageUrl, size: 46),
+            ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

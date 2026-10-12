@@ -13,6 +13,7 @@ import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
@@ -127,6 +128,9 @@ class NetworkSelectField extends StatelessWidget {
                       network?.iconPath ?? "",
                       width: 20,
                       height: 20,
+                      color: (network?.testnet ?? false)
+                          ? context.gw.textPrimary
+                          : null,
                       errorBuilder: (context, error, stackTrace) =>
                           const SizedBox(width: 20, height: 20),
                     ),
@@ -294,9 +298,12 @@ class _NetworkSection extends StatelessWidget {
             leading: SizedBox(
               width: 36,
               height: 36,
+              // The testnet artwork is white, so it needs a tint to show on a
+              // light surface.
               child: Image.asset(
                 network.iconPath ?? "",
                 fit: BoxFit.contain,
+                color: network.testnet ? context.gw.textPrimary : null,
                 errorBuilder: (context, error, stackTrace) =>
                     const SizedBox(width: 36, height: 36),
               ),
@@ -385,6 +392,7 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
               selectedNetwork.iconPath ?? "",
               width: 20,
               height: 20,
+              color: selectedNetwork.testnet ? context.gw.textPrimary : null,
               errorBuilder: (context, error, stackTrace) =>
                   const SizedBox(width: 20, height: 20),
             ),

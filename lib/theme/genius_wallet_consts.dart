@@ -34,6 +34,10 @@ class GeniusWalletConsts {
   static const double space24 = 48.0;
   static const double space32 = 64.0;
 
+  /// Bottom room a scrolling page keeps so its last row clears the floating
+  /// swap button (20 inset + 56 button + 8 gap).
+  static const double swapFabClearance = space10 + 56 + space4;
+
   // ---------------------------------------------------------------------------
   // Radius tokens. `radiusBase` (10px) matches the gnus.ai default
   // (`--radius: .625rem`); pair with `radius2xl` / `radiusXl` for cards.
