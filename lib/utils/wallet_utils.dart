@@ -29,10 +29,11 @@ String? walletNameError(String? value) {
 }
 
 class WalletUtils {
-  /// True for a wallet name that is an address, full or shortened as
-  /// `0xe28...d931`: showing it beside the address says the same thing twice.
+  /// True for a wallet name that is an address, full or shortened the way the
+  /// SDK (`0xe28...d931`) or the app (`0xe287...d931`) does: showing it beside
+  /// the address says the same thing twice.
   static bool isAddressLikeName(String name) => RegExp(
-    r'^0x(?:[0-9a-f]{40}|[0-9a-f]+\.{3}[0-9a-f]+)$',
+    r'^0x(?:[0-9a-f]{40}|[0-9a-f]{3,4}\.{3}[0-9a-f]{4})$',
     caseSensitive: false,
   ).hasMatch(name.trim());
 
