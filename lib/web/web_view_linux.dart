@@ -272,18 +272,27 @@ class WebViewLinuxState extends State<WebViewLinux> {
   }
 
   // The tab can change while canGoBack is awaited, so both calls use the
-  // controller taken before the first await.
+  // controller taken before the first await. Closing that tab meanwhile
+  // disposes it, so a failure there is dropped rather than left uncaught.
   void _goBack() async {
     final controller = _controllers[_currentTabIndex];
-    if (await controller.canGoBack()) {
-      await controller.goBack();
+    try {
+      if (await controller.canGoBack()) {
+        await controller.goBack();
+      }
+    } catch (e) {
+      debugPrint('WebViewLinux: back failed: $e');
     }
   }
 
   void _goForward() async {
     final controller = _controllers[_currentTabIndex];
-    if (await controller.canGoForward()) {
-      await controller.goForward();
+    try {
+      if (await controller.canGoForward()) {
+        await controller.goForward();
+      }
+    } catch (e) {
+      debugPrint('WebViewLinux: forward failed: $e');
     }
   }
 
