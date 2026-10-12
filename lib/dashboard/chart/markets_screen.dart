@@ -205,7 +205,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
           GeniusBreakpoints.pageGutter(context),
           GeniusWalletConsts.space6,
           GeniusBreakpoints.pageGutter(context),
-          GeniusWalletConsts.space20,
+          GeniusWalletConsts.swapFabClearance,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
