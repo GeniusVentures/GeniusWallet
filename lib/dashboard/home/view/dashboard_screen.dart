@@ -765,7 +765,8 @@ class _CoinIdentity extends StatelessWidget {
                   const TextSpan(text: 'Genius AI'),
                   // Beside the timeframe selector a narrow header has no room for
                   // the ticker, and a cut "Genius AI ·…" says nothing.
-                  if (constraints.maxWidth >= 190)
+                  if (constraints.maxWidth >=
+                      MediaQuery.textScalerOf(context).scale(190))
                     TextSpan(
                       text: '  ·  GNUS',
                       style: TextStyle(
