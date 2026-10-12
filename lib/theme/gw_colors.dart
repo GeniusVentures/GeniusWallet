@@ -102,6 +102,7 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.textTertiary,
     required this.textDisabled,
     required this.textOnBrand,
+    required this.textOnDarkChrome,
     required this.borderBrand,
     required this.statusWarning,
     required this.statusWarningText,
@@ -242,6 +243,10 @@ class GWColors extends ThemeExtension<GWColors> {
   final Color textDisabled;
   final Color textOnBrand;
 
+  /// White in both modes, for text and icons on the fixed navy browser chrome
+  /// ([deepBlueCardColor], [deepBlueTertiary]), which stays dark in light mode.
+  final Color textOnDarkChrome;
+
   final Color borderBrand;
 
   final Color statusWarning;
@@ -381,6 +386,7 @@ class GWColors extends ThemeExtension<GWColors> {
       textTertiary: GeniusWalletColors._textTertiary,
       textDisabled: GeniusWalletColors._textDisabled,
       textOnBrand: GeniusWalletColors._textOnBrand,
+      textOnDarkChrome: GeniusWalletColors._textOnDarkChrome,
       borderBrand: GeniusWalletColors._borderBrand,
       statusWarning: GeniusWalletColors._statusWarning,
       statusWarningText: const Color(0xFF92400E),
@@ -472,6 +478,8 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.textTertiary == GeniusWalletColors._textTertiary &&
               instance.textDisabled == GeniusWalletColors._textDisabled &&
               instance.textOnBrand == GeniusWalletColors._textOnBrand &&
+              instance.textOnDarkChrome ==
+                  GeniusWalletColors._textOnDarkChrome &&
               instance.borderBrand == GeniusWalletColors._borderBrand &&
               instance.statusWarning == GeniusWalletColors._statusWarning &&
               instance.statusInfo == GeniusWalletColors._statusInfo &&
@@ -553,6 +561,7 @@ class GWColors extends ThemeExtension<GWColors> {
       textTertiary: GeniusWalletColors._textTertiary,
       textDisabled: GeniusWalletColors._textDisabled,
       textOnBrand: GeniusWalletColors._textOnBrand,
+      textOnDarkChrome: GeniusWalletColors._textOnDarkChrome,
       borderBrand: GeniusWalletColors._borderBrand,
       statusWarning: GeniusWalletColors._statusWarning,
       statusWarningText: GeniusWalletColors._statusWarning,
@@ -646,6 +655,8 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.textTertiary == GeniusWalletColors._textTertiary &&
               instance.textDisabled == GeniusWalletColors._textDisabled &&
               instance.textOnBrand == GeniusWalletColors._textOnBrand &&
+              instance.textOnDarkChrome ==
+                  GeniusWalletColors._textOnDarkChrome &&
               instance.borderBrand == GeniusWalletColors._borderBrand &&
               instance.statusWarning == GeniusWalletColors._statusWarning &&
               instance.statusInfo == GeniusWalletColors._statusInfo &&
@@ -722,6 +733,7 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? textTertiary,
     Color? textDisabled,
     Color? textOnBrand,
+    Color? textOnDarkChrome,
     Color? borderBrand,
     Color? statusWarning,
     Color? statusWarningText,
@@ -797,6 +809,7 @@ class GWColors extends ThemeExtension<GWColors> {
       textTertiary: textTertiary ?? this.textTertiary,
       textDisabled: textDisabled ?? this.textDisabled,
       textOnBrand: textOnBrand ?? this.textOnBrand,
+      textOnDarkChrome: textOnDarkChrome ?? this.textOnDarkChrome,
       borderBrand: borderBrand ?? this.borderBrand,
       statusWarning: statusWarning ?? this.statusWarning,
       statusWarningText: statusWarningText ?? this.statusWarningText,

@@ -705,4 +705,21 @@ void main() {
       });
     },
   );
+
+  group('Browser chrome text on the fixed navy clears 4.5:1', () {
+    for (final mode in GWAppearanceMode.values) {
+      test('textOnDarkChrome and gray500 on both navies -- $mode', () {
+        final gw = themeFor(mode).extension<GWColors>()!;
+        for (final fg in [gw.textOnDarkChrome, gw.gray500]) {
+          for (final bg in [gw.deepBlueCardColor, gw.deepBlueTertiary]) {
+            expect(
+              contrastRatio(fg, bg),
+              greaterThanOrEqualTo(4.5),
+              reason: '$fg on $bg in $mode mode',
+            );
+          }
+        }
+      });
+    }
+  });
 }
