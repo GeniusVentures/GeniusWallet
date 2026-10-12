@@ -72,11 +72,16 @@ class WebViewLinuxState extends State<WebViewLinux> {
   }
 
   // Each controller owns a native WebKitWebView; a GC finalizer is the only
-  // other thing that would free it.
+  // other thing that would free it. Disposing a view whose native side never
+  // opened throws, and there is nobody left to tell.
   void _disposeController(WebViewController c) {
     final platform = c.platform;
     if (platform is LinuxWebViewController) {
-      unawaited(platform.dispose());
+      unawaited(
+        platform.dispose().catchError(
+          (Object e) => debugPrint('Web view dispose failed: $e'),
+        ),
+      );
     }
   }
 

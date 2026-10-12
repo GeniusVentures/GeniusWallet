@@ -108,7 +108,9 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
   void dispose() {
     final platform = _controller.platform;
     if (platform is LinuxWebViewController) {
-      unawaited(platform.dispose());
+      // Throws when the native view never opened; nothing is left to tell, and
+      // lib/banxa prints nothing.
+      unawaited(platform.dispose().catchError((Object _) {}));
     }
     super.dispose();
   }
