@@ -519,6 +519,15 @@ static gboolean permission_request_cb(WebKitWebView *widget,
                                       WebKitPermissionRequest *request,
                                       gpointer user_data) {
   LinuxWebView *webview = static_cast<LinuxWebView *>(user_data);
+  // Screen capture is never offered to the app: a request for display plus
+  // audio would otherwise reach Dart as a plain microphone request and be
+  // granted whole.
+  if (WEBKIT_IS_USER_MEDIA_PERMISSION_REQUEST(request) &&
+      webkit_user_media_permission_is_for_display_device(
+          WEBKIT_USER_MEDIA_PERMISSION_REQUEST(request))) {
+    webkit_permission_request_deny(request);
+    return TRUE;
+  }
   if (!webview->event_listening) {
     return FALSE;
   }

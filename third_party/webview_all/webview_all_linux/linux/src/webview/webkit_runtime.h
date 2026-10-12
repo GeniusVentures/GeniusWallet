@@ -98,6 +98,7 @@
   X(webkit_user_content_manager_remove_all_scripts)                            \
   X(webkit_user_content_manager_unregister_script_message_handler)             \
   X(webkit_user_media_permission_is_for_audio_device)                          \
+  X(webkit_user_media_permission_is_for_display_device)                        \
   X(webkit_user_media_permission_is_for_video_device)                          \
   X(webkit_user_media_permission_request_get_type)                             \
   X(webkit_user_script_new)                                                    \
@@ -323,6 +324,8 @@ gboolean webkit_runtime_load();
   (gw_webkit.webkit_user_content_manager_unregister_script_message_handler)
 #define webkit_user_media_permission_is_for_audio_device                       \
   (gw_webkit.webkit_user_media_permission_is_for_audio_device)
+#define webkit_user_media_permission_is_for_display_device                     \
+  (gw_webkit.webkit_user_media_permission_is_for_display_device)
 #define webkit_user_media_permission_is_for_video_device                       \
   (gw_webkit.webkit_user_media_permission_is_for_video_device)
 #define webkit_user_media_permission_request_get_type                          \
