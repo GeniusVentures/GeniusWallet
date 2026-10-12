@@ -102,6 +102,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _returned = false;
   bool _readDone = false;
   bool _loadFailed = false;
+  bool _menuOpen = false;
   int _hostKey = 0;
 
   @override
@@ -155,6 +156,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
     setState(() => _loadFailed = true);
+  }
+
+  void _setMenuOpen(bool open) {
+    if (!mounted) {
+      return;
+    }
+    setState(() => _menuOpen = open);
   }
 
   void _restartHost() {
@@ -286,9 +294,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           );
         } else {
-          body = KeyedSubtree(
-            key: ValueKey(_hostKey),
-            child: widget.hostBuilder(context, uri, _onReturn, _onLoadError),
+          // The menu is not a route, so the popup gate cannot see it and the
+          // native page would paint over it.
+          body = Offstage(
+            offstage: hostKind == CheckoutHostKind.linux && _menuOpen,
+            child: KeyedSubtree(
+              key: ValueKey(_hostKey),
+              child: widget.hostBuilder(context, uri, _onReturn, _onLoadError),
+            ),
           );
         }
 
@@ -316,6 +329,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   onClose: paying ? _confirmLeave : _close,
                   onPayOnAnotherDevice: paying ? _payOnAnotherDevice : null,
                   onOpenInBrowser: paying ? _openInBrowserNow : null,
+                  onMenuOpenChanged: _setMenuOpen,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(
@@ -402,12 +416,14 @@ class _CheckoutHeader extends StatelessWidget {
     required this.onClose,
     required this.onPayOnAnotherDevice,
     required this.onOpenInBrowser,
+    required this.onMenuOpenChanged,
   });
 
   final bool isSandbox;
   final VoidCallback onClose;
   final VoidCallback? onPayOnAnotherDevice;
   final VoidCallback? onOpenInBrowser;
+  final ValueChanged<bool> onMenuOpenChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -451,6 +467,7 @@ class _CheckoutHeader extends StatelessWidget {
             _CheckoutMenu(
               onPayOnAnotherDevice: onPayOnAnotherDevice!,
               onOpenInBrowser: onOpenInBrowser!,
+              onOpenChanged: onMenuOpenChanged,
             ),
           const SizedBox(width: GeniusWalletConsts.space4),
         ],
@@ -463,15 +480,19 @@ class _CheckoutMenu extends StatelessWidget {
   const _CheckoutMenu({
     required this.onPayOnAnotherDevice,
     required this.onOpenInBrowser,
+    required this.onOpenChanged,
   });
 
   final VoidCallback onPayOnAnotherDevice;
   final VoidCallback onOpenInBrowser;
+  final ValueChanged<bool> onOpenChanged;
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return MenuAnchor(
+      onOpen: () => onOpenChanged(true),
+      onClose: () => onOpenChanged(false),
       builder: (context, controller, child) => IconButton(
         icon: Icon(Icons.more_vert, color: gw.textPrimary),
         tooltip: 'More',
