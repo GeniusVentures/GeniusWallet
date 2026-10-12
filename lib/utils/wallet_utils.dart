@@ -32,7 +32,8 @@ class WalletUtils {
   /// True for a wallet name that is an address, full or shortened as
   /// `0xe28...d931`: showing it beside the address says the same thing twice.
   static bool isAddressLikeName(String name) => RegExp(
-    r'^0x(?:[0-9a-fA-F]{40}|[0-9a-fA-F]+\.{3}[0-9a-fA-F]+)$',
+    r'^0x(?:[0-9a-f]{40}|[0-9a-f]+\.{3}[0-9a-f]+)$',
+    caseSensitive: false,
   ).hasMatch(name.trim());
 
   static String getAddressForDisplay(String address) {

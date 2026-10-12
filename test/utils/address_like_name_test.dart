@@ -4,6 +4,7 @@ import 'package:genius_wallet/utils/wallet_utils.dart';
 void main() {
   test('a full or shortened address is address-like', () {
     expect(WalletUtils.isAddressLikeName('0xe28...d931'), isTrue);
+    expect(WalletUtils.isAddressLikeName('0XE28...D931'), isTrue);
     expect(
       WalletUtils.isAddressLikeName(
         '0xe287abc1234567890def1234567890abcdef1234',
