@@ -99,11 +99,15 @@ class _CheckoutWebViewLinuxState extends State<CheckoutWebViewLinux> {
       onBanxaPage: _onBanxaPage,
       types: request.types.map((t) => t.name),
     );
-    if (!allowed) {
-      await request.deny();
-      return;
-    }
-    await request.grant();
+    // Checkout can close while the answer is in flight; the view is gone then
+    // and there is nobody left to answer.
+    try {
+      if (!allowed) {
+        await request.deny();
+        return;
+      }
+      await request.grant();
+    } catch (_) {}
   }
 
   @override
