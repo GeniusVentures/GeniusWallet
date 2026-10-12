@@ -792,9 +792,12 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     }
 
     return ListView.builder(
-      // Zero, so the hairlines run full-bleed across the panel — the rows
-      // carry their own space6/space4 padding.
-      padding: EdgeInsets.zero,
+      // No side padding, so the hairlines run full-bleed across the panel —
+      // the rows carry their own space6/space4 padding. The dashboard panel
+      // also ends above the floating swap button; the page already does.
+      padding: EdgeInsets.only(
+        bottom: widget.page ? 0 : GeniusBreakpoints.pageBottomPad(context, 0),
+      ),
       itemCount: entries.length,
       itemBuilder: (_, i) => entries[i],
     );
