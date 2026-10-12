@@ -211,8 +211,24 @@ class PopupRouteObserver extends NavigatorObserver with ChangeNotifier {
   @override
   void didPush(Route route, Route? previousRoute) => _update(added: route);
 
+  // A popped popup is still fading out; a native view revealed now would
+  // cover the rest of the exit animation, so it stays open until dismissed.
   @override
-  void didPop(Route route, Route? previousRoute) => _update(removed: route);
+  void didPop(Route route, Route? previousRoute) {
+    final animation = route is TransitionRoute ? route.animation : null;
+    if (animation == null || animation.status == AnimationStatus.dismissed) {
+      _update(removed: route);
+      return;
+    }
+    void onStatus(AnimationStatus status) {
+      if (status == AnimationStatus.dismissed) {
+        animation.removeStatusListener(onStatus);
+        _update(removed: route);
+      }
+    }
+
+    animation.addStatusListener(onStatus);
+  }
 
   @override
   void didRemove(Route route, Route? previousRoute) => _update(removed: route);
