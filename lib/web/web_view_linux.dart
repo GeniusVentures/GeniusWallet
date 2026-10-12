@@ -476,7 +476,7 @@ class _TabStrip extends StatelessWidget {
                     icon: Icon(
                       Icons.add,
                       size: 20,
-                      color: context.gw.textPrimary,
+                      color: context.gw.textOnDarkChrome,
                     ),
                     constraints: const BoxConstraints(
                       minWidth: 36,
@@ -527,9 +527,8 @@ class _TabChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelColor = active
-        ? context.gw.textPrimary
-        : context.gw.textPrimary60;
+    // The inactive chip has no fill of its own, so it reads the navy strip.
+    final labelColor = active ? context.gw.textPrimary : context.gw.gray500;
     return MouseRegion(
       onEnter: (_) => hovered.value = index,
       onExit: (_) {
@@ -893,6 +892,7 @@ class _OmniboxCenter extends StatelessWidget {
   }
 }
 
+/// Sits on the navy scaffold, which stays dark in light mode too.
 class _LoadFailed extends StatelessWidget {
   const _LoadFailed({required this.onRetry});
 
@@ -907,7 +907,7 @@ class _LoadFailed extends StatelessWidget {
           Text(
             "This page didn't load",
             style: TextStyle(
-              color: context.gw.textPrimary,
+              color: context.gw.textOnDarkChrome,
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -915,11 +915,13 @@ class _LoadFailed extends StatelessWidget {
           const SizedBox(height: GeniusWalletConsts.space2),
           Text(
             'Check the address and your connection, then try again.',
-            style: TextStyle(color: context.gw.textPrimary60, fontSize: 14),
+            style: TextStyle(color: context.gw.gray500, fontSize: 14),
           ),
           const SizedBox(height: GeniusWalletConsts.space6),
+          // Tertiary carries its own fill; the secondary outline's light-mode
+          // blue is only 3.2:1 on this navy.
           GWButton(
-            variant: GWButtonVariant.secondary,
+            variant: GWButtonVariant.tertiary,
             label: 'Try again',
             onPressed: onRetry,
           ),

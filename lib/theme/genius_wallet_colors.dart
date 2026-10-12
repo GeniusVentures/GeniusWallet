@@ -207,6 +207,7 @@ class GeniusWalletColors {
   static const Color _textTertiary = Color.fromARGB(255, 53, 54, 61);
   static const Color _textDisabled = Color(0xFF2A2B31);
   static const Color _textOnBrand = Color(0xFF000B18);
+  static const Color _textOnDarkChrome = Colors.white;
 
   // Border — hairlines flip with the canvas (white-based on dark, ink-based
   // on light).
