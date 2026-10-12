@@ -1190,7 +1190,9 @@ class _SwapFromWallet extends StatelessWidget {
 
     final gw = context.gw;
     final short = WalletUtils.getAddressForDisplay(wallet.address);
-    final name = wallet.walletName.isEmpty || wallet.walletName.startsWith('0x')
+    final name =
+        wallet.walletName.isEmpty ||
+            WalletUtils.isAddressLikeName(wallet.walletName)
         ? short
         : '${wallet.walletName} · $short';
     final label = canSend ? 'Sending from $name' : "Can't sign from $name";

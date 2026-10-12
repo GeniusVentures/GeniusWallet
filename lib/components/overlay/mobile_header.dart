@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/overlay/more_sheet.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// The side of both header controls, in logical pixels. Public so the tests
@@ -468,6 +469,7 @@ class WalletPill extends StatelessWidget {
                   ? WalletIdentityAvatar(
                       wallet: wallet,
                       networkIconPath: network?.iconPath,
+                      networkIsTestnet: network?.testnet ?? false,
                     )
                   : const _NoWalletAvatar(),
             ),
@@ -483,7 +485,7 @@ class WalletPill extends StatelessWidget {
 /// would read as an identity it is not, so that check runs first.
 String? walletMonogram(String walletName) {
   final name = walletName.trim();
-  if (name.isEmpty || RegExp(r'^(0x\S*|\S{20,})$').hasMatch(name)) {
+  if (name.isEmpty || WalletUtils.isAddressLikeName(name)) {
     return null;
   }
   final digits = RegExp(r'(?<!\d)\d{1,2}$').firstMatch(name)?.group(0);
@@ -507,6 +509,7 @@ class WalletIdentityAvatar extends StatelessWidget {
     super.key,
     required this.wallet,
     this.networkIconPath,
+    this.networkIsTestnet = false,
   });
 
   static const double size = 32;
@@ -515,6 +518,9 @@ class WalletIdentityAvatar extends StatelessWidget {
 
   /// The chain badge at bottom-right; omitted when null.
   final String? networkIconPath;
+
+  /// Testnet artwork is white, so it is tinted to show on a light bar.
+  final bool networkIsTestnet;
 
   @override
   Widget build(BuildContext context) {
@@ -591,6 +597,7 @@ class WalletIdentityAvatar extends StatelessWidget {
                   child: Image.asset(
                     networkIconPath!,
                     fit: BoxFit.contain,
+                    color: networkIsTestnet ? gw.textPrimary : null,
                     excludeFromSemantics: true,
                     errorBuilder: (_, _, _) => const SizedBox.shrink(),
                   ),
