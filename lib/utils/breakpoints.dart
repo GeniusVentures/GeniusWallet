@@ -33,6 +33,13 @@ abstract class GeniusBreakpoints {
       ? GeniusWalletConsts.space32
       : GeniusWalletConsts.space12;
 
+  /// Page bottom padding: [fallback], plus room for the floating swap button
+  /// wherever that button is shown (the desktop shell).
+  static double pageBottomPad(BuildContext context, double fallback) =>
+      useDesktopOverlay(context)
+      ? GeniusWalletConsts.swapFabClearance
+      : fallback;
+
   /// Page frame left/right gutter, shared by the same seven pages.
   ///
   /// Never 0 — content on the window bezel is a real defect (06-01 walk);

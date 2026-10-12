@@ -123,9 +123,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
           GeniusBreakpoints.pageGutter(context),
           GeniusBreakpoints.pageTitleGap(context),
           GeniusBreakpoints.pageGutter(context),
-          GeniusBreakpoints.useDesktopOverlay(context)
-              ? GeniusWalletConsts.swapFabClearance
-              : GeniusWalletConsts.space4,
+          GeniusBreakpoints.pageBottomPad(context, GeniusWalletConsts.space4),
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
