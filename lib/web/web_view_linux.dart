@@ -197,6 +197,9 @@ class WebViewLinuxState extends State<WebViewLinux> {
   }
 
   void _addNewTab(String url) {
+    // Every path that changes the active tab leaves the address field, so its
+    // old text cannot be loaded into the new tab.
+    _urlFocusNode.unfocus();
     WebViewController? controller;
     bool retried = false;
 
