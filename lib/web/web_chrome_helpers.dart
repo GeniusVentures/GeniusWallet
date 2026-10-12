@@ -6,21 +6,13 @@
 // string/int predicates, which have no controller dependency and are the only
 // non-trivial edge-case logic worth a test.
 
-/// The Web tab's home page — what `/web` opens with, what the `+` button adds,
-/// and what closing the last tab resets to.
-///
-/// One constant because the previous literal (`https://www.duckduckgo.com`) was
-/// written out at FOUR call sites across two files, so "change the home page"
-/// was never a single edit. Jakub set it to gnus.ai on 2026-07-26.
+/// The Web tab's home page: what `/web` opens, what `+` adds, and what closing
+/// the last tab resets to. One constant so changing it is a single edit.
 const String kWebHomeUrl = 'https://gnus.ai/';
 
-/// The host shown in the omnibox at rest, e.g. `app.uniswap.org`.
-///
-/// Returns the trimmed raw input unchanged when the URL has no parseable host
-/// (`about:blank`, or a half-typed string), so the field never blanks out and
-/// never throws. `Uri.tryParse` rejects a raw space (an un-encoded search query
-/// still sitting in the path), so we retry on the pre-query slice before giving
-/// up — that recovers the host from `.../search?q=eth price`.
+/// The host shown in the omnibox at rest, e.g. `app.uniswap.org`. Falls back to
+/// the trimmed input when there is no host, and retries on the pre-query slice
+/// because `Uri.tryParse` rejects an un-encoded space in a search query.
 String webDisplayHost(String url) {
   final trimmed = url.trim();
   var uri = Uri.tryParse(trimmed);
