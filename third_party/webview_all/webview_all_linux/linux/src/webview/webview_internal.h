@@ -9,6 +9,7 @@ void emit_url_change(LinuxWebView *webview);
 void emit_title_change(LinuxWebView *webview);
 void emit_load_error(LinuxWebView *webview, GError *error,
                      const gchar *failing_url);
+void emit_tls_rejected(LinuxWebView *webview, const gchar *failing_url);
 void use_navigation_decision(LinuxWebView *webview,
                              WebKitPolicyDecision *decision);
 void evaluate_javascript(WebKitWebView *web_view, const gchar *script,

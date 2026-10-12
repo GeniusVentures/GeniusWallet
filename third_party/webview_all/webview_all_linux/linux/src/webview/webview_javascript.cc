@@ -106,6 +106,23 @@ void emit_load_error(LinuxWebView *webview, GError *error,
   send_event(webview, event);
 }
 
+// WebKit raises no load-failed once the TLS signal is handled, so a rejected
+// certificate is reported to Dart here instead of leaving the page blank.
+void emit_tls_rejected(LinuxWebView *webview, const gchar *failing_url) {
+  FlValue *event = make_event("webResourceError");
+  fl_value_set_string_take(
+      event, "description",
+      fl_value_new_string("TLS certificate was not accepted"));
+  fl_value_set_string_take(event, "errorCode", fl_value_new_int(-1));
+  fl_value_set_string_take(event, "errorType",
+                           fl_value_new_string("failedSslHandshake"));
+  fl_value_set_string_take(event, "isForMainFrame", fl_value_new_bool(true));
+  if (failing_url != nullptr) {
+    fl_value_set_string_take(event, "url", fl_value_new_string(failing_url));
+  }
+  send_event(webview, event);
+}
+
 static void script_finished_cb(GObject *object, GAsyncResult *result,
                                gpointer user_data) {
   FlMethodCall *method_call = FL_METHOD_CALL(user_data);
