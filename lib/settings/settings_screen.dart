@@ -171,60 +171,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GWScreen(
       padding: const EdgeInsets.all(GeniusWalletConsts.space8),
       maxContentWidth: GeniusBreakpoints.medium,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: DeveloperMode.instance,
-        builder: (context, developerMode, _) =>
-            BlocBuilder<DeveloperSettingsCubit, DeveloperSettingsState>(
-              builder: (context, dev) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: GeniusWalletConsts.space12,
-                children: [
-                  const GWPageHeader(title: 'Settings'),
-                  _buildSectionCard(
-                    title: 'Appearance',
-                    icon: Icons.brightness_6,
-                    status: null,
-                    loading: false,
-                    action: null,
-                    child: const _AppearanceControl(),
-                  ),
-                  _buildSectionCard(
-                    title: 'Advanced',
-                    icon: Icons.developer_mode,
-                    status: dev.status,
-                    loading: false,
-                    action: null,
-                    child: _DeveloperModeSwitch(
-                      value: developerMode,
-                      onChanged: dev.busy
-                          ? null
-                          : context
-                                .read<DeveloperSettingsCubit>()
-                                .setDeveloperMode,
-                    ),
-                  ),
-                  if (developerMode) ...[
-                    const GWKicker('Developer'),
-                    _buildSectionCard(
-                      title: 'SDK Network',
-                      icon: Icons.hub,
-                      status: dev.netStatus,
-                      loading: false,
-                      action: null,
-                      child: _SdkNetSelect(
-                        value: dev.net,
-                        onChanged: dev.busy
-                            ? null
-                            : context.read<DeveloperSettingsCubit>().selectNet,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const GWPageHeader(title: 'Settings'),
+          ValueListenableBuilder<bool>(
+            valueListenable: DeveloperMode.instance,
+            builder: (context, developerMode, _) =>
+                BlocBuilder<DeveloperSettingsCubit, DeveloperSettingsState>(
+                  builder: (context, dev) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: GeniusWalletConsts.space12,
+                    children: [
+                      _buildSectionCard(
+                        title: 'Appearance',
+                        icon: Icons.brightness_6,
+                        status: null,
+                        loading: false,
+                        action: null,
+                        child: const _AppearanceControl(),
                       ),
-                    ),
-                    _buildLogSection(),
-                    _buildNetworkSection(),
-                    _buildCrdtSection(),
-                  ],
-                ],
-              ),
-            ),
+                      _buildSectionCard(
+                        title: 'Advanced',
+                        icon: Icons.developer_mode,
+                        status: dev.status,
+                        loading: false,
+                        action: null,
+                        child: _DeveloperModeSwitch(
+                          value: developerMode,
+                          onChanged: dev.busy
+                              ? null
+                              : context
+                                    .read<DeveloperSettingsCubit>()
+                                    .setDeveloperMode,
+                        ),
+                      ),
+                      if (developerMode) ...[
+                        const GWKicker('Developer'),
+                        _buildSectionCard(
+                          title: 'SDK Network',
+                          icon: Icons.hub,
+                          status: dev.netStatus,
+                          loading: false,
+                          action: null,
+                          child: _SdkNetSelect(
+                            value: dev.net,
+                            onChanged: dev.busy
+                                ? null
+                                : context
+                                      .read<DeveloperSettingsCubit>()
+                                      .selectNet,
+                          ),
+                        ),
+                        _buildLogSection(),
+                        _buildNetworkSection(),
+                        _buildCrdtSection(),
+                      ],
+                    ],
+                  ),
+                ),
+          ),
+        ],
       ),
     );
   }
