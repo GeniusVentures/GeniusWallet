@@ -160,4 +160,35 @@ void main() {
 
     expect(_created, 1);
   });
+
+  testWidgets('a navigator disposed with a popup open clears the gate', (
+    tester,
+  ) async {
+    final observer = PopupRouteObserver();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Navigator(
+          observers: [observer],
+          onGenerateRoute: (_) => MaterialPageRoute<void>(
+            builder: (context) => TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                useRootNavigator: false,
+                builder: (_) => const AlertDialog(title: Text('dlg')),
+              ),
+              child: const Text('dialog'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('dialog'));
+    await tester.pumpAndSettle();
+    expect(observer.anyOpen, isTrue);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+
+    expect(observer.anyOpen, isFalse);
+  });
 }
