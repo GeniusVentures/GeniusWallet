@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
@@ -14,6 +13,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/formatters.dart';
+import 'package:genius_wallet/utils/image_utils.dart';
 
 class SwapField extends StatelessWidget {
   final String label;
@@ -37,6 +37,9 @@ class SwapField extends StatelessWidget {
   final String? pickerEmptyTitle;
   final String? pickerEmptyMessage;
 
+  /// Next-step actions shown under the picker's empty state.
+  final Widget? pickerEmptyActions;
+
   const SwapField({
     super.key,
     required this.label,
@@ -49,6 +52,7 @@ class SwapField extends StatelessWidget {
     this.emptyPlaceholder,
     this.pickerEmptyTitle,
     this.pickerEmptyMessage,
+    this.pickerEmptyActions,
   });
 
   @override
@@ -197,12 +201,17 @@ class SwapField extends StatelessWidget {
                             selectedToken: selectedToken,
                             emptyTitle: pickerEmptyTitle,
                             emptyMessage: pickerEmptyMessage,
+                            emptyActions: pickerEmptyActions,
                           );
                         },
                         borderRadius: BorderRadius.circular(
                           GeniusWalletConsts.radiusPill,
                         ),
                         child: Container(
+                          // The logo makes the pill 36px tall; without one it is
+                          // shorter and the card jumped when a token was picked.
+                          constraints: const BoxConstraints(minHeight: 36),
+                          alignment: Alignment.center,
                           padding: const EdgeInsets.only(
                             left: 4,
                             right: 8,
@@ -232,78 +241,10 @@ class SwapField extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               if (selectedToken != null)
-                                ClipOval(
-                                  // The catalogue does not promise a logo. The
-                                  // slot is 32x32 either way, so nothing in the
-                                  // pill moves when one is missing.
-                                  child: selectedToken!.logoUri == null
-                                      ? ColoredBox(
-                                          color: gw.surfaceMenu,
-                                          child: const SizedBox(
-                                            width: 32,
-                                            height: 32,
-                                          ),
-                                        )
-                                      : selectedToken!.hasSvgLogo
-                                      ? SvgPicture.network(
-                                          selectedToken!.logoUri!,
-                                          width: 32,
-                                          height: 32,
-                                          fit: BoxFit.cover,
-                                          placeholderBuilder: (_) => Container(
-                                            width: 32,
-                                            height: 32,
-                                            color: gw.surfaceMenu,
-                                          ),
-                                          errorBuilder: (_, _, _) => Container(
-                                            width: 32,
-                                            height: 32,
-                                            color: gw.surfaceMenu,
-                                            alignment: Alignment.center,
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              color: gw.textSecondary,
-                                              size: 16,
-                                            ),
-                                          ),
-                                        )
-                                      : Image.network(
-                                          selectedToken!.logoUri!,
-                                          width: 32,
-                                          height: 32,
-                                          fit: BoxFit.cover,
-                                          // The slot is already 32x32, so nothing moves
-                                          // when the bytes land — but until they do it
-                                          // is a hole beside the symbol. A neutral disc
-                                          // holds the shape, reusing the error branch's
-                                          // idea of "no logo" rather than inventing a
-                                          // second one.
-                                          loadingBuilder:
-                                              (context, child, progress) {
-                                                if (progress == null) {
-                                                  return child;
-                                                }
-                                                return Container(
-                                                  width: 32,
-                                                  height: 32,
-                                                  color: gw.surfaceMenu,
-                                                );
-                                              },
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Container(
-                                                  width: 32,
-                                                  height: 32,
-                                                  color: gw.surfaceMenu,
-                                                  alignment: Alignment.center,
-                                                  child: Icon(
-                                                    Icons.broken_image,
-                                                    color: gw.textSecondary,
-                                                    size: 16,
-                                                  ),
-                                                );
-                                              },
-                                        ),
+                                TokenIcon(
+                                  iconPath: selectedToken!.logoUri,
+                                  size: 32,
+                                  label: selectedToken!.symbol,
                                 ),
                               const SizedBox(width: 8),
                               Text(

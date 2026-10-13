@@ -263,7 +263,11 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
                 shape: BoxShape.circle,
                 border: Border.all(color: gw.borderSubtle),
               ),
-              child: buildTokenIcon(iconPath: data.imageUrl, size: 46),
+              child: buildTokenIcon(
+                iconPath: data.imageUrl,
+                size: 46,
+                label: data.symbol,
+              ),
             ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Column(

@@ -8,6 +8,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/qr/show_receive_drawer.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
@@ -39,6 +40,7 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:go_router/go_router.dart';
 
 /// The list one side of the swap may pick from: everything except the token the
 /// OTHER side already holds.
@@ -1082,6 +1084,9 @@ class _SwapScreenState extends State<SwapScreen> {
                                     // full-catalogue list only revealed that at
                                     // the CTA. The receive side below is
                                     // deliberately NOT filtered.
+                                    pickerEmptyActions: _EmptyPickerActions(
+                                      screen: context,
+                                    ),
                                     pickerEmptyTitle: 'No tokens to swap',
                                     pickerEmptyMessage:
                                         'This wallet holds no tokens with '
@@ -1165,6 +1170,50 @@ class _SwapScreenState extends State<SwapScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Receive / Buy GNUS for the pay picker's empty state. The picker is closed
+/// first so the next screen opens over the swap, not over a stale drawer.
+class _EmptyPickerActions extends StatelessWidget {
+  const _EmptyPickerActions({required this.screen});
+
+  /// The swap screen's context: the picker's own is gone once it pops, and the
+  /// drawer route sits above the screen's providers.
+  final BuildContext screen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: GWButton(
+            variant: GWButtonVariant.gradientOutline,
+            size: GWButtonSize.sm,
+            label: 'Receive',
+            expand: true,
+            onPressed: () {
+              final wallet = screen.read<WalletDetailsCubit>().state;
+              Navigator.of(context).pop();
+              showReceiveDrawer(screen, wallet);
+            },
+          ),
+        ),
+        const SizedBox(width: GeniusWalletConsts.space4),
+        Expanded(
+          child: GWButton(
+            variant: GWButtonVariant.gradient,
+            size: GWButtonSize.sm,
+            label: 'Buy GNUS',
+            expand: true,
+            onPressed: () {
+              Navigator.of(context).pop();
+              screen.push('/buy');
+            },
+          ),
+        ),
+      ],
     );
   }
 }

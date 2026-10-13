@@ -274,7 +274,11 @@ class _MarketCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildTokenIcon(iconPath: data.imageUrl, size: 32),
+                buildTokenIcon(
+                  iconPath: data.imageUrl,
+                  size: 32,
+                  label: data.symbol,
+                ),
                 const SizedBox(width: GeniusWalletConsts.space8),
                 Expanded(
                   child: Column(
