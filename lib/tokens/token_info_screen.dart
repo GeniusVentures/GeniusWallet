@@ -16,6 +16,7 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
@@ -269,9 +270,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
           return SingleChildScrollView(
             // The Transactions / Markets frame: gutter and top gap from
             // `GeniusBreakpoints`, gutter OUTSIDE the xxl cap, and the title
-            // is the first thing under the gap - no back link - so the coin
-            // name lands exactly where "Transactions" does. The way back is
-            // the shell's nav bar and the system back gesture.
+            // sits under the gap and the back link.
             padding: EdgeInsets.fromLTRB(
               GeniusBreakpoints.pageGutter(context),
               GeniusBreakpoints.pageTitleGap(context),
@@ -287,6 +286,10 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Reached from Markets, Assets and Home, and on desktop the
+                    // top nav is the only other way out, so name no destination.
+                    if (GoRouter.maybeOf(context)?.canPop() ?? false)
+                      GWBackLink(label: 'BACK', onTap: context.pop),
                     _header(context, selectedCoin, isDesktop),
                     // sketch 165 Synthesis, change 3: the actions sit on their
                     // own row under the identity block, not on the title's
