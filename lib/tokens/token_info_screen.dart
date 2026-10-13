@@ -490,6 +490,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
             ? _marketData!.imageUrl
             : selectedCoin?.iconPath,
         size: 40,
+        label: symbol,
         tint: networkIconTint(context.gw, selectedCoin?.iconPath),
       ),
       // Sketch 168 E1 (Jakub, 2026-07-31): the price is pulled up against

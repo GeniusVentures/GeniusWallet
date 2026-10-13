@@ -69,12 +69,9 @@ const _census = <String, _Inset>{
   'lib/banxa/banxa_components/buy_cancelled_drawer.dart': _Inset.shellInset,
   // The checkout's Pay on another device drawer; its body scrolls itself.
   'lib/banxa/checkout/checkout_screen.dart': _Inset.shellInset,
-  'lib/components/coins/view/coins_screen.dart': _Inset.shellInset,
   // Phase 31's send confirm drawer, same call shape as swap's approve
   // drawer -- no bodyPadding, so shellInset.
   'lib/send/send_screen.dart': _Inset.shellInset,
-  // The /assets page's Receive drawer (phase 25-02). Same call shape as the
-  // coins_screen.dart entry directly above: no bodyPadding, so shellInset.
   'lib/tokens/token_info_screen.dart': _Inset.shellInset,
   // Two call sites in this one file: Receive (21-05) and More Options.
   'lib/components/wallet_information.dart': _Inset.shellInset,
