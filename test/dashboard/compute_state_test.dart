@@ -291,4 +291,10 @@ void main() {
       expect(startingUpView.trailing, processingView.trailing);
     });
   });
+
+  test('startingUp explains when the disabled job button unlocks', () {
+    final view = viewForComputeState(ComputeState.startingUp);
+    expect(view.ctaEnabled, isFalse);
+    expect(view.subline, 'Jobs unlock once earning starts');
+  });
 }

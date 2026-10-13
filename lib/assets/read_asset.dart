@@ -135,7 +135,13 @@ Future<List<Coin>> readTokenAssets({
     _fetchNativeToken(web3, walletAddress, network),
     ...tokensList
         .where((token) => token.address != null && token.address!.isNotEmpty)
-        .map((token) => _fetchTokenData(token, network, walletAddress)),
+        // One retry: a single RPC hiccup dropped the GNUS row, so an empty
+        // wallet showed Ethereum on one visit and GNUS on the next.
+        .map(
+          (token) async =>
+              await _fetchTokenData(token, network, walletAddress) ??
+              await _fetchTokenData(token, network, walletAddress),
+        ),
   ];
 
   final results = await Future.wait(futures);

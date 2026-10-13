@@ -307,7 +307,7 @@ ComputeStatusView viewForComputeState(
       link = ComputeLink.reconnect;
     case ComputeState.startingUp:
       label = 'Starting up';
-      subline = 'Feed live';
+      subline = 'Jobs unlock once earning starts';
       dotRole = ComputeDotRole.brand;
     case ComputeState.processing:
       label = 'Earning';
