@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
@@ -13,7 +12,7 @@ import 'package:genius_wallet/components/coins/assets_totals.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
+import 'package:genius_wallet/components/qr/show_receive_drawer.dart';
 import 'package:genius_wallet/dashboard/assets/assets_sort.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
@@ -196,29 +195,6 @@ class CoinsScreenState extends State<CoinsScreen> {
       }
     }
     return holdings;
-  }
-
-  /// Opens the address-QR receive drawer for the empty-wallet footer.
-  ///
-  /// ponytail: there is no dedicated `/receive` route in router.dart - the
-  /// receive UI is the reusable [CryptoAddressQR] shown in a [ResponsiveDrawer].
-  /// Ceiling: no send-flow deep-link / amount request. Upgrade path: a proper
-  /// `/receive` screen if receive grows beyond "show my address".
-  void _showReceive(WalletDetailsState state) {
-    final address = state.selectedWallet?.address;
-    if (address == null || address.isEmpty) {
-      return;
-    }
-    ResponsiveDrawer.show<void>(
-      context: context,
-      title: 'Receive',
-      child: CryptoAddressQR(
-        address: address,
-        network:
-            state.selectedNetwork?.name ?? state.selectedNetwork?.symbol ?? '',
-        iconPath: state.selectedNetwork?.iconPath,
-      ),
-    );
   }
 
   @override
@@ -518,7 +494,8 @@ class CoinsScreenState extends State<CoinsScreen> {
                               size: GWButtonSize.sm,
                               label: 'Receive',
                               expand: true,
-                              onPressed: () => _showReceive(state),
+                              onPressed: () =>
+                                  showReceiveDrawer(context, state),
                             ),
                           ),
                           const SizedBox(width: GeniusWalletConsts.space4),
