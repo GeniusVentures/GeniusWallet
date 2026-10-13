@@ -36,7 +36,7 @@ void main() {
       expect(swapCtaEnabled(state), isFalse);
     });
 
-    test('no tokens selected -> enterAmount', () {
+    test('amount typed, a token missing -> selectToken', () {
       final state = resolveSwapCtaState(
         hasBothTokens: false,
         fromAmount: '1',
@@ -46,7 +46,8 @@ void main() {
         routeError: false,
         isSubmitting: false,
       );
-      expect(state, SwapCtaState.enterAmount);
+      expect(state, SwapCtaState.selectToken);
+      expect(swapCtaLabel(state), 'Select a token');
       expect(swapCtaEnabled(state), isFalse);
     });
   });

@@ -269,7 +269,11 @@ class _MarketsTableState extends State<MarketsTable> {
             Expanded(
               child: Row(
                 children: [
-                  buildTokenIcon(iconPath: data.imageUrl, size: 30),
+                  buildTokenIcon(
+                    iconPath: data.imageUrl,
+                    size: 30,
+                    label: data.symbol,
+                  ),
                   const SizedBox(width: GeniusWalletConsts.space6),
                   Expanded(
                     child: Column(

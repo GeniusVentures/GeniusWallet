@@ -10,8 +10,11 @@ enum SwapCtaState {
   /// submit, whatever the amount says.
   cannotSign,
 
-  /// No tokens selected, or the amount is empty/unparseable.
+  /// The amount is empty or unparseable.
   enterAmount,
+
+  /// An amount is typed but the pay or receive token is still missing.
+  selectToken,
 
   /// The amount has more fractional digits than the pay token can hold.
   tooPrecise,
@@ -41,8 +44,8 @@ bool exceedsPrecision(String amount, int decimals) =>
 /// Resolves the swap CTA's state from the screen's raw inputs.
 ///
 /// Precedence, top to bottom (D-09 / UI-SPEC CTA ladder):
-/// `submitting` → `cannotSign` → `enterAmount` (no tokens / no parseable
-/// amount) → `tooPrecise` → `routeError` → `insufficientBalance` →
+/// `submitting` → `cannotSign` → `enterAmount` (no parseable amount) →
+/// `selectToken` (amount typed, a token missing) → `tooPrecise` → `routeError` → `insufficientBalance` →
 /// `findingRoute` → `ready`.
 SwapCtaState resolveSwapCtaState({
   required bool hasBothTokens,
@@ -66,8 +69,12 @@ SwapCtaState resolveSwapCtaState({
   }
 
   final parsedAmount = double.tryParse(fromAmount);
-  if (!hasBothTokens || fromAmount.isEmpty || parsedAmount == null) {
+  if (fromAmount.isEmpty || parsedAmount == null) {
     return SwapCtaState.enterAmount;
+  }
+
+  if (!hasBothTokens) {
+    return SwapCtaState.selectToken;
   }
 
   // Swapping less than was typed, silently, is worse than refusing.
@@ -109,6 +116,8 @@ String swapCtaLabel(SwapCtaState state, {String? symbol, int? decimals}) {
       return "Can't sign with this wallet";
     case SwapCtaState.enterAmount:
       return 'Enter an amount';
+    case SwapCtaState.selectToken:
+      return 'Select a token';
     case SwapCtaState.insufficientBalance:
       final hasSymbol = symbol != null && symbol.isNotEmpty;
       return hasSymbol

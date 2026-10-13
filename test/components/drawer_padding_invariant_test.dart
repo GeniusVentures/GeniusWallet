@@ -61,6 +61,7 @@ const _census = <String, _Inset>{
   // -- shellInset (the default): no bodyPadding argument at all -- the
   // shell's own kDrawerBodyPadding is the whole inset.
   'lib/dashboard/home/widgets/transaction_displays.dart': _Inset.shellInset,
+  'lib/components/qr/show_receive_drawer.dart': _Inset.shellInset,
   'lib/reown/swap_result_drawer.dart': _Inset.shellInset,
   'lib/reown/approve_transaction_drawer.dart': _Inset.shellInset,
   'lib/reown/approve_dapp_connection_drawer.dart': _Inset.shellInset,
@@ -74,7 +75,6 @@ const _census = <String, _Inset>{
   'lib/send/send_screen.dart': _Inset.shellInset,
   // The /assets page's Receive drawer (phase 25-02). Same call shape as the
   // coins_screen.dart entry directly above: no bodyPadding, so shellInset.
-  'lib/dashboard/assets/assets_screen.dart': _Inset.shellInset,
   'lib/tokens/token_info_screen.dart': _Inset.shellInset,
   // Two call sites in this one file: Receive (21-05) and More Options.
   'lib/components/wallet_information.dart': _Inset.shellInset,

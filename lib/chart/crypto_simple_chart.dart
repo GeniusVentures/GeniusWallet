@@ -96,6 +96,7 @@ class CryptoSparkLineChart extends StatelessWidget {
               iconPath: iconPath,
               size: kGWRowIconSize,
               tint: networkIconTint(gw, iconPath),
+              label: symbol ?? title,
             ),
             const SizedBox(width: kGWRowIconToText),
             Expanded(

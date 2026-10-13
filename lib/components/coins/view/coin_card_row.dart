@@ -95,6 +95,7 @@ class CoinCardRow extends StatelessWidget {
               iconPath: iconPath,
               size: kGWRowIconSize,
               tint: networkIconTint(gw, iconPath),
+              label: symbol,
             ),
             const SizedBox(width: kGWRowIconToText),
             Expanded(

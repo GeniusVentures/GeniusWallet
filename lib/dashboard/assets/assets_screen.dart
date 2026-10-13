@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/coins/assets_total_band.dart';
@@ -12,7 +11,7 @@ import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
+import 'package:genius_wallet/components/qr/show_receive_drawer.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 // `DashboardScrollContainer` lives in the dashboard screen's own file. Importing
 // it from here is the SAME move `transactions_slim_view.dart` already makes for
@@ -176,30 +175,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
     // total simply reads what the last good fetch said. Upgrade path: surface
     // it once this page has a place to put a non-blocking error that does not
     // fight the five states in the table below.
-  }
-
-  /// Opens the address-QR receive drawer for the empty-wallet footer.
-  ///
-  /// ponytail: DUPLICATES `CoinsScreenState._showReceive`
-  /// (`coins_screen.dart:172-187`). It cannot be extracted because that file
-  /// belongs to plan 25-01 and is fenced for this wave. Upgrade path after
-  /// 25-01 lands: promote to a shared `showReceiveDrawer(context, state)` and
-  /// delete both copies. Ceiling: until then the two drawers can drift.
-  void _showReceive(WalletDetailsState state) {
-    final address = state.selectedWallet?.address;
-    if (address == null || address.isEmpty) {
-      return;
-    }
-    ResponsiveDrawer.show<void>(
-      context: context,
-      title: 'Receive',
-      child: CryptoAddressQR(
-        address: address,
-        network:
-            state.selectedNetwork?.name ?? state.selectedNetwork?.symbol ?? '',
-        iconPath: state.selectedNetwork?.iconPath,
-      ),
-    );
   }
 
   /// The (balance, price) records the totals helper folds over, keyed by
@@ -563,7 +538,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   size: GWButtonSize.sm,
                   label: 'Receive',
                   expand: true,
-                  onPressed: () => _showReceive(state),
+                  onPressed: () => showReceiveDrawer(context, state),
                 ),
               ),
               const SizedBox(width: GeniusWalletConsts.space4),

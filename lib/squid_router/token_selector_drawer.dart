@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
@@ -8,6 +7,7 @@ import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/image_utils.dart';
 
 /// The token picker, brought onto sketch **032 A1 "Comfortable"** — the list
 /// archetype that `drawers-final` already settled for every picker in the app
@@ -46,6 +46,9 @@ class TokenSelectorDrawer extends StatefulWidget {
   final String? emptyTitle;
   final String? emptyMessage;
 
+  /// Shown under the empty state, e.g. Receive / Buy.
+  final Widget? emptyActions;
+
   const TokenSelectorDrawer({
     super.key,
     required this.tokens,
@@ -54,6 +57,7 @@ class TokenSelectorDrawer extends StatefulWidget {
     this.selectedToken,
     this.emptyTitle,
     this.emptyMessage,
+    this.emptyActions,
   });
 
   static void show({
@@ -64,6 +68,7 @@ class TokenSelectorDrawer extends StatefulWidget {
     SwapToken? selectedToken,
     String? emptyTitle,
     String? emptyMessage,
+    Widget? emptyActions,
   }) {
     ResponsiveDrawer.show<void>(
       context: context,
@@ -81,6 +86,7 @@ class TokenSelectorDrawer extends StatefulWidget {
         selectedToken: selectedToken,
         emptyTitle: emptyTitle,
         emptyMessage: emptyMessage,
+        emptyActions: emptyActions,
       ),
     );
   }
@@ -175,10 +181,23 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
           ),
         Expanded(
           child: nothingToOffer
-              ? GWEmptyState(
-                  icon: Icons.account_balance_wallet_outlined,
-                  title: widget.emptyTitle ?? 'No tokens available',
-                  message: widget.emptyMessage,
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: GWEmptyState(
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: widget.emptyTitle ?? 'No tokens available',
+                        message: widget.emptyMessage,
+                      ),
+                    ),
+                    if (widget.emptyActions != null)
+                      Padding(
+                        padding: const EdgeInsets.all(
+                          GeniusWalletConsts.space10,
+                        ),
+                        child: widget.emptyActions,
+                      ),
+                  ],
                 )
               : filtered.isEmpty
               ? _EmptyResult(query: _query, gw: gw)
@@ -204,71 +223,16 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                   // class around it.
                   itemBuilder: (context, index) {
                     final token = filtered[index];
-                    final logoUri = token.logoUri;
                     return GWSelectRow(
                       selected: _isSelected(token),
                       onTap: () {
                         Navigator.of(context).pop();
                         widget.onTokenSelected(token);
                       },
-                      leading: ClipOval(
-                        // The catalogue does not promise a logo. The neutral
-                        // disc the two loading branches already use holds the
-                        // 36x36 slot, so a missing one costs no layout.
-                        child: logoUri == null
-                            ? ColoredBox(
-                                color: gw.surfaceMenu,
-                                child: const SizedBox(width: 36, height: 36),
-                              )
-                            : token.hasSvgLogo
-                            ? SvgPicture.network(
-                                logoUri,
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                                placeholderBuilder: (_) => Container(
-                                  width: 36,
-                                  height: 36,
-                                  color: gw.surfaceMenu,
-                                ),
-                                errorBuilder: (_, _, _) => Container(
-                                  width: 36,
-                                  height: 36,
-                                  color: gw.surfaceMenu,
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.broken_image,
-                                    color: gw.textSecondary,
-                                    size: 16,
-                                  ),
-                                ),
-                              )
-                            : Image.network(
-                                logoUri,
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                                loadingBuilder: (context, child, progress) =>
-                                    progress == null
-                                    ? child
-                                    : Container(
-                                        width: 36,
-                                        height: 36,
-                                        color: gw.surfaceMenu,
-                                      ),
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                      width: 36,
-                                      height: 36,
-                                      color: gw.surfaceMenu,
-                                      alignment: Alignment.center,
-                                      child: Icon(
-                                        Icons.broken_image,
-                                        color: gw.textSecondary,
-                                        size: 16,
-                                      ),
-                                    ),
-                              ),
+                      leading: TokenIcon(
+                        iconPath: token.logoUri,
+                        size: 36,
+                        label: token.symbol,
                       ),
                       title: token.name,
                       subtitle: token.symbol,
