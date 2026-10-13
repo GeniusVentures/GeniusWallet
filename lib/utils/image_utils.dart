@@ -79,11 +79,12 @@ class TokenIcon extends StatelessWidget {
       );
     }
 
-    // Dark-on-transparent logos (USDFI) vanish on dark surfaces, so the disc
-    // behind a logo is light in dark mode only.
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    // Dark-on-transparent remote logos (USDFI) vanish on dark surfaces, so the
+    // disc behind them is light in dark mode. Bundled icons are tinted to the
+    // same colour and need no backing.
+    final backed = Theme.of(context).brightness == Brightness.dark && isNetwork;
     return ClipOval(
-      child: dark ? ColoredBox(color: gw.textPrimary, child: image) : image,
+      child: backed ? ColoredBox(color: gw.textPrimary, child: image) : image,
     );
   }
 }

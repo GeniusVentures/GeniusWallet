@@ -32,4 +32,31 @@ void main() {
     await tester.pump();
     expect(find.text('US'), findsOneWidget);
   });
+
+  testWidgets('a tinted bundled icon gets no light backing in dark mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          brightness: Brightness.dark,
+          extensions: [GWColors.dark()],
+        ),
+        home: const Scaffold(
+          body: TokenIcon(
+            iconPath: 'assets/does_not_exist.png',
+            size: 32,
+            tint: Colors.white,
+          ),
+        ),
+      ),
+    );
+    final gw = GWColors.dark();
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is ColoredBox && w.color == gw.textPrimary,
+      ),
+      findsNothing,
+    );
+  });
 }
