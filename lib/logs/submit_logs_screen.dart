@@ -55,6 +55,18 @@ enum FeedbackType {
     }
   }
 
+  /// Helper line under the chooser.
+  String get description {
+    switch (this) {
+      case FeedbackType.bug:
+        return "Describe what's happening in as much detail as you can - the more specific, the faster we can help.";
+      case FeedbackType.idea:
+        return 'Tell us what would make the wallet better for you.';
+      case FeedbackType.question:
+        return 'Ask us anything about using the wallet.';
+    }
+  }
+
   /// Message-field hint that adapts to the chosen kind.
   String get placeholder {
     switch (this) {
@@ -543,7 +555,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         // as one block; the tabs need to finish before the copy starts.
         const SizedBox(height: GeniusWalletConsts.space16),
         Text(
-          'Describe what\'s happening in as much detail as you can - the more specific, the faster we can help.',
+          _selectedType.description,
           style: GeniusWalletTypography.bodyMd.copyWith(
             color: gw.textSecondary,
           ),

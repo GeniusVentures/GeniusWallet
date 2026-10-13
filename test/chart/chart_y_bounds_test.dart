@@ -60,4 +60,11 @@ void main() {
       expect(chartYBounds(const []), (0.0, 1.0));
     });
   });
+
+  test('a missing, zero or non-finite quote is not plottable', () {
+    expect(isPlottablePrice(null), isFalse);
+    expect(isPlottablePrice(0), isFalse);
+    expect(isPlottablePrice(double.nan), isFalse);
+    expect(isPlottablePrice(0.0123), isTrue);
+  });
 }

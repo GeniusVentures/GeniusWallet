@@ -23,6 +23,11 @@ void main() {
     expect(placeholders.length, FeedbackType.values.length);
   });
 
+  test('each FeedbackType has its own helper text', () {
+    final d = {for (final t in FeedbackType.values) t.description};
+    expect(d.length, FeedbackType.values.length);
+  });
+
   test('a small non-empty file is attached whole under its own name', () {
     final d = attachmentDispositionFor(
       size: 500,

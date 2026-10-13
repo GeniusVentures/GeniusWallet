@@ -101,6 +101,11 @@ double compactPriceFontSize({
   return (lowest - span * 0.08, highest + span * 0.08);
 }
 
+/// A price the chart may plot. A missing quote must never default to 0: it
+/// would draw a $0.00 point and a cliff at the end of the series.
+bool isPlottablePrice(double? price) =>
+    price != null && price.isFinite && price > 0;
+
 /// The 1H/1D/1W/1M/1Y tabs: the days asked of `fetchHistoricalPrices` and the
 /// window plotted. CoinGecko has no sub-day range, so 1H windows the 1D series.
 const List<({String label, int days, Duration window})> kLiveChartRanges = [
@@ -259,12 +264,17 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       }
       if (historicalPrices.isNotEmpty) {
         final keys = historicalPrices.keys.toList()..sort();
-        setState(() {
-          _priceData = [
-            for (final k in keys) FlSpot(k.toDouble(), historicalPrices[k]!),
-          ];
-          _applyWindow();
-        });
+        final spots = [
+          for (final k in keys)
+            if (isPlottablePrice(historicalPrices[k]))
+              FlSpot(k.toDouble(), historicalPrices[k]!),
+        ];
+        if (spots.isNotEmpty) {
+          setState(() {
+            _priceData = spots;
+            _applyWindow();
+          });
+        }
       }
     } catch (_) {
       // The user-visible state is a fixed "No price history" string (see
@@ -289,8 +299,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
       if (coinPrices.isNotEmpty) {
         final newPrice =
-            coinPrices[widget.tokenSymbol.toLowerCase()]?.currentPrice ?? 0.0;
-        _addNewPricePoint(newPrice);
+            coinPrices[widget.tokenSymbol.toLowerCase()]?.currentPrice;
+        if (isPlottablePrice(newPrice)) {
+          _addNewPricePoint(newPrice!);
+        }
       }
     });
   }

@@ -181,9 +181,8 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                         if (articles.isEmpty) {
                           // A genuinely empty feed (failed fetch, no cache) is
                           // the ONLY page-level empty state now. A search MISS
-                          // no longer blanks the page - the hero stays put and
-                          // the "Results" section (wide) or the digest panel
-                          // (narrow) reports the miss inline.
+                          // no longer blanks the page - the magazine reports
+                          // the miss inline.
                           return GWEmptyState(
                             icon: Icons.article_outlined,
                             title: 'No news right now',
@@ -195,10 +194,8 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                         final q = _query.trim();
                         return RefreshIndicator(
                           onRefresh: () async => _retryNews(),
-                          // The hero (and "Next up") ALWAYS come from the full
-                          // feed; `results` (non-null only while searching)
-                          // drives the bottom section, retitled "Results" - so
-                          // searching never reshuffles the top band.
+                          // `results` is non-null only while searching and
+                          // then drives the hero, Next up and grid alike.
                           child: _NewsMagazine(
                             items: articles,
                             query: q,
@@ -318,8 +315,7 @@ class _NewsMagazine extends StatelessWidget {
     this.results,
   });
 
-  /// The full, unfiltered feed — hero + "Next up" always come from here, so the
-  /// top band never reshuffles on a search.
+  /// The full, unfiltered feed. Used for the page while browsing.
   final List<NewsArticle> items;
 
   /// The active query (trimmed); empty while browsing. Used only to label the
@@ -347,16 +343,19 @@ class _NewsMagazine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final hero = items.first;
-    final nextUp = items.skip(1).take(3).toList();
-    final rest = items.skip(1 + nextUp.length).toList();
+    // While searching, the whole page (hero, Next up, rest) comes from the
+    // matches, so an unrelated story cannot stay on top of a filtered list.
+    final source = results ?? items;
+    final hero = source.isEmpty ? null : source.first;
+    final nextUp = source.skip(1).take(3).toList();
+    final rest = source.skip(1 + nextUp.length).toList();
 
     // NARROW: every story except the lead becomes a digest row - including the
     // three that are "Next up" on a wide window. While searching the rows are
     // the MATCHES, minus the hero if it is one of them: the hero is frozen on
     // the full feed directly above, and printing the same story twice on one
     // phone screen would read as a duplicate rather than as a match.
-    final digest = (results ?? items).where((a) => a != hero).toList();
+    final digest = source.where((a) => a != hero).toList();
 
     return ScrollConfiguration(
       // No scrollbar on the News surface (Jakub's call) — the desktop default
@@ -390,16 +389,25 @@ class _NewsMagazine extends StatelessWidget {
               // lists, and its three articles are the digest's first three
               // rows instead. `_NextUp`/`_NextUpRow` stay - the wide path
               // below still mounts them as the band's right-hand column.
-              _HeroCard(article: hero, wide: false),
-              // `space3` - the gap `OneColumnDashBoardView` puts between two
-              // dashboard panels, so the hero card and the digest sit on the
-              // homepage's rhythm rather than a rhythm of their own.
-              const SizedBox(height: GeniusWalletConsts.space3),
+              if (hero != null) ...[
+                _HeroCard(article: hero, wide: false),
+                // `space3` - the gap `OneColumnDashBoardView` puts between two
+                // dashboard panels, so the hero card and the digest sit on the
+                // homepage's rhythm rather than a rhythm of their own.
+                const SizedBox(height: GeniusWalletConsts.space3),
+              ],
               _NewsDigestPanel(
                 articles: digest,
                 query: query,
                 matches: results?.length,
                 searchField: searchField,
+              ),
+            ] else if (hero == null) ...[
+              Text(
+                'No headlines match “$query”.',
+                style: GeniusWalletTypography.bodyMd.copyWith(
+                  color: gw.textSecondary,
+                ),
               ),
             ] else ...[
               // WIDE: the hero ALWAYS sits at flex 3, so a single filtered
@@ -428,36 +436,15 @@ class _NewsMagazine extends StatelessWidget {
                   ],
                 ),
               ),
-              // Bottom section. Searching → "Results": every match, shown here
-              // so the hero band above stays frozen on the latest stories
-              // instead of the whole feed reshuffling on each search. Browsing
-              // → "More news": the stories past the hero band.
-              if (results != null) ...[
-                const SizedBox(height: GeniusWalletConsts.space12),
-                // No `contentTopInset` in either branch: `_grid`'s first tile
-                // is a `GWCard` whose photo fills its top edge, and the
-                // empty-state Text paints from its own line box. Both are
-                // C = 0, so the title pays the full `space8` and this section
-                // renders the shared 26px gap.
-                const GWSectionTitle(title: 'Results'),
-                if (results!.isEmpty)
-                  // No top padding: the title already pays the gap, and a
-                  // second one would put this branch at 34 while the grid
-                  // branch it replaces sits at 26.
-                  Text(
-                    'No headlines match “$query”.',
-                    style: GeniusWalletTypography.bodyMd.copyWith(
-                      color: gw.textSecondary,
-                    ),
-                  )
-                else
-                  _grid(results!),
-              ] else if (rest.isNotEmpty) ...[
+              // Bottom section: the stories past the hero band. Titled
+              // "Results" while searching, "More news" while browsing.
+              if (rest.isNotEmpty) ...[
                 const SizedBox(height: GeniusWalletConsts.space12),
                 // C = 0 - `_grid`'s first tile paints its photo at its own top
-                // edge - so this section reaches the rule exactly, like
-                // Results.
-                const GWSectionTitle(title: 'More news'),
+                // edge - so this section reaches the rule exactly.
+                GWSectionTitle(
+                  title: results != null ? 'Results' : 'More news',
+                ),
                 _grid(rest),
               ],
             ],
@@ -544,13 +531,18 @@ class _HeroCard extends StatelessWidget {
             // page threw on every layout and froze (only ever on a search that
             // narrowed to ≤1 result). Self-bounding here fixes it everywhere;
             // the outer IntrinsicHeight in the band case is then just redundant.
-            ? IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(child: _NewsPhoto(url: article.imageUrl)),
-                    Expanded(child: text),
-                  ],
+            // minHeight: the photo has no intrinsic height, so a short headline
+            // used to collapse the hero to a thin strip.
+            ? ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 240),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: _NewsPhoto(url: article.imageUrl)),
+                      Expanded(child: text),
+                    ],
+                  ),
                 ),
               )
             : Column(
