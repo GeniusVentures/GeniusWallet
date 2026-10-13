@@ -112,4 +112,35 @@ void main() {
       greaterThan(tester.getTopRight(find.byType(GWSelectRow)).dx - 60),
     );
   });
+
+  testWidgets('a long subtitle ellipsizes instead of squeezing the balance', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 260,
+              child: GWSelectRow(
+                leading: const SizedBox(width: 36, height: 36),
+                title: 'Main',
+                subtitle: '0xabcd...1234 · Default account',
+                subtitleTrailing: const Text('0 minions', maxLines: 1),
+                onTap: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.text('0 minions')).width, greaterThan(40));
+    expect(
+      tester.getTopRight(find.text('0 minions')).dx,
+      lessThanOrEqualTo(tester.getTopRight(find.byType(GWSelectRow)).dx),
+    );
+  });
 }
