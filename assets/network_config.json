@@ -5,5 +5,10 @@
     "network_bootstrap_peers": [],
     "bootstrap_addresses": [
         "/dns4/sg-fullnode-1s.gnus.ai/tcp/41273/ipfs/12D3KooWMvXKGwt2mDcgusWrjALbLMwfYCgTvWJxMSmwLi633txx"
-    ]
+    ],
+    "pubsub_port": "",
+    "pubsub_bind_address": "",
+    "upnp_enabled": true,
+    "high_water": 300,
+    "low_water": 150
 }
