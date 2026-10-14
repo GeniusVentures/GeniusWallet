@@ -1,9 +1,19 @@
 {
-    "net_id": 144,
-    "node_type": "Light",
-    "subnet_id": 0,
-    "bootstrap_fullnodes": [
-        "/dns4/sg-fullnode-1.gnus.ai/tcp/40102/ipfs/12D3KooWRqFHPFz6YptGnt4wLEGsNuWuv5TLN7rdQ9CFJcbHCWZC"
+    "_comment": "SuperGenius network configuration for the STAGING net (net_id 333). Operational fields have defaults; the entry address lives in network_config.json bootstrap_addresses.",
+    "_trust_configuration_notice": "STAGING NET trust fields — real values from the staging net's published ceremony (fingerprint 4f6840f5bdffca6d51d463c4f02d85bde76b5ce88dd3d1ab4ed59e39663a7afb). Quorum floors are derived from the trusted_peers count (4 peers -> 3-of-4). After durable confirmation these JSON trust fields are non-authoritative and persisted verified trust state is authoritative.",
+    "net_id": 333,
+    "node_type": "Full",
+    "subnet_id": 333,
+    "authorized_full_node": "9798e85e31bcb9ee077d9152c30af391ea0a555ff4680e17bede5a09a1183dd2c158a6da9e626f3c0527b23bef57d95b82f47a6ffb43f4efa07fedd7c8509b16",
+    "trusted_peers": [
+        "544ebd2133eb05b014ee8f14235cbb5f15e0e25a9c64ad1c9a090c532c10eb937a7f031f4e065ca2d34021db48db15933d19a6a822e19b905e3275b7b3088bc6",
+        "9aebaf501fa2ba06b47998e9cb87953f5adbb28ac4db68b79fc35ddac807c58fd06e358826d1a298eb24146dac0662c93ccd9daba3673160afb916e0124b4da9",
+        "7484ac2b68aca0bee80a9e227c471c8148d38b811e59875365df9d4d3f215f9a8dbacd0ff0a17d461fff4667bb891d89c44ae636959aea73b1b7cb167f83e407",
+        "fe412dcde2b0ed942ba9fad260c68774f8dbd3c3eaab88e4406a78301d8df591765cd026a6184426ffc6a2c41bba77444f8e421c4cc3e55a6f3e3dc34711f422"
     ],
-    "authorized_full_node": "8a33bdf1445a68736429d1773be8682362753a0efc6fb9d8b3e8dffe3b74fc91e26b203fd521547a5219eddf1d3ac51fd17a7646c9bca5ef065da131add4e5a2"
+    "bootstrapper_node": "4005f03e71463c4083b96c25098b50c3d08c2d0427b144f9a0bfe68ca19b562a6e5b83c896277156f450315d50498f892d0690a3eb1415d06eab21a30a16030f",
+    "ipfs_cache_dir": "ipfs_cache",
+    "mirror_results": false,
+    "result_retention_hours": 168,
+    "result_retention_max_mb": 0
 }
