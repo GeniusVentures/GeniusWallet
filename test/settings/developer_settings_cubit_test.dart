@@ -25,7 +25,7 @@ void main() {
 
   DeveloperSettingsCubit build(Future<bool> Function(SgnsNet) writeNet) =>
       DeveloperSettingsCubit(
-        readNet: () async => SgnsNet.test,
+        readNet: () async => SgnsNet.staging,
         writeNet: writeNet,
         leaveTestnets: () async => leaves++,
       );
@@ -49,14 +49,14 @@ void main() {
   });
 
   test('selectNet persists through the injected writer', () async {
-    await cubit.selectNet(SgnsNet.main);
+    await cubit.selectNet(SgnsNet.staging);
 
-    expect(writes, [SgnsNet.main]);
-    expect(cubit.state.net, SgnsNet.main);
+    expect(writes, [SgnsNet.staging]);
+    expect(cubit.state.net, SgnsNet.staging);
     expect(cubit.state.netStatus, contains('Saved'));
   });
 
-  test('turning Developer mode off resets the SDK net to dev', () async {
+  test('turning Developer mode off resets the SDK net to staging', () async {
     await cubit.load();
     await DeveloperMode.instance.setEnabled(true);
 
@@ -93,25 +93,29 @@ void main() {
     expect(cubit.state.busy, isFalse);
   });
 
-  test('a slow select is written before a later off resets to dev', () async {
-    await cubit.close();
-    cubit = build((net) async {
-      await Future<void>.delayed(
-        Duration(milliseconds: net == SgnsNet.main ? 50 : 0),
-      );
-      writes.add(net);
-      return true;
-    });
-    await DeveloperMode.instance.setEnabled(true);
+  test(
+    'a slow select is written before a later off resets to staging',
+    () async {
+      await cubit.close();
+      var first = true;
+      cubit = build((net) async {
+        final delay = first ? 50 : 0;
+        first = false;
+        await Future<void>.delayed(Duration(milliseconds: delay));
+        writes.add(net);
+        return true;
+      });
+      await DeveloperMode.instance.setEnabled(true);
 
-    final select = cubit.selectNet(SgnsNet.main);
-    final off = cubit.setDeveloperMode(false);
-    await Future.wait([select, off]);
+      final select = cubit.selectNet(SgnsNet.staging);
+      final off = cubit.setDeveloperMode(false);
+      await Future.wait([select, off]);
 
-    expect(writes, [SgnsNet.main, SgnsNet.staging]);
-    expect(cubit.state.net, SgnsNet.staging);
-    expect(DeveloperMode.isOn, isFalse);
-  });
+      expect(writes, [SgnsNet.staging, SgnsNet.staging]);
+      expect(cubit.state.net, SgnsNet.staging);
+      expect(DeveloperMode.isOn, isFalse);
+    },
+  );
 
   test('a failed reset turns Developer mode back on', () async {
     await cubit.close();

@@ -276,12 +276,11 @@ void writeHexAscii(Uint8List bytes, Uint8List out) {
 /// aligned.
 String _padHexEven(String hex) => hex.length.isOdd ? '0$hex' : hex;
 
-/// SuperGenius network ids (sgns_version.hpp). [staging] is the bundled default.
+/// SuperGenius network ids (sgns_version.hpp). Only staging ships: its peers
+/// and bootstrap node are bundled, and swapping just `net_id` cannot reach
+/// another net. Add a member only with that net's full config.
 enum SgnsNet {
-  staging(333),
-  dev(144),
-  test(963),
-  main(369);
+  staging(333);
 
   const SgnsNet(this.netId);
 
