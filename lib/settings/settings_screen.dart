@@ -559,6 +559,7 @@ class _SdkNetSelect extends StatelessWidget {
       label: 'SDK network (applied on restart)',
       value: value,
       items: const [
+        GWSelectItem(value: SgnsNet.staging, label: 'Staging net'),
         GWSelectItem(value: SgnsNet.dev, label: 'Dev net'),
         GWSelectItem(value: SgnsNet.test, label: 'Test net'),
         GWSelectItem(value: SgnsNet.main, label: 'Main net'),

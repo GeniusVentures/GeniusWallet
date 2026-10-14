@@ -276,8 +276,9 @@ void writeHexAscii(Uint8List bytes, Uint8List out) {
 /// aligned.
 String _padHexEven(String hex) => hex.length.isOdd ? '0$hex' : hex;
 
-/// SuperGenius network ids (sgns_version.hpp). [dev] is the bundled default.
+/// SuperGenius network ids (sgns_version.hpp). [staging] is the bundled default.
 enum SgnsNet {
+  staging(333),
   dev(144),
   test(963),
   main(369);
@@ -291,31 +292,31 @@ File _sgnsOverrideFile(Directory overridesDir) =>
     File('${overridesDir.path}/sgns_config.json');
 
 /// The net chosen in `overrides/sgns_config.json`; anything missing, unreadable
-/// or not one of [SgnsNet]'s ids reads as [SgnsNet.dev].
+/// or not one of [SgnsNet]'s ids reads as [SgnsNet.staging].
 Future<SgnsNet> readSgnsNet(Directory overridesDir) async {
   final file = _sgnsOverrideFile(overridesDir);
   if (!await file.exists()) {
-    return SgnsNet.dev;
+    return SgnsNet.staging;
   }
   try {
     final decoded = jsonDecode(await file.readAsString());
     final netId = decoded is Map ? decoded['net_id'] : null;
     return SgnsNet.values.firstWhere(
       (n) => n.netId == netId,
-      orElse: () => SgnsNet.dev,
+      orElse: () => SgnsNet.staging,
     );
   } catch (e) {
     debugPrint('Failed to parse sgns_config override: $e');
-    return SgnsNet.dev;
+    return SgnsNet.staging;
   }
 }
 
-/// Persists [net] for the next SDK start; [SgnsNet.dev] deletes the override.
+/// Persists [net] for the next SDK start; [SgnsNet.staging] deletes the override.
 /// Returns whether the effective net changed.
 Future<bool> writeSgnsNet(Directory overridesDir, SgnsNet net) async {
   final previous = await readSgnsNet(overridesDir);
   final file = _sgnsOverrideFile(overridesDir);
-  if (net == SgnsNet.dev) {
+  if (net == SgnsNet.staging) {
     if (await file.exists()) {
       await file.delete();
     }
@@ -333,7 +334,7 @@ Future<String> mergeSgnsConfig(
   Directory overridesDir,
 ) async {
   final net = await readSgnsNet(overridesDir);
-  if (net == SgnsNet.dev) {
+  if (net == SgnsNet.staging) {
     return bundledJson;
   }
   final merged = jsonDecode(bundledJson) as Map<String, dynamic>;

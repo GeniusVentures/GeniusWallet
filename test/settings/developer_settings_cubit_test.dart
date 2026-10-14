@@ -62,8 +62,8 @@ void main() {
 
     await cubit.setDeveloperMode(false);
 
-    expect(writes, [SgnsNet.dev]);
-    expect(cubit.state.net, SgnsNet.dev);
+    expect(writes, [SgnsNet.staging]);
+    expect(cubit.state.net, SgnsNet.staging);
     expect(cubit.state.busy, isFalse);
     expect(DeveloperMode.isOn, isFalse);
     expect(leaves, 1);
@@ -87,7 +87,7 @@ void main() {
     expect(cubit.state.busy, isTrue);
     await Future.wait([off, on]);
 
-    expect(writes, [SgnsNet.dev]);
+    expect(writes, [SgnsNet.staging]);
     expect(DeveloperMode.isOn, isTrue);
     expect(box.get(developerModeKey), isTrue);
     expect(cubit.state.busy, isFalse);
@@ -108,8 +108,8 @@ void main() {
     final off = cubit.setDeveloperMode(false);
     await Future.wait([select, off]);
 
-    expect(writes, [SgnsNet.main, SgnsNet.dev]);
-    expect(cubit.state.net, SgnsNet.dev);
+    expect(writes, [SgnsNet.main, SgnsNet.staging]);
+    expect(cubit.state.net, SgnsNet.staging);
     expect(DeveloperMode.isOn, isFalse);
   });
 
