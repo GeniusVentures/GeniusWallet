@@ -5,7 +5,7 @@ import 'package:genius_wallet/settings/developer_mode.dart';
 
 class DeveloperSettingsState extends Equatable {
   const DeveloperSettingsState({
-    this.net = SgnsNet.dev,
+    this.net = SgnsNet.staging,
     this.busy = false,
     this.status,
     this.netStatus,
@@ -63,7 +63,7 @@ class DeveloperSettingsCubit extends Cubit<DeveloperSettingsState> {
     }
   });
 
-  /// Off persists the switch, resets the SDK net to dev, then leaves EVM
+  /// Off persists the switch, resets the SDK net to staging, then leaves EVM
   /// testnets. A failed reset turns Developer mode back on instead, so a
   /// non-default SDK net is never left behind with the switch off.
   Future<void> setDeveloperMode(bool on) => _enqueue(() async {
@@ -79,7 +79,7 @@ class DeveloperSettingsCubit extends Cubit<DeveloperSettingsState> {
     }
     final bool changed;
     try {
-      changed = await _writeNet(SgnsNet.dev);
+      changed = await _writeNet(SgnsNet.staging);
     } catch (e) {
       _emit(status: 'Error: $e');
       try {
@@ -90,10 +90,10 @@ class DeveloperSettingsCubit extends Cubit<DeveloperSettingsState> {
       return;
     }
     _emit(
-      net: SgnsNet.dev,
+      net: SgnsNet.staging,
       netStatus: null,
       status: changed
-          ? 'SDK network reset to Dev net ✅ — Restart required for changes'
+          ? 'SDK network reset to Staging net ✅ — Restart required for changes'
           : null,
     );
     try {
