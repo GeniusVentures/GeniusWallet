@@ -32,18 +32,14 @@ void main() {
     expect(await mergeSgnsConfig(_bundled, overrides), _bundled);
   });
 
-  test('only net_id is taken from the override', () async {
+  test('an override for a net that no longer ships is ignored', () async {
     writeOverride(963);
 
     final config = await merged();
 
-    expect(config['net_id'], 963);
+    expect(config['net_id'], 333);
     expect(config['node_type'], 'Full');
-  });
-
-  test('dev net is an override now that staging is bundled', () async {
-    writeOverride(144);
-    expect((await merged())['net_id'], 144);
+    expect(await readSgnsNet(overrides), SgnsNet.staging);
   });
 
   test('an unknown or non-int net_id falls back to the bundle', () async {
@@ -54,15 +50,10 @@ void main() {
     expect((await merged())['net_id'], 333);
   });
 
-  test(
-    'write main, read it back, then staging deletes the file once',
-    () async {
-      expect(await writeSgnsNet(overrides, SgnsNet.main), isTrue);
-      expect(await readSgnsNet(overrides), SgnsNet.main);
+  test('choosing staging deletes a stale override file', () async {
+    writeOverride(369);
 
-      expect(await writeSgnsNet(overrides, SgnsNet.staging), isTrue);
-      expect(File('${overrides.path}/sgns_config.json').existsSync(), isFalse);
-      expect(await writeSgnsNet(overrides, SgnsNet.staging), isFalse);
-    },
-  );
+    expect(await writeSgnsNet(overrides, SgnsNet.staging), isFalse);
+    expect(File('${overrides.path}/sgns_config.json').existsSync(), isFalse);
+  });
 }
