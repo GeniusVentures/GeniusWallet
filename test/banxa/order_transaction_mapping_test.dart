@@ -3,6 +3,7 @@ import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_transaction_mapping.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 
 import 'fixtures.dart';
 
@@ -23,6 +24,19 @@ void main() {
   final today = txDayLabel(DateTime.utc(2026, 1, 1, 12), now);
 
   group('orderTransactionStatus', () {
+    test('closed-without-delivery statuses are counted under Failed', () {
+      for (final status in ['cancelled', 'declined', 'expired', 'refunded']) {
+        final tx = orderAsTransaction(testOrder(id: 'o', status: status));
+        expect(Filters.failed.matches(tx), isTrue, reason: status);
+        expect(Filters.pending.matches(tx), isFalse, reason: status);
+      }
+      final unpaid = orderAsTransaction(
+        testOrder(id: 'o', status: 'pendingPayment'),
+      );
+      expect(Filters.failed.matches(unpaid), isFalse);
+      expect(Filters.pending.matches(unpaid), isTrue);
+    });
+
     test('complete maps to completed, in any case', () {
       expect(orderTransactionStatus('complete'), TransactionStatus.completed);
       expect(orderTransactionStatus('COMPLETE'), TransactionStatus.completed);
@@ -116,7 +130,7 @@ void main() {
       expect(content.valueLine, '100.00 USD');
       expect(content.badge, TransactionBadgeKind.pending);
       expect(content.statusTail, 'Unpaid');
-      expect(content.tone, TxAmountTone.incoming);
+      expect(content.tone, TxAmountTone.none);
       expect(content.amount, '+ ≈0.0025 BTC');
     });
 

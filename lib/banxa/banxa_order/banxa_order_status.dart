@@ -8,7 +8,8 @@ enum BanxaOrderStatus {
   pendingPayment(
     'Waiting for payment',
     'Unpaid',
-    'Finish paying in Banxa checkout. Unpaid orders expire.',
+    'Not paid yet. Finish paying in Banxa checkout, or leave it and it '
+        'expires. You were not charged.',
   ),
   waitingPayment(
     'Confirming payment',
@@ -41,12 +42,12 @@ enum BanxaOrderStatus {
   cancelled(
     'Cancelled',
     'Cancelled',
-    'You left checkout before paying. You were not charged.',
+    'Cancelled before payment. You were not charged.',
   ),
   declined(
-    'Payment declined',
+    'Declined by Banxa',
     'Declined',
-    'Your bank or card declined the payment. You were not charged.',
+    'Banxa or your bank declined the payment. You were not charged.',
   ),
   expired(
     'Order expired',
@@ -96,7 +97,11 @@ enum BanxaOrderStatus {
   OrderStatusTone get tone => switch (this) {
     complete => OrderStatusTone.success,
     declined => OrderStatusTone.error,
-    expired || cancelled || refunded || unknown => OrderStatusTone.neutral,
+    pendingPayment ||
+    expired ||
+    cancelled ||
+    refunded ||
+    unknown => OrderStatusTone.neutral,
     _ => OrderStatusTone.warning,
   };
 }

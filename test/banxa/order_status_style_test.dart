@@ -12,9 +12,12 @@ void main() {
       expect(orderStatusTone('COMPLETE'), OrderStatusTone.success);
     });
 
+    test('unpaid is neutral, apart from the paid and in-flight warnings', () {
+      expect(orderStatusTone('pendingPayment'), OrderStatusTone.neutral);
+    });
+
     test('every in-flight status is warning', () {
       for (final status in [
-        'pendingPayment',
         'waitingPayment',
         'extraVerification',
         'paymentReceived',
@@ -84,7 +87,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       final darkError = tester
-          .widget<Text>(find.text('PAYMENT DECLINED'))
+          .widget<Text>(find.text('DECLINED BY BANXA'))
           .style!
           .color;
 
@@ -93,7 +96,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       final lightError = tester
-          .widget<Text>(find.text('PAYMENT DECLINED'))
+          .widget<Text>(find.text('DECLINED BY BANXA'))
           .style!
           .color;
 

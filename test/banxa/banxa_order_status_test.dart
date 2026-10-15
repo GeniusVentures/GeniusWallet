@@ -66,20 +66,24 @@ void main() {
     }
   });
 
-  test('tone: only complete is success and only declined is an error', () {
-    for (final status in BanxaOrderStatus.values) {
-      final expected = switch (status) {
-        BanxaOrderStatus.complete => OrderStatusTone.success,
-        BanxaOrderStatus.declined => OrderStatusTone.error,
-        BanxaOrderStatus.expired ||
-        BanxaOrderStatus.cancelled ||
-        BanxaOrderStatus.refunded ||
-        BanxaOrderStatus.unknown => OrderStatusTone.neutral,
-        _ => OrderStatusTone.warning,
-      };
-      expect(status.tone, expected, reason: '$status');
-    }
-  });
+  test(
+    'tone: complete is success, declined is an error, unpaid is neutral',
+    () {
+      for (final status in BanxaOrderStatus.values) {
+        final expected = switch (status) {
+          BanxaOrderStatus.complete => OrderStatusTone.success,
+          BanxaOrderStatus.declined => OrderStatusTone.error,
+          BanxaOrderStatus.pendingPayment ||
+          BanxaOrderStatus.expired ||
+          BanxaOrderStatus.cancelled ||
+          BanxaOrderStatus.refunded ||
+          BanxaOrderStatus.unknown => OrderStatusTone.neutral,
+          _ => OrderStatusTone.warning,
+        };
+        expect(status.tone, expected, reason: '$status');
+      }
+    },
+  );
 
   test('every value has copy, and the labels match the design table', () {
     const labels = {
@@ -91,7 +95,7 @@ void main() {
       BanxaOrderStatus.cryptoTransferred: ('Sending to your wallet', 'Sending'),
       BanxaOrderStatus.complete: ('Done', 'Done'),
       BanxaOrderStatus.cancelled: ('Cancelled', 'Cancelled'),
-      BanxaOrderStatus.declined: ('Payment declined', 'Declined'),
+      BanxaOrderStatus.declined: ('Declined by Banxa', 'Declined'),
       BanxaOrderStatus.expired: ('Order expired', 'Expired'),
       BanxaOrderStatus.refunded: ('Refunded', 'Refunded'),
       BanxaOrderStatus.unknown: ('Status unknown', 'Unknown'),
