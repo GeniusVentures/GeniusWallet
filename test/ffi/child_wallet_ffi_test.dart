@@ -264,6 +264,12 @@ void main() {
     });
   });
 
+  test('a discovered child address maps to its bare-hex registration key', () {
+    final hex = '7815dd' * 21 + 'a19f';
+    expect(sdkRegistrationKey('0x$hex'), hex);
+    expect(sdkRegistrationKey(hex), hex);
+  });
+
   group('writeRegistrationMetadata', () {
     test('round-trips ASCII and non-ASCII fields', () {
       final out = calloc<GeniusRegistrationMetadata>();

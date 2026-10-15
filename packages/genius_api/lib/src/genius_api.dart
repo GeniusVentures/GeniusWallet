@@ -205,6 +205,14 @@ ChildRegistrations collectChildRegistrations(
   }
 }
 
+/// The SDK's discovery hands addresses back with a `0x` prefix, but keys the
+/// registration record by the bare hex, so RevokeChild needs it stripped.
+@visibleForTesting
+String sdkRegistrationKey(String address) =>
+    address.startsWith('0x') || address.startsWith('0X')
+    ? address.substring(2)
+    : address;
+
 /// Writes [m]'s three strings into [out] as NUL-terminated UTF-8, each
 /// capped at 127 bytes, and copies [ChildRegistrationMetadata.peersCut]
 /// unchecked. Returns false and writes nothing if a string is too long.
@@ -1919,7 +1927,9 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
-    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final addressPtr = sdkRegistrationKey(
+      childAddress,
+    ).toNativeUtf8().cast<Char>();
     try {
       final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRevokeChild(
         addressPtr,
