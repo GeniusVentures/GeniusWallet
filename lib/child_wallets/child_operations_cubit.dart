@@ -37,6 +37,14 @@ const childOperationTimeout = Duration(minutes: 2);
 // recover on that child; the upgrade path is a per-write tx hash from the SDK.
 final _baselineLifetime = childOperationTimeout * 3;
 
+/// How long an operation may stay unconfirmed before the app says it may
+/// never have reached the network and offers a resubmit. The SDK can drop a
+/// submitted write silently. Must exceed [_baselineLifetime], so the child's
+/// lock is already lifted when "Try again" resubmits.
+// ponytail: a guess, not a measured staging confirmation time; the upgrade
+// path is an SDK receipt per write.
+const childOperationStaleAfter = Duration(minutes: 10);
+
 /// One in-flight or timed-out SDK write. Public addresses, minions and a
 /// timestamp only -- never a key, mnemonic or seed.
 class ChildOperation {
@@ -52,6 +60,7 @@ class ChildOperation {
     this.notConfirmed = false,
     this.expired = false,
     this.switchedAway = false,
+    this.stale = false,
     this.mocked = false,
   });
 
@@ -75,6 +84,9 @@ class ChildOperation {
   /// it can never resolve, but holds and locks until it [expired].
   final bool switchedAway;
 
+  /// Unconfirmed past [childOperationStaleAfter]: likely never submitted.
+  final bool stale;
+
   /// Submitted to the dev mock rather than the SDK. It resolves only while
   /// reads come from the same source, never on a mix of mock and real.
   final bool mocked;
@@ -83,6 +95,7 @@ class ChildOperation {
     bool? notConfirmed,
     bool? expired,
     bool? switchedAway,
+    bool? stale,
   }) => ChildOperation(
     kind: kind,
     fromAccount: fromAccount,
@@ -95,6 +108,7 @@ class ChildOperation {
     notConfirmed: notConfirmed ?? this.notConfirmed,
     expired: expired ?? this.expired,
     switchedAway: switchedAway ?? this.switchedAway,
+    stale: stale ?? this.stale,
     mocked: mocked,
   );
 }
@@ -540,11 +554,36 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     return result;
   }
 
+  /// Resubmits [op] as it was, same as the user repeating it. Never called
+  /// by the registry itself. Null when [submit] refuses.
+  GeniusNodeReturnValue? retry(ChildOperation op) => submit(
+    kind: op.kind,
+    target: op.target,
+    main: op.main,
+    newMain: op.newMain,
+    amountMinions: op.amountMinions,
+  );
+
+  /// Drops [op] from the registry without resubmitting it.
+  void dismiss(ChildOperation op) => emit(
+    ChildOperationsState(
+      operations: [
+        for (final existing in state.operations)
+          if (existing.submittedAt != op.submittedAt ||
+              existing.kind != op.kind ||
+              existing.target != op.target)
+            existing,
+      ],
+    ),
+  );
+
   /// Resolves each op whose signal is met, else times it out or expires it.
   /// Signal first, so one landing on the timeout tick still reads as done.
   /// Emits only on a change, so a listener never fires on an unrelated emit.
   void resolve() {
     if (state.operations.isEmpty) {
+      _pollTimer?.cancel();
+      _pollTimer = null;
       return;
     }
     final now = _now();
@@ -567,12 +606,16 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       final expires = _hasAmount(op.kind)
           ? _holdsBalance(op) && !_baselineTrusted(op, now)
           : !op.expired && !now.isBefore(op.submittedAt.add(_baselineLifetime));
-      if (timesOut || switches || expires) {
+      final goesStale =
+          !op.stale &&
+          !now.isBefore(op.submittedAt.add(childOperationStaleAfter));
+      if (timesOut || switches || expires || goesStale) {
         remaining.add(
           op.copyWith(
             notConfirmed: true,
             expired: op.expired || expires,
             switchedAway: op.switchedAway || switches,
+            stale: op.stale || goesStale,
           ),
         );
         changed = true;
@@ -587,9 +630,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     if (resolved.isNotEmpty) {
       _onResolved?.call();
     }
-    // Stops once every op left has expired: a timed-out one keeps it running
-    // so its lock lifts on time.
-    if (remaining.every((op) => op.expired)) {
+    // Stops once every op left has expired and gone stale: a timed-out one
+    // keeps it running so its lock lifts and its retry offer appears on time.
+    if (remaining.every((op) => op.expired && op.stale)) {
       _pollTimer?.cancel();
       _pollTimer = null;
     }

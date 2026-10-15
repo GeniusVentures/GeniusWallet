@@ -1176,6 +1176,13 @@ void main() {
         ),
         now: () => now,
       );
+      api.registrationEntries = const [
+        ChildRegistration(
+          childAddress: _childAddress,
+          mainAddress: _mainAddress,
+          sequence: 0,
+        ),
+      ];
       final submittedAt = now;
       cubit.submit(
         kind: ChildOperationKind.revoke,
@@ -2476,6 +2483,52 @@ void main() {
 
       expect(result, isNotNull);
       expect(api.childRegistrationsCallCount, 0);
+    });
+  });
+
+  group('the stale timeout', () {
+    test('goes stale at the limit; retry resubmits, dismiss drops it', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      api.registrationEntries = const [
+        ChildRegistration(
+          childAddress: _childAddress,
+          mainAddress: _mainAddress,
+          sequence: 0,
+        ),
+      ];
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+
+      now = submittedAt.add(
+        childOperationStaleAfter - const Duration(seconds: 1),
+      );
+      cubit.resolve();
+      expect(cubit.state.operations.single.stale, isFalse);
+
+      now = submittedAt.add(childOperationStaleAfter);
+      cubit.resolve();
+      final stale = cubit.state.operations.single;
+      expect(stale.stale, isTrue);
+
+      expect(cubit.retry(stale), GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      expect(api.revokeCallCount, 2);
+      expect(cubit.state.operations.single.stale, isFalse);
+
+      cubit.dismiss(cubit.state.operations.single);
+      expect(cubit.state.operations, isEmpty);
+      expect(api.revokeCallCount, 2);
+
+      cubit.close();
     });
   });
 }

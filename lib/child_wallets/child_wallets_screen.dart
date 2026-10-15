@@ -11,6 +11,7 @@ import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlays/gw_menu_item.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -29,9 +30,10 @@ class ChildWalletsScreen extends StatelessWidget {
     final state = cubit.state;
     final populatedOrConnectedEmpty = state.status == ChildWalletsStatus.loaded;
 
-    void refresh() {
+    bool refresh() {
       cubit.refresh();
       operations.resolve();
+      return cubit.state.status == ChildWalletsStatus.loaded;
     }
 
     return BlocListener<ChildOperationsCubit, ChildOperationsState>(
@@ -114,7 +116,7 @@ class _ChildWalletsHeader extends StatelessWidget {
   const _ChildWalletsHeader({required this.state, required this.onRefresh});
 
   final ChildWalletsState state;
-  final VoidCallback onRefresh;
+  final bool Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -185,11 +187,7 @@ class _ChildWalletsHeader extends StatelessWidget {
                   ),
                   for (final op in pendingOps) ...[
                     const SizedBox(height: GeniusWalletConsts.space2),
-                    ChildOperationBadge(
-                      op: op,
-                      labelFor: registry.labelFor,
-                      onCheckAgain: registry.resolve,
-                    ),
+                    ChildOperationBadge(op: op, registry: registry),
                   ],
                   const SizedBox(height: GeniusWalletConsts.space4),
                   Wrap(
@@ -239,12 +237,7 @@ class _ChildWalletsHeader extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-            color: gw.textSecondary,
-            onPressed: onRefresh,
-          ),
+          _RefreshButton(onRefresh: onRefresh),
         ],
       ),
     );
@@ -339,11 +332,7 @@ class ChildWalletRow extends StatelessWidget {
                 spacing: GeniusWalletConsts.space2,
                 children: [
                   for (final op in pendingOps)
-                    ChildOperationBadge(
-                      op: op,
-                      labelFor: registry.labelFor,
-                      onCheckAgain: registry.resolve,
-                    ),
+                    ChildOperationBadge(op: op, registry: registry),
                 ],
               ),
             ),
@@ -397,6 +386,58 @@ class ChildWalletRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Refresh with visible progress: the read is synchronous FFI, so the
+/// spinner is painted first, and a quiet success says it finished.
+class _RefreshButton extends StatefulWidget {
+  const _RefreshButton({required this.onRefresh});
+
+  /// Returns whether the read succeeded.
+  final bool Function() onRefresh;
+
+  @override
+  State<_RefreshButton> createState() => _RefreshButtonState();
+}
+
+class _RefreshButtonState extends State<_RefreshButton> {
+  bool _busy = false;
+
+  Future<void> _refresh() async {
+    setState(() => _busy = true);
+    await WidgetsBinding.instance.endOfFrame;
+    final ok = widget.onRefresh();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _busy = false);
+    if (ok) {
+      showToast(context, 'Up to date.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_busy) {
+      return const SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    return IconButton(
+      icon: const Icon(Icons.refresh),
+      tooltip: 'Refresh',
+      color: context.gw.textSecondary,
+      onPressed: _refresh,
     );
   }
 }

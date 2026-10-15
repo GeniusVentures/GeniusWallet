@@ -795,11 +795,7 @@ class _AccountRowTile extends StatelessWidget {
             runSpacing: GeniusWalletConsts.space2,
             children: [
               for (final op in pendingOps)
-                ChildOperationBadge(
-                  op: op,
-                  labelFor: operations!.labelFor,
-                  onCheckAgain: operations.resolve,
-                ),
+                ChildOperationBadge(op: op, registry: operations!),
             ],
           ),
         ),

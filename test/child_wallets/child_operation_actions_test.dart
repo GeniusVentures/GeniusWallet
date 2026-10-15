@@ -510,8 +510,11 @@ void main() {
     expect(item('Recover').onPressed, isNotNull);
     await _openMenu(tester);
 
+    await pollUntil(childOperationStaleAfter);
+    expect(operations.state.operations.single.stale, isTrue);
+
     // The registry is left open on purpose: a poll still running after
-    // expiry fails this test as a Timer pending past the widget tree.
+    // it goes stale fails this test as a Timer pending past the widget tree.
     await childWallets.close();
   });
 
