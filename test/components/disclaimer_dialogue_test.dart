@@ -101,7 +101,9 @@ void main() {
 
   testWidgets('tapping the label text toggles the checkbox', (tester) async {
     await _open(tester, GWColors.dark(), (_) {});
-    final label = find.textContaining("I agree to Banxa's");
+    final label = find.byWidgetPredicate(
+      (w) => w is RichText && w.text.toPlainText().contains('I agree to'),
+    );
     final start = tester.getTopLeft(label) + const Offset(10, 8);
     await tester.tapAt(start);
     await tester.pump();
@@ -128,7 +130,7 @@ void main() {
         (n) =>
             n.getSemanticsData().flagsCollection.isChecked !=
                 CheckedState.none &&
-            n.label.contains("I agree to Banxa's"),
+            n.label == "I agree to Banxa's Terms of Use and Privacy Policy",
       ),
       findsOneWidget,
     );
