@@ -421,14 +421,20 @@ class _RefreshButtonState extends State<_RefreshButton> {
   @override
   Widget build(BuildContext context) {
     if (_busy) {
-      return const SizedBox(
+      return SizedBox(
         width: 48,
         height: 48,
         child: Center(
           child: SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: Semantics(
+              liveRegion: true,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2,
+                semanticsLabel: 'Refreshing',
+              ),
+            ),
           ),
         ),
       );
