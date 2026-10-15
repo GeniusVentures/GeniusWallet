@@ -114,6 +114,7 @@ class _ForgetfulStorage extends _OverlapStorage {
 
 void main() {
   test('a write that loses earlier entries fails instead of passing', () async {
+    addTearDown(LocalWalletStorage.resetWriteFailure);
     final forgetful = _ForgetfulStorage();
     final store = await LocalWalletStorage.create(secureStorage: forgetful);
     await store.storeUserPin('1357');
@@ -122,6 +123,13 @@ void main() {
 
     await expectLater(
       store.saveSDKDefaultWalletAddress('0xABC'),
+      throwsA(isA<SecureStorageWriteError>()),
+    );
+
+    // A retry would snapshot the truncated store and pass, so it must fail.
+    forgetful.servesEmpty = false;
+    await expectLater(
+      store.storeUserPin('1357'),
       throwsA(isA<SecureStorageWriteError>()),
     );
   });
