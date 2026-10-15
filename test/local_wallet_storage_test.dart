@@ -152,7 +152,42 @@ class _ReplyFailsStorage extends _OverlapStorage {
   }
 }
 
+/// A store that, on each write, also rewrites another entry's value.
+class _CorruptingStorage extends _OverlapStorage {
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    for (final other in values.keys.toList()) {
+      if (other != key) {
+        values[other] = 'garbled';
+      }
+    }
+    await super.write(key: key, value: value);
+  }
+}
+
 void main() {
+  test('a write that changes another entry blocks storage', () async {
+    addTearDown(LocalWalletStorage.resetWriteFailure);
+    final corrupting = _CorruptingStorage();
+    corrupting.values['__pin_key__'] = '1357';
+    final store = await LocalWalletStorage.create(secureStorage: corrupting);
+
+    await expectLater(
+      store.saveSDKDefaultWalletAddress('0xABC'),
+      throwsA(isA<SecureStorageWriteError>()),
+    );
+    expect(LocalWalletStorage.writeFailure.value, isTrue);
+  });
+
   test('a write whose reply fails blocks later writes', () async {
     addTearDown(LocalWalletStorage.resetWriteFailure);
     final store = await LocalWalletStorage.create(
