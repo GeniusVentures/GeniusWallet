@@ -11,6 +11,7 @@ import 'package:genius_wallet/components/coins/assets_total_band.dart';
 import 'package:genius_wallet/components/coins/assets_totals.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/qr/show_receive_drawer.dart';
 import 'package:genius_wallet/dashboard/assets/assets_sort.dart';
@@ -231,6 +232,13 @@ class CoinsScreenState extends State<CoinsScreen> {
             return const GWEmptyState(
               icon: Icons.account_balance_wallet_outlined,
               title: kBalanceUnreadableMessage,
+            );
+          }
+
+          if (state.coinsStatus == WalletStatus.error && state.coins.isEmpty) {
+            return GWErrorState(
+              message: 'Failed to load your assets.',
+              onRetry: walletCubit.getCoins,
             );
           }
 
