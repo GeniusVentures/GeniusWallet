@@ -29,20 +29,28 @@ class ConfirmAndSavePinScreen extends StatelessWidget {
           } else if (state.pinConfirmStatus == PinConfirmStatus.passed &&
               state.pinSaveStatus == PinSaveStatus.saved) {
             onPassed();
-          } else if (state.pinSaveStatus == PinSaveStatus.error &&
-              !isSecureStorageFailed(context.read<NewPinCubit>().api)) {
+          }
+        },
+        child: BlocListener<NewPinCubit, NewPinState>(
+          listenWhen: (previous, current) =>
+              previous.pinSaveStatus != PinSaveStatus.error &&
+              current.pinSaveStatus == PinSaveStatus.error,
+          listener: (context, state) {
+            if (isSecureStorageFailed(context.read<NewPinCubit>().api)) {
+              return;
+            }
             showToast(
               context,
               "Your PIN couldn't be saved. Enter it again to retry.",
               type: ToastType.error,
             );
-          }
-        },
-        child: PinScreen(
-          title: 'Confirm PIN',
-          onCompleted: (value) {
-            context.read<NewPinCubit>().pinConfirmSubmitted(value);
           },
+          child: PinScreen(
+            title: 'Confirm PIN',
+            onCompleted: (value) {
+              context.read<NewPinCubit>().pinConfirmSubmitted(value);
+            },
+          ),
         ),
       ),
     );
