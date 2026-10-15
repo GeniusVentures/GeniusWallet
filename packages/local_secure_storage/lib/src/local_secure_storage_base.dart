@@ -617,6 +617,8 @@ class _SerialStorage {
   /// so every later call fails until the app restarts.
   static final _broken = ValueNotifier(false);
 
+  static const _walletConnectKeyPrefix = 'wc@';
+
   Future<T> _run<T>(Future<T> Function() op) => _queue.run(() {
     if (_broken.value) {
       throw const SecureStorageWriteError();
@@ -652,12 +654,16 @@ class _SerialStorage {
     try {
       await op();
       final after = await _storage.readAll();
-      // ponytail: another FlutterSecureStorage user (WalletConnect) deleting
-      // its own key between the two reads fails this check and blocks storage
-      // until restart. Rare, as WalletConnect deletes only on session cleanup;
-      // scoping the check to this class's keys would remove it.
-      final survived = before.keys.every(
-        (k) => k == key || after.containsKey(k),
+      // WalletConnect keeps its own FlutterSecureStorage, outside this
+      // queue, in the same backing store, so its keys can legitimately change
+      // between the two reads and are left out. ponytail: a dropped or
+      // corrupted WalletConnect key therefore goes unnoticed here; it only
+      // costs re-pairing a dapp.
+      final survived = before.entries.every(
+        (e) =>
+            e.key == key ||
+            e.key.startsWith(_walletConnectKeyPrefix) ||
+            after[e.key] == e.value,
       );
       final landed = value == null
           ? !after.containsKey(key)
