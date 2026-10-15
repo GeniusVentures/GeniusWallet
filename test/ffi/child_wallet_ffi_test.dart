@@ -315,6 +315,24 @@ void main() {
     }
   });
 
+  test('a failed legacy 0x-main read fails the whole discovery read', () {
+    final hex = 'e086b240' * 16;
+    final result = collectChildRegistrations(
+      '0x$hex',
+      query: (main, outEntries, outCount) {
+        final legacy = main.cast<Utf8>().toDartString().startsWith('0x');
+        outEntries.value = ffi.nullptr;
+        outCount.value = 0;
+        return legacy
+            ? GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION.value
+            : GeniusNodeReturnValue.GENIUS_NODE_RET_OK.value;
+      },
+      free: (_) {},
+    );
+    expect(result.isOk, isFalse);
+    expect(result.entries, isEmpty);
+  });
+
   test('discovery merges current and legacy 0x-main links, marking legacy', () {
     final hex = 'e086b240' * 16;
     final queried = <String>[];

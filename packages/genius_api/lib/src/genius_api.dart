@@ -175,6 +175,10 @@ ChildRegistrations collectChildRegistrations(
     query,
     free,
   );
+  // A failed legacy read could hide every child, so the whole read fails.
+  if (legacy.result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+    return legacy;
+  }
   final seen = {for (final e in current.entries) e.childAddress.toLowerCase()};
   return (
     result: current.result,
