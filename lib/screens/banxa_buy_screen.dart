@@ -1154,7 +1154,6 @@ Future<void> _startBuy(BuildContext context) async {
       message:
           "Checkout opens inside GeniusWallet but is run by Banxa (banxa.com), a separate company. Your ID check and card details go to Banxa, not to GeniusWallet. By continuing you agree to Banxa's Terms of Use and Privacy & Cookies Policy.",
       confirmText: 'Continue',
-      activeColor: gw.brandPrimaryOnSurface,
       textColor: gw.textPrimary,
     );
     if (!accepted || !context.mounted) {
