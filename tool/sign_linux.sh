@@ -29,6 +29,14 @@ umask 077
 printf '%s' "$LINUX_SIGNING_PASSPHRASE" > "$work/pass"
 printf '%s\n' "$LINUX_SIGNING_KEY" | gpg --batch --quiet --import
 
+# The checked-in public key is the pin: the imported secret key must be its pair.
+pinned=$(gpg --show-keys --with-colons "$(dirname "$0")/../linux/packaging/genius-wallet-signing.pub.asc" | awk -F: '/^fpr/{print $10; exit}')
+imported=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
+if [ -z "$pinned" ] || [ "$imported" != "$pinned" ] || [ "$LINUX_SIGNING_KEY_ID" != "$pinned" ]; then
+  echo "Signing key does not match linux/packaging/genius-wallet-signing.pub.asc" >&2
+  exit 1
+fi
+
 gpgsign=(gpg --batch --no-tty --pinentry-mode loopback --passphrase-file "$work/pass" -u "$LINUX_SIGNING_KEY_ID")
 
 shopt -s nullglob
