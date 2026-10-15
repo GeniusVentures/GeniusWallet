@@ -5,13 +5,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 final _cssRule = RegExp(r'\.([\w-]+)\s*\{([^}]*)\}');
 
-/// Makes a Squid token SVG safe for flutter_svg, which ignores `<style>`
-/// classes (USDC paints as a black disc) and draws nothing for logos that
-/// wrap an embedded bitmap in a `<pattern>` (BASE, DAI+). Throws on the latter
-/// so the caller shows the letters fallback instead of an empty hole.
+/// Inlines `<style>` class fills, which flutter_svg ignores (USDC drew black).
+/// Throws on a bitmap used as a `<pattern>` fill (BASE, DAI+, CRV), which it
+/// draws as nothing, so the caller shows the letters instead of a blank disc.
 String sanitizeTokenSvg(String svg) {
-  if (svg.contains('<image')) {
-    throw const FormatException('SVG wraps an embedded bitmap');
+  if (svg.contains('<pattern') && svg.contains('<image')) {
+    throw const FormatException('SVG fills with a bitmap pattern');
   }
   var out = svg;
   for (final rule in _cssRule.allMatches(svg)) {

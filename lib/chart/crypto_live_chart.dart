@@ -861,18 +861,15 @@ class _TradingFrameChart extends StatelessWidget {
                     getTitlesWidget: (value, meta) => SideTitleWidget(
                       meta: meta,
                       space: 8,
-                      // Shrinks a long stablecoin price instead of wrapping.
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          axisMoneyLabel(value, step),
-                          maxLines: 1,
-                          softWrap: false,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: gw.textSecondary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
+                      child: Text(
+                        axisMoneyLabel(value, step),
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: gw.textSecondary,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ),
@@ -944,17 +941,15 @@ class _TradingFrameChart extends StatelessWidget {
                         : 0;
                     final spot = visible[ix];
                     return Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          formatTime(spot.x.round()),
-                          maxLines: 1,
-                          softWrap: false,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: gw.textSecondary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
+                      child: Text(
+                        formatTime(spot.x.round()),
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: gw.textSecondary,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     );
