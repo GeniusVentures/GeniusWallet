@@ -18,11 +18,12 @@ case "$arch" in
   *) echo "unknown arch: $arch" >&2; exit 1 ;;
 esac
 
-# version.json is what the build actually used, so CI --build-name/--build-number overrides carry through.
+# PKG_VERSION/PKG_BUILD_NUMBER carry CI's --build-name/--build-number: Flutter before
+# 3.47.2 does not write desktop overrides into version.json, so that file is only the fallback.
 vjson="$bundle/data/flutter_assets/version.json"
 [ -f "$vjson" ] || { echo "$vjson missing" >&2; exit 1; }
-version=$(sed -n 's/.*"version" *: *"\([^"]*\)".*/\1/p' "$vjson")
-build_number=$(sed -n 's/.*"build_number" *: *"\([^"]*\)".*/\1/p' "$vjson")
+version=${PKG_VERSION:-$(sed -n 's/.*"version" *: *"\([^"]*\)".*/\1/p' "$vjson")}
+build_number=${PKG_BUILD_NUMBER:-$(sed -n 's/.*"build_number" *: *"\([^"]*\)".*/\1/p' "$vjson")}
 [ -n "$version" ] || { echo "no version in $vjson" >&2; exit 1; }
 build_number=${build_number:-1}
 [ -x "$bundle/genius_wallet" ] || { echo "$bundle/genius_wallet missing" >&2; exit 1; }

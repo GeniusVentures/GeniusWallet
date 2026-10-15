@@ -1386,6 +1386,9 @@ jobs:
         # Runs on PRs too, so a broken package fails review instead of the develop release.
         if: ${{ matrix.target == 'Linux' }}
         working-directory: ${{github.workspace}}
+        env:
+          PKG_VERSION: ${{ github.event.inputs.build_name }}
+          PKG_BUILD_NUMBER: ${{ github.event.inputs.build_number }}
         run: |
           SUDO=$([ "$(id -u)" = 0 ] || echo sudo)
           command -v rpmbuild >/dev/null 2>&1 || $SUDO dnf install -y rpm-build
