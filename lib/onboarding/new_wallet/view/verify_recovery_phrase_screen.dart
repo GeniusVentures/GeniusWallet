@@ -27,6 +27,7 @@ class _VerifyRecoveryPhraseScreenState
   final FocusNode _focusNode = FocusNode();
   final GlobalKey<_InputAndWordsState> _inputAndWordsKey =
       GlobalKey<_InputAndWordsState>();
+  bool _showOrderError = false;
 
   @override
   void initState() {
@@ -73,6 +74,10 @@ class _VerifyRecoveryPhraseScreenState
       child: BlocListener<NewWalletBloc, NewWalletState>(
         listener: (context, state) {
           if (state.verificationStatus == VerificationStatus.failed) {
+            _inputAndWordsKey.currentState?.reset();
+            setState(() {
+              _showOrderError = true;
+            });
             showToast(
               context,
               'Please try again.',
@@ -122,7 +127,28 @@ class _VerifyRecoveryPhraseScreenState
                           color: gw.textSecondary,
                         ),
                       ),
-                      _InputAndWords(key: _inputAndWordsKey),
+                      _InputAndWords(
+                        key: _inputAndWordsKey,
+                        onWordTapped: () {
+                          if (_showOrderError) {
+                            setState(() {
+                              _showOrderError = false;
+                            });
+                          }
+                        },
+                      ),
+                      // The toast is gone after 5 s; this stays until the user
+                      // acts, so the screen never looks finished after a miss.
+                      if (_showOrderError)
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            "Those words aren't in the right order. Try again.",
+                            style: GeniusWalletTypography.bodyMd.copyWith(
+                              color: gw.statusErrorText,
+                            ),
+                          ),
+                        ),
                       // Walk-driven: full-width CTA on mobile; the 300px cap is a
                       // desktop affordance.
                       ConstrainedBox(
@@ -150,7 +176,9 @@ class _VerifyRecoveryPhraseScreenState
 }
 
 class _InputAndWords extends StatefulWidget {
-  const _InputAndWords({super.key});
+  const _InputAndWords({super.key, required this.onWordTapped});
+
+  final VoidCallback onWordTapped;
 
   @override
   State<_InputAndWords> createState() => _InputAndWordsState();
@@ -207,7 +235,21 @@ class _InputAndWordsState extends State<_InputAndWords> {
     }
   }
 
+  void reset() {
+    setState(() {
+      for (final index in emptyIndices) {
+        if (userInputWords[index].isNotEmpty) {
+          shuffledAvailableWords.add(userInputWords[index]);
+          userInputWords[index] = '';
+        }
+      }
+      shuffledAvailableWords.shuffle();
+      _updateHighlightedIndex();
+    });
+  }
+
   void _onWordClick(String word) {
+    widget.onWordTapped();
     final sortedEmptyIndices = emptyIndices.toList()..sort();
 
     int? targetIndex;
