@@ -49,10 +49,10 @@ String resolvedText(ChildOperation op, String Function(String) labelFor) {
   }
 }
 
-/// The pending, or timed-out, badge for one row. No spinner by construction:
-/// the write is synchronous, so this badge IS the in-flight state. A
-/// notConfirmed op adds a "Check again" button beside it; a stale one offers
-/// "Try again" and "Dismiss" instead.
+/// The pending, or timed-out, badge for one row. A notConfirmed op adds
+/// "Check again"; a stale one offers "Try again" and "Dismiss" instead.
+// No spinner while pending: the write is synchronous, so the badge is the
+// in-flight state.
 class ChildOperationBadge extends StatefulWidget {
   const ChildOperationBadge({
     super.key,
@@ -74,14 +74,21 @@ class _ChildOperationBadgeState extends State<ChildOperationBadge> {
     setState(() => _checking = true);
     // The read is synchronous FFI: let the spinner paint before it blocks.
     await WidgetsBinding.instance.endOfFrame;
-    final before = widget.registry.state;
     widget.registry.resolve();
-    final changed = !identical(before, widget.registry.state);
+    // Judged on this op alone: another op resolving must not hide the message,
+    // and going stale changes the badge itself.
+    final stillWaiting = widget.registry.state.operations.any(
+      (o) =>
+          o.submittedAt == widget.op.submittedAt &&
+          o.kind == widget.op.kind &&
+          o.target == widget.op.target &&
+          !o.stale,
+    );
     if (!mounted) {
       return;
     }
     setState(() => _checking = false);
-    if (!changed) {
+    if (stillWaiting) {
       showToast(context, 'Still waiting for the network.');
     }
   }

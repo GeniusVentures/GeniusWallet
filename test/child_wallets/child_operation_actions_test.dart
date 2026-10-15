@@ -563,6 +563,44 @@ void main() {
     await operations.close();
   });
 
+  testWidgets('Check again says still waiting when only another op resolved', (
+    tester,
+  ) async {
+    var now = DateTime(2024);
+    final api = _FakeApi(registrations: _twoChildRegistrations);
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _twoChildAppState,
+      now: () => now,
+    );
+    final submittedAt = now;
+    for (final child in [_childAddress, _secondChildAddress]) {
+      operations.submit(
+        kind: ChildOperationKind.fund,
+        target: child,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+    }
+    now = submittedAt.add(const Duration(minutes: 2));
+    operations.resolve();
+    await tester.pumpAndSettle();
+
+    api.balances[_secondChildAddress] = BigInt.from(1000000);
+    await tester.tap(find.widgetWithText(GWButton, 'Check again').first);
+    await tester.pumpAndSettle();
+
+    expect(operations.state.operations.length, 1);
+    expect(find.text('Still waiting for the network.'), findsOneWidget);
+
+    await childWallets.close();
+    await operations.close();
+    await tester.pumpAndSettle(const Duration(seconds: 10));
+  });
+
   testWidgets(
     'a recover starting while the Fund dialog is open disables Fund and says '
     'why, with no SDK call',
