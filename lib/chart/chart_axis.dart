@@ -169,7 +169,7 @@ String? axisTickLabel(
 }
 
 /// [axisTickLabel] measured the way the gutter's `Text` will render: the
-/// ambient default style merged with [style], bold-text setting and text scale.
+/// ambient default style merged with [style], bold text, spacing overrides and scale.
 String? axisTickLabelFor(
   BuildContext context,
   double value,
@@ -180,6 +180,13 @@ String? axisTickLabelFor(
   if (MediaQuery.boldTextOf(context)) {
     effective = effective.merge(const TextStyle(fontWeight: FontWeight.bold));
   }
+  // Text applies these accessibility spacing overrides on top of the style.
+  effective = effective.merge(
+    TextStyle(
+      letterSpacing: MediaQuery.maybeLetterSpacingOverrideOf(context),
+      wordSpacing: MediaQuery.maybeWordSpacingOverrideOf(context),
+    ),
+  );
   return axisTickLabel(
     value,
     step,
