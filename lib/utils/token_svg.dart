@@ -14,20 +14,6 @@ String sanitizeTokenSvg(String svg) {
   final doc = XmlDocument.parse(svg);
   final elements = doc.descendantElements.toList();
 
-  final bitmapPatterns = {
-    for (final p in elements.where((e) => e.name.local == 'pattern'))
-      if (p.descendantElements.any((e) => e.name.local == 'image') ||
-          _usesImage(p, elements))
-        p.getAttribute('id'),
-  };
-  for (final e in elements) {
-    final fill = e.getAttribute('fill') ?? '';
-    final id = _fillUrl.firstMatch(fill)?.group(1);
-    if (id != null && bitmapPatterns.contains(id)) {
-      throw const FormatException('SVG fills with a bitmap pattern');
-    }
-  }
-
   final rules = {
     for (final style in elements.where((e) => e.name.local == 'style'))
       for (final m in _cssRule.allMatches(style.innerText))
@@ -45,6 +31,21 @@ String sanitizeTokenSvg(String svg) {
     final inline = e.getAttribute('style');
     e.setAttribute('style', [...declared, ?inline].join(';'));
     e.removeAttribute('class');
+  }
+
+  final bitmapPatterns = {
+    for (final p in elements.where((e) => e.name.local == 'pattern'))
+      if (p.descendantElements.any((e) => e.name.local == 'image') ||
+          _usesImage(p, elements))
+        p.getAttribute('id'),
+  };
+  for (final e in elements) {
+    final fills = '${e.getAttribute('fill')};${e.getAttribute('style')}';
+    for (final m in _fillUrl.allMatches(fills)) {
+      if (bitmapPatterns.contains(m.group(1))) {
+        throw const FormatException('SVG fills with a bitmap pattern');
+      }
+    }
   }
   return doc.toXmlString();
 }

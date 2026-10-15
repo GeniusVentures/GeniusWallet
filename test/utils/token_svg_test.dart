@@ -42,4 +42,18 @@ void main() {
     expect(out, contains('style="fill:red;opacity:.5"'));
     expect(RegExp('style=').allMatches(out).length, 1);
   });
+
+  test('a bitmap pattern used through style= or a class is rejected', () {
+    const defs = '<defs><pattern id="p"><image href="x"/></pattern></defs>';
+    expect(
+      () => sanitizeTokenSvg('<svg>$defs<rect style="fill:url(#p)"/></svg>'),
+      throwsFormatException,
+    );
+    expect(
+      () => sanitizeTokenSvg(
+        '<svg><style>.c{fill:url(#p)}</style>$defs<rect class="c"/></svg>',
+      ),
+      throwsFormatException,
+    );
+  });
 }
