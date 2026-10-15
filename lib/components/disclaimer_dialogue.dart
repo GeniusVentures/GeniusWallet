@@ -76,9 +76,18 @@ class _FirstBuyBodyState extends State<_FirstBuyBody> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GWCheckbox(
-              value: _agreed,
-              onChanged: (v) => setState(() => _agreed = v ?? false),
+            // The checkbox box sits a few px inside its tap area; shift it left so the
+            // visible box lines up with the text column above.
+            SizedBox(
+              width: 26,
+              height: 48,
+              child: Transform.translate(
+                offset: const Offset(-GeniusWalletConsts.space2, 0),
+                child: GWCheckbox(
+                  value: _agreed,
+                  onChanged: (v) => setState(() => _agreed = v ?? false),
+                ),
+              ),
             ),
             Expanded(
               child: Padding(
