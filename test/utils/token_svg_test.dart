@@ -15,4 +15,11 @@ void main() {
         '<svg><defs><image id="a" href="data:image/png;base64,AA"/></defs></svg>';
     expect(() => sanitizeTokenSvg(svg), throwsFormatException);
   });
+
+  test('CRV: a pattern filled with a bitmap falls back to the letters', () {
+    const svg =
+        '<svg><rect fill="url(#p)"/><defs><pattern id="p"><use xlink:href="#i"/></pattern>'
+        '<image id="i" xlink:href="data:image/png;base64,AA"/></defs></svg>';
+    expect(() => sanitizeTokenSvg(svg), throwsFormatException);
+  });
 }
