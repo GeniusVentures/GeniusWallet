@@ -91,13 +91,14 @@ const double kChartFillFadeStop = 0.62;
 /// text actually stands for.
 typedef _Form = (String, double) Function(double value, int decimals);
 
-final _currencyFormats = <(String?, int), NumberFormat>{};
+final _currencyFormats = <(String, int), NumberFormat>{};
 
 /// One formatter per (locale, decimals): the digit search asks for dozens per
 /// tick, and building a `NumberFormat` each time is the expensive part.
+/// Keyed by the resolved locale: `Intl.defaultLocale` is null until first use.
 @visibleForTesting
 NumberFormat axisCurrencyFormat(int decimals) => _currencyFormats.putIfAbsent((
-  Intl.defaultLocale,
+  Intl.getCurrentLocale(),
   decimals,
 ), () => NumberFormat.currency(symbol: '\$', decimalDigits: decimals));
 
