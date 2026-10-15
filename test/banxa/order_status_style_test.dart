@@ -141,4 +141,17 @@ void main() {
       },
     );
   });
+
+  testWidgets('the in-progress pill names the order coin, not GNUS', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      gwHost(const OrderStatusPill(status: 'inProgress', coin: 'ETH')),
+    );
+    expect(find.text('BUYING YOUR ETH'), findsOneWidget);
+    await tester.pumpWidget(
+      gwHost(const OrderStatusPill(status: 'inProgress')),
+    );
+    expect(find.text('BUYING YOUR GNUS'), findsOneWidget);
+  });
 }
