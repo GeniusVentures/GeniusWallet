@@ -639,19 +639,28 @@ class _SerialStorage {
   ) async {
     final before = await _storage.readAll();
     await op();
-    final after = await _storage.readAll();
-    // ponytail: another FlutterSecureStorage user (WalletConnect) deleting
-    // its own key between the two reads fails this check and blocks storage
-    // until restart. Rare, as WalletConnect deletes only on session cleanup;
-    // scoping the check to this class's keys would remove it.
-    final survived = before.keys.every((k) => k == key || after.containsKey(k));
-    final landed = value == null
-        ? !after.containsKey(key)
-        : after[key] == value;
-    if (!survived || !landed) {
-      _broken = true;
-      throw const SecureStorageWriteError();
+    // Once the write ran, anything short of a clean check leaves the store's
+    // state unknown, so it is treated the same as a detected drop.
+    try {
+      final after = await _storage.readAll();
+      // ponytail: another FlutterSecureStorage user (WalletConnect) deleting
+      // its own key between the two reads fails this check and blocks storage
+      // until restart. Rare, as WalletConnect deletes only on session cleanup;
+      // scoping the check to this class's keys would remove it.
+      final survived = before.keys.every(
+        (k) => k == key || after.containsKey(k),
+      );
+      final landed = value == null
+          ? !after.containsKey(key)
+          : after[key] == value;
+      if (survived && landed) {
+        return;
+      }
+    } catch (_) {
+      // Falls through to block the store.
     }
+    _broken = true;
+    throw const SecureStorageWriteError();
   }
 }
 
