@@ -33,10 +33,9 @@ const EdgeInsets kGWDetailRowPadding = EdgeInsets.symmetric(
 /// So `borderSubtle` is the right weight here and 36% would be wrong - it would
 /// make the table's frame louder than its contents.
 ///
-/// The fill is `surfaceSunken`: on the 156-A panel it is only 1.04:1, so it is
-/// not doing the separating - the hairline is. It is there so the group reads
-/// as recessed rather than raised, matching the drawer's input treatment, and
-/// so the table does not read as a card floating on a card.
+/// The fill is `surfaceWell`, the token for a recess on a card or drawer. It is
+/// not doing the separating, the hairline is; `surfaceSunken` was too heavy on
+/// a white light-mode panel.
 class GWDetailGrid extends StatelessWidget {
   const GWDetailGrid({super.key, required this.rows});
 
@@ -56,7 +55,7 @@ class GWDetailGrid extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: gw.surfaceSunken,
+        color: gw.surfaceWell,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
         border: Border.all(color: gw.borderSubtle, width: 1),
       ),
