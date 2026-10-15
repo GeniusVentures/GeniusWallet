@@ -3,6 +3,7 @@
 // non-null array exactly once, and never touches memory when the count is
 // zero or the array pointer is null.
 import 'dart:convert';
+import 'dart:io';
 import 'dart:ffi' as ffi;
 import 'dart:typed_data';
 
@@ -264,10 +265,39 @@ void main() {
     });
   });
 
-  test('a discovered child address maps to its bare-hex registration key', () {
+  test('a discovered child address reaches the SDK as bare hex', () {
     final hex = '7815dd' * 21 + 'a19f';
-    expect(sdkRegistrationKey('0x$hex'), hex);
-    expect(sdkRegistrationKey(hex), hex);
+    for (final input in ['0x$hex', hex]) {
+      final ptr = sdkChildAddressPtr(input);
+      try {
+        expect(ptr.cast<Utf8>().toDartString(), hex);
+      } finally {
+        malloc.free(ptr);
+      }
+    }
+  });
+
+  test('every child-address SDK call converts through sdkChildAddressPtr', () {
+    final src = File(
+      'packages/genius_api/lib/src/genius_api.dart',
+    ).readAsStringSync();
+    expect(src, isNot(contains('childAddress.toNativeUtf8')));
+    for (final fn in [
+      'getChildBalanceAll',
+      'getChildBalance',
+      'fundChild',
+      'fundChildGnus',
+      'recoverFromChild',
+      'recoverFromChildGnus',
+      'revokeChild',
+    ]) {
+      final body = src.substring(src.indexOf(' $fn('));
+      expect(
+        body.substring(0, body.indexOf('\n  }\n')),
+        contains('sdkChildAddressPtr(childAddress)'),
+        reason: fn,
+      );
+    }
   });
 
   group('writeRegistrationMetadata', () {

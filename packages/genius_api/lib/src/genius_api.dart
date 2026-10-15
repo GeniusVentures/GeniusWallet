@@ -205,13 +205,16 @@ ChildRegistrations collectChildRegistrations(
   }
 }
 
-/// The SDK's discovery hands addresses back with a `0x` prefix, but keys the
-/// registration record by the bare hex, so RevokeChild needs it stripped.
+/// Discovery hands child addresses back with a `0x` prefix, but the SDK keys
+/// registrations and UTXOs by the bare hex, so every child call strips it.
+/// The caller frees the result with `malloc.free`.
 @visibleForTesting
-String sdkRegistrationKey(String address) =>
-    address.startsWith('0x') || address.startsWith('0X')
-    ? address.substring(2)
-    : address;
+Pointer<Char> sdkChildAddressPtr(String address) =>
+    (address.startsWith('0x') || address.startsWith('0X')
+            ? address.substring(2)
+            : address)
+        .toNativeUtf8()
+        .cast<Char>();
 
 /// Writes [m]'s three strings into [out] as NUL-terminated UTF-8, each
 /// capped at 127 bytes, and copies [ChildRegistrationMetadata.peersCut]
@@ -1699,7 +1702,7 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return BigInt.zero;
     }
-    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final addressPtr = sdkChildAddressPtr(childAddress);
     try {
       final raw = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetChildBalanceAll(
         addressPtr,
@@ -1751,7 +1754,7 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return BigInt.zero;
     }
-    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final addressPtr = sdkChildAddressPtr(childAddress);
     final tokenIdPtr = calloc<GeniusTokenID>();
     try {
       writeTokenId(tokenIdPtr, tokenId);
@@ -1780,7 +1783,7 @@ class GeniusApi {
     if (amount == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
     }
-    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final addressPtr = sdkChildAddressPtr(childAddress);
     final tokenIdPtr = calloc<GeniusTokenID>();
     try {
       writeTokenId(tokenIdPtr, tokenId);
@@ -1803,7 +1806,7 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final amountPtr = calloc<GeniusTokenValue>();
-    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final addressPtr = sdkChildAddressPtr(childAddress);
     try {
       if (!writeTokenValue(amountPtr, amountGnus)) {
         return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
@@ -1833,7 +1836,7 @@ class GeniusApi {
     if (amount == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
     }
-    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final addressPtr = sdkChildAddressPtr(childAddress);
     final tokenIdPtr = calloc<GeniusTokenID>();
     try {
       writeTokenId(tokenIdPtr, tokenId);
@@ -1859,7 +1862,7 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final amountPtr = calloc<GeniusTokenValue>();
-    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final addressPtr = sdkChildAddressPtr(childAddress);
     try {
       if (!writeTokenValue(amountPtr, amountGnus)) {
         return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
@@ -1927,9 +1930,7 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
-    final addressPtr = sdkRegistrationKey(
-      childAddress,
-    ).toNativeUtf8().cast<Char>();
+    final addressPtr = sdkChildAddressPtr(childAddress);
     try {
       final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRevokeChild(
         addressPtr,
