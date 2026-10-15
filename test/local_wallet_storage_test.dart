@@ -89,7 +89,43 @@ class _OverlapStorage extends Fake implements FlutterSecureStorage {
   });
 }
 
+/// A store that, like a blank-password gnome-keyring under the Linux plugin,
+/// serves `{}` after a write, so the next write rebuilds from nothing.
+class _ForgetfulStorage extends _OverlapStorage {
+  var servesEmpty = false;
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (servesEmpty) {
+      values.clear();
+    }
+    await super.write(key: key, value: value);
+  }
+}
+
 void main() {
+  test('a write that loses earlier entries fails instead of passing', () async {
+    final forgetful = _ForgetfulStorage();
+    final store = await LocalWalletStorage.create(secureStorage: forgetful);
+    await store.storeUserPin('1357');
+
+    forgetful.servesEmpty = true;
+
+    await expectLater(
+      store.saveSDKDefaultWalletAddress('0xABC'),
+      throwsA(isA<SecureStorageWriteError>()),
+    );
+  });
+
   test('concurrent reads and writes never overlap, and concurrent link '
       'saves all persist', () async {
     final slow = _OverlapStorage();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
@@ -26,25 +27,41 @@ class NewWalletFlow extends StatelessWidget {
         context.read<AppBloc>().add(LoadWallets());
         context.go('/dashboard');
       },
-      child: BlocBuilder<NewWalletBloc, NewWalletState>(
-        builder: (context, state) {
-          return PopScope(
-            canPop: state.currentStep == _firstStep,
-            onPopInvokedWithResult: (didPop, result) {
-              if (!didPop) {
-                context.read<NewWalletBloc>().add(GoBack());
-              }
-            },
-            child: Scaffold(
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                scrolledUnderElevation: 0,
-              ),
-              body: _buildStep(context, newPinCubit, state),
-            ),
+      child: BlocListener<NewWalletBloc, NewWalletState>(
+        listenWhen: (prev, curr) =>
+            prev.walletSaveStatus != NewWalletStatus.error &&
+            curr.walletSaveStatus == NewWalletStatus.error,
+        listener: (context, state) {
+          final bloc = context.read<NewWalletBloc>();
+          showToast(
+            context,
+            "Your wallet couldn't be saved to this device's secure storage. "
+            'Keep your recovery phrase and try again.',
+            type: ToastType.error,
+            actionLabel: 'Try again',
+            onAction: () => bloc.add(AddWallet(wallet: bloc.wallet)),
           );
         },
+        child: BlocBuilder<NewWalletBloc, NewWalletState>(
+          builder: (context, state) {
+            return PopScope(
+              canPop: state.currentStep == _firstStep,
+              onPopInvokedWithResult: (didPop, result) {
+                if (!didPop) {
+                  context.read<NewWalletBloc>().add(GoBack());
+                }
+              },
+              child: Scaffold(
+                appBar: AppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                ),
+                body: _buildStep(context, newPinCubit, state),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -606,10 +606,44 @@ class _SerialStorage {
   Future<Map<String, String>> readAll() => _queue.run(_storage.readAll);
 
   Future<void> write({required String key, required String? value}) =>
-      _queue.run(() => _storage.write(key: key, value: value));
+      _queue.run(() => _verified(key, value, () => _storage.write(key: key, value: value)));
 
   Future<void> delete({required String key}) =>
-      _queue.run(() => _storage.delete(key: key));
+      _queue.run(() => _verified(key, null, () => _storage.delete(key: key)));
+
+  /// Some backends report success yet drop data: a blank-password
+  /// gnome-keyring can serve an empty secret after a write, and the Linux
+  /// plugin then rewrites its single blob from nothing. Reading back turns
+  /// that silent loss into an error the caller can show.
+  Future<void> _verified(
+    String key,
+    String? value,
+    Future<void> Function() op,
+  ) async {
+    final before = await _storage.readAll();
+    await op();
+    final after = await _storage.readAll();
+    // ponytail: another FlutterSecureStorage user (WalletConnect) can delete
+    // its own key between the two reads and fail this check; a retry clears
+    // it. Scoping the check to this class's keys would remove that.
+    final survived = before.keys.every((k) => k == key || after.containsKey(k));
+    final landed = value == null
+        ? !after.containsKey(key)
+        : after[key] == value;
+    if (!survived || !landed) {
+      throw const SecureStorageWriteError();
+    }
+  }
+}
+
+/// The secure store accepted a write but did not keep it, or lost other
+/// entries while doing so. Carries no keys or values.
+class SecureStorageWriteError implements Exception {
+  const SecureStorageWriteError();
+
+  @override
+  String toString() =>
+      'SecureStorageWriteError: the secure store did not keep a write';
 }
 
 Future<List<Network>> readNetworkAssets() async {
