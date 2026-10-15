@@ -72,19 +72,22 @@ class _VerifyRecoveryPhraseScreenState
     final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
     return SecureScreen(
       child: BlocListener<NewWalletBloc, NewWalletState>(
+        // Only the transition into failed: Back keeps the status, and the
+        // reload on return would otherwise re-show a stale error.
+        listenWhen: (prev, curr) =>
+            prev.verificationStatus != VerificationStatus.failed &&
+            curr.verificationStatus == VerificationStatus.failed,
         listener: (context, state) {
-          if (state.verificationStatus == VerificationStatus.failed) {
-            _inputAndWordsKey.currentState?.reset();
-            setState(() {
-              _showOrderError = true;
-            });
-            showToast(
-              context,
-              'Please try again.',
-              title: 'Verification failed',
-              type: ToastType.error,
-            );
-          }
+          _inputAndWordsKey.currentState?.reset();
+          setState(() {
+            _showOrderError = true;
+          });
+          showToast(
+            context,
+            'Please try again.',
+            title: 'Verification failed',
+            type: ToastType.error,
+          );
         },
         child: Focus(
           focusNode: _focusNode,

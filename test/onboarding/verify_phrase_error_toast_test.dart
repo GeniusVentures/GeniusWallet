@@ -105,6 +105,22 @@ void main() {
       expect(find.text(inline), findsOneWidget);
       await tester.pump(const Duration(seconds: 10));
     }
+    final bloc = tester
+        .element(find.byType(NewWalletFlow))
+        .read<NewWalletBloc>();
+    bloc.add(GoBack());
+    await tester.pumpAndSettle();
+    bloc.add(RecoveryPhraseContinue());
+    await tester.pumpAndSettle();
+    expect(
+      find.text("Those words aren't in the right order. Try again."),
+      findsNothing,
+    );
+    expect(find.text('Verification failed'), findsNothing);
+    await _fillWrongOrder(tester);
+    await tester.tap(find.byType(GWButton));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.tap(find.byType(ActionChip).first);
     await tester.pump();
     expect(
