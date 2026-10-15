@@ -112,7 +112,45 @@ class _ForgetfulStorage extends _OverlapStorage {
   }
 }
 
+/// A store whose read-back after a write fails, as a keyring that locks
+/// mid-write does.
+class _ReadBackFailsStorage extends _OverlapStorage {
+  var readAllCalls = 0;
+
+  @override
+  Future<Map<String, String>> readAll({
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) {
+    readAllCalls++;
+    if (readAllCalls == 2) {
+      return Future.error(PlatformException(code: 'KeyringLocked'));
+    }
+    return super.readAll();
+  }
+}
+
 void main() {
+  test('a write whose read-back fails blocks later writes', () async {
+    addTearDown(LocalWalletStorage.resetWriteFailure);
+    final store = await LocalWalletStorage.create(
+      secureStorage: _ReadBackFailsStorage(),
+    );
+
+    await expectLater(
+      store.storeUserPin('1357'),
+      throwsA(isA<SecureStorageWriteError>()),
+    );
+    await expectLater(
+      store.storeUserPin('1357'),
+      throwsA(isA<SecureStorageWriteError>()),
+    );
+  });
+
   test('a write that loses earlier entries fails instead of passing', () async {
     addTearDown(LocalWalletStorage.resetWriteFailure);
     final forgetful = _ForgetfulStorage();
