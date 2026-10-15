@@ -73,55 +73,63 @@ class _FirstBuyBodyState extends State<_FirstBuyBody> {
           ),
         ],
         const SizedBox(height: GeniusWalletConsts.space6),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // The checkbox box sits a few px inside its tap area; shift it left so the
-            // visible box lines up with the text column above.
-            SizedBox(
-              width: 26,
-              height: 48,
-              child: Transform.translate(
-                offset: const Offset(-GeniusWalletConsts.space2, 0),
-                child: GWCheckbox(
-                  value: _agreed,
-                  onChanged: (v) => setState(() => _agreed = v ?? false),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: GeniusWalletConsts.space4),
-                child: Text.rich(
-                  style: GeniusWalletTypography.bodyMd.copyWith(
-                    color: gw.textPrimary,
-                  ),
-                  TextSpan(
-                    children: [
-                      const TextSpan(text: "I agree to Banxa's "),
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.baseline,
-                        baseline: TextBaseline.alphabetic,
-                        child: _InlineLink(
-                          label: 'Terms of Use',
-                          uri: _termsUri,
-                        ),
-                      ),
-                      const TextSpan(text: ' and '),
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.baseline,
-                        baseline: TextBaseline.alphabetic,
-                        child: _InlineLink(
-                          label: 'Privacy Policy',
-                          uri: _privacyUri,
-                        ),
-                      ),
-                    ],
+        MergeSemantics(
+          child: InkWell(
+            onTap: () => setState(() => _agreed = !_agreed),
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // The checkbox box sits a few px inside its tap area; shift it left so the
+                // visible box lines up with the text column above.
+                SizedBox(
+                  width: 26,
+                  height: 48,
+                  child: Transform.translate(
+                    offset: const Offset(-GeniusWalletConsts.space2, 0),
+                    child: GWCheckbox(
+                      value: _agreed,
+                      onChanged: (v) => setState(() => _agreed = v ?? false),
+                    ),
                   ),
                 ),
-              ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: GeniusWalletConsts.space4,
+                    ),
+                    child: Text.rich(
+                      style: GeniusWalletTypography.bodyMd.copyWith(
+                        color: gw.textPrimary,
+                      ),
+                      TextSpan(
+                        children: [
+                          const TextSpan(text: "I agree to Banxa's "),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.baseline,
+                            baseline: TextBaseline.alphabetic,
+                            child: _InlineLink(
+                              label: 'Terms of Use',
+                              uri: _termsUri,
+                            ),
+                          ),
+                          const TextSpan(text: ' and '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.baseline,
+                            baseline: TextBaseline.alphabetic,
+                            child: _InlineLink(
+                              label: 'Privacy Policy',
+                              uri: _privacyUri,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
         const SizedBox(height: GeniusWalletConsts.space10),
         Wrap(

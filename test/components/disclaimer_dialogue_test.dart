@@ -97,4 +97,16 @@ void main() {
     await _open(tester, GWColors.dark(), (_) {});
     expect(find.textContaining('Sandbox'), findsNothing);
   });
+
+  testWidgets('tapping the label text toggles the checkbox', (tester) async {
+    await _open(tester, GWColors.dark(), (_) {});
+    final label = find.textContaining("I agree to Banxa's");
+    final start = tester.getTopLeft(label) + const Offset(10, 8);
+    await tester.tapAt(start);
+    await tester.pump();
+    expect(_continue(tester).onPressed, isNotNull);
+    await tester.tapAt(start);
+    await tester.pump();
+    expect(_continue(tester).onPressed, isNull);
+  });
 }
