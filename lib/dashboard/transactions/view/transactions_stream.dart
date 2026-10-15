@@ -33,15 +33,12 @@ class TransactionsStream extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chainId = context.select<WalletDetailsCubit, int?>(
-      (cubit) => cubit.state.selectedNetwork?.chainId,
-    );
-    return BlocBuilder<TransactionsCubit, List<Transaction>>(
+    return NetworkTransactionsBuilder(
       builder: (context, transactions) {
         return BlocBuilder<OrdersCubit, OrdersState>(
           builder: (context, ordersState) {
             return TransactionsSlimView(
-              transactions: transactionsOnNetwork(transactions, chainId),
+              transactions: transactions,
               page: page,
               buyOrders: ordersState.orders?.orders ?? const [],
               buyOrdersStatus: ordersState.status,
@@ -53,6 +50,25 @@ class TransactionsStream extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+/// The one place EVM history is scoped to the selected network; every reader
+/// of [TransactionsCubit] that shows or counts rows builds through it.
+class NetworkTransactionsBuilder extends StatelessWidget {
+  final Widget Function(BuildContext, List<Transaction>) builder;
+
+  const NetworkTransactionsBuilder({super.key, required this.builder});
+
+  @override
+  Widget build(BuildContext context) {
+    final chainId = context.select<WalletDetailsCubit, int?>(
+      (cubit) => cubit.state.selectedNetwork?.chainId,
+    );
+    return BlocBuilder<TransactionsCubit, List<Transaction>>(
+      builder: (context, transactions) =>
+          builder(context, transactionsOnNetwork(transactions, chainId)),
     );
   }
 }
