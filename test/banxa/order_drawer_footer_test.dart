@@ -92,7 +92,7 @@ void main() {
     for (final status in BanxaOrderStatus.values) {
       await _pump(tester, testOrder(status: status.name));
       expect(
-        find.text(status.description),
+        find.text(status.describeFor('BTC')),
         findsOneWidget,
         reason: status.name,
       );
@@ -188,5 +188,11 @@ void main() {
       expect(find.text('Complete payment'), findsNothing);
       expect(find.text('Contact Banxa support'), findsNothing, reason: status);
     }
+  });
+
+  testWidgets('a paid ETH order names ETH, not GNUS', (tester) async {
+    await _pump(tester, testOrder(status: 'paymentReceived', cryptoId: 'ETH'));
+    expect(find.textContaining('Your ETH is not bought yet'), findsOneWidget);
+    expect(find.textContaining('GNUS'), findsNothing);
   });
 }
