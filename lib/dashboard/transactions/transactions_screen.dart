@@ -13,7 +13,6 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -262,7 +261,7 @@ class _FilterTrigger extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!sgnus) {
-      return BlocBuilder<TransactionsCubit, List<Transaction>>(
+      return NetworkTransactionsBuilder(
         builder: (context, transactions) => _ScopedFilterTrigger(
           transactions: transactions,
           sgnus: false,
