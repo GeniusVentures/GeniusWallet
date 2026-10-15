@@ -103,13 +103,13 @@ String? axisTickLabel(double value, double step) {
 /// to prevent, not a style choice**: it is exactly how a stablecoin's axis
 /// printed `$1.00 / $1.00 / $1.00 / $1.00` for four different prices.
 String axisMoneyLabel(double value, double step) {
+  final int decimals = step >= 1 ? 0 : (-log(step) / ln10).ceil() + 1;
   // Fixed decimals cap at 8, which would print neighbouring ticks of a
   // sub-cent token identically; scientific keeps the digits that differ.
-  if (value != 0 && value.abs() < 1e-4) {
+  if (decimals > 8 && value != 0) {
     final int digits = max(0, ((log(value.abs()) - log(step)) / ln10).floor());
     return '\$${value.toStringAsExponential(digits)}';
   }
-  final int decimals = step >= 1 ? 0 : min(8, (-log(step) / ln10).ceil() + 1);
   return NumberFormat.currency(
     symbol: '\$',
     decimalDigits: decimals,
