@@ -53,6 +53,17 @@ Our Linux builds are tested on **Ubuntu 22 and newer for x86\_64**, and on **Deb
    ./genius_wallet
    ```
 
+**Verify a Linux download.** Each Linux release carries `SHA256SUMS`, `SHA256SUMS.asc` and `genius-wallet-signing.pub.asc` (also in this repo at `linux/packaging/`). Key fingerprint: `CC83EE05605BE3006F8AF4A6E409DA417D087CFE`.
+
+```bash
+gpg --import genius-wallet-signing.pub.asc
+gpg --verify SHA256SUMS.asc SHA256SUMS
+sha256sum -c SHA256SUMS --ignore-missing
+# .rpm only: the package itself is signed too
+sudo rpm --import genius-wallet-signing.pub.asc
+rpm -K genius-wallet-*.rpm
+```
+
 **Optional: WebKitGTK.** It is recommended, not required. With it, news, legal pages, the Web tab and the Banxa checkout open inside the app; without it they open in your browser. The wallet loads it at run time, so install it any time: `libwebkit2gtk-4.1-0` (Ubuntu 22.04 and newer, Debian 12), `libwebkit2gtk-4.0-37` (Ubuntu 20.04), `webkit2gtk4.1` (Fedora), `webkit2gtk3` (AlmaLinux 8).
 
 ---
