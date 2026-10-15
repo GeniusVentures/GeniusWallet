@@ -50,9 +50,10 @@ OrderStatusTone orderStatusTone(String status) =>
 /// foreground colour, a 5px gap, then the uppercase status text in
 /// `GeniusWalletTypography.labelMd` at weight 600 in the foreground colour.
 class OrderStatusPill extends StatelessWidget {
-  const OrderStatusPill({required this.status, super.key});
+  const OrderStatusPill({required this.status, this.coin = 'GNUS', super.key});
 
   final String status;
+  final String coin;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +79,7 @@ class OrderStatusPill extends StatelessWidget {
           ),
           const SizedBox(width: 5),
           Text(
-            BanxaOrderStatus.parse(status).label.toUpperCase(),
+            BanxaOrderStatus.parse(status).labelFor(coin).toUpperCase(),
             style: GeniusWalletTypography.labelMd.copyWith(
               fontWeight: FontWeight.w600,
               color: fg,
