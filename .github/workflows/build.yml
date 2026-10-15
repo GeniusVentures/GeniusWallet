@@ -1382,6 +1382,15 @@ jobs:
           fi
         shell: bash
 
+      - name: Package Linux .deb and .rpm
+        if: ${{ matrix.target == 'Linux' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        working-directory: ${{github.workspace}}
+        run: |
+          command -v rpmbuild >/dev/null 2>&1 || sudo dnf install -y rpm-build
+          ARCH=${{ matrix.abi }}
+          bash tool/package_linux.sh "$(ls -d build/linux/*/release/bundle | head -1)" "${ARCH:-x86_64}" linux_packages
+        shell: bash
+
       - name: Create release of GeniusWallet
         working-directory: ${{github.workspace}}
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
@@ -1475,6 +1484,9 @@ jobs:
           else
             echo "Uploading ${ARTIFACT_NAME}"
             gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
+            if [ "${{ matrix.target }}" = "Linux" ]; then
+              gh release upload --clobber ${RELEASE_TAG} linux_packages/*.deb linux_packages/*.rpm
+            fi
             # Also upload AAB for Android if it exists
             if [ -n "${ARTIFACT_NAME_AAB:-}" ] && [ -f "${ARTIFACT_NAME_AAB}" ]; then
               echo "Uploading AAB: ${ARTIFACT_NAME_AAB}"
