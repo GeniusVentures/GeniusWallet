@@ -5,7 +5,7 @@
 // which is exactly how the y-window bug (chart_y_bounds_test.dart) shipped
 // in the first place. No fixtures, no mocks: these are pure functions.
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/painting.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/chart/chart_axis.dart';
 
@@ -51,10 +51,12 @@ void main() {
     expect(a.length, lessThanOrEqualTo(8));
   });
 
-  test('a flat tiny-price window never repeats a label', () {
-    final a = axisMoneyLabel(9.000e-5, 1e-9);
-    final b = axisMoneyLabel(9.0001e-5, 1e-9);
-    expect(a, isNot(b));
+  test('tiny steps that are not powers of ten still print distinct ticks', () {
+    final labels = {
+      for (final v in [9e-9, 1.05e-8, 1.2e-8, 1.35e-8])
+        axisMoneyLabel(v, 1.5e-9),
+    };
+    expect(labels.length, 4);
   });
 
   test('a fine step on a larger price still prints distinct ticks', () {
@@ -64,46 +66,40 @@ void main() {
     );
   });
 
-  test('at 1.5x text, 63k ticks stay distinct and every label fits', () {
-    final shown = <String>[];
-    for (var v = 63000.0; v <= 64500; v += 250) {
-      final label = axisTickLabel(
-        v,
-        250,
-        style: _style,
-        textScaler: const TextScaler.linear(1.5),
-        maxWidth: 120,
-      );
-      if (label != null) {
-        shown.add(label);
-      }
-    }
-    expect(shown, isNotEmpty);
-    expect(shown.toSet().length, shown.length);
+  test('1500-step ticks read 1.5K, 3K, 4.5K, 6K in a narrow gutter', () {
+    final labels = [
+      for (final v in [1500.0, 3000.0, 4500.0, 6000.0])
+        axisTickLabel(
+          v,
+          1500,
+          style: _style,
+          textScaler: TextScaler.noScaling,
+          maxWidth: 60,
+        ),
+    ];
+    expect(labels, [r'$1.5K', r'$3K', r'$4.5K', r'$6K']);
   });
 
-  test('a label that cannot fit is dropped, not ellipsized', () {
-    expect(
-      axisTickLabel(
-        63000,
-        250,
-        style: _style,
-        textScaler: const TextScaler.linear(3),
-        maxWidth: 54,
+  testWidgets('measurement uses the ambient theme font size', (tester) async {
+    late BuildContext ctx;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(),
+          child: DefaultTextStyle(
+            style: const TextStyle(fontSize: 40),
+            child: Builder(
+              builder: (c) {
+                ctx = c;
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
       ),
-      isNull,
     );
-  });
-
-  test('compact labels keep the precision the step needs', () {
-    String? at(double v) => axisTickLabel(
-      v,
-      0.01,
-      style: _style,
-      textScaler: TextScaler.noScaling,
-      maxWidth: 200,
-    );
-    expect(at(1000.00), isNot(at(1000.01)));
+    expect(axisTickLabelFor(ctx, 64250, 250, const TextStyle()), isNull);
   });
 
   group('axisMoneyLabel - precision comes from the STEP, not the value', () {

@@ -760,14 +760,7 @@ class _HeroChart extends StatelessWidget {
                       meta: meta,
                       space: 8,
                       child: Text(
-                        axisTickLabel(
-                              value,
-                              step,
-                              style: style,
-                              textScaler: MediaQuery.textScalerOf(context),
-                              maxWidth: kChartAxisGutter - 8,
-                            ) ??
-                            '',
+                        axisTickLabelFor(context, value, step, style) ?? '',
                         maxLines: 1,
                         softWrap: false,
                         style: style,
