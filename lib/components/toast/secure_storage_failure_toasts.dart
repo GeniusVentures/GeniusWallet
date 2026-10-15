@@ -38,6 +38,11 @@ class _SecureStorageFailureToastsState
   void initState() {
     super.initState();
     widget.failed.addListener(_onChanged);
+    // Storage may already be blocked before this mounts (a write before
+    // runApp), and a toast cannot be inserted while the tree is building.
+    if (widget.failed.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _toastWhenAttached());
+    }
   }
 
   @override
