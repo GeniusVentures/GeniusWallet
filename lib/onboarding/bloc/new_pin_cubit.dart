@@ -37,7 +37,12 @@ class NewPinCubit extends Cubit<NewPinState> {
         emit(state.copyWith(pinSaveStatus: PinSaveStatus.error));
       }
     } else {
-      emit(state.copyWith(pinConfirmStatus: PinConfirmStatus.failed));
+      emit(
+        state.copyWith(
+          pinConfirmStatus: PinConfirmStatus.failed,
+          pinSaveStatus: PinSaveStatus.initial,
+        ),
+      );
       emit(
         state.copyWith(pinConfirmStatus: PinConfirmStatus.awaitingVerification),
       );
