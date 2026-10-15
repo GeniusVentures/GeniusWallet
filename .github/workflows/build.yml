@@ -1383,10 +1383,12 @@ jobs:
         shell: bash
 
       - name: Package Linux .deb and .rpm
-        if: ${{ matrix.target == 'Linux' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
+        # Runs on PRs too, so a broken package fails review instead of the develop release.
+        if: ${{ matrix.target == 'Linux' }}
         working-directory: ${{github.workspace}}
         run: |
-          command -v rpmbuild >/dev/null 2>&1 || sudo dnf install -y rpm-build
+          SUDO=$([ "$(id -u)" = 0 ] || echo sudo)
+          command -v rpmbuild >/dev/null 2>&1 || $SUDO dnf install -y rpm-build
           ARCH=${{ matrix.abi }}
           bash tool/package_linux.sh "$(ls -d build/linux/*/release/bundle | head -1)" "${ARCH:-x86_64}" linux_packages
         shell: bash
