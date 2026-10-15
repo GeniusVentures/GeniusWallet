@@ -41,6 +41,13 @@ void main() {
     });
   });
 
+  test('sub-cent ticks one step apart stay different', () {
+    final a = axisMoneyLabel(1.0e-8, 1e-9);
+    final b = axisMoneyLabel(1.1e-8, 1e-9);
+    expect(a, isNot(b));
+    expect(a.length, lessThanOrEqualTo(8));
+  });
+
   group('axisMoneyLabel - precision comes from the STEP, not the value', () {
     test('a stablecoin at different prices does not all print the same '
         'label', () {
