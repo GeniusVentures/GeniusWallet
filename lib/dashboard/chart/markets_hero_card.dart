@@ -750,18 +750,30 @@ class _HeroChart extends StatelessWidget {
                   // min/max, which are not on the nice-number ladder.
                   minIncluded: false,
                   maxIncluded: false,
-                  getTitlesWidget: (value, meta) => SideTitleWidget(
-                    meta: meta,
-                    space: 8,
-                    child: Text(
-                      axisMoneyLabel(value, step),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: gw.textSecondary,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                  getTitlesWidget: (value, meta) {
+                    final style = TextStyle(
+                      fontSize: 11,
+                      color: gw.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    );
+                    return SideTitleWidget(
+                      meta: meta,
+                      space: 8,
+                      child: Text(
+                        axisTickLabel(
+                              value,
+                              step,
+                              style: style,
+                              textScaler: MediaQuery.textScalerOf(context),
+                              maxWidth: kChartAxisGutter - 8,
+                            ) ??
+                            '',
+                        maxLines: 1,
+                        softWrap: false,
+                        style: style,
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ),

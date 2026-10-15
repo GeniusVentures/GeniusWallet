@@ -87,9 +87,9 @@ const double kChartFillFadeStop = 0.62;
   return (bestVals, bestStep);
 }
 
-/// The label for a tick, or null to skip it, chosen by rendered width: the
-/// full label if it fits [maxWidth], else a compact K/M form, else the
-/// shorter of the two on every other tick so neighbours never print alike.
+/// The label for a tick, or null for none: the full label if it fits
+/// [maxWidth] (measured with the real style and text scale), else a compact
+/// K/M form. Both take their precision from [step], so neighbours differ.
 String? axisTickLabel(
   double value,
   double step, {
@@ -117,10 +117,7 @@ String? axisTickLabel(
   if (compact != null && fits(compact)) {
     return compact;
   }
-  if ((value / step).round().isOdd) {
-    return null;
-  }
-  return compact != null && compact.length < full.length ? compact : full;
+  return null;
 }
 
 String? _compactMoney(double value, double step) {
@@ -130,7 +127,7 @@ String? _compactMoney(double value, double step) {
   }
   final (double unit, String suffix) = abs >= 1e6 ? (1e6, 'M') : (1e3, 'K');
   final int decimals = max(0, (-log(step / unit) / ln10).ceil());
-  return '\$${(value / unit).toStringAsFixed(min(decimals, 4))}$suffix';
+  return '\$${(value / unit).toStringAsFixed(decimals)}$suffix';
 }
 
 /// The axis label for [value], with precision derived from the tick [step].
