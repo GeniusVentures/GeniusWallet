@@ -10,6 +10,7 @@ import 'package:genius_wallet/hive/models/historical_price_cache_entry.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 
 const Duration cacheDuration = Duration(minutes: 3);
 
@@ -301,7 +302,7 @@ Future<String?> fetchCoinPricesSum({
   final marketData = await fetchCoinsMarketData(coinIds: coinIds);
 
   if (marketData.isEmpty) {
-    unawaited(geniusApi.updateAccountFetchDate());
+    unawaited(ignoreBlockedStorage(geniusApi.updateAccountFetchDate()));
     return null;
   }
 
@@ -311,7 +312,7 @@ Future<String?> fetchCoinPricesSum({
 
   final double totalBalance = calculateTotalBalance(coinBalances, coinPrices);
 
-  unawaited(geniusApi.saveAccountBalance(totalBalance));
+  unawaited(ignoreBlockedStorage(geniusApi.saveAccountBalance(totalBalance)));
 
   return "\$ ${NumberFormat('#,##0.00').format(totalBalance)}";
 }
