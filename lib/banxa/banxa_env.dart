@@ -10,6 +10,10 @@ const String kBanxaTestCoin = String.fromEnvironment('GW_BANXA_TEST_COIN');
 
 const String kBanxaPartnerCode = 'gnus';
 
+/// The public site host shown to the user, matching the configured environment.
+String banxaSiteHost({required bool sandbox}) =>
+    sandbox ? 'banxa-sandbox.com' : 'banxa.com';
+
 String banxaApiBase({required bool sandbox}) {
   final host = sandbox ? 'api.banxa-sandbox.com' : 'api.banxa.com';
   return 'https://$host/$kBanxaPartnerCode/v2';
