@@ -7,6 +7,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class TransactionsStream extends StatelessWidget {
   /// Forwarded verbatim to [TransactionsSlimView.page]: true selects the page's
@@ -32,12 +33,15 @@ class TransactionsStream extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final chainId = context.select<WalletDetailsCubit, int?>(
+      (cubit) => cubit.state.selectedNetwork?.chainId,
+    );
     return BlocBuilder<TransactionsCubit, List<Transaction>>(
       builder: (context, transactions) {
         return BlocBuilder<OrdersCubit, OrdersState>(
           builder: (context, ordersState) {
             return TransactionsSlimView(
-              transactions: transactions,
+              transactions: transactionsOnNetwork(transactions, chainId),
               page: page,
               buyOrders: ordersState.orders?.orders ?? const [],
               buyOrdersStatus: ordersState.status,
