@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_customer_id.dart';
+import 'package:genius_wallet/banxa/banxa_log.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
@@ -268,7 +269,8 @@ class OrdersCubit extends Cubit<OrdersState> {
     final Order fresh;
     try {
       fresh = await _api.getOrderById(orderId);
-    } catch (_) {
+    } catch (e) {
+      banxaLog('order $orderId read failed: ${e.runtimeType}');
       // The old row stays; the next tick tries again.
       _syncTimer();
       return;
@@ -281,6 +283,7 @@ class OrdersCubit extends Cubit<OrdersState> {
     if (superseded || isClosed) {
       return;
     }
+    banxaLog('order ${fresh.id} status ${fresh.status}');
     _merge(fresh, toFront: toFront);
     _syncTimer();
   }

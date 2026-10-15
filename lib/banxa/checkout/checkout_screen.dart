@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_details_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
+import 'package:genius_wallet/banxa/banxa_log.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
@@ -122,6 +123,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (_returned) {
       return;
     }
+    banxaLog('checkout return handled for order ${widget.orderId}');
     final cubit = context.read<OrdersCubit>();
     final host = _hostKey;
     setState(() {
@@ -152,6 +154,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _onLoadError() {
+    banxaLog('checkout page failed to load for order ${widget.orderId}');
     if (!mounted) {
       return;
     }
