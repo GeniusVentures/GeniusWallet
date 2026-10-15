@@ -460,10 +460,15 @@ void main() {
 
     await tester.tap(find.byTooltip('Refresh'));
     await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
+    await tester.pump();
     expect(api.registrationsCallCount, 2);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Up to date.'), findsOneWidget);
 
     await cubit.close();
+    await tester.pumpAndSettle(const Duration(seconds: 10));
   });
 
   testWidgets('polls every 10 seconds while open, and stops once closed', (

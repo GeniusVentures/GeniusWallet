@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart' show GeniusNodeReturnValue;
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/data/gw_row_badge.dart';
@@ -50,23 +51,58 @@ String resolvedText(ChildOperation op, String Function(String) labelFor) {
 
 /// The pending, or timed-out, badge for one row. No spinner by construction:
 /// the write is synchronous, so this badge IS the in-flight state. A
-/// notConfirmed op adds a "Check again" button beside it.
-class ChildOperationBadge extends StatelessWidget {
+/// notConfirmed op adds a "Check again" button beside it; a stale one offers
+/// "Try again" and "Dismiss" instead.
+class ChildOperationBadge extends StatefulWidget {
   const ChildOperationBadge({
     super.key,
     required this.op,
-    required this.labelFor,
-    required this.onCheckAgain,
+    required this.registry,
   });
 
   final ChildOperation op;
-  final String Function(String) labelFor;
-  final VoidCallback onCheckAgain;
+  final ChildOperationsCubit registry;
+
+  @override
+  State<ChildOperationBadge> createState() => _ChildOperationBadgeState();
+}
+
+class _ChildOperationBadgeState extends State<ChildOperationBadge> {
+  bool _checking = false;
+
+  Future<void> _checkAgain() async {
+    setState(() => _checking = true);
+    // The read is synchronous FFI: let the spinner paint before it blocks.
+    await WidgetsBinding.instance.endOfFrame;
+    final before = widget.registry.state;
+    widget.registry.resolve();
+    final changed = !identical(before, widget.registry.state);
+    if (!mounted) {
+      return;
+    }
+    setState(() => _checking = false);
+    if (!changed) {
+      showToast(context, 'Still waiting for the network.');
+    }
+  }
+
+  void _retry() {
+    // Never auto-resubmitted: the first write may still land late.
+    if (widget.registry.retry(widget.op) !=
+        GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+      showToast(context, 'Nothing was sent. Try again.', type: ToastType.error);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final op = widget.op;
     final badge = GWRowBadge(
-      label: op.notConfirmed ? 'Not confirmed yet' : pendingText(op, labelFor),
+      label: op.stale
+          ? 'This may not have reached the network.'
+          : op.notConfirmed
+          ? 'Not confirmed yet'
+          : pendingText(op, widget.registry.labelFor),
       color: context.gw.statusWarningText,
     );
     if (!op.notConfirmed) {
@@ -79,12 +115,27 @@ class ChildOperationBadge extends StatelessWidget {
       spacing: GeniusWalletConsts.space2,
       children: [
         badge,
-        GWButton(
-          label: 'Check again',
-          variant: GWButtonVariant.ghost,
-          size: GWButtonSize.sm,
-          onPressed: onCheckAgain,
-        ),
+        if (op.stale) ...[
+          GWButton(
+            label: 'Try again',
+            variant: GWButtonVariant.ghost,
+            size: GWButtonSize.sm,
+            onPressed: _retry,
+          ),
+          GWButton(
+            label: 'Dismiss',
+            variant: GWButtonVariant.ghost,
+            size: GWButtonSize.sm,
+            onPressed: () => widget.registry.dismiss(op),
+          ),
+        ] else
+          GWButton(
+            label: 'Check again',
+            variant: GWButtonVariant.ghost,
+            size: GWButtonSize.sm,
+            isLoading: _checking,
+            onPressed: _checking ? null : _checkAgain,
+          ),
       ],
     );
   }
