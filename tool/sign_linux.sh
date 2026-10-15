@@ -30,7 +30,8 @@ printf '%s' "$LINUX_SIGNING_PASSPHRASE" > "$work/pass"
 printf '%s\n' "$LINUX_SIGNING_KEY" | gpg --batch --quiet --import
 
 # The checked-in public key is the pin: the imported secret key must be its pair.
-pinned=$(gpg --show-keys --with-colons "${PINNED_PUBKEY:-$(dirname "$0")/../linux/packaging/genius-wallet-signing.pub.asc}" | awk -F: '/^fpr/{print $10; exit}')
+pubkey=$(realpath "${PINNED_PUBKEY:-$(dirname "$0")/../linux/packaging/genius-wallet-signing.pub.asc}")
+pinned=$(gpg --show-keys --with-colons "$pubkey" | awk -F: '/^fpr/{print $10; exit}')
 imported=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
 if [ -z "$pinned" ] || [ "$imported" != "$pinned" ] || [ "$LINUX_SIGNING_KEY_ID" != "$pinned" ]; then
   echo "Signing key does not match linux/packaging/genius-wallet-signing.pub.asc" >&2
@@ -49,11 +50,11 @@ done
 
 # SHA256SUMS lists bare file names so `sha256sum -c` works in the download directory.
 sums="$pkgs/SHA256SUMS-$arch"
-{
+(
   cd "$(dirname "$tarball")" && sha256sum "$(basename "$tarball")"
   cd "$pkgs" && sha256sum *.deb *.rpm
-} > "$sums"
+) > "$sums"
 rm -f "$sums.asc"
 "${gpgsign[@]}" --armor --detach-sign -o "$sums.asc" "$sums"
-cp "${PINNED_PUBKEY:-$(dirname "$0")/../linux/packaging/genius-wallet-signing.pub.asc}" "$pkgs/"
+cp "$pubkey" "$pkgs/"
 echo "Signed: $(ls "$pkgs")"
