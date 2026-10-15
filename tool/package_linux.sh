@@ -18,8 +18,13 @@ case "$arch" in
   *) echo "unknown arch: $arch" >&2; exit 1 ;;
 esac
 
-version=$(sed -n 's/^version: *\([0-9.]*\).*/\1/p' "$root/pubspec.yaml")
-[ -n "$version" ] || { echo "no version in pubspec.yaml" >&2; exit 1; }
+# version.json is what the build actually used, so CI --build-name/--build-number overrides carry through.
+vjson="$bundle/data/flutter_assets/version.json"
+[ -f "$vjson" ] || { echo "$vjson missing" >&2; exit 1; }
+version=$(sed -n 's/.*"version" *: *"\([^"]*\)".*/\1/p' "$vjson")
+build_number=$(sed -n 's/.*"build_number" *: *"\([^"]*\)".*/\1/p' "$vjson")
+[ -n "$version" ] || { echo "no version in $vjson" >&2; exit 1; }
+build_number=${build_number:-1}
 [ -x "$bundle/genius_wallet" ] || { echo "$bundle/genius_wallet missing" >&2; exit 1; }
 
 work=$(mktemp -d)
@@ -48,7 +53,7 @@ deb_depends="libgtk-3-0t64 | libgtk-3-0, libsecret-1-0, libcurl4t64 | libcurl4, 
 mkdir "$work/control"
 cat > "$work/control/control" <<CONTROL
 Package: genius-wallet
-Version: $version
+Version: ${version}-${build_number}
 Architecture: $deb_arch
 Maintainer: Genius Ventures <support@gnus.ai>
 Installed-Size: $(du -sk "$stage" | cut -f1)
@@ -63,7 +68,7 @@ tar_opts=(--owner=0 --group=0 --numeric-owner)
 tar "${tar_opts[@]}" -czf "$work/control.tar.gz" -C "$work/control" .
 tar "${tar_opts[@]}" -czf "$work/data.tar.gz" -C "$stage" .
 echo "2.0" > "$work/debian-binary"
-deb="$out/genius-wallet_${version}_${deb_arch}.deb"
+deb="$out/genius-wallet_${version}-${build_number}_${deb_arch}.deb"
 rm -f "$deb"
 (cd "$work" && ar rc "$deb" debian-binary control.tar.gz data.tar.gz)
 
@@ -72,7 +77,7 @@ rm -f "$deb"
 cat > "$work/genius-wallet.spec" <<SPEC
 Name: genius-wallet
 Version: $version
-Release: 1
+Release: $build_number
 Summary: Genius Wallet
 License: Proprietary
 AutoReqProv: no
