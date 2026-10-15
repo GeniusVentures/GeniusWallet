@@ -3,8 +3,8 @@
 // non-null array exactly once, and never touches memory when the count is
 // zero or the array pointer is null.
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ffi' as ffi;
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
