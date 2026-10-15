@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_env.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
@@ -1141,6 +1142,9 @@ class _BuyButton extends StatelessWidget {
   }
 }
 
+String banxaDisclaimerMessage({required bool sandbox}) =>
+    "Checkout opens inside GeniusWallet but is run by Banxa (${banxaSiteHost(sandbox: sandbox)}), a separate company. Your ID check and card details go to Banxa, not to GeniusWallet. By continuing you agree to Banxa's Terms of Use and Privacy & Cookies Policy.";
+
 /// The first buy on a device asks for the disclaimer; every buy then reads the
 /// Selected wallet at this moment, so a switch after the quote is honoured.
 Future<void> _startBuy(BuildContext context) async {
@@ -1151,8 +1155,7 @@ Future<void> _startBuy(BuildContext context) async {
     final accepted = await showDisclaimerDialog(
       context,
       title: 'Before your first buy',
-      message:
-          "Checkout opens inside GeniusWallet but is run by Banxa (banxa.com), a separate company. Your ID check and card details go to Banxa, not to GeniusWallet. By continuing you agree to Banxa's Terms of Use and Privacy & Cookies Policy.",
+      message: banxaDisclaimerMessage(sandbox: kBanxaSandbox),
       confirmText: 'Continue',
       textColor: gw.textPrimary,
     );
