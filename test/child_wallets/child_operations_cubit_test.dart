@@ -1061,6 +1061,26 @@ void main() {
       cubit.close();
     });
 
+    test('deleting a main stays locked when its registrations read fails', () {
+      final cubit = ChildOperationsCubit(
+        api: _FakeApi(
+          registrationsResult:
+              GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+        ),
+        readAppState: () => const AppState(
+          selectedSDKAccount: _mainAddress,
+          sdkAccounts: [_mainAddress],
+          wallets: [],
+          sdkAccountLinks: <String, SDKAccountLink>{},
+        ),
+      );
+      expect(
+        cubit.deleteLockReason(_mainAddress, cubit.ownRegistrations()),
+        isNotNull,
+      );
+      cubit.close();
+    });
+
     test('deleting a main is refused while a child registers or moves under '
         'it, until that expires', () {
       var now = DateTime(2024);
