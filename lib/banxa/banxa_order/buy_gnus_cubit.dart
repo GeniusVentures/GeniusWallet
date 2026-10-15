@@ -8,6 +8,7 @@ import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_env.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_customer_id.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/buy_defaults.dart';
+import 'package:genius_wallet/banxa/banxa_log.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/buy_gnus_state.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
@@ -244,9 +245,14 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
       if (isClosed) {
         return;
       }
+      banxaLog(
+        'order created ${order.orderId} ${gnus.code} '
+        '${quote.fiatAmount} ${fiat.code}',
+      );
       emit(state.copyWith(creating: false));
       _started.add(BuyOrderStarted(order.orderId, order.checkoutUrl));
-    } catch (_) {
+    } catch (e) {
+      banxaLog('order create failed: ${e.runtimeType}');
       // The exception text can echo request data, so only a fixed line shows.
       if (isClosed) {
         return;
