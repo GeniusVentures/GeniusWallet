@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/pin_state.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PinCubit extends Cubit<PinState> {
@@ -64,7 +65,14 @@ class PinCubit extends Cubit<PinState> {
   /// Verifies [pin] with the user-set pin
   Future<void> verifyPin() async {
     final pin = _textController.text;
-    final isVerified = await geniusApi.verifyUserPin(pin);
+    final bool isVerified;
+    try {
+      isVerified = await geniusApi.verifyUserPin(pin);
+    } on SecureStorageWriteError {
+      // Not a wrong PIN: the app-wide storage notice explains it.
+      clearAll();
+      return;
+    }
 
     if (isVerified) {
       emit(state.copyWith(verificationStatus: VerificationStatus.pass));

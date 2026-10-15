@@ -314,11 +314,15 @@ class LocalWalletStorage {
   Future<void> storeUserPin(String pin) async =>
       await _secureStorage.write(key: _pinKey, value: pin);
 
+  /// Throws [SecureStorageWriteError] once storage is blocked, so a PIN the
+  /// store cannot read is never reported as a wrong one.
   Future<bool> verifyUserPin(String pin) async {
     try {
       final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
 
       return storedPin.isNotEmpty && storedPin == pin;
+    } on SecureStorageWriteError {
+      rethrow;
     } catch (e) {
       return false;
     }
