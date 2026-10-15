@@ -58,8 +58,9 @@ Our Linux builds are tested on **Ubuntu 22 and newer for x86\_64**, and on **Deb
 ```bash
 gpg --show-keys --with-fingerprint genius-wallet-signing.pub.asc
 gpg --import genius-wallet-signing.pub.asc
-gpg --verify SHA256SUMS-x86_64.asc SHA256SUMS-x86_64
-sha256sum -c SHA256SUMS-x86_64 --ignore-missing
+ARCH=$(uname -m)   # x86_64 or aarch64
+gpg --verify SHA256SUMS-$ARCH.asc SHA256SUMS-$ARCH
+sha256sum -c SHA256SUMS-$ARCH --ignore-missing
 # .rpm only: the package itself is signed too
 sudo rpm --import genius-wallet-signing.pub.asc
 rpm -K genius-wallet-*.rpm

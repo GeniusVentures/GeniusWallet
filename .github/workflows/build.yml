@@ -1447,13 +1447,24 @@ jobs:
             -n "Branch: ${GITHUB_REF_NAME} | SHA: ${{ github.sha }}" \
             $( [ "$IS_TAG_RELEASE" = "true" ] && echo "--draft" || echo "--prerelease" )
 
-      - name: Upload file
-        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
+      - name: Sign Linux packages
+        # Before the upload step so a signing failure leaves nothing unsigned on the release.
+        # The secrets are scoped to this step; other platforms never see them.
+        if: ${{ matrix.target == 'Linux' && (github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true') }}
         working-directory: ${{github.workspace}}
         env:
           LINUX_SIGNING_KEY: ${{ secrets.LINUX_SIGNING_KEY }}
           LINUX_SIGNING_PASSPHRASE: ${{ secrets.LINUX_SIGNING_PASSPHRASE }}
           LINUX_SIGNING_KEY_ID: ${{ secrets.LINUX_SIGNING_KEY_ID }}
+        run: |
+          SUDO=$([ "$(id -u)" = 0 ] || echo sudo)
+          command -v rpmsign >/dev/null 2>&1 || $SUDO dnf install -y rpm-sign
+          SIGNING_REQUIRED=true bash tool/sign_linux.sh "${ARTIFACT_NAME}" linux_packages "${{ matrix.abi }}"
+        shell: bash
+
+      - name: Upload file
+        if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
+        working-directory: ${{github.workspace}}
         run: |
           # Ensure RELEASE_TAG is set for upload step
             if [ -n "${RELEASE_TAG_INPUT}" ]; then
@@ -1494,9 +1505,6 @@ jobs:
             echo "Uploading ${ARTIFACT_NAME}"
             gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
             if [ "${{ matrix.target }}" = "Linux" ]; then
-              SUDO=$([ "$(id -u)" = 0 ] || echo sudo)
-              command -v rpmsign >/dev/null 2>&1 || $SUDO dnf install -y rpm-sign
-              SIGNING_REQUIRED=true bash tool/sign_linux.sh "${ARTIFACT_NAME}" linux_packages "${{ matrix.abi }}"
               gh release upload --clobber ${RELEASE_TAG} linux_packages/*
             fi
             # Also upload AAB for Android if it exists
