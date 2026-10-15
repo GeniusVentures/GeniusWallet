@@ -40,7 +40,7 @@ class GWCheckbox extends StatelessWidget {
       tristate: tristate,
       onChanged: disabled ? null : onChanged,
       side: BorderSide(
-        color: disabled ? gw.borderControl : context.gw.brandPrimaryStrong,
+        color: disabled ? gw.borderControl : gw.brandPrimaryOnSurface,
         width: 1.5,
       ),
       shape: RoundedRectangleBorder(
