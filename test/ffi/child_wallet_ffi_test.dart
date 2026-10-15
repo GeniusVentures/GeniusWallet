@@ -268,7 +268,7 @@ void main() {
   test('a discovered child address reaches the SDK as bare hex', () {
     final hex = '7815dd' * 21 + 'a19f';
     for (final input in ['0x$hex', hex]) {
-      final ptr = sdkChildAddressPtr(input);
+      final ptr = sdkAddressPtr(input);
       try {
         expect(ptr.cast<Utf8>().toDartString(), hex);
       } finally {
@@ -277,7 +277,7 @@ void main() {
     }
   });
 
-  test('every child-address SDK call converts through sdkChildAddressPtr', () {
+  test('every child-address SDK call converts through sdkAddressPtr', () {
     final src = File(
       'packages/genius_api/lib/src/genius_api.dart',
     ).readAsStringSync();
@@ -294,10 +294,37 @@ void main() {
       final body = src.substring(src.indexOf(' $fn('));
       expect(
         body.substring(0, body.indexOf('\n  }\n')),
-        contains('sdkChildAddressPtr(childAddress)'),
+        contains('sdkAddressPtr(childAddress)'),
         reason: fn,
       );
     }
+    for (final (fn, arg) in [
+      ('registerChild', 'mainAddress'),
+      ('replaceMain', 'newMainAddress'),
+    ]) {
+      final body = src.substring(src.indexOf(' $fn('));
+      expect(
+        body.substring(0, body.indexOf('\n  }\n')),
+        contains('sdkAddressPtr($arg)'),
+        reason: fn,
+      );
+    }
+  });
+
+  test('discovery queries the main by bare hex, as the SDK stores it', () {
+    final hex = 'e086b240' * 16;
+    String? queried;
+    collectChildRegistrations(
+      '0x$hex',
+      query: (main, outEntries, outCount) {
+        queried = main.cast<Utf8>().toDartString();
+        outEntries.value = ffi.nullptr;
+        outCount.value = 0;
+        return GeniusNodeReturnValue.GENIUS_NODE_RET_OK.value;
+      },
+      free: (_) {},
+    );
+    expect(queried, hex);
   });
 
   group('writeRegistrationMetadata', () {
