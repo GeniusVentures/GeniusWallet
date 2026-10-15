@@ -939,8 +939,6 @@ class _QuoteGridRow extends StatelessWidget {
           Flexible(
             child: Text(
               label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GeniusWalletTypography.bodyMd.copyWith(
                 color: gw.textSecondary,
               ),
@@ -950,8 +948,6 @@ class _QuoteGridRow extends StatelessWidget {
           Flexible(
             child: Text(
               value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
               style: GeniusWalletTypography.bodyMd.copyWith(
                 color: isPlaceholder ? gw.textPrimary38 : gw.textPrimary,

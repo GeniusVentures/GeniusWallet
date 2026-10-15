@@ -209,6 +209,21 @@ void main() {
       await _unmount(tester);
     });
 
+    testWidgets('quote labels are not ellipsised at phone width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pumpCard(tester);
+
+      for (final label in ['Rate', 'Banxa processing fee', 'Network fee']) {
+        final text = tester.widget<Text>(find.text(label));
+        expect(text.overflow, isNot(TextOverflow.ellipsis), reason: label);
+      }
+      await _unmount(tester);
+    });
+
     testWidgets('a single non-card method is named as Banxa names it', (
       tester,
     ) async {
