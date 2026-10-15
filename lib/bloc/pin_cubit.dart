@@ -70,7 +70,13 @@ class PinCubit extends Cubit<PinState> {
       isVerified = await geniusApi.verifyUserPin(pin);
     } on SecureStorageWriteError {
       // Not a wrong PIN: the app-wide storage notice explains it.
-      clearAll();
+      _textController.clear();
+      emit(
+        state.copyWith(
+          displayIncorrectPin: false,
+          pinFullness: PinFullness.inProgress,
+        ),
+      );
       return;
     }
 

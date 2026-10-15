@@ -13,15 +13,22 @@ class _BlockedStoreApi implements GeniusApi {
 }
 
 void main() {
-  test('a blocked store is not reported as a wrong PIN', () async {
-    final cubit = PinCubit(pinMaxLength: 4, geniusApi: _BlockedStoreApi());
-    addTearDown(cubit.close);
-    for (final digit in ['1', '3', '5', '7']) {
-      cubit.add(digit);
-    }
+  test(
+    'a blocked store after a wrong PIN clears the wrong-PIN message',
+    () async {
+      final cubit = PinCubit(pinMaxLength: 4, geniusApi: _BlockedStoreApi());
+      addTearDown(cubit.close);
+      for (final digit in ['1', '3', '5', '7']) {
+        cubit.add(digit);
+      }
 
-    await cubit.verifyPin();
+      cubit.pinConfirmFailed();
+      for (final digit in ['1', '3', '5', '7']) {
+        cubit.add(digit);
+      }
+      await cubit.verifyPin();
 
-    expect(cubit.state.displayIncorrectPin, isFalse);
-  });
+      expect(cubit.state.displayIncorrectPin, isFalse);
+    },
+  );
 }
