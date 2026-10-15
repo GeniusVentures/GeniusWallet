@@ -93,6 +93,15 @@ const double kChartFillFadeStop = 0.62;
 /// to prevent, not a style choice**: it is exactly how a stablecoin's axis
 /// printed `$1.00 / $1.00 / $1.00 / $1.00` for four different prices.
 String axisMoneyLabel(double value, double step) {
+  // Fixed decimals cap at 8, which would print neighbouring ticks of a
+  // sub-cent token identically; scientific keeps the digits that differ.
+  if (value != 0 && value.abs() < 1e-4) {
+    final int digits = ((log(value.abs()) - log(step)) / ln10).floor().clamp(
+      0,
+      3,
+    );
+    return '\$${value.toStringAsExponential(digits)}';
+  }
   final int decimals = step >= 1 ? 0 : min(8, (-log(step) / ln10).ceil() + 1);
   return NumberFormat.currency(
     symbol: '\$',
