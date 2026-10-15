@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 # Signs the .rpm files, writes SHA256SUMS + SHA256SUMS.asc over the tarball and packages.
-# Usage: tool/sign_linux.sh <tarball> <packages-dir>
+# Usage: tool/sign_linux.sh <tarball> <packages-dir> <x86_64|aarch64>
+# Output is SHA256SUMS-<arch>[.asc]: both arch jobs upload to one release, so names must differ.
 # Env: LINUX_SIGNING_KEY (armored private key), LINUX_SIGNING_PASSPHRASE, LINUX_SIGNING_KEY_ID.
-# Without them (fork PRs) it logs and exits 0 so unsigned builds still pass.
+# Without them it logs and exits 0, unless SIGNING_REQUIRED=true (publishing runs), which fails.
 # Needs gpg and rpmsign (rpm-sign).
 set -euo pipefail
 
 tarball=$(realpath "${1:?tarball}")
 pkgs=$(realpath "${2:?packages dir}")
+arch=${3:?x86_64 or aarch64}
 
 if [ -z "${LINUX_SIGNING_KEY:-}" ] || [ -z "${LINUX_SIGNING_PASSPHRASE:-}" ] || [ -z "${LINUX_SIGNING_KEY_ID:-}" ]; then
+  if [ "${SIGNING_REQUIRED:-}" = "true" ]; then
+    echo "Signing secrets missing on a publishing run" >&2
+    exit 1
+  fi
   echo "Signing secrets not available, skipping Linux signing"
   exit 0
 fi
@@ -34,7 +40,7 @@ for rpm in "$pkgs"/*.rpm; do
 done
 
 # SHA256SUMS lists bare file names so `sha256sum -c` works in the download directory.
-sums="$pkgs/SHA256SUMS"
+sums="$pkgs/SHA256SUMS-$arch"
 {
   cd "$(dirname "$tarball")" && sha256sum "$(basename "$tarball")"
   cd "$pkgs" && sha256sum *.deb *.rpm

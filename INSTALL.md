@@ -53,12 +53,13 @@ Our Linux builds are tested on **Ubuntu 22 and newer for x86\_64**, and on **Deb
    ./genius_wallet
    ```
 
-**Verify a Linux download.** Each Linux release carries `SHA256SUMS`, `SHA256SUMS.asc` and `genius-wallet-signing.pub.asc` (also in this repo at `linux/packaging/`). Key fingerprint: `CC83EE05605BE3006F8AF4A6E409DA417D087CFE`.
+**Verify a Linux download.** Each Linux release carries `SHA256SUMS-<arch>`, `SHA256SUMS-<arch>.asc` (`<arch>` is `x86_64` or `aarch64`) and `genius-wallet-signing.pub.asc` (also in this repo at `linux/packaging/`). First check the key is the right one: the fingerprint printed must be exactly `CC83EE05605BE3006F8AF4A6E409DA417D087CFE`. Stop if it differs.
 
 ```bash
+gpg --show-keys --with-fingerprint genius-wallet-signing.pub.asc
 gpg --import genius-wallet-signing.pub.asc
-gpg --verify SHA256SUMS.asc SHA256SUMS
-sha256sum -c SHA256SUMS --ignore-missing
+gpg --verify SHA256SUMS-x86_64.asc SHA256SUMS-x86_64
+sha256sum -c SHA256SUMS-x86_64 --ignore-missing
 # .rpm only: the package itself is signed too
 sudo rpm --import genius-wallet-signing.pub.asc
 rpm -K genius-wallet-*.rpm

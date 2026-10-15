@@ -1496,7 +1496,7 @@ jobs:
             if [ "${{ matrix.target }}" = "Linux" ]; then
               SUDO=$([ "$(id -u)" = 0 ] || echo sudo)
               command -v rpmsign >/dev/null 2>&1 || $SUDO dnf install -y rpm-sign
-              bash tool/sign_linux.sh "${ARTIFACT_NAME}" linux_packages
+              SIGNING_REQUIRED=true bash tool/sign_linux.sh "${ARTIFACT_NAME}" linux_packages "${{ matrix.abi }}"
               gh release upload --clobber ${RELEASE_TAG} linux_packages/*
             fi
             # Also upload AAB for Android if it exists
