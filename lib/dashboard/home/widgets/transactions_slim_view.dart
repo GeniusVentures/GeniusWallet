@@ -139,6 +139,13 @@ enum Filters {
 /// The filter named by a `?filter=` query value, or null when it names none.
 Filters? filterFromQuery(String? value) => Filters.values.asNameMap()[value];
 
+/// The rows on [chainId]. A row with no chain (written by an older build, or
+/// not an EVM transfer) is kept, and so is every row when no network is chosen.
+List<Transaction> transactionsOnNetwork(List<Transaction> txs, int? chainId) =>
+    chainId == null
+    ? txs
+    : txs.where((t) => t.chainId == null || t.chainId == chainId).toList();
+
 /// How many of [txs] each non-[Filters.all] filter matches.
 ///
 /// Computed once per build and handed to the filter control, rather than each
