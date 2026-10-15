@@ -31,8 +31,9 @@ class ConfirmAndSavePinScreen extends StatelessWidget {
           } else if (state.pinSaveStatus == PinSaveStatus.error) {
             showToast(
               context,
-              "Your PIN couldn't be saved to this device's secure storage. "
-              'Enter it again to retry.',
+              "Your PIN couldn't be saved: this device's secure storage is "
+              'not keeping data reliably. Fix the keyring, then restart the '
+              'app.',
               type: ToastType.error,
             );
           }

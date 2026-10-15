@@ -39,6 +39,10 @@ class LocalWalletStorage {
   /// Serialises each read-change-write of the links map.
   static final _linksLock = _SerialQueue();
 
+  /// Clears a detected write failure, which otherwise lasts the process.
+  @visibleForTesting
+  static void resetWriteFailure() => _SerialStorage._broken = false;
+
   LocalWalletStorage._create(FlutterSecureStorage storage, this._web3)
     : _secureStorage = _SerialStorage(storage);
 
@@ -600,16 +604,29 @@ class _SerialStorage {
   final FlutterSecureStorage _storage;
   static final _queue = _SerialQueue();
 
+  /// Set once a write is seen dropping data. The store is then already
+  /// damaged, and a retry would snapshot the damage and pass its own check,
+  /// so every later call fails until the app restarts.
+  static var _broken = false;
+
+  Future<T> _run<T>(Future<T> Function() op) => _queue.run(() {
+    if (_broken) {
+      throw const SecureStorageWriteError();
+    }
+    return op();
+  });
+
   Future<String?> read({required String key}) =>
-      _queue.run(() => _storage.read(key: key));
+      _run(() => _storage.read(key: key));
 
-  Future<Map<String, String>> readAll() => _queue.run(_storage.readAll);
+  Future<Map<String, String>> readAll() => _run(_storage.readAll);
 
-  Future<void> write({required String key, required String? value}) =>
-      _queue.run(() => _verified(key, value, () => _storage.write(key: key, value: value)));
+  Future<void> write({required String key, required String? value}) => _run(
+    () => _verified(key, value, () => _storage.write(key: key, value: value)),
+  );
 
   Future<void> delete({required String key}) =>
-      _queue.run(() => _verified(key, null, () => _storage.delete(key: key)));
+      _run(() => _verified(key, null, () => _storage.delete(key: key)));
 
   /// Some backends report success yet drop data: a blank-password
   /// gnome-keyring can serve an empty secret after a write, and the Linux
@@ -623,21 +640,24 @@ class _SerialStorage {
     final before = await _storage.readAll();
     await op();
     final after = await _storage.readAll();
-    // ponytail: another FlutterSecureStorage user (WalletConnect) can delete
-    // its own key between the two reads and fail this check; a retry clears
-    // it. Scoping the check to this class's keys would remove that.
+    // ponytail: another FlutterSecureStorage user (WalletConnect) deleting
+    // its own key between the two reads fails this check and blocks storage
+    // until restart. Rare, as WalletConnect deletes only on session cleanup;
+    // scoping the check to this class's keys would remove it.
     final survived = before.keys.every((k) => k == key || after.containsKey(k));
     final landed = value == null
         ? !after.containsKey(key)
         : after[key] == value;
     if (!survived || !landed) {
+      _broken = true;
       throw const SecureStorageWriteError();
     }
   }
 }
 
 /// The secure store accepted a write but did not keep it, or lost other
-/// entries while doing so. Carries no keys or values.
+/// entries while doing so; storage stays blocked until the app restarts.
+/// Carries no keys or values.
 class SecureStorageWriteError implements Exception {
   const SecureStorageWriteError();
 
