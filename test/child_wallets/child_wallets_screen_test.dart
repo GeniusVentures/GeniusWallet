@@ -461,6 +461,7 @@ void main() {
     await tester.tap(find.byTooltip('Refresh'));
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.bySemanticsLabel('Refreshing'), findsOneWidget);
 
     await tester.pump();
     expect(api.registrationsCallCount, 2);
