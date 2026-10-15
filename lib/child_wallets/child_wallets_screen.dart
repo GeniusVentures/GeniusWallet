@@ -175,6 +175,9 @@ class _ChildWalletsHeader extends StatelessWidget {
                   Text(
                     parentMain != null
                         ? 'Child of ${registry.labelFor(parentMain)}'
+                        : state.parentUnknown
+                        ? "Couldn't check whether this is a child wallet. "
+                              'Refresh to try again.'
                         : 'Not registered as a child',
                     style: GeniusWalletTypography.bodySm.copyWith(
                       color: gw.textSecondary,
@@ -220,7 +223,7 @@ class _ChildWalletsHeader extends StatelessWidget {
                                   oldMain: parentMain,
                                 ),
                         ),
-                      ] else
+                      ] else if (!state.parentUnknown)
                         GWButton(
                           label: 'Register as a child of…',
                           variant: GWButtonVariant.secondary,

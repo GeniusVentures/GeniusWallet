@@ -850,8 +850,8 @@ void main() {
     );
 
     testWidgets(
-      'a non-OK read from one own account is skipped, keeping the subject '
-      'unregistered',
+      "a non-OK read from one own account shows Couldn't check and offers no "
+      'Register',
       (tester) async {
         final api = _FakeApi(
           registrations: _emptyOkRegistrations,
@@ -874,7 +874,15 @@ void main() {
           appState: _withOtherOwnAppState,
         );
 
-        expect(find.text('Not registered as a child'), findsOneWidget);
+        expect(find.text('Not registered as a child'), findsNothing);
+        expect(
+          find.textContaining("Couldn't check whether this is a child"),
+          findsOneWidget,
+        );
+        expect(
+          find.widgetWithText(GWButton, 'Register as a child of…'),
+          findsNothing,
+        );
 
         await cubit.close();
       },

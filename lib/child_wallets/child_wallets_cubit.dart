@@ -47,6 +47,7 @@ class ChildWalletsState {
     this.mainName = 'Unlinked',
     this.children = const [],
     this.parentMain,
+    this.parentUnknown = false,
   });
 
   final ChildWalletsStatus status;
@@ -59,18 +60,24 @@ class ChildWalletsState {
   /// failed or disconnected read never sets it.
   final String? parentMain;
 
+  /// No own account lists this one, but another own account's read failed,
+  /// so it may still be a child there.
+  final bool parentUnknown;
+
   ChildWalletsState copyWith({
     ChildWalletsStatus? status,
     String? mainAddress,
     String? mainName,
     List<ChildWallet>? children,
     String? parentMain,
+    bool parentUnknown = false,
   }) => ChildWalletsState(
     status: status ?? this.status,
     mainAddress: mainAddress ?? this.mainAddress,
     mainName: mainName ?? this.mainName,
     children: children ?? this.children,
     parentMain: parentMain,
+    parentUnknown: parentUnknown,
   );
 }
 
@@ -186,12 +193,14 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
         )
         .toList();
 
+    final parent = _findParentMain(appState, devPreset);
     emit(
       state.copyWith(
         status: ChildWalletsStatus.loaded,
         mainName: mainName,
         children: children,
-        parentMain: _findParentMain(appState, devPreset),
+        parentMain: parent.main,
+        parentUnknown: parent.unknown,
       ),
     );
   }
@@ -211,27 +220,33 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
   }
 
   /// The first of the user's other own SDK accounts whose OK read registers
-  /// this account as a child (any case); failed reads are skipped. A main owned
+  /// this account as a child (any case); `unknown` when none does but a read
+  /// failed. A main owned
   /// by someone else stays undiscoverable: the SDK has no by-child query.
   // ponytail: one registrations read per own account per poll -- fine for a
   // handful of SDK accounts; upgrade path is an SDK by-child query.
-  String? _findParentMain(AppState appState, DevChildWalletsPreset? devPreset) {
+  ({String? main, bool unknown}) _findParentMain(
+    AppState appState,
+    DevChildWalletsPreset? devPreset,
+  ) {
     final subject = state.mainAddress.toLowerCase();
+    var unknown = false;
     for (final account in appState.sdkAccounts) {
       if (account.toLowerCase() == subject) {
         continue;
       }
       final registrations = _registrationsFor(account, appState, devPreset);
       if (!registrations.isOk) {
+        unknown = true;
         continue;
       }
       if (registrations.entries.any(
         (entry) => entry.childAddress.toLowerCase() == subject,
       )) {
-        return account;
+        return (main: account, unknown: false);
       }
     }
-    return null;
+    return (main: null, unknown: unknown);
   }
 
   @override
