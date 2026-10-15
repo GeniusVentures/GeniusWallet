@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/inputs/gw_checkbox.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
-import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _termsUri = Uri.parse('https://banxa.com/terms-of-use/');
@@ -93,6 +93,7 @@ class _FirstBuyDialogState extends State<_FirstBuyDialog> {
           Semantics(
             container: true,
             checked: _agreed,
+            label: "I agree to Banxa's Terms of Use and Privacy Policy",
             onTap: _toggle,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -128,7 +129,10 @@ class _FirstBuyDialogState extends State<_FirstBuyDialog> {
                         ),
                         TextSpan(
                           children: [
-                            const TextSpan(text: "I agree to Banxa's "),
+                            const TextSpan(
+                              text: "I agree to Banxa's ",
+                              semanticsLabel: '',
+                            ),
                             WidgetSpan(
                               alignment: PlaceholderAlignment.baseline,
                               baseline: TextBaseline.alphabetic,
@@ -137,7 +141,7 @@ class _FirstBuyDialogState extends State<_FirstBuyDialog> {
                                 uri: _termsUri,
                               ),
                             ),
-                            const TextSpan(text: ' and '),
+                            const TextSpan(text: ' and ', semanticsLabel: ''),
                             WidgetSpan(
                               alignment: PlaceholderAlignment.baseline,
                               baseline: TextBaseline.alphabetic,
