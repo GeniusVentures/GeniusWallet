@@ -37,10 +37,9 @@ const childOperationTimeout = Duration(minutes: 2);
 // recover on that child; the upgrade path is a per-write tx hash from the SDK.
 final _baselineLifetime = childOperationTimeout * 3;
 
-/// How long an operation may stay unconfirmed before the app says it may
-/// never have reached the network and offers a resubmit. The SDK can drop a
-/// submitted write silently. Must exceed [_baselineLifetime], so the child's
-/// lock is already lifted when "Try again" resubmits.
+/// How long an operation may stay unconfirmed before a resubmit is offered.
+/// Must exceed [_baselineLifetime], so the child's lock is already lifted.
+// The SDK can silently drop a submitted write.
 // ponytail: a guess, not a measured staging confirmation time; the upgrade
 // path is an SDK receipt per write.
 const childOperationStaleAfter = Duration(minutes: 10);
