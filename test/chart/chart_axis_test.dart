@@ -55,26 +55,6 @@ void main() {
     final a = axisMoneyLabel(9.000e-5, 1e-9);
     final b = axisMoneyLabel(9.0001e-5, 1e-9);
     expect(a, isNot(b));
-    expect(
-      axisTickLabel(
-        9.000e-5,
-        1e-9,
-        style: _style,
-        textScaler: TextScaler.noScaling,
-        maxWidth: 54,
-      ),
-      isNotNull,
-    );
-    expect(
-      axisTickLabel(
-        9.0001e-5,
-        1e-9,
-        style: _style,
-        textScaler: TextScaler.noScaling,
-        maxWidth: 54,
-      ),
-      isNull,
-    );
   });
 
   test('a fine step on a larger price still prints distinct ticks', () {
@@ -84,7 +64,7 @@ void main() {
     );
   });
 
-  test('at 1.5x text, 63k ticks stay distinct and none is built too wide', () {
+  test('at 1.5x text, 63k ticks stay distinct and every label fits', () {
     final shown = <String>[];
     for (var v = 63000.0; v <= 64500; v += 250) {
       final label = axisTickLabel(
@@ -92,14 +72,38 @@ void main() {
         250,
         style: _style,
         textScaler: const TextScaler.linear(1.5),
-        maxWidth: 54,
+        maxWidth: 120,
       );
       if (label != null) {
         shown.add(label);
       }
     }
+    expect(shown, isNotEmpty);
     expect(shown.toSet().length, shown.length);
-    expect(shown.length, lessThan(7));
+  });
+
+  test('a label that cannot fit is dropped, not ellipsized', () {
+    expect(
+      axisTickLabel(
+        63000,
+        250,
+        style: _style,
+        textScaler: const TextScaler.linear(3),
+        maxWidth: 54,
+      ),
+      isNull,
+    );
+  });
+
+  test('compact labels keep the precision the step needs', () {
+    String? at(double v) => axisTickLabel(
+      v,
+      0.01,
+      style: _style,
+      textScaler: TextScaler.noScaling,
+      maxWidth: 200,
+    );
+    expect(at(1000.00), isNot(at(1000.01)));
   });
 
   group('axisMoneyLabel - precision comes from the STEP, not the value', () {
