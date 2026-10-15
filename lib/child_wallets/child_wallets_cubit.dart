@@ -24,12 +24,16 @@ class ChildWallet {
     required this.name,
     required this.linkedWallet,
     required this.balanceGnus,
+    this.relinkRequired = false,
   });
 
   final String address;
   final String name;
   final Wallet? linkedWallet;
   final String balanceGnus;
+
+  /// Linked by an older app build in a form the node can't act on.
+  final bool relinkRequired;
 }
 
 /// Why the list looks the way it does -- distinct from an empty, successful
@@ -177,6 +181,7 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
                   ? DevMockChildWallets.balanceFor(entry.childAddress)
                   : _api.getChildBalance(entry.childAddress),
             ),
+            relinkRequired: entry.legacyMain,
           ),
         )
         .toList();

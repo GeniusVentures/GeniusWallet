@@ -267,7 +267,7 @@ class ChildWalletRow extends StatelessWidget {
     final registry = context.watch<ChildOperationsCubit>();
     final pendingOps = registry.operationsFor(wallet.address);
     // One lock for every action: one operation per child at a time.
-    final lock = registry.lockReason(wallet.address);
+    final lock = registry.childActionLock(wallet);
     final linkedWallet = wallet.linkedWallet;
     return Padding(
       padding: const EdgeInsets.symmetric(

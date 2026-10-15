@@ -250,6 +250,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
               appState.wallets,
             ),
             balanceGnus: minionsToGnus(_childBalance(entry.childAddress)),
+            relinkRequired: entry.legacyMain,
           ),
       ];
     }
@@ -286,6 +287,12 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         ? 'Already funding this child'
         : 'Already recovering from this child';
   }
+
+  /// Why Fund, Recover or Revoke can't run on [child] from its main, or null.
+  String? childActionLock(ChildWallet child) => child.relinkRequired
+      ? 'This link is from an older version. Re-link it from the child: '
+            'Detach, then Register again.'
+      : lockReason(child.address);
 
   /// Why no new operation on [target] can start yet, or null. Shared by
   /// [submit] and every menu: a transfer and a registration change on one
