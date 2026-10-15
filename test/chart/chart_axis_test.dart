@@ -5,8 +5,11 @@
 // which is exactly how the y-window bug (chart_y_bounds_test.dart) shipped
 // in the first place. No fixtures, no mocks: these are pure functions.
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/chart/chart_axis.dart';
+
+const _style = TextStyle(fontSize: 11);
 
 void main() {
   group('chartTickStep - the nice-number ladder', () {
@@ -52,8 +55,26 @@ void main() {
     final a = axisMoneyLabel(9.000e-5, 1e-9);
     final b = axisMoneyLabel(9.0001e-5, 1e-9);
     expect(a, isNot(b));
-    expect(axisTickLabel(9.000e-5, 1e-9), isNotNull);
-    expect(axisTickLabel(9.0001e-5, 1e-9), isNull);
+    expect(
+      axisTickLabel(
+        9.000e-5,
+        1e-9,
+        style: _style,
+        textScaler: TextScaler.noScaling,
+        maxWidth: 54,
+      ),
+      isNotNull,
+    );
+    expect(
+      axisTickLabel(
+        9.0001e-5,
+        1e-9,
+        style: _style,
+        textScaler: TextScaler.noScaling,
+        maxWidth: 54,
+      ),
+      isNull,
+    );
   });
 
   test('a fine step on a larger price still prints distinct ticks', () {
@@ -61,6 +82,24 @@ void main() {
       axisMoneyLabel(0.0001, 1e-10),
       isNot(axisMoneyLabel(0.0001 + 1e-10, 1e-10)),
     );
+  });
+
+  test('at 1.5x text, 63k ticks stay distinct and none is built too wide', () {
+    final shown = <String>[];
+    for (var v = 63000.0; v <= 64500; v += 250) {
+      final label = axisTickLabel(
+        v,
+        250,
+        style: _style,
+        textScaler: const TextScaler.linear(1.5),
+        maxWidth: 54,
+      );
+      if (label != null) {
+        shown.add(label);
+      }
+    }
+    expect(shown.toSet().length, shown.length);
+    expect(shown.length, lessThan(7));
   });
 
   group('axisMoneyLabel - precision comes from the STEP, not the value', () {
