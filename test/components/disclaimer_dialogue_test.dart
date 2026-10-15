@@ -102,7 +102,11 @@ void main() {
   testWidgets('tapping the label text toggles the checkbox', (tester) async {
     await _open(tester, GWColors.dark(), (_) {});
     final label = find.byWidgetPredicate(
-      (w) => w is RichText && w.text.toPlainText().contains('I agree to'),
+      (w) =>
+          w is RichText &&
+          w.text
+              .toPlainText(includeSemanticsLabels: false)
+              .contains('I agree to'),
     );
     final start = tester.getTopLeft(label) + const Offset(10, 8);
     await tester.tapAt(start);
