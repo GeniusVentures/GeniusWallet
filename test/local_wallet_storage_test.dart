@@ -134,7 +134,42 @@ class _ReadBackFailsStorage extends _OverlapStorage {
   }
 }
 
+/// A store whose native write lands but whose reply fails.
+class _ReplyFailsStorage extends _OverlapStorage {
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    await super.write(key: key, value: value);
+    throw PlatformException(code: 'channel-reply-lost');
+  }
+}
+
 void main() {
+  test('a write whose reply fails blocks later writes', () async {
+    addTearDown(LocalWalletStorage.resetWriteFailure);
+    final store = await LocalWalletStorage.create(
+      secureStorage: _ReplyFailsStorage(),
+    );
+
+    await expectLater(
+      store.storeUserPin('1357'),
+      throwsA(isA<SecureStorageWriteError>()),
+    );
+    expect(LocalWalletStorage.writeFailure.value, isTrue);
+    await expectLater(
+      store.saveSDKDefaultWalletAddress('0xABC'),
+      throwsA(isA<SecureStorageWriteError>()),
+    );
+  });
+
   test('a write whose read-back fails blocks later writes', () async {
     addTearDown(LocalWalletStorage.resetWriteFailure);
     final store = await LocalWalletStorage.create(

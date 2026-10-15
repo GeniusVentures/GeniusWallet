@@ -10,7 +10,7 @@ import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/web3.dart';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 /// One wallet's SGNUS account: which wallet produced it, and its name at
 /// link time. Holds public addresses and a display name only, never key
@@ -39,9 +39,13 @@ class LocalWalletStorage {
   /// Serialises each read-change-write of the links map.
   static final _linksLock = _SerialQueue();
 
+  /// True once a write may have damaged the store; every later call then
+  /// fails with [SecureStorageWriteError] until the app restarts.
+  static ValueListenable<bool> get writeFailure => _SerialStorage._broken;
+
   /// Clears a detected write failure, which otherwise lasts the process.
   @visibleForTesting
-  static void resetWriteFailure() => _SerialStorage._broken = false;
+  static void resetWriteFailure() => _SerialStorage._broken.value = false;
 
   LocalWalletStorage._create(FlutterSecureStorage storage, this._web3)
     : _secureStorage = _SerialStorage(storage);
@@ -607,10 +611,10 @@ class _SerialStorage {
   /// Set once a write is seen dropping data. The store is then already
   /// damaged, and a retry would snapshot the damage and pass its own check,
   /// so every later call fails until the app restarts.
-  static var _broken = false;
+  static final _broken = ValueNotifier(false);
 
   Future<T> _run<T>(Future<T> Function() op) => _queue.run(() {
-    if (_broken) {
+    if (_broken.value) {
       throw const SecureStorageWriteError();
     }
     return op();
@@ -638,10 +642,11 @@ class _SerialStorage {
     Future<void> Function() op,
   ) async {
     final before = await _storage.readAll();
-    await op();
-    // Once the write ran, anything short of a clean check leaves the store's
-    // state unknown, so it is treated the same as a detected drop.
+    // From here a failure may come after the native write landed (even a
+    // failed reply), so anything short of a clean check leaves the store's
+    // state unknown and is treated the same as a detected drop.
     try {
+      await op();
       final after = await _storage.readAll();
       // ponytail: another FlutterSecureStorage user (WalletConnect) deleting
       // its own key between the two reads fails this check and blocks storage
@@ -659,7 +664,7 @@ class _SerialStorage {
     } catch (_) {
       // Falls through to block the store.
     }
-    _broken = true;
+    _broken.value = true;
     throw const SecureStorageWriteError();
   }
 }

@@ -1,5 +1,6 @@
 // A pasted 0x address must not become a wallet's name: the header pill shows
 // the name alone, so an address-shaped name reads as a rendering bug.
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +16,9 @@ const _address = '0x71C7656EC7ab88b098defB751B7401B5f6d8976F';
 /// Records import attempts; everything else is unreachable from this screen.
 class _RecordingApi implements GeniusApi {
   final importedNames = <String>[];
+
+  @override
+  ValueListenable<bool> get secureStorageFailed => ValueNotifier(false);
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

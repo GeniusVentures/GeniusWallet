@@ -19,6 +19,7 @@ import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
+import 'package:genius_wallet/components/toast/secure_storage_failure_toasts.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -544,15 +545,19 @@ class MyApp extends StatelessWidget {
                 // kDebugMode && kShowDevTools - see DevToolsBubbleHost's doc.
                 DevToolsBubbleHost(
                   router: geniusWalletRouter,
-                  child: ChildOperationToasts(
+                  child: SecureStorageFailureToasts(
+                    failed: geniusApi.secureStorageFailed,
                     navigatorKey: navigatorKey,
-                    child: NodeSwitchToasts(
+                    child: ChildOperationToasts(
                       navigatorKey: navigatorKey,
-                      child: BuyOrderToasts(
+                      child: NodeSwitchToasts(
                         navigatorKey: navigatorKey,
-                        child: GlobalSwapFabHost(
-                          router: geniusWalletRouter,
-                          child: child ?? const SizedBox.shrink(),
+                        child: BuyOrderToasts(
+                          navigatorKey: navigatorKey,
+                          child: GlobalSwapFabHost(
+                            router: geniusWalletRouter,
+                            child: child ?? const SizedBox.shrink(),
+                          ),
                         ),
                       ),
                     ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/toast/secure_storage_failure_toasts.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
@@ -32,11 +33,12 @@ class NewWalletFlow extends StatelessWidget {
             prev.walletSaveStatus != NewWalletStatus.error &&
             curr.walletSaveStatus == NewWalletStatus.error,
         listener: (context, state) {
+          if (isSecureStorageFailed(context.read<NewWalletBloc>().api)) {
+            return;
+          }
           showToast(
             context,
-            "Your wallet couldn't be saved: this device's secure storage is "
-            'not keeping data reliably. Go back and write down your recovery '
-            'phrase, fix the keyring, then restart the app.',
+            "Your wallet couldn't be saved. Please try again.",
             type: ToastType.error,
           );
         },
