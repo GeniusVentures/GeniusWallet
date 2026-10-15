@@ -102,6 +102,11 @@ void main() {
     expect(axisTickLabelFor(ctx, 64250, 250, const TextStyle()), isNull);
   });
 
+  test('the same decimals reuse one currency formatter', () {
+    expect(identical(axisCurrencyFormat(3), axisCurrencyFormat(3)), isTrue);
+    expect(identical(axisCurrencyFormat(3), axisCurrencyFormat(4)), isFalse);
+  });
+
   group('axisMoneyLabel - precision comes from the STEP, not the value', () {
     test('a stablecoin at different prices does not all print the same '
         'label', () {

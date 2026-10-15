@@ -91,10 +91,18 @@ const double kChartFillFadeStop = 0.62;
 /// text actually stands for.
 typedef _Form = (String, double) Function(double value, int decimals);
 
-(String, double) _fixed(double v, int d) => (
-  NumberFormat.currency(symbol: '\$', decimalDigits: d).format(v),
-  double.parse(v.toStringAsFixed(d)),
-);
+final _currencyFormats = <(String?, int), NumberFormat>{};
+
+/// One formatter per (locale, decimals): the digit search asks for dozens per
+/// tick, and building a `NumberFormat` each time is the expensive part.
+@visibleForTesting
+NumberFormat axisCurrencyFormat(int decimals) => _currencyFormats.putIfAbsent((
+  Intl.defaultLocale,
+  decimals,
+), () => NumberFormat.currency(symbol: '\$', decimalDigits: decimals));
+
+(String, double) _fixed(double v, int d) =>
+    (axisCurrencyFormat(d).format(v), double.parse(v.toStringAsFixed(d)));
 
 (String, double) _scientific(double v, int d) {
   final text = v.toStringAsExponential(d);
