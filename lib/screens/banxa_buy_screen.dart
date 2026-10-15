@@ -1138,22 +1138,15 @@ class _BuyButton extends StatelessWidget {
   }
 }
 
-String banxaDisclaimerMessage({required bool sandbox}) =>
-    "Checkout opens inside GeniusWallet but is run by Banxa (${banxaSiteHost(sandbox: sandbox)}), a separate company. Your ID check and card details go to Banxa, not to GeniusWallet. By continuing you agree to Banxa's Terms of Use and Privacy & Cookies Policy.";
-
 /// The first buy on a device asks for the disclaimer; every buy then reads the
 /// Selected wallet at this moment, so a switch after the quote is honoured.
 Future<void> _startBuy(BuildContext context) async {
   final cubit = context.read<BuyGnusCubit>();
   final wallets = context.read<WalletDetailsCubit>();
   if (!cubit.state.disclaimerAccepted) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final accepted = await showDisclaimerDialog(
       context,
-      title: 'Before your first buy',
-      message: banxaDisclaimerMessage(sandbox: kBanxaSandbox),
-      confirmText: 'Continue',
-      textColor: gw.textPrimary,
+      sandboxHost: kBanxaSandbox ? banxaSiteHost(sandbox: true) : null,
     );
     if (!accepted || !context.mounted) {
       return;
