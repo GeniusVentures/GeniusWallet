@@ -68,6 +68,9 @@ enum BanxaOrderStatus {
   final String shortLabel;
   final String description;
 
+  /// The description with the coin the order buys in place of GNUS.
+  String describeFor(String coin) => description.replaceAll('GNUS', coin);
+
   // The coinTransferred spelling is seen in the wild but absent from the
   // published docs.
   static final Map<String, BanxaOrderStatus> _byWire = {

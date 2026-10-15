@@ -839,7 +839,7 @@ class CheckoutResult extends StatelessWidget {
               OrderStatusPill(status: order.status),
               const SizedBox(height: GeniusWalletConsts.space6),
               Text(
-                status.description,
+                status.describeFor(order.crypto.id),
                 textAlign: TextAlign.center,
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: gw.textSecondary,

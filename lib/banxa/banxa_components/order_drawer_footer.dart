@@ -49,7 +49,7 @@ class OrderDrawerFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          status.description,
+          status.describeFor(order.crypto.id),
           textAlign: TextAlign.center,
           style: GeniusWalletTypography.bodyMd.copyWith(
             color: gw.textSecondary,
