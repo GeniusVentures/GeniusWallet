@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/token_svg.dart';
 
 /// [tint] recolours an asset icon, for the white testnet artwork on a light
 /// surface; remote logos are never tinted.
@@ -50,8 +51,8 @@ class TokenIcon extends StatelessWidget {
     );
     final Widget image;
     if (isSvg && isNetwork) {
-      image = SvgPicture.network(
-        path,
+      image = SvgPicture(
+        TokenSvgLoader(path),
         width: size,
         height: size,
         fit: BoxFit.cover,
