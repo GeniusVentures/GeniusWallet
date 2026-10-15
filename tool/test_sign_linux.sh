@@ -26,9 +26,9 @@ cp "$work"/rpm/RPMS/*/t-1-1.*.rpm "$work/pk/"
 echo deb > "$work/pk/t.deb"
 echo tar > "$work/pk/a.tar.gz"
 
-sign() { # key-name key-fpr
-  LINUX_SIGNING_KEY=$(cat "$work/$1.key") LINUX_SIGNING_PASSPHRASE=pw LINUX_SIGNING_KEY_ID=$2 \
-    SIGNING_REQUIRED=true PINNED_PUBKEY="$work/good.pub" bash "$here/sign_linux.sh" "$work/pk/a.tar.gz" "$work/pk" x86_64
+sign() { # key-name key-fpr; relative paths from another cwd, as CI calls it
+  (cd "$work" && LINUX_SIGNING_KEY=$(cat "$1.key") LINUX_SIGNING_PASSPHRASE=pw LINUX_SIGNING_KEY_ID=$2 \
+    SIGNING_REQUIRED=true PINNED_PUBKEY=good.pub bash "$here/sign_linux.sh" pk/a.tar.gz pk x86_64)
 }
 
 if sign other "$other" 2>/dev/null; then echo "FAIL: mismatched key was accepted" >&2; exit 1; fi
