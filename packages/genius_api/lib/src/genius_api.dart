@@ -1,13 +1,12 @@
 import 'dart:ffi' as ffi;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:ffi/ffi.dart';
 import 'package:genius_api/controllers/sgnus_connection_controller.dart';
@@ -428,6 +427,10 @@ class GeniusApi {
       writeSgnsNet(Directory(await overridesDirPath), net);
 
   Set<String> get networkConfigOverrideKeys => _networkConfigOverrideKeys;
+
+  /// See [LocalWalletStorage.writeFailure].
+  ValueListenable<bool> get secureStorageFailed =>
+      LocalWalletStorage.writeFailure;
 
   GeniusApi({required LocalWalletStorage secureStorage})
     : _secureStorage = secureStorage;
