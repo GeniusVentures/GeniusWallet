@@ -1450,6 +1450,10 @@ jobs:
       - name: Upload file
         if: github.ref_name == 'main' || github.ref_name == 'develop' || env.IS_TAG == 'true'
         working-directory: ${{github.workspace}}
+        env:
+          LINUX_SIGNING_KEY: ${{ secrets.LINUX_SIGNING_KEY }}
+          LINUX_SIGNING_PASSPHRASE: ${{ secrets.LINUX_SIGNING_PASSPHRASE }}
+          LINUX_SIGNING_KEY_ID: ${{ secrets.LINUX_SIGNING_KEY_ID }}
         run: |
           # Ensure RELEASE_TAG is set for upload step
             if [ -n "${RELEASE_TAG_INPUT}" ]; then
@@ -1490,7 +1494,10 @@ jobs:
             echo "Uploading ${ARTIFACT_NAME}"
             gh release upload --clobber ${RELEASE_TAG} "${ARTIFACT_NAME}"
             if [ "${{ matrix.target }}" = "Linux" ]; then
-              gh release upload --clobber ${RELEASE_TAG} linux_packages/*.deb linux_packages/*.rpm
+              SUDO=$([ "$(id -u)" = 0 ] || echo sudo)
+              command -v rpmsign >/dev/null 2>&1 || $SUDO dnf install -y rpm-sign
+              bash tool/sign_linux.sh "${ARTIFACT_NAME}" linux_packages
+              gh release upload --clobber ${RELEASE_TAG} linux_packages/*
             fi
             # Also upload AAB for Android if it exists
             if [ -n "${ARTIFACT_NAME_AAB:-}" ] && [ -f "${ARTIFACT_NAME_AAB}" ]; then
