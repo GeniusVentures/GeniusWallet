@@ -9,7 +9,7 @@ void main() {
       'lib/dashboard/chart/markets_hero_card.dart',
     ]) {
       final src = File(path).readAsStringSync();
-      expect(src, contains('axisTickLabel('), reason: path);
+      expect(src, contains('axisTickLabelFor('), reason: path);
       expect(src, isNot(contains('axisMoneyLabel(value')), reason: path);
     }
   });

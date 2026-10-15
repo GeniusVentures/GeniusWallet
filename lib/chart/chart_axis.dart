@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/painting.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 /// The chart's pure geometry rules — top-level and pure so each one can be
@@ -87,9 +87,45 @@ const double kChartFillFadeStop = 0.62;
   return (bestVals, bestStep);
 }
 
-/// The label for a tick, or null for none: the full label if it fits
-/// [maxWidth] (measured with the real style and text scale), else a compact
-/// K/M form. Both take their precision from [step], so neighbours differ.
+/// One way of writing a price with [decimals] digits, plus the value that
+/// text actually stands for.
+typedef _Form = (String, double) Function(double value, int decimals);
+
+(String, double) _fixed(double v, int d) => (
+  NumberFormat.currency(symbol: '\$', decimalDigits: d).format(v),
+  double.parse(v.toStringAsFixed(d)),
+);
+
+(String, double) _scientific(double v, int d) {
+  final text = v.toStringAsExponential(d);
+  return ('\$$text', double.parse(text));
+}
+
+_Form _compact(double unit, String suffix) => (double v, int d) {
+  final text = (v / unit).toStringAsFixed(d);
+  return ('\$$text$suffix', double.parse(text) * unit);
+};
+
+/// The label with the fewest decimals (0..12) that is faithful to [value] and
+/// differs from the labels of its neighbours one [step] either side. No
+/// formula: the digits are found by trying them.
+String? _distinctLabel(_Form form, double value, double step, int maxDecimals) {
+  for (var d = 0; d <= maxDecimals; d++) {
+    final (here, shown) = form(value, d);
+    final String below = form(value - step, d).$1;
+    final String above = form(value + step, d).$1;
+    if (here != below &&
+        here != above &&
+        (shown - value).abs() <= step * 1e-3) {
+      return here;
+    }
+  }
+  return null;
+}
+
+/// The label for a tick, or null for none: the first of fixed, compact K/M and
+/// scientific notation whose text fits [maxWidth] (measured with [style] and
+/// [textScaler]) and tells neighbouring ticks apart.
 String? axisTickLabel(
   double value,
   double step, {
@@ -109,46 +145,47 @@ String? axisTickLabel(
     return width <= maxWidth;
   }
 
-  final full = axisMoneyLabel(value, step);
-  if (fits(full)) {
-    return full;
-  }
-  final compact = _compactMoney(value, step);
-  if (compact != null && fits(compact)) {
-    return compact;
+  final double abs = value.abs();
+  final forms = <_Form>[
+    _fixed,
+    if (abs >= 1e3) abs >= 1e6 ? _compact(1e6, 'M') : _compact(1e3, 'K'),
+    _scientific,
+  ];
+  for (final form in forms) {
+    final label = _distinctLabel(form, value, step, 12);
+    if (label != null && fits(label)) {
+      return label;
+    }
   }
   return null;
 }
 
-String? _compactMoney(double value, double step) {
-  final double abs = value.abs();
-  if (abs < 1e3) {
-    return null;
+/// [axisTickLabel] measured the way the gutter's `Text` will render: the
+/// ambient default style merged with [style], bold-text setting and text scale.
+String? axisTickLabelFor(
+  BuildContext context,
+  double value,
+  double step,
+  TextStyle style,
+) {
+  var effective = DefaultTextStyle.of(context).style.merge(style);
+  if (MediaQuery.boldTextOf(context)) {
+    effective = effective.merge(const TextStyle(fontWeight: FontWeight.bold));
   }
-  final (double unit, String suffix) = abs >= 1e6 ? (1e6, 'M') : (1e3, 'K');
-  final int decimals = max(0, (-log(step / unit) / ln10).ceil());
-  return '\$${(value / unit).toStringAsFixed(decimals)}$suffix';
+  return axisTickLabel(
+    value,
+    step,
+    style: effective,
+    textScaler: MediaQuery.textScalerOf(context),
+    maxWidth: kChartAxisGutter - 8,
+  );
 }
 
-/// The axis label for [value], with precision derived from the tick [step].
-///
-/// Port of `axisMoney()` at `index.html:534`. **Deriving precision from the
-/// value's magnitude — instead of the step — is a real bug this rule exists
-/// to prevent, not a style choice**: it is exactly how a stablecoin's axis
-/// printed `$1.00 / $1.00 / $1.00 / $1.00` for four different prices.
-String axisMoneyLabel(double value, double step) {
-  final int decimals = step >= 1 ? 0 : (-log(step) / ln10).ceil() + 1;
-  // Fixed decimals cap at 8, which would print neighbouring ticks of a
-  // sub-cent token identically; scientific keeps the digits that differ.
-  if (decimals > 8 && value != 0) {
-    final int digits = max(0, ((log(value.abs()) - log(step)) / ln10).floor());
-    return '\$${value.toStringAsExponential(digits)}';
-  }
-  return NumberFormat.currency(
-    symbol: '\$',
-    decimalDigits: decimals,
-  ).format(value);
-}
+/// The axis label for [value] without a width limit, for the high/low tags.
+String axisMoneyLabel(double value, double step) =>
+    _distinctLabel(_fixed, value, step, 8) ??
+    _distinctLabel(_scientific, value, step, 12) ??
+    _fixed(value, 8).$1;
 
 /// How many bottom time labels fit, clamped to BOTH the plot width and the
 /// number of samples actually on screen.
