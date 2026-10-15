@@ -56,6 +56,13 @@ void main() {
     expect(axisTickLabel(9.0001e-5, 1e-9), isNull);
   });
 
+  test('a fine step on a larger price still prints distinct ticks', () {
+    expect(
+      axisMoneyLabel(0.0001, 1e-10),
+      isNot(axisMoneyLabel(0.0001 + 1e-10, 1e-10)),
+    );
+  });
+
   group('axisMoneyLabel - precision comes from the STEP, not the value', () {
     test('a stablecoin at different prices does not all print the same '
         'label', () {
