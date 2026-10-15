@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/inputs/gw_checkbox.dart';
 
 Future<bool> showDisclaimerDialog(
   BuildContext context, {
@@ -6,7 +7,6 @@ Future<bool> showDisclaimerDialog(
   String? message,
   String? confirmText,
   String? checkboxText,
-  Color? activeColor,
   Color? textColor,
 }) async {
   bool isAccepted = false;
@@ -29,26 +29,15 @@ Future<bool> showDisclaimerDialog(
                 style: TextStyle(color: textColor ?? Colors.white),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Checkbox(
-                    value: isAccepted,
-                    onChanged: (value) {
-                      setState(() {
-                        isAccepted = value ?? false;
-                      });
-                    },
-                    activeColor: activeColor ?? Colors.green,
-                    checkColor: Colors.white,
-                    side: const BorderSide(color: Colors.white, width: 1.5),
-                  ),
-                  Expanded(
-                    child: Text(
-                      checkboxText ?? "I have read and agree to the disclaimer",
-                      style: TextStyle(color: textColor ?? Colors.white),
-                    ),
-                  ),
-                ],
+              GWCheckbox(
+                value: isAccepted,
+                onChanged: (value) {
+                  setState(() {
+                    isAccepted = value ?? false;
+                  });
+                },
+                label:
+                    checkboxText ?? "I have read and agree to the disclaimer",
               ),
             ],
           ),
