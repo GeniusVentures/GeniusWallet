@@ -86,6 +86,16 @@ const double kChartFillFadeStop = 0.62;
   return (bestVals, bestStep);
 }
 
+/// The label for a tick, or null to skip it. A label too long for the gutter
+/// is shown on every other tick only, so neighbours never print alike.
+String? axisTickLabel(double value, double step) {
+  final label = axisMoneyLabel(value, step);
+  if (label.length > 9 && (value / step).round().isOdd) {
+    return null;
+  }
+  return label;
+}
+
 /// The axis label for [value], with precision derived from the tick [step].
 ///
 /// Port of `axisMoney()` at `index.html:534`. **Deriving precision from the
@@ -96,10 +106,7 @@ String axisMoneyLabel(double value, double step) {
   // Fixed decimals cap at 8, which would print neighbouring ticks of a
   // sub-cent token identically; scientific keeps the digits that differ.
   if (value != 0 && value.abs() < 1e-4) {
-    final int digits = ((log(value.abs()) - log(step)) / ln10).floor().clamp(
-      0,
-      3,
-    );
+    final int digits = max(0, ((log(value.abs()) - log(step)) / ln10).floor());
     return '\$${value.toStringAsExponential(digits)}';
   }
   final int decimals = step >= 1 ? 0 : min(8, (-log(step) / ln10).ceil() + 1);

@@ -48,6 +48,14 @@ void main() {
     expect(a.length, lessThanOrEqualTo(8));
   });
 
+  test('a flat tiny-price window never repeats a label', () {
+    final a = axisMoneyLabel(9.000e-5, 1e-9);
+    final b = axisMoneyLabel(9.0001e-5, 1e-9);
+    expect(a, isNot(b));
+    expect(axisTickLabel(9.000e-5, 1e-9), isNotNull);
+    expect(axisTickLabel(9.0001e-5, 1e-9), isNull);
+  });
+
   group('axisMoneyLabel - precision comes from the STEP, not the value', () {
     test('a stablecoin at different prices does not all print the same '
         'label', () {

@@ -862,7 +862,7 @@ class _TradingFrameChart extends StatelessWidget {
                       meta: meta,
                       space: 8,
                       child: Text(
-                        axisMoneyLabel(value, step),
+                        axisTickLabel(value, step) ?? '',
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.ellipsis,
