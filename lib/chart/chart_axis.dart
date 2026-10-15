@@ -1,7 +1,8 @@
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/painting.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 /// The chart's pure geometry rules — top-level and pure so each one can be
 /// tested on its own (`test/chart/chart_axis_test.dart`). A chart-axis bug
@@ -86,14 +87,50 @@ const double kChartFillFadeStop = 0.62;
   return (bestVals, bestStep);
 }
 
-/// The label for a tick, or null to skip it. A label too long for the gutter
-/// is shown on every other tick only, so neighbours never print alike.
-String? axisTickLabel(double value, double step) {
-  final label = axisMoneyLabel(value, step);
-  if (label.length > 9 && (value / step).round().isOdd) {
+/// The label for a tick, or null to skip it, chosen by rendered width: the
+/// full label if it fits [maxWidth], else a compact K/M form, else the
+/// shorter of the two on every other tick so neighbours never print alike.
+String? axisTickLabel(
+  double value,
+  double step, {
+  required TextStyle style,
+  required TextScaler textScaler,
+  required double maxWidth,
+}) {
+  bool fits(String text) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: textScaler,
+      maxLines: 1,
+    )..layout();
+    final double width = painter.width;
+    painter.dispose();
+    return width <= maxWidth;
+  }
+
+  final full = axisMoneyLabel(value, step);
+  if (fits(full)) {
+    return full;
+  }
+  final compact = _compactMoney(value, step);
+  if (compact != null && fits(compact)) {
+    return compact;
+  }
+  if ((value / step).round().isOdd) {
     return null;
   }
-  return label;
+  return compact != null && compact.length < full.length ? compact : full;
+}
+
+String? _compactMoney(double value, double step) {
+  final double abs = value.abs();
+  if (abs < 1e3) {
+    return null;
+  }
+  final (double unit, String suffix) = abs >= 1e6 ? (1e6, 'M') : (1e3, 'K');
+  final int decimals = max(0, (-log(step / unit) / ln10).ceil());
+  return '\$${(value / unit).toStringAsFixed(min(decimals, 4))}$suffix';
 }
 
 /// The axis label for [value], with precision derived from the tick [step].

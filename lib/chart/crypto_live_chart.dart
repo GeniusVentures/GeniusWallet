@@ -858,21 +858,31 @@ class _TradingFrameChart extends StatelessWidget {
                     // ladder — an off-ladder label nobody could explain.
                     minIncluded: false,
                     maxIncluded: false,
-                    getTitlesWidget: (value, meta) => SideTitleWidget(
-                      meta: meta,
-                      space: 8,
-                      child: Text(
-                        axisTickLabel(value, step) ?? '',
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: gw.textSecondary,
-                          fontFeatures: const [FontFeature.tabularFigures()],
+                    getTitlesWidget: (value, meta) {
+                      final style = TextStyle(
+                        fontSize: 11,
+                        color: gw.textSecondary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      );
+                      return SideTitleWidget(
+                        meta: meta,
+                        space: 8,
+                        child: Text(
+                          axisTickLabel(
+                                value,
+                                step,
+                                style: style,
+                                textScaler: MediaQuery.textScalerOf(context),
+                                maxWidth: kChartAxisGutter - 8,
+                              ) ??
+                              '',
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          style: style,
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
               ),
