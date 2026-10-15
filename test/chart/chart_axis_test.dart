@@ -102,6 +102,32 @@ void main() {
     expect(axisTickLabelFor(ctx, 64250, 250, const TextStyle()), isNull);
   });
 
+  testWidgets('measurement applies the letter spacing override', (
+    tester,
+  ) async {
+    late BuildContext ctx;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: MediaQuery(
+          data: const MediaQueryData(letterSpacingOverride: 20),
+          child: Builder(
+            builder: (c) {
+              ctx = c;
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+    // Test glyphs are fontSize wide: 7 chars at 5 px fit the gutter, but not
+    // with 20 px added between each.
+    expect(
+      axisTickLabelFor(ctx, 64250, 250, const TextStyle(fontSize: 5)),
+      isNull,
+    );
+  });
+
   test('the same decimals reuse one currency formatter', () {
     expect(identical(axisCurrencyFormat(3), axisCurrencyFormat(3)), isTrue);
     expect(identical(axisCurrencyFormat(3), axisCurrencyFormat(4)), isFalse);
