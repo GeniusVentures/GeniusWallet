@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 
 const walletPK = String.fromEnvironment('WALLET_PK', defaultValue: '');
 final rand = Random();
@@ -37,10 +39,14 @@ void byPassWalletCreation(GeniusApi geniusApi) {
 
   debugPrint('\x1B[37m** Manually importing wallet from variable\x1B[0m');
 
-  geniusApi.importWalletFromPrivateKey(
-    walletPK,
-    'Bypass Wallet',
-    TWCoinType.TWCoinTypeEthereum,
+  unawaited(
+    ignoreBlockedStorage(
+      geniusApi.importWalletFromPrivateKey(
+        walletPK,
+        'Bypass Wallet',
+        TWCoinType.TWCoinTypeEthereum,
+      ),
+    ),
   );
 }
 

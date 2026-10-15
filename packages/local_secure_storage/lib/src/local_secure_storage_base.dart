@@ -673,6 +673,16 @@ class _SerialStorage {
   }
 }
 
+/// For fire-and-forget storage writes: drops [SecureStorageWriteError], which
+/// the app-wide notice already reports, and lets any other error surface.
+Future<void> ignoreBlockedStorage(Future<Object?> write) async {
+  try {
+    await write;
+  } on SecureStorageWriteError {
+    return;
+  }
+}
+
 /// The secure store accepted a write but did not keep it, or lost other
 /// entries while doing so; storage stays blocked until the app restarts.
 /// Carries no keys or values.
