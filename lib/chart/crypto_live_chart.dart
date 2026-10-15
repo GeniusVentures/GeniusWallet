@@ -861,12 +861,18 @@ class _TradingFrameChart extends StatelessWidget {
                     getTitlesWidget: (value, meta) => SideTitleWidget(
                       meta: meta,
                       space: 8,
-                      child: Text(
-                        axisMoneyLabel(value, step),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: gw.textSecondary,
-                          fontFeatures: const [FontFeature.tabularFigures()],
+                      // Shrinks a long stablecoin price instead of wrapping.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          axisMoneyLabel(value, step),
+                          maxLines: 1,
+                          softWrap: false,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: gw.textSecondary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
                         ),
                       ),
                     ),
@@ -937,12 +943,19 @@ class _TradingFrameChart extends StatelessWidget {
                         ? ((b / (count - 1)) * (visible.length - 1)).round()
                         : 0;
                     final spot = visible[ix];
-                    return Text(
-                      formatTime(spot.x.round()),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: gw.textSecondary,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                    return Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          formatTime(spot.x.round()),
+                          maxLines: 1,
+                          softWrap: false,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: gw.textSecondary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
                       ),
                     );
                   }),
