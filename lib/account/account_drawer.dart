@@ -1220,8 +1220,8 @@ class _RowMenu extends StatelessWidget {
         GWMenuItem(
           icon: Icons.arrow_upward,
           label: 'Fund',
-          lockedReason: operations.lockReason(sdkAddress),
-          onPressed: operations.lockReason(sdkAddress) != null
+          lockedReason: operations.childActionLock(row.child!),
+          onPressed: operations.childActionLock(row.child!) != null
               ? null
               : () => startFund(
                   context,
@@ -1232,8 +1232,8 @@ class _RowMenu extends StatelessWidget {
         GWMenuItem(
           icon: Icons.arrow_downward,
           label: 'Recover',
-          lockedReason: operations.lockReason(sdkAddress),
-          onPressed: operations.lockReason(sdkAddress) != null
+          lockedReason: operations.childActionLock(row.child!),
+          onPressed: operations.childActionLock(row.child!) != null
               ? null
               : () => startRecover(
                   context,
@@ -1244,9 +1244,9 @@ class _RowMenu extends StatelessWidget {
         GWMenuItem(
           icon: Icons.link_off,
           label: 'Revoke',
-          lockedReason: operations.lockReason(sdkAddress),
+          lockedReason: operations.childActionLock(row.child!),
           color: gw.statusErrorText,
-          onPressed: operations.lockReason(sdkAddress) != null
+          onPressed: operations.childActionLock(row.child!) != null
               ? null
               : () => startRevoke(
                   context,

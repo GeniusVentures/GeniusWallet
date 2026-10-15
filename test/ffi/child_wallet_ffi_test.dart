@@ -70,9 +70,13 @@ _scriptedQuery({
   required int count,
   required int returnCode,
 }) {
+  // Only the first (current-form) query answers; the legacy 0x-form
+  // lookup that follows finds nothing.
+  var calls = 0;
   return (_, outEntries, outCount) {
-    outEntries.value = entries;
-    outCount.value = count;
+    final first = calls++ == 0;
+    outEntries.value = first ? entries : ffi.nullptr;
+    outCount.value = first ? count : 0;
     return returnCode;
   };
 }
@@ -311,20 +315,39 @@ void main() {
     }
   });
 
-  test('discovery queries the main by bare hex, as the SDK stores it', () {
+  test('discovery merges current and legacy 0x-main links, marking legacy', () {
     final hex = 'e086b240' * 16;
-    String? queried;
-    collectChildRegistrations(
+    final queried = <String>[];
+    // Bare query finds child0 (current) and child1; the 0x query finds
+    // child1 again plus child2, both stored with the old 0x main.
+    final answers = {
+      hex: [('child0', '0x$hex'), ('child1', '0x$hex')],
+      '0x$hex': [('child1', '0x0x$hex'), ('child2', '0x0x$hex')],
+    };
+    final result = collectChildRegistrations(
       '0x$hex',
       query: (main, outEntries, outCount) {
-        queried = main.cast<Utf8>().toDartString();
-        outEntries.value = ffi.nullptr;
-        outCount.value = 0;
+        final key = main.cast<Utf8>().toDartString();
+        queried.add(key);
+        final rows = answers[key]!;
+        final entries = calloc<GeniusRegistrationDiscoveryEntry>(rows.length);
+        for (var i = 0; i < rows.length; i++) {
+          _writeAddress(entries[i].child_address.address, rows[i].$1);
+          _writeAddress(entries[i].main_address.address, rows[i].$2);
+        }
+        outEntries.value = entries;
+        outCount.value = rows.length;
         return GeniusNodeReturnValue.GENIUS_NODE_RET_OK.value;
       },
-      free: (_) {},
+      free: (ptr) => calloc.free(ptr),
     );
-    expect(queried, hex);
+    expect(queried, [hex, '0x$hex']);
+    expect(result.entries.map((e) => e.childAddress), [
+      'child0',
+      'child1',
+      'child2',
+    ]);
+    expect(result.entries.map((e) => e.legacyMain), [false, false, true]);
   });
 
   group('writeRegistrationMetadata', () {

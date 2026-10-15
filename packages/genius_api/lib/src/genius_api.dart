@@ -128,6 +128,10 @@ class ChildRegistration {
   final String mainAddress;
   final int sequence;
   final ChildRegistrationMetadata metadata;
+
+  /// Registered before main addresses were sent bare, so the node can't match
+  /// the main's signature: only a Detach and a fresh Register fix it.
+  bool get legacyMain => mainAddress.toLowerCase().startsWith('0x0x');
 }
 
 /// The result of a registrations read, so a zero-count success (empty list)
@@ -160,7 +164,39 @@ ChildRegistrations collectChildRegistrations(
   query,
   required void Function(ffi.Pointer<ffi.Void>) free,
 }) {
-  final mainPtr = sdkAddressPtr(mainAddress);
+  final current = _queryRegistrations(sdkAddressPtr(mainAddress), query, free);
+  if (current.result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+    return current;
+  }
+  // Links made before main addresses were sent bare still store the 0x form;
+  // list them too so the user can see they need re-linking.
+  final legacy = _queryRegistrations(
+    '0x${_bareHex(mainAddress)}'.toNativeUtf8().cast<Char>(),
+    query,
+    free,
+  );
+  final seen = {for (final e in current.entries) e.childAddress.toLowerCase()};
+  return (
+    result: current.result,
+    entries: [
+      ...current.entries,
+      for (final e in legacy.entries)
+        if (seen.add(e.childAddress.toLowerCase())) e,
+    ],
+  );
+}
+
+/// One discovery call. Takes ownership of [mainPtr] and frees it.
+ChildRegistrations _queryRegistrations(
+  ffi.Pointer<ffi.Char> mainPtr,
+  int Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>,
+    ffi.Pointer<ffi.Uint64>,
+  )
+  query,
+  void Function(ffi.Pointer<ffi.Void>) free,
+) {
   final entriesPtrPtr = calloc<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>();
   final countPtr = calloc<ffi.Uint64>();
   try {
@@ -209,11 +245,12 @@ ChildRegistrations collectChildRegistrations(
 /// The caller frees the result with `malloc.free`.
 @visibleForTesting
 Pointer<Char> sdkAddressPtr(String address) =>
-    (address.startsWith('0x') || address.startsWith('0X')
-            ? address.substring(2)
-            : address)
-        .toNativeUtf8()
-        .cast<Char>();
+    _bareHex(address).toNativeUtf8().cast<Char>();
+
+String _bareHex(String address) =>
+    address.startsWith('0x') || address.startsWith('0X')
+    ? address.substring(2)
+    : address;
 
 /// Writes [m]'s three strings into [out] as NUL-terminated UTF-8, each
 /// capped at 127 bytes, and copies [ChildRegistrationMetadata.peersCut]
