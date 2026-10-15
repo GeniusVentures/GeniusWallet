@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/pin_cubit.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_state.dart';
 import 'package:genius_wallet/screens/pin_screen.dart';
@@ -27,6 +28,13 @@ class ConfirmAndSavePinScreen extends StatelessWidget {
           } else if (state.pinConfirmStatus == PinConfirmStatus.passed &&
               state.pinSaveStatus == PinSaveStatus.saved) {
             onPassed();
+          } else if (state.pinSaveStatus == PinSaveStatus.error) {
+            showToast(
+              context,
+              "Your PIN couldn't be saved to this device's secure storage. "
+              'Enter it again to retry.',
+              type: ToastType.error,
+            );
           }
         },
         child: PinScreen(

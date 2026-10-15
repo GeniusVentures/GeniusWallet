@@ -136,12 +136,25 @@ Future<void> main() async {
           rethrow;
         }
         debugPrint('Hive lock held by another instance: $e');
-        runApp(const AlreadyRunningApp());
+        runApp(
+          const StartupBlockedApp(
+            title: 'Genius Wallet is already running',
+            message:
+                'Switch to the open window, or quit it before starting another.',
+          ),
+        );
         return;
       }
 
       final secureStorage = await LocalWalletStorage.create();
-      await secureStorage.init();
+      final storageBlocked = await initSecureStorage(
+        secureStorage,
+        isLinux: Platform.isLinux,
+      );
+      if (storageBlocked != null) {
+        runApp(storageBlocked);
+        return;
+      }
       final geniusApi = GeniusApi(secureStorage: secureStorage);
 
       final networkProvider = NetworkProvider();
@@ -202,10 +215,40 @@ Future<void> main() async {
   );
 }
 
-/// Shown instead of the app when another instance holds the storage lock;
-/// without it the second window stays black with no explanation.
-class AlreadyRunningApp extends StatelessWidget {
-  const AlreadyRunningApp({super.key});
+/// Opens the wallet store, or returns the screen to show instead when it
+/// cannot be used; on Linux that is usually no keyring or Secret Service.
+Future<StartupBlockedApp?> initSecureStorage(
+  LocalWalletStorage storage, {
+  required bool isLinux,
+}) async {
+  try {
+    await storage.init();
+    return null;
+  } catch (e) {
+    debugPrint('Secure storage unavailable at startup: $e');
+    return StartupBlockedApp(
+      title: 'Secure storage is unavailable',
+      message: isLinux
+          ? 'Genius Wallet keeps your keys in the system keyring. Start a '
+                'keyring or Secret Service (for example gnome-keyring or '
+                'KWallet), unlock it, then open the wallet again.'
+          : "Genius Wallet couldn't open this device's secure storage, "
+                'where it keeps your keys. Close the wallet and open it again.',
+    );
+  }
+}
+
+/// Shown instead of the app when it cannot start, such as another instance
+/// holding the storage lock; without it the window stays blank.
+class StartupBlockedApp extends StatelessWidget {
+  const StartupBlockedApp({
+    super.key,
+    required this.title,
+    required this.message,
+  });
+
+  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -213,13 +256,16 @@ class AlreadyRunningApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Genius Wallet',
       theme: getThemeData(),
-      home: const _AlreadyRunningScreen(),
+      home: _StartupBlockedScreen(title: title, message: message),
     );
   }
 }
 
-class _AlreadyRunningScreen extends StatelessWidget {
-  const _AlreadyRunningScreen();
+class _StartupBlockedScreen extends StatelessWidget {
+  const _StartupBlockedScreen({required this.title, required this.message});
+
+  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +278,7 @@ class _AlreadyRunningScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Genius Wallet is already running',
+                title,
                 textAlign: TextAlign.center,
                 style: GeniusWalletTypography.titleLg.copyWith(
                   color: context.gw.textPrimary,
@@ -240,7 +286,7 @@ class _AlreadyRunningScreen extends StatelessWidget {
               ),
               const SizedBox(height: GeniusWalletConsts.space8),
               Text(
-                'Switch to the open window, or quit it before starting another.',
+                message,
                 textAlign: TextAlign.center,
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: context.gw.textSecondary,
