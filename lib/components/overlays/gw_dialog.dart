@@ -89,7 +89,7 @@ class GWDialog extends StatelessWidget {
               ],
               if (content != null) ...[
                 const SizedBox(height: GeniusWalletConsts.space8),
-                content!,
+                Flexible(child: SingleChildScrollView(child: content!)),
               ],
               if (actions.isNotEmpty) ...[
                 const SizedBox(height: GeniusWalletConsts.space10),

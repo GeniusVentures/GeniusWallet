@@ -1,3 +1,4 @@
+import 'dart:ui' show CheckedState;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
@@ -108,5 +109,50 @@ void main() {
     await tester.tapAt(start);
     await tester.pump();
     expect(_continue(tester).onPressed, isNull);
+  });
+
+  testWidgets('the toggle and each link are separate semantics nodes', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _open(tester, GWColors.dark(), (_) {});
+    final terms = tester.getSemantics(find.text('Terms of Use'));
+    final privacy = tester.getSemantics(find.text('Privacy Policy'));
+    expect(terms.label, 'Terms of Use');
+    expect(privacy.label, 'Privacy Policy');
+    expect(terms.id, isNot(privacy.id));
+    expect(terms.getSemanticsData().flagsCollection.isLink, isTrue);
+    expect(privacy.getSemanticsData().flagsCollection.isLink, isTrue);
+    expect(
+      find.semantics.byPredicate(
+        (n) =>
+            n.getSemanticsData().flagsCollection.isChecked !=
+                CheckedState.none &&
+            n.label.contains("I agree to Banxa's"),
+      ),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
+
+  testWidgets('scrolls on a short screen at 2x text, Continue reachable', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 568);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearAllTestValues);
+    bool? result;
+    await _open(tester, GWColors.dark(), (v) => result = v);
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.byType(GWCheckbox));
+    await tester.pump();
+    await tester.tap(find.byType(GWCheckbox));
+    await tester.pump();
+    expect(_continue(tester).onPressed, isNotNull);
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(result, isTrue);
   });
 }
