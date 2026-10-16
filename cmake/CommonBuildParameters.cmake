@@ -100,15 +100,11 @@ find_package(RocksDB CONFIG REQUIRED)
 
 #Find VUlkan
 if(APPLE)
-    if(IOS)
-        # Settings specifically for iOS
-        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/moltenvk/build/include")
-        set(Vulkan_LIBRARY "${THIRDPARTY_BUILD_DIR}/moltenvk/build/lib/MoltenVK.xcframework")
-    else()
-        # Settings for macOS
-        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/moltenvk/build/include/")
-        set(Vulkan_LIBRARY "${THIRDPARTY_BUILD_DIR}/moltenvk/build/lib/MoltenVK.xcframework")
-    endif()
+    # MoltenVK static install (same layout on macOS and iOS): single
+    # self-contained archive (prelinks ShaderConverter/SPIRV-Cross/SPIRV-Tools)
+    # + Vulkan headers.
+    set(Vulkan_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/moltenvk/include")
+    set(Vulkan_LIBRARY "${THIRDPARTY_BUILD_DIR}/moltenvk/lib/libMoltenVK.a")
 endif()
 find_package(Vulkan)
 
