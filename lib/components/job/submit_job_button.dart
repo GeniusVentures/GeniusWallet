@@ -25,7 +25,8 @@ class SubmitJobButtonState extends State<SubmitJobButton> {
   @override
   Widget build(BuildContext context) {
     final isDefaultAccountWallet =
-        widget.walletAddress == widget.gnusConnectedWalletAddress;
+        widget.walletAddress.toLowerCase() ==
+        widget.gnusConnectedWalletAddress.toLowerCase();
 
     if (!isDefaultAccountWallet) {
       return const SizedBox.shrink();

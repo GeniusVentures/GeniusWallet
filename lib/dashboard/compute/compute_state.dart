@@ -144,7 +144,7 @@ ComputeState resolveComputeState({
   // selected wallet is. An empty nodeWalletAddress here means the node has
   // not yet reported one, not that the selected wallet isn't its default.
   if (nodeWalletAddress.isNotEmpty &&
-      nodeWalletAddress != selectedWalletAddress) {
+      nodeWalletAddress.toLowerCase() != selectedWalletAddress.toLowerCase()) {
     return ComputeState.notDefaultAccount;
   }
 
