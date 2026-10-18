@@ -211,7 +211,10 @@ class WalletsOverviewState extends State<WalletsOverview> {
                         final computeState = resolveComputeState(
                           hasSelectedWallet: selectedWallet != null,
                           isNodeConnected: connection?.isConnected ?? false,
-                          nodeWalletAddress: connection?.walletAddress ?? '',
+                          nodeWalletAddress: connection?.isConnected == true
+                              ? appState.nodeWalletAddress ??
+                                    connection!.walletAddress
+                              : '',
                           selectedWalletAddress: selectedWallet?.address ?? '',
                           isProcessingUnavailable:
                               appState.processingFeedStatus ==

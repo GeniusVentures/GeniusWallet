@@ -96,6 +96,12 @@ class AppState extends Equatable {
   /// material.
   final Map<String, SDKAccountLink> sdkAccountLinks;
 
+  /// The wallet the node is running as, or null when the node account has no
+  /// link. The SDK connection only reports the start wallet, which goes
+  /// stale after a node-account switch.
+  String? get nodeWalletAddress =>
+      sdkAccountLinks[selectedSDKAccount?.toLowerCase()]?.walletAddress;
+
   const AppState({
     this.wallets = const [],
     this.sdkStatus = AppStatus.initial,
