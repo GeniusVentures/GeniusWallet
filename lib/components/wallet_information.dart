@@ -221,7 +221,13 @@ class WalletInformationState extends State<WalletInformation> {
                                   walletAddress:
                                       state.selectedWallet?.address ?? "",
                                   gnusConnectedWalletAddress:
-                                      connection?.walletAddress ?? "",
+                                      connection?.isConnected == true
+                                      ? context
+                                                .read<AppBloc>()
+                                                .state
+                                                .nodeWalletAddress ??
+                                            connection!.walletAddress
+                                      : "",
                                 );
                               },
                             ),
