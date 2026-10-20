@@ -535,6 +535,31 @@ void main() {
     await cubit.close();
   });
 
+  test('while the node is still starting, shows starting up and skips the '
+      'read instead of reporting an error', () async {
+    final api = _FakeApi(registrations: _queryErrorRegistrations);
+    var appState = const AppState(
+      selectedSDKAccount: _mainAddress,
+      sdkAccounts: [_mainAddress],
+      wallets: [_mainWallet, _childWallet],
+      sdkAccountLinks: _links,
+      initPercentage: 0.52,
+    );
+    final cubit = ChildWalletsCubit(
+      api: api,
+      readAppState: () => appState,
+      mainAddress: _mainAddress,
+    );
+    expect(cubit.state.status, ChildWalletsStatus.nodeStartingUp);
+    expect(api.registrationsCallCount, 0);
+
+    appState = _selectedAppState;
+    cubit.refresh();
+    expect(cubit.state.status, ChildWalletsStatus.error);
+
+    await cubit.close();
+  });
+
   testWidgets('a long linked name ellipsizes at one line', (tester) async {
     const longName =
         'A Very Long Wallet Name That Should Not Wrap Or Overflow The Row';
