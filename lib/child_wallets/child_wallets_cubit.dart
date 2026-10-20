@@ -38,7 +38,7 @@ class ChildWallet {
 
 /// Why the list looks the way it does -- distinct from an empty, successful
 /// read, which is still [loaded].
-enum ChildWalletsStatus { loaded, nodeNotRunning, error }
+enum ChildWalletsStatus { loaded, nodeNotRunning, nodeStartingUp, error }
 
 class ChildWalletsState {
   const ChildWalletsState({
@@ -136,6 +136,19 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
       emit(
         state.copyWith(
           status: ChildWalletsStatus.nodeNotRunning,
+          mainName: mainName,
+          children: const [],
+        ),
+      );
+      return;
+    }
+    // The node names its account before it finishes starting, and reads
+    // made in that window fail; that is not an error worth showing.
+    final initPercentage = appState.initPercentage;
+    if (devPreset == null && initPercentage != null && initPercentage < 1.0) {
+      emit(
+        state.copyWith(
+          status: ChildWalletsStatus.nodeStartingUp,
           mainName: mainName,
           children: const [],
         ),

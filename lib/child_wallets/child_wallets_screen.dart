@@ -84,6 +84,11 @@ class _ChildWalletsBody extends StatelessWidget {
           icon: Icons.cloud_off_outlined,
           title: 'Not earning right now',
         );
+      case ChildWalletsStatus.nodeStartingUp:
+        return const GWEmptyState(
+          icon: Icons.hourglass_empty,
+          title: 'Starting up. Child wallets appear once earning starts.',
+        );
       case ChildWalletsStatus.error:
         return GWErrorState(
           title: "Couldn't load child wallets",
