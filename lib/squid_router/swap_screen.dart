@@ -555,6 +555,7 @@ class _SwapScreenState extends State<SwapScreen> {
         // What the route card showed. A quote that never arrived showed no
         // fees, and a route that then charges some is stopped like any other.
         quotedFees: fetchedQuote?.feeLines ?? const [],
+        confirmedMinimum: fetchedQuote?.toAmountMin,
         fetchRoute: () => widget.provider.buildTransaction(request),
         readAllowance: (spender) => api.allowance(
           owner: address,
@@ -1213,7 +1214,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                     toAmount: toAmountController.text,
                                     fromSymbol: fromToken?.symbol,
                                     toSymbol: toToken?.symbol,
-                                    slippage: '$slippage%',
+                                    slippage: '$slippage',
                                   ),
                                 // The toast fades; this notice stays, so it
                                 // announces itself too.

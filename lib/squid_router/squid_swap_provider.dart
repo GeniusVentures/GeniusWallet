@@ -349,6 +349,9 @@ SwapTransaction squidTransaction(
     requestId: requestId ?? wire['requestId']?.toString(),
     spender: target.toString(),
     feeLines: _feeLinesRaw(estimate is Map ? estimate['feeCosts'] : null),
+    toAmountMin: estimate is Map
+        ? BigInt.tryParse(estimate['toAmountMin']?.toString() ?? '')
+        : null,
     request: {
       'from': from,
       'to': target.toString(),
