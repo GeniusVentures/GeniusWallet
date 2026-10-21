@@ -30,6 +30,9 @@ String? swapFailureMessage(SwapOutcome outcome) => switch (outcome) {
   SwapFeesChanged() =>
     "The route's fees changed since this quote was shown, so nothing was "
         'sent. Refresh the quote to see the current fees.',
+  SwapMinimumChanged() =>
+    'The price moved below the minimum you approved, so nothing was sent. '
+        'Review the new quote.',
   SwapBroadcast(:final status) => _settledMessage(status),
 };
 

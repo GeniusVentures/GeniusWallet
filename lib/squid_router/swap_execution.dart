@@ -73,6 +73,15 @@ final class SwapFeesChanged extends SwapOutcome {
   final List<FeeLine> actual;
 }
 
+/// The executable route guarantees less than the minimum the user approved.
+/// Nothing was approved or sent.
+final class SwapMinimumChanged extends SwapOutcome {
+  const SwapMinimumChanged({required this.confirmed, required this.actual});
+
+  final BigInt confirmed;
+  final BigInt? actual;
+}
+
 /// Funds moved. The only shape carrying a hash, and the only one that may
 /// produce a side effect.
 final class SwapBroadcast extends SwapOutcome {
@@ -133,6 +142,7 @@ SwapSideEffects sideEffectsFor(SwapOutcome outcome) => switch (outcome) {
   SwapSendFailed() => _none,
   SwapSendUnconfirmed() => _none,
   SwapFeesChanged() => _none,
+  SwapMinimumChanged() => _none,
 };
 
 /// Fee lines an aggregator quotes in dollars drift by cents between two calls
@@ -191,6 +201,7 @@ typedef SwapExecutor =
       required String tokenAddress,
       required BigInt amount,
       required List<FeeLine> quotedFees,
+      BigInt? confirmedMinimum,
       required Future<SwapTransaction> Function() fetchRoute,
       required Future<BigInt> Function(String spender) readAllowance,
       required Future<bool> Function(String spender, BigInt amount) approve,
@@ -212,10 +223,13 @@ typedef SwapExecutor =
 /// Every dependency is injected, so this holds no client, no key and no
 /// context. [amount] and the allowance are RAW base units. [quotedFees] is
 /// what the screen showed; a route that charges otherwise is not executed.
+/// [confirmedMinimum] is the reviewed minimum output in the to-token's base
+/// units; a route guaranteeing less is not executed.
 Future<SwapOutcome> executeSwap({
   required String tokenAddress,
   required BigInt amount,
   required List<FeeLine> quotedFees,
+  BigInt? confirmedMinimum,
   required Future<SwapTransaction> Function() fetchRoute,
   required Future<BigInt> Function(String spender) readAllowance,
   required Future<bool> Function(String spender, BigInt amount) approve,
@@ -246,6 +260,15 @@ Future<SwapOutcome> executeSwap({
   // too, and none may follow a route the user has not seen the price of.
   if (feesDrifted(quotedFees, route.feeLines)) {
     return SwapFeesChanged(quoted: quotedFees, actual: route.feeLines);
+  }
+  // A route that states no minimum cannot be shown to honour the approved one.
+  final routeMinimum = route.toAmountMin;
+  if (confirmedMinimum != null &&
+      (routeMinimum == null || routeMinimum < confirmedMinimum)) {
+    return SwapMinimumChanged(
+      confirmed: confirmedMinimum,
+      actual: routeMinimum,
+    );
   }
 
   final BigInt allowance;

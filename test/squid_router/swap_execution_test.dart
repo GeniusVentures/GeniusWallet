@@ -18,18 +18,20 @@ const _hash = '0xabc123';
 
 final _amount = BigInt.from(1500000000000000000);
 
-SwapTransaction _route({List<FeeLine> fees = const []}) => SwapTransaction(
-  quoteId: 'q1',
-  requestId: 'r1',
-  spender: _spender,
-  request: const {
-    'from': '0x1',
-    'to': _spender,
-    'value': '0x0',
-    'data': '0xdead',
-  },
-  feeLines: fees,
-);
+SwapTransaction _route({List<FeeLine> fees = const [], BigInt? minimum}) =>
+    SwapTransaction(
+      quoteId: 'q1',
+      requestId: 'r1',
+      spender: _spender,
+      request: const {
+        'from': '0x1',
+        'to': _spender,
+        'value': '0x0',
+        'data': '0xdead',
+      },
+      feeLines: fees,
+      toAmountMin: minimum,
+    );
 
 const _gasFee = FeeLine(name: 'Gas receiver fee', amountUsd: 0.50);
 const _bridgeFee = FeeLine(name: 'Bridge fee', amountUsd: 1.20);
@@ -48,7 +50,12 @@ class _Steps {
     this.recoveryUrl,
     this.quotedFees = const [],
     this.routeFees = const [],
+    this.confirmedMinimum,
+    this.routeMinimum,
   });
+
+  final BigInt? confirmedMinimum;
+  final BigInt? routeMinimum;
 
   final List<FeeLine> quotedFees;
   final List<FeeLine> routeFees;
@@ -73,11 +80,12 @@ class _Steps {
         tokenAddress: tokenAddress,
         amount: _amount,
         quotedFees: quotedFees,
+        confirmedMinimum: confirmedMinimum,
         fetchRoute: () async {
           if (routeError != null) {
             throw routeError!;
           }
-          return _route(fees: routeFees);
+          return _route(fees: routeFees, minimum: routeMinimum);
         },
         readAllowance: (spender) async {
           allowanceReads++;
@@ -122,6 +130,34 @@ void main() {
       expect(steps.sends, isEmpty);
       expect(steps.approvals, isEmpty);
       expect(steps.allowanceReads, 0);
+    });
+  });
+
+  group('the minimum', () {
+    test('a route paying less than the approved minimum is never approved '
+        'or sent', () async {
+      final steps = _Steps(
+        confirmedMinimum: BigInt.from(990000),
+        routeMinimum: BigInt.from(989999),
+      );
+      final outcome = await steps.run();
+
+      expect(outcome, isA<SwapMinimumChanged>());
+      expect(steps.allowanceReads, 0);
+      expect(steps.approvals, isEmpty);
+      expect(steps.sends, isEmpty);
+    });
+
+    test('a route at or above the approved minimum proceeds', () async {
+      for (final routeMinimum in [990000, 990001]) {
+        final steps = _Steps(
+          confirmedMinimum: BigInt.from(990000),
+          routeMinimum: BigInt.from(routeMinimum),
+        );
+
+        expect(await steps.run(), isA<SwapBroadcast>());
+        expect(steps.sends, hasLength(1));
+      }
     });
   });
 
@@ -395,6 +431,7 @@ void main() {
         const SwapSendFailed(null),
         const SwapSendUnconfirmed(null),
         const SwapFeesChanged(quoted: [], actual: []),
+        SwapMinimumChanged(confirmed: BigInt.one, actual: BigInt.zero),
       ]) {
         final effects = sideEffectsFor(outcome);
         expect(effects.showToast, isFalse, reason: '$outcome toasted');

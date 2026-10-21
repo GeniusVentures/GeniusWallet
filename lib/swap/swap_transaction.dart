@@ -9,7 +9,12 @@ class SwapTransaction {
     required this.spender,
     required this.request,
     this.feeLines = const [],
+    this.toAmountMin,
   });
+
+  /// The least THIS route guarantees to deliver, in the to-token's base units.
+  /// Null when the aggregator did not say.
+  final BigInt? toAmountMin;
 
   /// The fees THIS route charges, which is not necessarily what the quote
   /// showed: the executable route is a second answer from the aggregator.
