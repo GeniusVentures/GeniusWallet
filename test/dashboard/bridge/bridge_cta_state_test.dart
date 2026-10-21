@@ -114,7 +114,7 @@ void main() {
       );
       expect(state, BridgeCtaState.estimatingGas);
       expect(bridgeCtaEnabled(state), isFalse);
-      expect(bridgeCtaLabel(state), 'Estimating gas…');
+      expect(bridgeCtaLabel(state), 'Estimating gas');
     });
   });
 
@@ -168,7 +168,7 @@ void main() {
       );
       expect(state, BridgeCtaState.submitting);
       expect(bridgeCtaEnabled(state), isFalse);
-      expect(bridgeCtaLabel(state), 'Bridging…');
+      expect(bridgeCtaLabel(state), 'Bridging');
     });
 
     test('submitting outranks insufficientBalance', () {

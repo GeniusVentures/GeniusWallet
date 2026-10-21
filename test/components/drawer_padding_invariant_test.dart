@@ -72,6 +72,9 @@ const _census = <String, _Inset>{
   // Phase 31's send confirm drawer, same call shape as swap's approve
   // drawer -- no bodyPadding, so shellInset.
   'lib/send/send_screen.dart': _Inset.shellInset,
+  // The bridge and swap confirm drawers, same call shape as Send's.
+  'lib/dashboard/bridge/bridge_review.dart': _Inset.shellInset,
+  'lib/squid_router/swap_review.dart': _Inset.shellInset,
   'lib/tokens/token_info_screen.dart': _Inset.shellInset,
   // Two call sites in this one file: Receive (21-05) and More Options.
   'lib/components/wallet_information.dart': _Inset.shellInset,

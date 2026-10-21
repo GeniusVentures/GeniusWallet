@@ -26,6 +26,7 @@ import 'package:genius_wallet/squid_router/swap_execution.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_messages.dart';
 import 'package:genius_wallet/squid_router/swap_preselection.dart';
+import 'package:genius_wallet/squid_router/swap_review.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
@@ -424,7 +425,8 @@ class _SwapScreenState extends State<SwapScreen> {
       if (mounted) {
         showToast(
           context,
-          'Failed to fetch route. Check your input and try again.',
+          'Could not get a quote. Check your connection or try a different '
+          'amount.',
           type: ToastType.error,
         );
       }
@@ -451,10 +453,66 @@ class _SwapScreenState extends State<SwapScreen> {
     });
   }
 
+  /// Nothing moves until the user has seen the quote as it will be filled,
+  /// including the floor slippage allows, and confirmed it.
+  Future<void> _reviewSwap() async {
+    final quote = fetchedQuote;
+    final from = fromToken;
+    final to = toToken;
+    if (quote == null || from == null || to == null || isSubmitting) {
+      return;
+    }
+    // The swap signs on the selected network, so a token on any other chain
+    // would be reviewed under one network and sent on another.
+    final selected = context.read<WalletDetailsCubit>().state.selectedNetwork;
+    final selectedId = selected?.chainId.toString();
+    if (from.chainId != selectedId || to.chainId != selectedId) {
+      showToast(
+        context,
+        'Both tokens must be on ${selected?.name ?? 'the selected network'}. '
+        'Switch network or pick other tokens.',
+        title: "Can't swap",
+        type: ToastType.error,
+      );
+      return;
+    }
+    final confirmed = await showSwapReview(
+      context,
+      SwapReview(
+        fromAmount: fromAmount,
+        fromSymbol: from.symbol,
+        toAmount: toAmount,
+        toSymbol: to.symbol,
+        minimumReceived: formatTokenAmount(quote.toAmountMin, to.decimals),
+        slippage: slippage,
+        network: selected?.name ?? 'Chain $selectedId',
+        quote: quote,
+      ),
+    );
+    if (!confirmed || !mounted) {
+      return;
+    }
+    // A quote that changed while the review was open is not the one the user
+    // confirmed, so they review the new one instead.
+    if (!identical(fetchedQuote, quote)) {
+      showToast(
+        context,
+        'The quote changed. Review the new one.',
+        type: ToastType.warning,
+      );
+      await _reviewSwap();
+      return;
+    }
+    await _submitSwap();
+  }
+
   /// The READY rung's submit action — a thin adapter over the orchestrator.
   /// It reads [sideEffectsFor] and never re-derives that decision: a screen
   /// judging its own swap successful is how a false receipt gets shown.
   Future<void> _submitSwap() async {
+    if (isSubmitting) {
+      return;
+    }
     final request = quoteRequest;
     final walletState = context.read<WalletDetailsCubit>().state;
     final address = walletState.selectedWallet?.address;
@@ -627,7 +685,11 @@ class _SwapScreenState extends State<SwapScreen> {
         unresolved ??
             'Swapped $fromAmount ${fromToken?.symbol ?? ""} for '
                 '${toToken?.symbol ?? ""}.',
-        title: unresolved == null ? 'Swap Submitted' : 'Swap Sent',
+        title: unresolved != null
+            ? 'Swap sent'
+            : broadcast.status == TransactionStatus.completed
+            ? 'Swap complete'
+            : 'Swap submitted',
         type: unresolved == null ? ToastType.success : ToastType.warning,
       );
     }
@@ -717,8 +779,8 @@ class _SwapScreenState extends State<SwapScreen> {
                 const SizedBox(height: GeniusWalletConsts.space2),
                 Text(
                   submitFailure ??
-                      'Check your connection and try again — the quote above '
-                          'is not current.',
+                      'Check your connection or try a different amount. '
+                          'The quote above is not current.',
                   style: GeniusWalletTypography.labelMd.copyWith(
                     color: gw.statusErrorText,
                   ),
@@ -780,7 +842,9 @@ class _SwapScreenState extends State<SwapScreen> {
       return Padding(
         // Vertical only: EdgeInsets.all inset the CTA 16px inside the amount
         // cards, so the button's edge disagreed with every card above it.
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          vertical: GeniusWalletConsts.space8,
+        ),
         child: GWButton(
           variant: GWButtonVariant.gradient,
           size: GWButtonSize.md,
@@ -792,7 +856,7 @@ class _SwapScreenState extends State<SwapScreen> {
               ? null
               : state == SwapCtaState.routeError
               ? _fetchRoute
-              : _submitSwap,
+              : _reviewSwap,
         ),
       );
     }
@@ -810,45 +874,54 @@ class _SwapScreenState extends State<SwapScreen> {
     return Padding(
       // Same edge as the gradient rung above — the two must not disagree, or
       // the CTA would shift sideways as the ladder changes rung.
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: background,
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
-          ),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!unavailable && state == SwapCtaState.submitting) ...[
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(foreground),
+      padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space8),
+      // Announced on every rung change, so finding a route, submitting and
+      // refusals reach a screen reader.
+      child: Semantics(
+        button: true,
+        enabled: false,
+        liveRegion: true,
+        label: label,
+        excludeSemantics: true,
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+            ),
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!unavailable && state == SwapCtaState.submitting) ...[
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(foreground),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: GeniusWalletConsts.space4),
-                ],
-                // Shrinks rather than truncates: a refusal must stay readable
-                // whole in the fixed-height button at large text scales.
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      label,
-                      style: GeniusWalletTypography.titleLg.copyWith(
-                        color: foreground,
+                    const SizedBox(width: GeniusWalletConsts.space4),
+                  ],
+                  // Shrinks rather than truncates: a refusal must stay readable
+                  // whole in the fixed-height button at large text scales.
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        style: GeniusWalletTypography.titleLg.copyWith(
+                          color: foreground,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1003,6 +1076,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                   subtitle: "Trade any token across chains",
                                   centered: true,
                                   trailing: IconButton(
+                                    tooltip: 'Swap settings',
                                     icon: Icon(
                                       Icons.tune,
                                       color: gw.textSecondary,
@@ -1139,9 +1213,16 @@ class _SwapScreenState extends State<SwapScreen> {
                                     toAmount: toAmountController.text,
                                     fromSymbol: fromToken?.symbol,
                                     toSymbol: toToken?.symbol,
-                                    slippage: slippage.toString(),
+                                    slippage: '$slippage%',
                                   ),
-                                if (routeError) _buildRouteErrorNotice(gw),
+                                // The toast fades; this notice stays, so it
+                                // announces itself too.
+                                if (routeError)
+                                  Semantics(
+                                    liveRegion: true,
+                                    container: true,
+                                    child: _buildRouteErrorNotice(gw),
+                                  ),
                                 // The gap the eye reads here is NOT this box
                                 // alone: RouteDetailsCard (and the error notice
                                 // that replaces it) each carry their own
@@ -1260,14 +1341,16 @@ class _SwapFromWallet extends StatelessWidget {
         ),
         TextButton(
           style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space6,
+            ),
             minimumSize: const Size(44, 44),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             foregroundColor: gw.brandPrimaryOnSurface,
             textStyle: GeniusWalletTypography.labelMd,
           ),
           onPressed: () => unawaited(AccountDrawer.show(context)),
-          child: const Text('Switch ›'),
+          child: const Text('Switch'),
         ),
       ],
     );

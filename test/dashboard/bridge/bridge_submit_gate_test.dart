@@ -161,6 +161,8 @@ Future<void> _readyCta(WidgetTester tester, _Host host) async {
 
 Future<void> _tap(WidgetTester tester) async {
   await tester.tap(_cta);
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(GWButton, 'Confirm'));
   await tester.pump(const Duration(milliseconds: 300));
 }
 
@@ -170,6 +172,45 @@ Future<void> _drainToasts(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('the CTA opens a review, and Cancel burns nothing', (
+    tester,
+  ) async {
+    final host = _Host(_appState());
+    await _readyCta(tester, host);
+
+    await tester.tap(_cta);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review bridge'), findsOneWidget);
+    expect(find.text('Amount burned'), findsOneWidget);
+    expect(find.textContaining('cannot be undone'), findsOneWidget);
+    expect(host.api.burns, 0);
+
+    await tester.tap(find.widgetWithText(GWButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review bridge'), findsNothing);
+    expect(host.api.burns, 0);
+  });
+
+  testWidgets('a double tap on Confirm burns once and keeps the screen', (
+    tester,
+  ) async {
+    final host = _Host(_appState());
+    await _readyCta(tester, host);
+
+    await tester.tap(_cta);
+    await tester.pumpAndSettle();
+    final confirm = find.widgetWithText(GWButton, 'Confirm');
+    await tester.tap(confirm);
+    await tester.tap(confirm, warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(host.api.burns, 1);
+    expect(find.byType(BridgeScreen), findsOneWidget);
+    await _drainToasts(tester);
+  });
+
   testWidgets('the earning wallet submits the burn once', (tester) async {
     final host = _Host(_appState());
     await _readyCta(tester, host);
@@ -193,7 +234,7 @@ void main() {
     expect(host.api.burns, 0);
     expect(find.text("Can't bridge"), findsOneWidget);
     expect(find.text('Only the earning wallet can bridge.'), findsOneWidget);
-    expect(find.text('Bridging…'), findsNothing);
+    expect(find.text('Bridging'), findsNothing);
     await _drainToasts(tester);
   });
 

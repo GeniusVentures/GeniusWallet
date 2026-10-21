@@ -67,15 +67,15 @@ class _Provider extends FakeSwapProvider {
   @override
   Future<List<SwapToken>> tokens(String chainId) async => [
     SwapToken(
-      chainId: '1',
+      chainId: chainId,
       address: _native,
       name: 'Ethereum',
       symbol: 'ETH',
       decimals: 18,
       rawBalance: BigInt.parse('5000000000000000000'),
     ),
-    const SwapToken(
-      chainId: '1',
+    SwapToken(
+      chainId: chainId,
       address: _dai,
       name: 'Dai Stablecoin',
       symbol: 'DAI',
@@ -187,7 +187,7 @@ Future<void> _mountReady(
         home: SwapScreen(
           swapAvailable: true,
           preselectSymbol: 'ETH',
-          preselectChainId: 1,
+          preselectChainId: network.chainId,
           provider: const _Provider(),
           execute: execute,
           storage: storage,
@@ -285,8 +285,16 @@ SwapExecutor _answering(SwapOutcome outcome) =>
 final _cta = find.widgetWithText(GWButton, 'Swap');
 
 Future<void> _submit(WidgetTester tester) async {
-  await tester.tap(_cta);
+  await _openReview(tester);
+  await tester.tap(_confirm);
   await tester.pump();
+  await tester.pumpAndSettle();
+}
+
+final _confirm = find.widgetWithText(GWButton, 'Confirm');
+
+Future<void> _openReview(WidgetTester tester) async {
+  await tester.tap(_cta);
   await tester.pumpAndSettle();
 }
 
@@ -309,6 +317,90 @@ void main() {
     },
   );
 
+  testWidgets('the CTA opens a review, and Cancel swaps nothing', (
+    tester,
+  ) async {
+    final storage = _RecordingStorage();
+    var executed = 0;
+    await _mountReady(
+      tester,
+      execute:
+          ({
+            required tokenAddress,
+            required amount,
+            required quotedFees,
+            required fetchRoute,
+            required readAllowance,
+            required approve,
+            required send,
+            required readStatus,
+            required wait,
+            onBroadcast,
+            pollAttempts = 20,
+            pollInterval = const Duration(seconds: 3),
+          }) async {
+            executed++;
+            return const SwapRouteUnavailable(null);
+          },
+      storage: storage,
+    );
+
+    await _openReview(tester);
+
+    expect(find.text('Review swap'), findsOneWidget);
+    expect(find.textContaining('Minimum received'), findsOneWidget);
+    expect(find.text('Network'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(GWButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review swap'), findsNothing);
+    expect(executed, 0);
+    expect(storage.writes, isEmpty);
+  });
+
+  testWidgets('a quote that changes during review is reviewed again', (
+    tester,
+  ) async {
+    final storage = _RecordingStorage();
+    var executed = 0;
+    await _mountReady(
+      tester,
+      execute:
+          ({
+            required tokenAddress,
+            required amount,
+            required quotedFees,
+            required fetchRoute,
+            required readAllowance,
+            required approve,
+            required send,
+            required readStatus,
+            required wait,
+            onBroadcast,
+            pollAttempts = 20,
+            pollInterval = const Duration(seconds: 3),
+          }) async {
+            executed++;
+            return const SwapRouteUnavailable(null);
+          },
+      storage: storage,
+    );
+
+    await _openReview(tester);
+    await tester.enterText(find.byType(TextField).first, '2');
+    await tester.pump(const Duration(milliseconds: 1200));
+    await tester.pump();
+    await tester.tap(_confirm);
+    await tester.pumpAndSettle();
+
+    expect(find.text('The quote changed. Review the new one.'), findsOneWidget);
+    expect(find.text('Review swap'), findsOneWidget);
+    expect(executed, 0);
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pumpAndSettle();
+  });
+
   group('an outcome with no hash', () {
     for (final outcome in <SwapOutcome>[
       const SwapRouteUnavailable(null),
@@ -327,7 +419,8 @@ void main() {
         await _submit(tester);
 
         expect(storage.writes, isEmpty, reason: 'wrote a row with no hash');
-        expect(find.text('Swap Submitted'), findsNothing);
+        expect(find.text('Swap submitted'), findsNothing);
+        expect(find.text('Swap complete'), findsNothing);
         // The receipt sheet would carry the hash label; nothing opens it.
         expect(find.textContaining('0xfeedface'), findsNothing);
       });
@@ -346,7 +439,8 @@ void main() {
       await _submit(tester);
 
       expect(storage.writes, isEmpty, reason: 'recorded an unknown send');
-      expect(find.text('Swap Submitted'), findsNothing);
+      expect(find.text('Swap submitted'), findsNothing);
+      expect(find.text('Swap complete'), findsNothing);
       expect(
         find.text(swapFailureMessage(const SwapSendUnconfirmed(null))!),
         findsWidgets,
@@ -496,7 +590,8 @@ void main() {
       );
       // Tapped WITHOUT settling: the executor is gated open on purpose, so
       // anything waiting for the tree to go quiet would wait for this swap.
-      await tester.tap(_cta);
+      await _openReview(tester);
+      await tester.tap(_confirm);
       await tester.pump();
 
       // The screen goes away while the swap is still in flight.
@@ -633,7 +728,7 @@ void main() {
           find.text('Sending from Swap Wallet · 0xSWAP...SWAP'),
           findsOneWidget,
         );
-        expect(find.widgetWithText(TextButton, 'Switch ›'), findsOneWidget);
+        expect(find.widgetWithText(TextButton, 'Switch'), findsOneWidget);
       },
     );
 
@@ -690,7 +785,7 @@ void main() {
           appBloc: appBloc,
         );
 
-        await tester.tap(find.widgetWithText(TextButton, 'Switch ›'));
+        await tester.tap(find.widgetWithText(TextButton, 'Switch'));
         await tester.pumpAndSettle();
 
         expect(find.text('Accounts'), findsOneWidget);
