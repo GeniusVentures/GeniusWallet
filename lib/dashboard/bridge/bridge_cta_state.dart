@@ -98,13 +98,13 @@ String bridgeCtaLabel(BridgeCtaState state, {String? symbol}) {
           ? 'Insufficient $symbol balance'
           : 'Insufficient balance';
     case BridgeCtaState.estimatingGas:
-      return 'Estimating gas…';
+      return 'Estimating gas';
     case BridgeCtaState.gasError:
       return "Couldn't estimate gas";
     case BridgeCtaState.ready:
       return 'Bridge';
     case BridgeCtaState.submitting:
-      return 'Bridging…';
+      return 'Bridging';
   }
 }
 

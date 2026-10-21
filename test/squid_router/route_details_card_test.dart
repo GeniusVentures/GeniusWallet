@@ -84,8 +84,8 @@ void main() {
   testWidgets('every figure is read off the quote', (tester) async {
     await _pumpCard(tester, sameChainRoute);
 
-    expect(find.text('1 GNUS ~ 0.757304 USDC'), findsOneWidget);
-    expect(find.text('0.5'), findsOneWidget);
+    expect(find.text('1 GNUS = 0.757304 USDC'), findsOneWidget);
+    expect(find.text('0.5%'), findsOneWidget);
     expect(find.text('0.03%'), findsOneWidget);
     // Gas only on a same-chain route — and the row still shows it, where
     // summing fees alone would have printed $0.00.
@@ -218,7 +218,7 @@ void main() {
 
     await _pumpCard(tester, crossChainRoute);
 
-    expect(find.text('1 GNUS ~ 0.757304 USDC'), findsOneWidget);
+    expect(find.text('1 GNUS = 0.757304 USDC'), findsOneWidget);
   });
 
   testWidgets('the rate is cut to four decimals on a phone frame', (
@@ -231,8 +231,8 @@ void main() {
 
     await _pumpCard(tester, crossChainRoute);
 
-    expect(find.text('1 GNUS ~ 0.7573 USDC'), findsOneWidget);
-    expect(find.text('1 GNUS ~ 0.757304 USDC'), findsNothing);
+    expect(find.text('1 GNUS = 0.7573 USDC'), findsOneWidget);
+    expect(find.text('1 GNUS = 0.757304 USDC'), findsNothing);
   });
 
   testWidgets('every row fits at phone width', (tester) async {

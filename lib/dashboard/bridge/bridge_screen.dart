@@ -16,6 +16,7 @@ import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_entry.dart'
     show liveBridgeGate;
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_review.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/network/network_icon.dart';
 import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
@@ -104,22 +105,18 @@ class BridgeScreenState extends State<BridgeScreen> {
         ),
         child: Row(
           children: [
-            InkWell(
-              onTap: () => Navigator.of(context).maybePop(),
-              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-              child: SizedBox(
-                width: 30,
-                height: 30,
-                child: Center(
-                  child: SketchIcon(
-                    SketchIcons.back,
-                    size: 18,
-                    color: gw.textSecondary,
-                  ),
-                ),
+            IconButton(
+              tooltip: 'Back',
+              onPressed: () => Navigator.of(context).maybePop(),
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              padding: EdgeInsets.zero,
+              icon: SketchIcon(
+                SketchIcons.back,
+                size: 18,
+                color: gw.textSecondary,
               ),
             ),
-            const SizedBox(width: GeniusWalletConsts.space6),
+            const SizedBox(width: GeniusWalletConsts.space2),
             Text(
               'Bridge',
               style: GeniusWalletTypography.titleMd.copyWith(
@@ -143,6 +140,7 @@ class BridgeScreenState extends State<BridgeScreen> {
     VoidCallback? onTap,
   }) {
     final chip = Container(
+      constraints: BoxConstraints(minHeight: onTap == null ? 0 : 44),
       padding: const EdgeInsets.symmetric(
         horizontal: GeniusWalletConsts.space6,
         vertical: GeniusWalletConsts.space3,
@@ -150,7 +148,12 @@ class BridgeScreenState extends State<BridgeScreen> {
       decoration: BoxDecoration(
         color: gw.surfaceMenu,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-        border: Border.all(color: gw.borderSubtle, width: 1),
+        // The tappable chip needs a 3:1 edge; the fill alone barely differs
+        // from the page.
+        border: Border.all(
+          color: onTap == null ? gw.borderSubtle : gw.borderControl,
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -186,10 +189,15 @@ class BridgeScreenState extends State<BridgeScreen> {
     if (onTap == null) {
       return chip;
     }
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      child: chip,
+    return Semantics(
+      button: true,
+      label: 'Destination network, ${name ?? 'not selected'}',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+        child: chip,
+      ),
     );
   }
 
@@ -305,10 +313,37 @@ class BridgeScreenState extends State<BridgeScreen> {
     );
   }
 
+  /// A burn cannot be reversed, so nothing is submitted until the user has
+  /// seen the amount, both networks and the gas price and confirmed them.
+  Future<void> _reviewBridge(BuildContext context) async {
+    final gasPrice = transactionCost;
+    if (gasPrice == null || isSubmitting) {
+      return;
+    }
+    final source = context.read<WalletDetailsCubit>().state.selectedNetwork;
+    final confirmed = await showBridgeReview(
+      context,
+      BridgeReview(
+        amount: fromAmountController.text,
+        symbol: fromToken?.symbol ?? 'GNUS',
+        sourceNetwork: source?.name ?? 'this network',
+        destinationNetwork: toNetwork?.name ?? 'the destination network',
+        gasPrice: gasPrice,
+      ),
+    );
+    if (!confirmed || !context.mounted) {
+      return;
+    }
+    await _submitBridge(context);
+  }
+
   // The gate and the burn both read the live wallet state, never the one this
   // button was built with: the mint credits the earning account, and the
   // wallet, network or earning account can change while this screen is open.
   Future<void> _submitBridge(BuildContext context) async {
+    if (isSubmitting) {
+      return;
+    }
     final state = context.read<WalletDetailsCubit>().state;
     final gate = liveBridgeGate(context);
     final approved = gate.coin?.address?.toLowerCase();
@@ -355,12 +390,17 @@ class BridgeScreenState extends State<BridgeScreen> {
       final failureMessage =
           (errorMessage != null && errorMessage.trim().isNotEmpty)
           ? errorMessage
-          : 'Bridge transaction failed.';
+          : 'The bridge did not go through. Check the receipt, then your '
+                'gas balance, and try again.';
+      final symbol = fromToken?.symbol ?? 'GNUS';
 
       showToast(
         context,
-        isSuccess ? 'Bridge transaction completed.' : failureMessage,
-        title: isSuccess ? 'Success' : 'Error',
+        isSuccess
+            ? 'Bridged ${fromAmountController.text} $symbol to '
+                  '${toNetwork?.name ?? 'the destination network'}.'
+            : failureMessage,
+        title: isSuccess ? 'Bridge complete' : 'Bridge failed',
         type: isSuccess ? ToastType.success : ToastType.error,
       );
 
@@ -437,7 +477,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'You Pay',
+            'You pay',
             style: GeniusWalletTypography.labelMd.copyWith(
               color: gw.textSecondary,
             ),
@@ -448,39 +488,50 @@ class BridgeScreenState extends State<BridgeScreen> {
             children: [
               Flexible(
                 child: GWKeyboardDoneBar(
-                  child: TextField(
-                    controller: fromAmountController,
-                    style: heroStyle.copyWith(color: gw.textPrimary),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [DecimalTextInputFormatter()],
-                    decoration: InputDecoration(
-                      hintText: "0.0",
-                      hintStyle: heroStyle.copyWith(color: gw.textPrimary38),
-                      border: InputBorder.none,
-                    ),
-                    onChanged: (value) async {
-                      // Cancel any existing debounce timer
-                      if (_debounce?.isActive ?? false) {
-                        _debounce!.cancel();
-                      }
+                  child: Semantics(
+                    label: 'Amount to bridge',
+                    child: TextField(
+                      controller: fromAmountController,
+                      style: heroStyle.copyWith(color: gw.textPrimary),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [DecimalTextInputFormatter()],
+                      decoration: InputDecoration(
+                        hintText: "0.0",
+                        hintStyle: heroStyle.copyWith(color: gw.textSecondary),
+                        border: InputBorder.none,
+                      ),
+                      onChanged: (value) async {
+                        // Cancel any existing debounce timer
+                        if (_debounce?.isActive ?? false) {
+                          _debounce!.cancel();
+                        }
 
-                      // Start a new debounce timer
-                      _debounce = Timer(
-                        const Duration(milliseconds: 300),
-                        () async {
-                          // If an API call is already in progress, do nothing
-                          if (_isApiCallInProgress) {
-                            return;
-                          }
+                        // Start a new debounce timer
+                        _debounce = Timer(
+                          const Duration(milliseconds: 300),
+                          () async {
+                            // If an API call is already in progress, do nothing
+                            if (_isApiCallInProgress) {
+                              return;
+                            }
 
-                          // Validate input immediately
-                          try {
-                            if ((double.parse(value)) >
-                                    (fromToken?.balance ?? 0) ||
-                                fromToken?.balance == null) {
-                              // Not enough balance or invalid balance
+                            // Validate input immediately
+                            try {
+                              if ((double.parse(value)) >
+                                      (fromToken?.balance ?? 0) ||
+                                  fromToken?.balance == null) {
+                                // Not enough balance or invalid balance
+                                setState(() {
+                                  transactionCost = null;
+                                  toAmountController.text = '';
+                                  isError = true;
+                                });
+                                return;
+                              }
+                            } catch (e) {
+                              // Input wasn't a proper double
                               setState(() {
                                 transactionCost = null;
                                 toAmountController.text = '';
@@ -488,61 +539,55 @@ class BridgeScreenState extends State<BridgeScreen> {
                               });
                               return;
                             }
-                          } catch (e) {
-                            // Input wasn't a proper double
-                            setState(() {
-                              transactionCost = null;
-                              toAmountController.text = '';
-                              isError = true;
-                            });
-                            return;
-                          }
 
-                          // Set API call in progress
-                          _isApiCallInProgress = true;
-                          setState(() => isEstimating = true);
+                            // Set API call in progress
+                            _isApiCallInProgress = true;
+                            setState(() => isEstimating = true);
 
-                          // Make the API call
-                          final api = context.read<GeniusApi>();
-                          final gasCostResponse = await api.getBrigeOutGasCost(
-                            sourceChainId: state.selectedNetwork?.chainId ?? 0,
-                            contractAddress: fromToken?.address ?? "",
-                            rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                            address: state.selectedWallet?.address ?? "",
-                            amountToBurn: value,
-                            destinationChainId: toNetwork?.chainId ?? 0,
-                          );
+                            // Make the API call
+                            final api = context.read<GeniusApi>();
+                            final gasCostResponse = await api
+                                .getBrigeOutGasCost(
+                                  sourceChainId:
+                                      state.selectedNetwork?.chainId ?? 0,
+                                  contractAddress: fromToken?.address ?? "",
+                                  rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
+                                  address: state.selectedWallet?.address ?? "",
+                                  amountToBurn: value,
+                                  destinationChainId: toNetwork?.chainId ?? 0,
+                                );
 
-                          // Reset API call progress
-                          _isApiCallInProgress = false;
+                            // Reset API call progress
+                            _isApiCallInProgress = false;
 
-                          // Handle API response
-                          if (gasCostResponse.isSuccess) {
-                            setState(() {
-                              toAmountController.text = value;
-                              transactionCost = gasCostResponse.data;
-                              isError = false;
-                              isEstimating = false;
-                            });
-                          } else {
-                            setState(() {
-                              transactionCost = null;
-                              toAmountController.text = '';
-                              isError = true;
-                              isEstimating = false;
-                            });
-                          }
-                        },
-                      );
-                    },
+                            // Handle API response
+                            if (gasCostResponse.isSuccess) {
+                              setState(() {
+                                toAmountController.text = value;
+                                transactionCost = gasCostResponse.data;
+                                isError = false;
+                                isEstimating = false;
+                              });
+                            } else {
+                              setState(() {
+                                transactionCost = null;
+                                toAmountController.text = '';
+                                isError = true;
+                                isEstimating = false;
+                              });
+                            }
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: GeniusWalletConsts.space4),
               Container(
                 padding: const EdgeInsets.only(
-                  left: 4,
-                  right: 8,
+                  left: GeniusWalletConsts.space2,
+                  right: GeniusWalletConsts.space4,
                   top: 2,
                   bottom: 2,
                 ),
@@ -564,7 +609,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                         return const SizedBox(height: 32, width: 32);
                       },
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: GeniusWalletConsts.space4),
                     Text(
                       fromToken?.symbol ?? 'GNUS',
                       style: GeniusWalletTypography.titleMd.copyWith(
@@ -611,7 +656,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'You Receive on ${toNetwork?.name ?? ""}',
+            'You receive on ${toNetwork?.name ?? ""}',
             style: GeniusWalletTypography.labelMd.copyWith(
               color: gw.textSecondary,
             ),
@@ -621,22 +666,26 @@ class BridgeScreenState extends State<BridgeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
-                child: TextField(
-                  controller: toAmountController,
-                  readOnly: true,
-                  style: heroStyle.copyWith(color: gw.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: "0.0",
-                    hintStyle: heroStyle.copyWith(color: gw.textPrimary38),
-                    border: InputBorder.none,
+                child: Semantics(
+                  label: 'Amount received',
+                  child: TextField(
+                    controller: toAmountController,
+                    readOnly: true,
+                    canRequestFocus: false,
+                    style: heroStyle.copyWith(color: gw.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: "0.0",
+                      hintStyle: heroStyle.copyWith(color: gw.textSecondary),
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: GeniusWalletConsts.space4),
               Container(
                 padding: const EdgeInsets.only(
-                  left: 4,
-                  right: 8,
+                  left: GeniusWalletConsts.space2,
+                  right: GeniusWalletConsts.space4,
                   top: 2,
                   bottom: 2,
                 ),
@@ -658,7 +707,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                         return const SizedBox(height: 32, width: 32);
                       },
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: GeniusWalletConsts.space4),
                     Text(
                       toNetwork?.name ?? 'Select',
                       style: GeniusWalletTypography.titleMd.copyWith(
@@ -716,7 +765,11 @@ class BridgeScreenState extends State<BridgeScreen> {
             '$receiveAmount ${fromToken?.symbol ?? "GNUS"}',
           ),
           const SizedBox(height: GeniusWalletConsts.space4),
-          _gasRow(gw, 'Estimated gas cost', transactionCost ?? '—'),
+          _gasRow(
+            gw,
+            'Gas price (Gwei)',
+            transactionCost ?? 'Not estimated yet',
+          ),
         ],
       ),
     );
@@ -752,7 +805,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         // Signing looks the key up by address, so a watch-only row sharing a
         // key wallet's address would otherwise spend from that key.
         onPressed: canSendFrom(state.selectedWallet, state.selectedNetwork)
-            ? () => _submitBridge(context)
+            ? () => _reviewBridge(context)
             : null,
       );
     }
@@ -765,37 +818,46 @@ class BridgeScreenState extends State<BridgeScreen> {
         : gw.surfaceMenu;
     final foreground = isErrorTone ? gw.statusErrorText : gw.textPrimary38;
 
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
-        ),
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (ctaState == BridgeCtaState.submitting) ...[
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(foreground),
+    // Announced on every rung change, so estimating, submitting and gas
+    // errors reach a screen reader, not only the eye.
+    return Semantics(
+      button: true,
+      enabled: false,
+      liveRegion: true,
+      label: label,
+      excludeSemantics: true,
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+          ),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (ctaState == BridgeCtaState.submitting) ...[
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(foreground),
+                    ),
+                  ),
+                  const SizedBox(width: GeniusWalletConsts.space4),
+                ],
+                Text(
+                  label,
+                  style: GeniusWalletTypography.titleLg.copyWith(
+                    color: foreground,
                   ),
                 ),
-                const SizedBox(width: GeniusWalletConsts.space4),
               ],
-              Text(
-                label,
-                style: GeniusWalletTypography.titleLg.copyWith(
-                  color: foreground,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
