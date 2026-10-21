@@ -1994,6 +1994,11 @@ class GeniusApi {
     required int destinationChainId,
     bool shouldMintTokens = false,
   }) async {
+    final mintMinions = gnusToMinions(amountToBurn);
+    if (shouldMintTokens && mintMinions == null) {
+      return ApiResponse.error("Error: Invalid amount");
+    }
+
     final wallet = await _secureStorage.getWallet(address);
 
     if (wallet == null) {
@@ -2013,7 +2018,7 @@ class GeniusApi {
       final hardCodedTokenIdForNow = 0;
 
       mintTokens(
-        int.parse(amountToBurn),
+        mintMinions!,
         resp.data!,
         destinationChainId.toString(),
         '$hardCodedTokenIdForNow',
@@ -2221,4 +2226,24 @@ class GeniusApi {
       return GeniusNodeState.GENIUS_NODE_CREATING;
     }
   }
+}
+
+/// A typed GNUS amount as whole Minions (1 GNUS = 1e6), the unit the SDK
+/// mints in. Null for anything that is not a positive amount with at most six
+/// decimals, so a mint never silently rounds away part of the burn.
+int? gnusToMinions(String amount) {
+  final match = RegExp(r'^(\d*)(?:\.(\d{0,6}))?$').firstMatch(amount.trim());
+  if (match == null) {
+    return null;
+  }
+  final whole = match.group(1) ?? '';
+  final fraction = match.group(2) ?? '';
+  if (whole.isEmpty && fraction.isEmpty) {
+    return null;
+  }
+  final minions = int.tryParse('0$whole${fraction.padRight(6, '0')}');
+  if (minions == null || minions <= 0) {
+    return null;
+  }
+  return minions;
 }
