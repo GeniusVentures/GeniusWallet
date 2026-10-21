@@ -665,7 +665,9 @@ class SendCubit extends Cubit<SendState> {
       );
     } catch (_) {
       // A keychain read can throw before anything is signed.
-      result = ApiResponse.error('The signature failed.');
+      result = ApiResponse.error(
+        "Couldn't sign this send. Nothing was sent. Try again.",
+      );
     }
 
     // A hash without success is a broadcast the node never confirmed
@@ -677,7 +679,9 @@ class SendCubit extends Cubit<SendState> {
         emit(
           state.copyWith(
             busy: false,
-            error: result.errorMessage ?? 'The signature failed.',
+            error:
+                result.errorMessage ??
+                "Couldn't sign this send. Nothing was sent. Try again.",
           ),
         );
       }
@@ -732,7 +736,7 @@ class SendCubit extends Cubit<SendState> {
         amount: '',
         error: unconfirmed
             ? "The network didn't confirm it received this send. It's in "
-                  'your history as pending -- check there before sending '
+                  'your history as pending. Check there before sending '
                   'again.'
             : null,
         clearReview: true,

@@ -1,4 +1,4 @@
-// At the two-column width (the 1440 default window) the chart owns the whole
+// At the two-column width (below 1440) the chart owns the whole
 // left column; halved with Markets it drew a flat line.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,7 +33,7 @@ void main() {
   testWidgets('two columns: the GNUS chart shows, the Markets panel does not', (
     tester,
   ) async {
-    await _pumpAt(tester, 1440);
+    await _pumpAt(tester, 1439);
 
     expect(find.byType(ChartDashboardView), findsOneWidget);
     expect(find.byType(MarketsDashboardView), findsNothing);
@@ -46,7 +46,7 @@ void main() {
   testWidgets(
     'the chosen range survives crossing the three-column breakpoint',
     (tester) async {
-      await _pumpAt(tester, 1440);
+      await _pumpAt(tester, 1439);
       final original = FlutterError.onError;
       FlutterError.onError = (_) {};
       try {
@@ -72,7 +72,7 @@ void main() {
   testWidgets('tapping the active range again rebuilds the chart to retry', (
     tester,
   ) async {
-    await _pumpAt(tester, 1440);
+    await _pumpAt(tester, 1439);
     Key? chartKey() =>
         tester.widget<CryptoLiveChart>(find.byType(CryptoLiveChart)).key;
     final before = chartKey();

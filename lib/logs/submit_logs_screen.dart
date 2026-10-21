@@ -287,7 +287,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       setState(() {
         _statusIsError = false;
         _statusMessage =
-            'SDK is not initialized yet. Start the SDK first, then send feedback.';
+            'Earning is not running yet. Start Earning first, then send feedback.';
       });
       return;
     }
@@ -296,7 +296,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       _isSubmitting = true;
       _statusIsError = false;
       _lastEventId = null;
-      _statusMessage = 'Preparing feedback payload...';
+      _statusMessage = 'Preparing your feedback';
     });
 
     final normalizedBasePath = _normalizedBasePath(
@@ -317,8 +317,8 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     try {
       setState(() {
         _statusMessage = existingLogs.isEmpty
-            ? 'Sending feedback without SDK log attachments...'
-            : 'Sending feedback with ${existingLogs.length} log attachment(s)...';
+            ? 'Sending feedback without logs'
+            : 'Sending feedback with ${existingLogs.length} ${existingLogs.length == 1 ? 'log' : 'logs'}';
       });
 
       final fileSizesByName = <String, int>{};
@@ -538,8 +538,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       statusText = _statusMessage;
     } else if (!sdkReady) {
       statusColor = gw.textSecondary;
-      statusText =
-          'Start the SDK first - feedback needs it running to attach logs and send.';
+      statusText = 'Start Earning first so we can attach your logs.';
     } else {
       statusColor = _statusIsError ? gw.statusErrorText : gw.textSecondary;
       statusText = _statusMessage;
@@ -781,9 +780,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     if (!sdkReady) {
       // Says WHY there are no log rows rather than showing an empty space the
       // user has to interpret.
-      rows.add(_railRow(gw, 'Logs', 'Unavailable - SDK stopped'));
+      rows.add(_railRow(gw, 'Logs', 'Available once Earning starts'));
     } else if (probes == null) {
-      rows.add(_railRow(gw, 'Logs', 'Checking...'));
+      rows.add(_railRow(gw, 'Logs', 'Checking'));
     } else if (probes.isEmpty) {
       rows.add(_railRow(gw, 'Logs', 'None found yet'));
     } else {
@@ -804,7 +803,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     rows.add(
       _railRow(
         gw,
-        'SDK',
+        'Earning',
         sdkReady ? 'Running' : 'Stopped',
         valueColor: sdkReady ? gw.statusSuccessText : null,
       ),

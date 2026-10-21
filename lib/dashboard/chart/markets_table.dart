@@ -184,12 +184,21 @@ class _MarketsTableState extends State<MarketsTable> {
         alignment: alignEnd ? Alignment.centerRight : Alignment.centerLeft,
         child: sort == null
             ? child
-            : InkWell(
-                onTap: () => _onHeaderTap(sort),
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: child,
+            : Semantics(
+                button: true,
+                label: active
+                    ? '$label, sorted ${_ascending ? 'ascending' : 'descending'}'
+                    : label,
+                excludeSemantics: true,
+                child: InkWell(
+                  onTap: () => _onHeaderTap(sort),
+                  borderRadius: BorderRadius.circular(
+                    GeniusWalletConsts.radiusSm,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: child,
+                  ),
                 ),
               ),
       );
@@ -324,7 +333,9 @@ class _MarketsTableState extends State<MarketsTable> {
                   ),
                   decoration: BoxDecoration(
                     color: changeColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(
+                      GeniusWalletConsts.radiusSm,
+                    ),
                   ),
                   child: Text(
                     '${up ? '+' : ''}${data.priceChangePercentage24h.toStringAsFixed(2)}%',

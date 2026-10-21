@@ -101,8 +101,7 @@ class ResponsiveDrawer {
     bool enableDrag = true,
     EdgeInsetsGeometry bodyPadding = kDrawerBodyPadding,
   }) {
-    final isDesktop =
-        MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium;
+    final isDesktop = GeniusBreakpoints.useDesktopLayout(context);
 
     // Fail-soft read: resolved once at open-time (this is a static factory,
     // not a widget build()), used for the two Route/API-level color params

@@ -221,8 +221,6 @@ enum TxAmountTone { incoming, outgoing, none }
 /// U+2212 REAL MINUS, not a hyphen: it is the same advance width as `+` under
 /// tabular figures, so the amount column stays aligned.
 const String _minus = '−';
-const String _arrow = '→';
-const String _middot = '·';
 
 /// Everything 12-03's row widget needs to paint, already decided.
 ///
@@ -436,14 +434,14 @@ String? recoveryNoteFor(TransactionStatus status, {String? requestedSymbol}) =>
     switch (status) {
       TransactionStatus.needsGas =>
         'This transfer is paused on the destination chain. Your funds are '
-            'held, not lost — adding gas there resumes it.',
+            'held, not lost. Adding gas there resumes it.',
       // Names the token ASKED for and no other. The status response carries
       // no symbol for what actually arrived, so naming one would be exactly
       // the kind of invention this phase exists to delete.
       TransactionStatus.partialSuccess =>
         'This swap stopped before it could deliver '
             '${requestedSymbol ?? 'the token you asked for'}. Your funds are '
-            'safe — check your balances to see what is held.',
+            'safe. Check your balances to see what is held.',
       TransactionStatus.refunded =>
         'This swap did not go through. The funds return to the sending '
             'address on their own, usually within about ten minutes, and '
@@ -520,7 +518,7 @@ TxRowContent txRowContent(
   if (type == TransactionType.swap &&
       tx.fromSymbol != null &&
       tx.toSymbol != null) {
-    title = '${tx.fromSymbol} $_arrow ${tx.toSymbol}';
+    title = '${tx.fromSymbol} to ${tx.toSymbol}';
   } else {
     title = tx.assetUnit;
   }
@@ -628,24 +626,22 @@ TxRowContent txRowContent(
     case TransactionType.swap:
       final fromAmount = formatTxAmount(tx.fromAmount ?? '0');
       subtitleLead = 'Swapped';
-      subtitleBase = '$_middot $fromAmount ${tx.fromSymbol ?? tx.coinSymbol}';
+      subtitleBase = '$fromAmount ${tx.fromSymbol ?? tx.coinSymbol}';
     case TransactionType.transfer:
     case null:
       subtitleLead = isSent ? 'Sent' : 'Received';
       if (isSent) {
         subtitleBase = tx.recipients.isEmpty
-            ? '$_middot Unknown recipient'
-            : '$_middot ${_addressLine(tx.recipients.first.toAddr)}';
+            ? 'to Unknown recipient'
+            : 'to ${_addressLine(tx.recipients.first.toAddr)}';
       } else {
-        subtitleBase = '$_middot ${_addressLine(tx.fromAddress)}';
+        subtitleBase = 'from ${_addressLine(tx.fromAddress)}';
       }
   }
   // The composed whole line. Built FROM the pieces rather than beside them, so
   // the three can never state different things about one row.
   //
-  // The middle dot survives INSIDE the qualifier, where it still separates two
-  // runs of one flow (`Sent · 0x7a3f…9c21`). It does not survive on the status
-  // tail, which the row draws as its own right-pinned element - see
+  // The status tail is also drawn as its own right-pinned element - see
   // [TxRowContent.statusTail].
   String subtitle = subtitleBase.isEmpty
       ? subtitleLead
@@ -654,7 +650,7 @@ TxRowContent txRowContent(
   // Appended LAST so the wide page can show the context alone and carry the
   // status in its own pill.
   if (status != TransactionStatus.completed) {
-    subtitle = '$subtitle $_middot ${statusWordFor(status)}';
+    subtitle = '$subtitle, ${statusWordFor(status)}';
   }
 
   // AMOUNT + TONE + VALUE LINE.

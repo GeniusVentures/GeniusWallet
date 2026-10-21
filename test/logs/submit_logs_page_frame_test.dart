@@ -196,9 +196,7 @@ void main() {
     // that parks the button mid-block today. The arrangement is
     // unconditional, so proving it here proves it for the Failed state's
     // 130-character message, which no test can reach without a live Sentry.
-    final status = find.text(
-      'Start the SDK first - feedback needs it running to attach logs and send.',
-    );
+    final status = find.text('Start Earning first so we can attach your logs.');
 
     expect(
       tester.getRect(find.byType(GWButton).first).top,

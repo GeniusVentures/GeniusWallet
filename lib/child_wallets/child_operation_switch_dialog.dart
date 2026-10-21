@@ -91,7 +91,7 @@ Future<bool> ensureRunningAs(
   showToast(
     // ignore: use_build_context_synchronously
     navigator.context,
-    'Switching to $requiredLabel…',
+    'Switching to $requiredLabel',
   );
 
   // Lands only when the node reports the account. Once our switch has shown

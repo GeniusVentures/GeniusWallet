@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
-import 'package:genius_wallet/theme/genius_wallet_motion.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Editorial "View all" text link (sketch 003-markets-panel, variant D).
@@ -147,25 +146,6 @@ class GWViewAllLink extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [Text(label.toUpperCase(), style: labelStyle)],
-                ),
-              ),
-              const SizedBox(width: 6),
-              // Arrow slides ~3px right on hover (transform doesn't reserve
-              // layout, so no reflow). It is the second half of the hover
-              // state, and on iOS it is the half that never renders - which is
-              // the observation that started the 2026-08-07 round trip.
-              AnimatedContainer(
-                duration: GeniusWalletMotion.base,
-                curve: GeniusWalletMotion.standard,
-                transform: Matrix4.translationValues(
-                  hovered ? 3.0 : 0.0,
-                  0.0,
-                  0.0,
-                ),
-                child: const Icon(
-                  Icons.arrow_right_alt,
-                  size: 15,
-                  color: Colors.white,
                 ),
               ),
             ],

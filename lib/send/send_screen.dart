@@ -234,6 +234,12 @@ class _SendBodyState extends State<_SendBody> {
                 Semantics(liveRegion: true, child: GWWarningNote(state.error!)),
               ],
               const SizedBox(height: GeniusWalletConsts.space8),
+              if (state.busy)
+                Semantics(
+                  liveRegion: true,
+                  label: 'Estimating network fee',
+                  child: const SizedBox(height: 1),
+                ),
               GWButton(
                 label: 'Review',
                 variant: GWButtonVariant.gradient,
@@ -356,7 +362,7 @@ class _SendBodyState extends State<_SendBody> {
         showToast(
           context,
           cubit.state.error ??
-              'Sent to $to. Still confirming -- your history will update.',
+              'Sent to $to. Still confirming. Your history will update.',
           title: 'Send submitted',
           type: ToastType.warning,
         );

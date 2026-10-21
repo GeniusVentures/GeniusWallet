@@ -67,7 +67,7 @@ class OrderStatusPill extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

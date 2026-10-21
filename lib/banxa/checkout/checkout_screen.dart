@@ -455,7 +455,9 @@ class _CheckoutHeader extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: sandbox.bg,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(
+                  GeniusWalletConsts.radiusPill,
+                ),
               ),
               child: Text(
                 'Sandbox · no real money',
@@ -588,7 +590,7 @@ class _ProgressStep extends StatelessWidget {
     final success = orderStatusPaint(OrderStatusTone.success, gw);
     final error = orderStatusPaint(OrderStatusTone.error, gw);
     final (fg, bg, mark, word) = switch (state) {
-      CheckoutStepState.done => (success.fg, success.bg, '✓', 'done'),
+      CheckoutStepState.done => (success.fg, success.bg, '', 'done'),
       CheckoutStepState.failed => (error.fg, error.bg, '!', 'failed'),
       CheckoutStepState.active => (
         gw.brandPrimaryOnSurface,
@@ -606,6 +608,7 @@ class _ProgressStep extends StatelessWidget {
 
     return Semantics(
       label: '$label, $word',
+      liveRegion: true,
       excludeSemantics: true,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -621,15 +624,17 @@ class _ProgressStep extends StatelessWidget {
                   ? Border.all(color: fg, width: 1.5)
                   : null,
             ),
-            child: Text(
-              mark,
-              style: GeniusWalletTypography.labelMd.copyWith(
-                color: fg,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                height: 1,
-              ),
-            ),
+            child: state == CheckoutStepState.done
+                ? Icon(Icons.check, size: 14, color: fg)
+                : Text(
+                    mark,
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: fg,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      height: 1,
+                    ),
+                  ),
           ),
           const SizedBox(width: GeniusWalletConsts.space2),
           Text(

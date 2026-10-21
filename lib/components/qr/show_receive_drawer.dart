@@ -7,7 +7,9 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 /// `/receive` route; no-op while no wallet address is known.
 void showReceiveDrawer(BuildContext context, WalletDetailsState state) {
   final address = state.selectedWallet?.address;
-  if (address == null || address.isEmpty) {
+  final network =
+      state.selectedNetwork?.name ?? state.selectedNetwork?.symbol ?? '';
+  if (address == null || address.isEmpty || network.isEmpty) {
     return;
   }
   ResponsiveDrawer.show<void>(
@@ -15,8 +17,7 @@ void showReceiveDrawer(BuildContext context, WalletDetailsState state) {
     title: 'Receive',
     child: CryptoAddressQR(
       address: address,
-      network:
-          state.selectedNetwork?.name ?? state.selectedNetwork?.symbol ?? '',
+      network: network,
       iconPath: state.selectedNetwork?.iconPath,
     ),
   );

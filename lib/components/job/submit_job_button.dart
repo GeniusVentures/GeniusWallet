@@ -34,7 +34,7 @@ class SubmitJobButtonState extends State<SubmitJobButton> {
 
     return SlidingDrawerButton(
       icon: Icons.create,
-      label: 'Create a Processing Job',
+      label: 'New processing job',
       onPressed: () async {
         widget.onPressed?.call();
         await context.push('/submit_job');

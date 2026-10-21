@@ -32,7 +32,9 @@ class ApproveTransactionDrawer {
               Row(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(
+                      GeniusWalletConsts.radiusPill,
+                    ),
                     // The errorBuilder collapsing to nothing is a mitigation
                     // (T-21-12), not decoration: it stops a hostile dApp
                     // placing a broken-image glyph or an oversized

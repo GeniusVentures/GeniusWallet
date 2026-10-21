@@ -40,7 +40,7 @@ class LegalScreen extends StatelessWidget {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            spacing: 20.0,
+            spacing: GeniusWalletConsts.space10,
             children: [
               Text(
                 "Legal",
@@ -49,28 +49,34 @@ class LegalScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                'Please review the privacy policy and terms of service before proceeding.',
+                'Read our Privacy Policy and Terms of Service to continue.',
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: gw.textSecondary,
                 ),
               ),
-              GWButton(
-                label: 'Privacy Policy',
-                variant: GWButtonVariant.secondary,
-                size: GWButtonSize.md,
-                expand: true,
-                onPressed: () => launchWebSite(
-                  context,
-                  'https://www.gnus.ai/privacypolicy.html',
+              Semantics(
+                hint: 'Opens in browser',
+                child: GWButton(
+                  label: 'Privacy Policy',
+                  variant: GWButtonVariant.secondary,
+                  size: GWButtonSize.md,
+                  expand: true,
+                  onPressed: () => launchWebSite(
+                    context,
+                    'https://www.gnus.ai/privacypolicy.html',
+                  ),
                 ),
               ),
-              GWButton(
-                label: 'Terms of Service',
-                variant: GWButtonVariant.secondary,
-                size: GWButtonSize.md,
-                expand: true,
-                onPressed: () =>
-                    launchWebSite(context, 'https://www.gnus.ai/tos.html'),
+              Semantics(
+                hint: 'Opens in browser',
+                child: GWButton(
+                  label: 'Terms of Service',
+                  variant: GWButtonVariant.secondary,
+                  size: GWButtonSize.md,
+                  expand: true,
+                  onPressed: () =>
+                      launchWebSite(context, 'https://www.gnus.ai/tos.html'),
+                ),
               ),
               GWCheckbox(
                 value: accepted,

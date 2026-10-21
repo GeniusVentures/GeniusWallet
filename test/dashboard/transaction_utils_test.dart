@@ -512,7 +512,7 @@ void main() {
       );
       expect(content.title, contains('ETH'));
       expect(content.title, contains('GNUS'));
-      expect(content.title, contains('→'));
+      expect(content.title, contains(' to '));
       expect(content.iconSymbols, ['eth', 'gnus']);
       expect(content.iconSymbols.length, 2);
       expect(content.amount, '+ 1,200.50 GNUS');
@@ -526,8 +526,8 @@ void main() {
       // separate facts rather than the old single composed string, so a future
       // edit that moves the word between the pieces still fails here.
       expect(content.subtitleLead, 'Swapped');
-      expect(content.subtitleBase, '· 1.50 ETH');
-      expect(content.subtitle, 'Swapped · 1.50 ETH');
+      expect(content.subtitleBase, '1.50 ETH');
+      expect(content.subtitle, 'Swapped 1.50 ETH');
     });
 
     test('a completed subtitle carries no status token at all', () {
@@ -640,9 +640,9 @@ void main() {
       // them. Both pieces are pinned, not just the composed line, so the
       // fallback cannot quietly migrate into the lead where it would stop
       // ellipsising.
-      expect(content.subtitleBase, '· Unknown recipient');
+      expect(content.subtitleBase, 'to Unknown recipient');
       expect(content.subtitleLead, 'Sent');
-      expect(content.subtitle, 'Sent · Unknown recipient');
+      expect(content.subtitle, 'Sent to Unknown recipient');
       expect(content.amount, '$minus 0.00 ETH');
     });
 
@@ -694,7 +694,7 @@ void main() {
             ].where((piece) => piece.isNotEmpty).join(' ');
             final tail = content.statusTail;
             if (tail != null) {
-              composed = '$composed · $tail';
+              composed = '$composed, $tail';
             }
             expect(composed, content.subtitle, reason: 'recompose for $where');
           }

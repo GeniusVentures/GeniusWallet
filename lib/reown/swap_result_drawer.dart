@@ -9,6 +9,7 @@ import 'package:genius_wallet/components/data/gw_copy_row.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
@@ -63,6 +64,20 @@ class SwapResultDrawer {
               background: wash,
             ),
           ),
+          if (!isSuccess) ...[
+            const SizedBox(height: GeniusWalletConsts.space6),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                'The swap did not go through. Check your transactions to see '
+                'whether any funds moved, then try again from the dApp.',
+                textAlign: TextAlign.center,
+                style: GeniusWalletTypography.bodyMd.copyWith(
+                  color: gw.textSecondary,
+                ),
+              ),
+            ),
+          ],
           // Neither the kicker nor the grid render for the failure branch,
           // which always passes an empty txHash -- GWDetailGrid already
           // renders nothing for an empty row list, but a bare kicker over

@@ -68,7 +68,10 @@ class _SheetContainer extends StatelessWidget {
               ),
             if (title != null) ...[
               const SizedBox(height: GeniusWalletConsts.space6),
-              Text(title!, style: GeniusWalletTypography.titleLg),
+              Semantics(
+                header: true,
+                child: Text(title!, style: GeniusWalletTypography.titleLg),
+              ),
             ],
             Flexible(
               child: Padding(

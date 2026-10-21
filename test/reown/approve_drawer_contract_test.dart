@@ -286,7 +286,7 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
-    final priority = find.text('Priority Fee');
+    final priority = find.text('Priority fee');
     await tester.ensureVisible(priority);
     await tester.pumpAndSettle();
     expect(tester.getRect(priority).bottom, lessThanOrEqualTo(480));
@@ -310,7 +310,7 @@ void main() {
       ),
     );
 
-    final label = tester.getRect(find.text('Gas Fee'));
+    final label = tester.getRect(find.text('Network fee'));
     final value = tester.getRect(find.text('0.0010 ETH'));
     expect(value.top, lessThan(label.bottom));
     expect(value.right, greaterThan(700));

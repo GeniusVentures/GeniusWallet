@@ -1,5 +1,5 @@
 // A mistyped confirmation PIN keeps the user on the confirm step: the first
-// PIN survives, only the confirmation entry is cleared, "Incorrect PIN" shows
+// PIN survives, only the confirmation entry is cleared, "PINs don't match. Enter the PIN you just created." shows
 // where the mistake happened, and every further mismatch is heard again.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,7 +70,10 @@ void main() {
     await submit(tester, '9999');
 
     expect(find.text('Confirm PIN'), findsOneWidget);
-    expect(find.text('Incorrect PIN'), findsOneWidget);
+    expect(
+      find.text("PINs don't match. Enter the PIN you just created."),
+      findsOneWidget,
+    );
     expect(confirmEntry(tester), isEmpty);
     expect(newPinCubit.state.pinToConfirm, '1234');
     expect(passed, 0);
@@ -102,8 +105,13 @@ void main() {
     await submit(tester, '9999');
 
     expect(
-      tester.getSemantics(find.text('Incorrect PIN')),
-      isSemantics(label: 'Incorrect PIN', isLiveRegion: true),
+      tester.getSemantics(
+        find.text("PINs don't match. Enter the PIN you just created."),
+      ),
+      isSemantics(
+        label: "PINs don't match. Enter the PIN you just created.",
+        isLiveRegion: true,
+      ),
     );
   });
 
@@ -116,10 +124,16 @@ void main() {
     tester.element(find.byType(PinScreen)).read<PinCubit>().add('1');
     await tester.pump();
 
-    expect(find.text('Incorrect PIN'), findsNothing);
+    expect(
+      find.text("PINs don't match. Enter the PIN you just created."),
+      findsNothing,
+    );
 
     await submit(tester, '888');
 
-    expect(find.text('Incorrect PIN'), findsOneWidget);
+    expect(
+      find.text("PINs don't match. Enter the PIN you just created."),
+      findsOneWidget,
+    );
   });
 }

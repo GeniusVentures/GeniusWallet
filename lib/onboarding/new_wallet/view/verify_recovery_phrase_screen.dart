@@ -116,7 +116,7 @@ class _VerifyRecoveryPhraseScreenState
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    spacing: 16.0,
+                    spacing: GeniusWalletConsts.space8,
                     children: [
                       Text(
                         "Verify Your Recovery Phrase",
@@ -308,7 +308,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
             .copyWith(fontFamily: GeniusWalletTypography.monoFamily);
 
     return Column(
-      spacing: 16.0,
+      spacing: GeniusWalletConsts.space8,
       children: [
         Container(
           decoration: GWDecorations.surface(
@@ -316,7 +316,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
             border: gw.borderSubtle,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(GeniusWalletConsts.space4),
             child: GridView.count(
               shrinkWrap: true,
               // Walk-driven (06-03 Task 3), matching recovery_phrase_screen:
@@ -325,9 +325,9 @@ class _InputAndWordsState extends State<_InputAndWords> {
               // not grow the grid vertically. Discrete literals — freeze rule
               // holds.
               crossAxisCount: isNarrow ? 2 : 3,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 6,
-              childAspectRatio: isNarrow ? 4.5 : 3.0,
+              mainAxisSpacing: GeniusWalletConsts.space4,
+              crossAxisSpacing: GeniusWalletConsts.space4,
+              childAspectRatio: isNarrow ? 3.6 : 3.0,
               physics: const NeverScrollableScrollPhysics(),
               children: List.generate(userInputWords.length, (index) {
                 final isEmpty = emptyIndices.contains(index);
@@ -338,44 +338,60 @@ class _InputAndWordsState extends State<_InputAndWords> {
                 // placeholder only when the slot is empty AND unfilled.
                 final isPlaceholder = isEmpty && userInputWords[index].isEmpty;
 
-                return GestureDetector(
-                  onTap: isEmpty ? () => _onEmptyBoxClick(index) : null,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        GeniusWalletConsts.radiusMd,
-                      ),
-                      border: Border.all(
+                return Semantics(
+                  button: isEmpty,
+                  label: isEmpty
+                      ? 'Word ${index + 1}, empty, tap to fill'
+                      : null,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(
+                      GeniusWalletConsts.radiusMd,
+                    ),
+                    focusColor: context.gw.brandPrimaryStrong.withAlpha(51),
+                    onTap: isEmpty ? () => _onEmptyBoxClick(index) : null,
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          GeniusWalletConsts.radiusMd,
+                        ),
+                        border: Border.all(
+                          color: isEmpty
+                              ? (isHighlighted
+                                    ? context.gw.brandPrimaryStrong
+                                    : (hasUserInput
+                                          ? context.gw.brandGreen
+                                          : gw.borderSubtle))
+                              : gw.borderSubtle,
+                          width: isHighlighted ? 2.0 : 1.0,
+                        ),
                         color: isEmpty
                             ? (isHighlighted
-                                  ? context.gw.brandPrimaryStrong
-                                  : (hasUserInput
-                                        ? context.gw.brandGreen
-                                        : gw.borderSubtle))
-                            : gw.borderSubtle,
-                        width: isHighlighted ? 2.0 : 1.0,
+                                  ? context.gw.brandPrimaryStrong.withAlpha(26)
+                                  : gw.surfaceWell)
+                            : gw.surfaceWell,
                       ),
-                      color: isEmpty
-                          ? (isHighlighted
-                                ? context.gw.brandPrimaryStrong.withAlpha(26)
-                                : gw.surfaceWell)
-                          : gw.surfaceWell,
-                    ),
-                    // Left-aligned to match recovery_phrase_screen's grid
-                    // (walk-driven): the numbered words read as a list, not as
-                    // centred chips. Placeholders inherit the same alignment so
-                    // both grids share one visual language.
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      isPlaceholder
-                          ? (isHighlighted ? '???' : '---')
-                          : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index]}',
-                      maxLines: 1,
-                      style: baseWordStyle.copyWith(
-                        color: isPlaceholder
-                            ? gw.textSecondary
-                            : gw.textPrimary,
+                      // Left-aligned to match recovery_phrase_screen's grid
+                      // (walk-driven): the numbered words read as a list, not as
+                      // centred chips. Placeholders inherit the same alignment so
+                      // both grids share one visual language.
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: GeniusWalletConsts.space4,
+                          ),
+                          child: Text(
+                            isPlaceholder
+                                ? '${(index + 1).toString().padLeft(2, '0')}.'
+                                : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index]}',
+                            maxLines: 1,
+                            style: baseWordStyle.copyWith(
+                              color: isPlaceholder
+                                  ? gw.textSecondary
+                                  : gw.textPrimary,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

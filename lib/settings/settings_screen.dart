@@ -34,6 +34,85 @@ const _spdlogLevels = [
   'off',
 ];
 
+class _SettingsSectionCard extends StatelessWidget {
+  const _SettingsSectionCard({
+    required this.title,
+    required this.icon,
+    required this.status,
+    required this.loading,
+    required this.action,
+    required this.child,
+  });
+
+  final String title;
+  final IconData icon;
+  final _Status? status;
+  final bool loading;
+  final Widget? action;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this screen to re-skin on a LIVE appearance toggle. Never
+    // read GeniusWalletColors' static getters for this screen's own chrome.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return GWCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GWIcon.material(icon, size: 20, color: gw.textPrimary),
+              const SizedBox(width: GeniusWalletConsts.space4),
+              Text(
+                title,
+                style: GeniusWalletTypography.titleMd.copyWith(
+                  color: gw.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          // The theme sets no dividerTheme, so give the divider an explicit
+          // appearance-aware color to keep its contrast against the card
+          // predictable in both modes.
+          Divider(color: gw.borderSubtle),
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            child,
+          const SizedBox(height: GeniusWalletConsts.space4),
+          if (status case final status?)
+            Padding(
+              padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  status.text,
+                  style: GeniusWalletTypography.bodySm.copyWith(
+                    color: switch (status.ok) {
+                      true => context.gw.statusSuccessText,
+                      false => context.gw.statusErrorText,
+                      null => gw.textSecondary,
+                    },
+                  ),
+                ),
+              ),
+            ),
+          if (action != null)
+            Align(alignment: Alignment.centerRight, child: action),
+        ],
+      ),
+    );
+  }
+}
+
+typedef _Status = ({String text, bool? ok});
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -55,9 +134,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _crdtLoading = true;
 
   // ── Status messages ──
-  String? _logStatus;
-  String? _networkStatus;
-  String? _crdtStatus;
+  _Status? _logStatus;
+  _Status? _networkStatus;
+  _Status? _crdtStatus;
 
   GeniusApi get _api => context.read<GeniusApi>();
 
@@ -116,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _applyLogConfig() async {
-    setState(() => _logStatus = 'Applying log changes...');
+    setState(() => _logStatus = (text: 'Applying log changes', ok: null));
     try {
       // Write overrides
       await _writeOverrides('log_config.json', {'loggers': _loggerLevels});
@@ -124,9 +203,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _api.prepareConfigFiles();
       // Reload in native SDK
       _api.reloadLogConfig();
-      setState(() => _logStatus = 'Log levels applied ✅');
+      setState(() => _logStatus = (text: 'Log levels applied', ok: true));
     } catch (e) {
-      setState(() => _logStatus = 'Error: $e');
+      setState(() => _logStatus = (text: 'Error: $e', ok: false));
     }
   }
 
@@ -141,12 +220,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _saveNetworkConfig() async {
-    setState(() => _networkStatus = 'Saving...');
+    setState(() => _networkStatus = (text: 'Saving', ok: null));
     try {
       await _writeOverrides('network_config.json', _networkConfig);
-      setState(() => _networkStatus = 'Saved ✅ — Restart required for changes');
+      setState(
+        () => _networkStatus = (
+          text: 'Saved. Restart the app to apply.',
+          ok: true,
+        ),
+      );
     } catch (e) {
-      setState(() => _networkStatus = 'Error: $e');
+      setState(() => _networkStatus = (text: 'Error: $e', ok: false));
     }
   }
 
@@ -157,12 +241,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _saveCrdtConfig() async {
-    setState(() => _crdtStatus = 'Saving...');
+    setState(() => _crdtStatus = (text: 'Saving', ok: null));
     try {
       await _writeOverrides('crdt_config.json', _crdtConfig);
-      setState(() => _crdtStatus = 'Saved ✅ — Restart required for changes');
+      setState(
+        () =>
+            _crdtStatus = (text: 'Saved. Restart the app to apply.', ok: true),
+      );
     } catch (e) {
-      setState(() => _crdtStatus = 'Error: $e');
+      setState(() => _crdtStatus = (text: 'Error: $e', ok: false));
     }
   }
 
@@ -188,18 +275,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: GeniusWalletConsts.space12,
                     children: [
-                      _buildSectionCard(
+                      const _SettingsSectionCard(
                         title: 'Appearance',
                         icon: Icons.brightness_6,
                         status: null,
                         loading: false,
                         action: null,
-                        child: const _AppearanceControl(),
+                        child: _AppearanceControl(),
                       ),
-                      _buildSectionCard(
+                      _SettingsSectionCard(
                         title: 'Advanced',
                         icon: Icons.developer_mode,
-                        status: dev.status,
+                        status: dev.status == null
+                            ? null
+                            : (
+                                text: dev.status!,
+                                ok: dev.status!.startsWith('Error')
+                                    ? false
+                                    : null,
+                              ),
                         loading: false,
                         action: null,
                         child: _DeveloperModeSwitch(
@@ -213,10 +307,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       if (developerMode) ...[
                         const GWKicker('Developer'),
-                        _buildSectionCard(
+                        _SettingsSectionCard(
                           title: 'SDK Network',
                           icon: Icons.hub,
-                          status: dev.netStatus,
+                          status: dev.netStatus == null
+                              ? null
+                              : (
+                                  text: dev.netStatus!,
+                                  ok: dev.netStatus!.startsWith('Error')
+                                      ? false
+                                      : null,
+                                ),
                           loading: false,
                           action: null,
                           child: _SdkNetSelect(
@@ -242,21 +343,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildLogSection() {
-    return _buildSectionCard(
-      title: 'Log Config',
+    return _SettingsSectionCard(
+      title: 'Log settings',
       icon: Icons.terminal,
       status: _logStatus,
       loading: _logLoading,
       action: GWButton(
         variant: GWButtonVariant.primary,
-        label: 'Apply Log Changes',
+        label: 'Apply log changes',
         leading: const Icon(Icons.play_arrow),
         onPressed: _applyLogConfig,
       ),
       child: _loggerLevels.isEmpty
           ? const Padding(
               padding: EdgeInsets.all(12),
-              child: Text('No loggers loaded. SDK may not be initialized.'),
+              child: Text(
+                'No loggers yet. Start Earning, then come back to change log levels.',
+              ),
             )
           : Column(
               children: _loggerLevels.entries.map(_buildLoggerRow).toList(),
@@ -309,14 +412,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildNetworkSection() {
-    return _buildSectionCard(
-      title: 'Network Config',
+    return _SettingsSectionCard(
+      title: 'Network settings',
       icon: Icons.lan,
       status: _networkStatus,
       loading: _networkLoading,
       action: GWButton(
         variant: GWButtonVariant.secondary,
-        label: 'Save Network Overrides',
+        label: 'Save network settings',
         leading: const Icon(Icons.save),
         onPressed: _saveNetworkConfig,
       ),
@@ -324,10 +427,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         config: _networkConfig,
         keyLabels: const {
           'pubsub_port': 'PubSub Port',
-          'pubsub_bind_address': 'Bind Address',
+          'pubsub_bind_address': 'Bind address',
           'upnp_enabled': 'UPnP',
-          'high_water': 'High Water',
-          'low_water': 'Low Water',
+          'high_water': 'High water',
+          'low_water': 'Low water',
         },
         boolKeys: const {'upnp_enabled'},
         numberKeys: const {'high_water', 'low_water'},
@@ -336,102 +439,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildCrdtSection() {
-    return _buildSectionCard(
-      title: 'CRDT Config',
+    return _SettingsSectionCard(
+      title: 'Sync settings',
       icon: Icons.backup,
       status: _crdtStatus,
       loading: _crdtLoading,
       action: GWButton(
         variant: GWButtonVariant.secondary,
-        label: 'Save CRDT Overrides',
+        label: 'Save sync settings',
         leading: const Icon(Icons.save),
         onPressed: _saveCrdtConfig,
       ),
       child: _configFieldsTable(
         config: _crdtConfig,
         keyLabels: const {
-          'backup_enabled': 'Backup Enabled',
+          'backup_enabled': 'Backup enabled',
           'backup_interval_minutes': 'Interval (min)',
-          'backup_keep_count': 'Keep Count',
-          'backup_auto_restore_on_repair_failure': 'Auto Restore',
+          'backup_keep_count': 'Keep count',
+          'backup_auto_restore_on_repair_failure': 'Auto restore',
         },
         boolKeys: const {
           'backup_enabled',
           'backup_auto_restore_on_repair_failure',
         },
         numberKeys: const {'backup_interval_minutes', 'backup_keep_count'},
-      ),
-    );
-  }
-
-  // ── Reusable Widgets ──
-
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required String? status,
-    required bool loading,
-    required Widget? action,
-    required Widget child,
-  }) {
-    // Fail-soft read: registers the InheritedWidget dependency that forces
-    // this screen to re-skin on a LIVE appearance toggle (04-02 D-02) — never
-    // read GeniusWalletColors' static getters for this screen's own chrome.
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return GWCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              GWIcon.material(icon, size: 20, color: gw.textPrimary),
-              const SizedBox(width: GeniusWalletConsts.space4),
-              Text(
-                title,
-                style: GeniusWalletTypography.titleMd.copyWith(
-                  color: gw.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          // M3's default Divider color (colorScheme.outlineVariant) applies
-          // now that 04-01 dropped dividerTheme (04-RESEARCH §1/§4.1); set an
-          // explicit appearance-aware color here rather than leave it to the
-          // default so contrast against GWCard's surfaceElevated fill is
-          // deterministic in both modes — confirm at the Task 3 walk and
-          // swap to gw.borderStrong if borderSubtle reads too faint.
-          Divider(color: gw.borderSubtle),
-          if (loading)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else
-            child,
-          const SizedBox(height: GeniusWalletConsts.space4),
-          if (status != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
-              child: Text(
-                status,
-                // ✅/Error logic unchanged (§7 strings preserved verbatim);
-                // only the color mapping changes. statusSuccessText/statusErrorText
-                // diverge by appearance (they are the AA-safe text partners); the
-                // neutral state MUST come from the extension (gw) so it
-                // flips on a live toggle instead of rendering stale.
-                style: GeniusWalletTypography.bodySm.copyWith(
-                  color: status.contains('✅')
-                      ? context.gw.statusSuccessText
-                      : status.contains('Error')
-                      ? context.gw.statusErrorText
-                      : gw.textSecondary,
-                ),
-              ),
-            ),
-          if (action != null)
-            Align(alignment: Alignment.centerRight, child: action),
-        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:provider/provider.dart';
 
 class GeniusBalanceDisplay extends StatefulWidget {
@@ -78,7 +79,7 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
             style: TextStyle(
               fontSize: widget.fontSize ?? 48,
               fontWeight: FontWeight.w500,
-              color: widget.fontColor ?? Colors.white,
+              color: widget.fontColor ?? context.gw.textPrimary,
             ),
             maxLines: 1,
           ),
@@ -91,7 +92,7 @@ class _GeniusBalanceDisplayState extends State<GeniusBalanceDisplay> {
             style: TextStyle(
               fontSize: widget.fontSize ?? 16,
               fontWeight: FontWeight.w500,
-              color: widget.fontColor ?? Colors.grey,
+              color: widget.fontColor ?? context.gw.textSecondary,
             ),
           ),
         ],

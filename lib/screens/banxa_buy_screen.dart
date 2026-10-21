@@ -534,11 +534,18 @@ class _TextLink extends StatelessWidget {
             horizontal: GeniusWalletConsts.space2,
             vertical: GeniusWalletConsts.space2,
           ),
-          child: Text(
-            label,
-            style: GeniusWalletTypography.bodySm.copyWith(
-              color: gw.brandPrimaryOnSurface,
-              fontWeight: FontWeight.w600,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 36),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              widthFactor: 1,
+              child: Text(
+                label,
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: gw.brandPrimaryOnSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ),
@@ -1189,41 +1196,47 @@ class _TrackChip extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               hoverColor: Colors.transparent,
+              focusColor: gw.borderBrand,
               borderRadius: BorderRadius.circular(
                 GeniusWalletConsts.radiusPill,
               ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                height: chipHeight,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: GeniusWalletConsts.space3,
-                ),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? (isLight ? gw.surfaceElevated : gw.surfaceMenu)
-                      : lifted
-                      ? (isLight ? gw.textPrimary10 : gw.surfaceElevated)
-                      : Colors.transparent,
-                  // Light selects a white chip on a grey track, so the edge
-                  // is always drawn there and the label never shifts by 1px.
-                  border: isLight
-                      ? Border.all(
-                          color: selected
-                              ? gw.borderSubtle
-                              : Colors.transparent,
-                        )
-                      : null,
-                  borderRadius: BorderRadius.circular(
-                    GeniusWalletConsts.radiusPill,
-                  ),
-                ),
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GeniusWalletTypography.labelMd.copyWith(
-                    color: textColor,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 44),
+                child: Center(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    height: chipHeight,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: GeniusWalletConsts.space3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? (isLight ? gw.surfaceElevated : gw.surfaceMenu)
+                          : lifted
+                          ? (isLight ? gw.textPrimary10 : gw.surfaceElevated)
+                          : Colors.transparent,
+                      // Light selects a white chip on a grey track, so the edge
+                      // is always drawn there and the label never shifts by 1px.
+                      border: isLight
+                          ? Border.all(
+                              color: selected
+                                  ? gw.borderSubtle
+                                  : Colors.transparent,
+                            )
+                          : null,
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusPill,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GeniusWalletTypography.labelMd.copyWith(
+                        color: textColor,
+                      ),
+                    ),
                   ),
                 ),
               ),

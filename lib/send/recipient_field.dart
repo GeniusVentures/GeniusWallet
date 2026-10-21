@@ -81,7 +81,7 @@ class RecipientField extends StatelessWidget {
         GWTextField(
           controller: controller,
           label: 'To',
-          hint: '0x...',
+          hint: 'Paste a 0x address',
           errorText: fieldError,
           onChanged: cubit.setRecipient,
           suffix: Row(

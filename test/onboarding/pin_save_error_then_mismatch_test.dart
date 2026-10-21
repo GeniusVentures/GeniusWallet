@@ -66,7 +66,10 @@ void main() {
 
     await submit('9999');
 
-    expect(find.text('Incorrect PIN'), findsOneWidget);
+    expect(
+      find.text("PINs don't match. Enter the PIN you just created."),
+      findsOneWidget,
+    );
     expect(find.text(_saveFailed), findsNothing);
     await tester.pump(const Duration(seconds: 10));
   });

@@ -138,7 +138,7 @@ Widget _statusPill(TransactionStatus status, GWColors gw, {String? label}) {
     ),
     decoration: BoxDecoration(
       color: wash,
-      borderRadius: BorderRadius.circular(999),
+      borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -884,6 +884,7 @@ class _CopyRow extends StatelessWidget {
                     Flexible(
                       child: Text.rich(
                         TextSpan(children: _valueChunks(value, gw, mono)),
+                        semanticsLabel: value,
                         textAlign: TextAlign.right,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -23,6 +23,7 @@ class PairDappDrawer {
     final controller = TextEditingController();
     final showPaste = ValueNotifier<bool>(startWithPaste);
     final fieldError = ValueNotifier<String?>(null);
+    final submit = ValueNotifier<VoidCallback?>(null);
 
     return ResponsiveDrawer.show<void>(
       context: context,
@@ -32,11 +33,13 @@ class PairDappDrawer {
         controller: controller,
         showPaste: showPaste,
         fieldError: fieldError,
+        submit: submit,
       ),
       footer: _PairDappFooter(
         controller: controller,
         showPaste: showPaste,
         fieldError: fieldError,
+        submit: submit,
         onPair: onPair,
       ),
     );
@@ -54,12 +57,14 @@ class _PairDappBody extends StatelessWidget {
     required this.controller,
     required this.showPaste,
     required this.fieldError,
+    required this.submit,
   });
 
   final String wcUri;
   final TextEditingController controller;
   final ValueNotifier<bool> showPaste;
   final ValueNotifier<String?> fieldError;
+  final ValueNotifier<VoidCallback?> submit;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +82,7 @@ class _PairDappBody extends StatelessWidget {
                       key: const ValueKey('paste'),
                       controller: controller,
                       fieldError: fieldError,
+                      submit: submit,
                     )
                   : _QrView(key: const ValueKey('qr'), wcUri: wcUri),
             ),
@@ -97,10 +103,12 @@ class _PasteView extends StatelessWidget {
     super.key,
     required this.controller,
     required this.fieldError,
+    required this.submit,
   });
 
   final TextEditingController controller;
   final ValueNotifier<String?> fieldError;
+  final ValueNotifier<VoidCallback?> submit;
 
   Future<void> _paste() async {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -121,7 +129,9 @@ class _PasteView extends StatelessWidget {
         final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
         return GWTextField(
           controller: controller,
-          hint: 'wc:…',
+          hint: 'Paste a wc: link',
+          textInputAction: TextInputAction.go,
+          onFieldSubmitted: (_) => submit.value?.call(),
           errorText: errorText,
           // A drawer field: the lighter fill on the panel, and the ring's
           // control-strength edge, since the fill alone cannot mark the input.
@@ -178,12 +188,14 @@ class _PairDappFooter extends StatefulWidget {
     required this.controller,
     required this.showPaste,
     required this.fieldError,
+    required this.submit,
     required this.onPair,
   });
 
   final TextEditingController controller;
   final ValueNotifier<bool> showPaste;
   final ValueNotifier<String?> fieldError;
+  final ValueNotifier<VoidCallback?> submit;
   final Future<bool> Function(Uri uri) onPair;
 
   @override
@@ -194,7 +206,14 @@ class _PairDappFooterState extends State<_PairDappFooter> {
   bool _isConnecting = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.submit.value = _connect;
+  }
+
+  @override
   void dispose() {
+    widget.submit.dispose();
     widget.controller.dispose();
     widget.showPaste.dispose();
     widget.fieldError.dispose();

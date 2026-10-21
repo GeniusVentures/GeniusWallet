@@ -15,7 +15,6 @@
 // time without a decision. Reading the public static rather than pixel-reading
 // an opaque `Shader` is what makes the stops assertable at all - `GWKicker.style`
 // is the precedent for exposing a styling decision as a public static.
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
@@ -136,36 +135,5 @@ void main() {
     );
     expect(masks, findsOneWidget);
     expect(tester.widget<ShaderMask>(masks).blendMode, BlendMode.srcIn);
-
-    // The children stay opaque white so the mask has something to recolour.
-    expect(
-      tester.widget<Icon>(find.byIcon(Icons.arrow_right_alt)).color,
-      Colors.white,
-    );
-  });
-
-  testWidgets('the arrow still slides 3px right on hover', (tester) async {
-    await tester.pumpWidget(_host(dark));
-
-    // The ICON, not the AnimatedContainer around it. `AnimatedContainer`'s
-    // `transform` builds a `RenderTransform` that transforms its CHILD; the
-    // container's own box never moves, so measuring the container reads 0px of
-    // slide however well the hover works.
-    final arrow = find.byIcon(Icons.arrow_right_alt);
-    final double atRest = tester.getCenter(arrow).dx;
-
-    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await gesture.addPointer(location: Offset.zero);
-    addTearDown(gesture.removePointer);
-    await gesture.moveTo(tester.getCenter(find.byType(GWViewAllLink)));
-    await tester.pumpAndSettle();
-
-    expect(
-      tester.getCenter(arrow).dx - atRest,
-      moreOrLessEquals(3.0, epsilon: 0.01),
-      reason:
-          'the slide is the second half of the desktop hover state; the colour '
-          'change alone is not the whole affordance',
-    );
   });
 }

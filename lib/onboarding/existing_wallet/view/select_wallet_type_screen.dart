@@ -45,16 +45,16 @@ class SelectWalletTypeScreen extends StatelessWidget {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            spacing: 20.0,
+            spacing: GeniusWalletConsts.space10,
             children: [
               Text(
-                "Import Wallet",
+                "Import wallet",
                 style: GeniusWalletTypography.headlineLg.copyWith(
                   color: gw.textPrimary,
                 ),
               ),
               Text(
-                'Select the wallet that you would like to import',
+                'Choose the network of the wallet you want to import.',
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: gw.textSecondary,
                 ),

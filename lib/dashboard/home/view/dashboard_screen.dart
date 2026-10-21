@@ -8,7 +8,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
-import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
@@ -102,7 +101,7 @@ class DashboardScreenState extends State<DashboardScreen> {
         children: [
           BlocBuilder<AppBloc, AppState>(
             builder: (context, state) {
-              final isDesktopLayout = GeniusBreakpoints.useDesktopLayout(
+              final isDesktopLayout = GeniusBreakpoints.useDesktopOverlay(
                 context,
               );
 
@@ -115,20 +114,10 @@ class DashboardScreenState extends State<DashboardScreen> {
               }
               if (state.subscribeToWalletStatus == AppStatus.error ||
                   state.accountStatus == AppStatus.error) {
-                return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Something went wrong!'),
-                      const SizedBox(height: GeniusWalletConsts.space6),
-                      GWButton(
-                        onPressed: () => _onRetry(context),
-                        label: 'Retry',
-                        variant: GWButtonVariant.primary,
-                        leading: const Icon(Icons.refresh),
-                      ),
-                    ],
-                  ),
+                return GWErrorState(
+                  title: "Couldn't load your wallet",
+                  message: 'Check your connection, then try again.',
+                  onRetry: () => _onRetry(context),
                 );
               }
 
@@ -176,17 +165,30 @@ class ResponsiveDashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final is3Column = constraints.maxWidth > GeniusBreakpoints.xxl;
+        final is3Column =
+            constraints.maxWidth >= GeniusBreakpoints.dashboardThreeColumn;
 
         if (is3Column) {
-          return _threeColumnLayout();
+          return const _ThreeColumnDashboard();
         }
-        return _twoColumnLayout();
+        return const _TwoColumnDashboard();
       },
     );
   }
+}
 
-  Widget _threeColumnLayout() {
+/// The dashboard's right column never grows past this, so a very wide window
+/// gives the extra width to the chart and markets instead.
+const double _kTransactionsColumnMaxWidth = 760;
+
+/// Minimum height of the bottom row (chart and markets) in the wide layout.
+const double _kBottomRowMinHeight = 380;
+
+class _ThreeColumnDashboard extends StatelessWidget {
+  const _ThreeColumnDashboard();
+
+  @override
+  Widget build(BuildContext context) {
     // Tracks the slot constant rather than repeating 300: this row holds the
     // same `_OverviewContributionsRow` the other two layouts cap, and it is a
     // FLOOR here (the row sits in an `Expanded`, so a tall window gives it
@@ -194,7 +196,7 @@ class ResponsiveDashboardView extends StatelessWidget {
     // can still be handed less height than its content needs, which on a short
     // window pushes the CTA below the fold - the bug 14-08 closed.
     const topRowMinHeight = kDashboardPanelSlotHeight;
-    const bottomRowMinHeight = 380.0;
+    const bottomRowMinHeight = _kBottomRowMinHeight;
     const totalMinHeight = topRowMinHeight + bottomRowMinHeight;
 
     return Padding(
@@ -236,7 +238,7 @@ class ResponsiveDashboardView extends StatelessWidget {
           Expanded(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: 760,
+                maxWidth: _kTransactionsColumnMaxWidth,
                 minHeight: totalMinHeight,
               ),
               child: const TransactionsDashboardView(),
@@ -246,8 +248,13 @@ class ResponsiveDashboardView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _twoColumnLayout() {
+class _TwoColumnDashboard extends StatelessWidget {
+  const _TwoColumnDashboard();
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(GeniusWalletConsts.space3),
       child: Column(
@@ -756,7 +763,7 @@ class _CoinIdentity extends StatelessWidget {
       children: [
         const TextSpan(text: 'Genius AI'),
         TextSpan(
-          text: '  ·  GNUS',
+          text: '  GNUS',
           style: TextStyle(
             color: gw.textSecondary,
             fontWeight: FontWeight.w500,

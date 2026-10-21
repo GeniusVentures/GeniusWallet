@@ -98,7 +98,8 @@ class _ChildWalletsBody extends StatelessWidget {
         if (state.children.isEmpty) {
           return const GWEmptyState(
             icon: Icons.account_tree_outlined,
-            title: 'No child wallets registered under this account.',
+            title:
+                'No child wallets yet. Use Link to a main wallet on another account to add it here.',
           );
         }
         return ListView.separated(
@@ -228,7 +229,7 @@ class _ChildWalletsHeader extends StatelessWidget {
                         ),
                       ] else if (!state.parentUnknown)
                         GWButton(
-                          label: 'Register as a child of…',
+                          label: 'Link to a main wallet',
                           variant: GWButtonVariant.secondary,
                           size: GWButtonSize.sm,
                           tooltip: lock,

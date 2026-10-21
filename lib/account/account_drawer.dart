@@ -689,22 +689,17 @@ class _AccountRowTile extends StatelessWidget {
       titleStyle: locked
           ? GeniusWalletTypography.bodySm.copyWith(
               fontWeight: FontWeight.w600,
-              // 80%, not 70% -- a locked row can also be selected, and the
-              // selection tint behind it eats into the 3:1 floor 70% only
-              // clears on the bare panel background.
-              color: gw.textSecondary.withValues(alpha: 0.8),
+              color: gw.textSecondary,
             )
           : null,
       subtitle: [
         if (!WalletUtils.isAddressLikeName(title))
           WalletUtils.getAddressForDisplay(addressText),
         if (isStartAccount) 'Default account',
-      ].join(' · '),
+      ].join(', '),
       subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
         fontFamily: GeniusWalletTypography.monoFamily,
-        color: locked
-            ? gw.textSecondary.withValues(alpha: 0.8)
-            : gw.textSecondary,
+        color: gw.textSecondary,
       ),
       titleTrailing: anyTag
           ? Wrap(
@@ -734,7 +729,7 @@ class _AccountRowTile extends StatelessWidget {
                 if (onNode)
                   GWRowBadge(label: 'Earning', color: gw.statusSuccessText),
                 if (switching)
-                  GWRowBadge(label: 'Switching…', color: gw.statusWarningText),
+                  GWRowBadge(label: 'Switching', color: gw.statusWarningText),
               ],
             )
           : null,
@@ -1010,9 +1005,7 @@ class _RowLeading extends StatelessWidget {
         : Icon(
             Icons.account_balance_wallet,
             size: 20,
-            color: locked
-                ? gw.textSecondary.withValues(alpha: 0.8)
-                : (onNode ? gw.brandPrimaryStrong : gw.textSecondary),
+            color: onNode ? gw.brandPrimaryOnSurface : gw.textSecondary,
           );
     final isExpanded = expanded;
     if (isExpanded == null) {
@@ -1027,7 +1020,7 @@ class _RowLeading extends StatelessWidget {
             size: 18,
           ),
           iconSize: 18,
-          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           padding: EdgeInsets.zero,
           color: gw.textSecondary,
           tooltip: isExpanded ? 'Hide children' : 'Show children',
@@ -1122,7 +1115,7 @@ class _RowMenu extends StatelessWidget {
                 context.read<AppBloc>().add(SelectSDKAccount(sdkAddress));
                 showToast(
                   context,
-                  'Switching earning…',
+                  'Switching earning account',
                   duration: const Duration(seconds: 1),
                 );
               },

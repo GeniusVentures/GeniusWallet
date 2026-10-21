@@ -331,7 +331,9 @@ class _MarketCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: changeColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(
+                          GeniusWalletConsts.radiusSm,
+                        ),
                       ),
                       child: Text(
                         '${up ? '+' : ''}${data.priceChangePercentage24h.toStringAsFixed(2)}%',
