@@ -304,6 +304,7 @@ class _MobileBarSlot extends StatelessWidget {
         button: true,
         selected: selected,
         label: label,
+        onTap: onTap,
         excludeSemantics: true,
         child: InkWell(
           onTap: onTap,
@@ -619,6 +620,7 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                           button: true,
                           selected: isSelected,
                           label: dest.label,
+                          onTap: () => context.go(dest.path),
                           excludeSemantics: true,
                           child: tabButton,
                         );

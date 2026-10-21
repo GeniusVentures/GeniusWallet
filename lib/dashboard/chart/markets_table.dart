@@ -189,6 +189,7 @@ class _MarketsTableState extends State<MarketsTable> {
                 label: active
                     ? '$label, sorted ${_ascending ? 'ascending' : 'descending'}'
                     : label,
+                onTap: () => _onHeaderTap(sort),
                 excludeSemantics: true,
                 child: InkWell(
                   onTap: () => _onHeaderTap(sort),

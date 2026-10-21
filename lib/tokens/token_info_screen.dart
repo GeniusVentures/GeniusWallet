@@ -291,6 +291,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     if (GoRouter.maybeOf(context)?.canPop() ?? false)
                       Semantics(
                         label: 'Back',
+                        onTap: context.pop,
                         excludeSemantics: true,
                         child: GWBackLink(label: 'BACK', onTap: context.pop),
                       ),
