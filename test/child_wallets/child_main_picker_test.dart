@@ -79,7 +79,7 @@ Future<void> _pumpPicker(
               onPressed: () async {
                 final chosen = await showMainPicker(
                   context,
-                  title: 'Register as a child of…',
+                  title: 'Link to a main wallet',
                   candidates: candidates,
                   excluded: excluded,
                 );

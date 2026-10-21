@@ -73,10 +73,13 @@ class GWDialog extends StatelessWidget {
                 Icon(icon, size: 32, color: context.gw.brandGreen),
                 const SizedBox(height: GeniusWalletConsts.space6),
               ],
-              Text(
-                title,
-                style: GeniusWalletTypography.titleLg,
-                textAlign: icon != null ? TextAlign.center : TextAlign.start,
+              Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  style: GeniusWalletTypography.titleLg,
+                  textAlign: icon != null ? TextAlign.center : TextAlign.start,
+                ),
               ),
               if (message != null) ...[
                 const SizedBox(height: GeniusWalletConsts.space4),

@@ -34,11 +34,12 @@ class WalletCreationScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 16.0,
+                spacing: GeniusWalletConsts.space8,
                 children: [
                   Image.asset(
                     'assets/images/logo_and_title.png',
                     package: 'genius_wallet',
+                    semanticLabel: 'Genius Wallet',
                   ),
                   ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 50),

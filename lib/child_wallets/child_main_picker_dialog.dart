@@ -236,7 +236,7 @@ class _MainPickerManualContent extends StatelessWidget {
         GWTextField(
           controller: controller,
           label: 'Address',
-          hint: '0x…',
+          hint: 'Starts with 0x',
           errorText: error,
           fill: context.gw.surfaceSunken,
           onChanged: (_) => onChanged(),

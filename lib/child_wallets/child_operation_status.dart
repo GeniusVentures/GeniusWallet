@@ -17,17 +17,17 @@ String _amountText(ChildOperation op) =>
 String pendingText(ChildOperation op, String Function(String) labelFor) {
   switch (op.kind) {
     case ChildOperationKind.fund:
-      return 'Funding ${_amountText(op)}…';
+      return 'Funding ${_amountText(op)}';
     case ChildOperationKind.recover:
-      return 'Recovering ${_amountText(op)}…';
+      return 'Recovering ${_amountText(op)}';
     case ChildOperationKind.revoke:
-      return 'Revoking…';
+      return 'Revoking';
     case ChildOperationKind.detach:
-      return 'Detaching…';
+      return 'Detaching';
     case ChildOperationKind.register:
-      return 'Registering…';
+      return 'Registering';
     case ChildOperationKind.move:
-      return 'Moving to ${labelFor(op.newMain!)}…';
+      return 'Moving to ${labelFor(op.newMain!)}';
   }
 }
 
@@ -97,7 +97,11 @@ class _ChildOperationBadgeState extends State<ChildOperationBadge> {
     // Never auto-resubmitted: the first write may still land late.
     if (widget.registry.retry(widget.op) !=
         GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      showToast(context, 'Nothing was sent. Try again.', type: ToastType.error);
+      showToast(
+        context,
+        'Nothing was sent. Check your connection and try again.',
+        type: ToastType.error,
+      );
     }
   }
 

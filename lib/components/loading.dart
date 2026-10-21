@@ -17,17 +17,24 @@ class Loading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: GeniusWalletConsts.space8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        LoadingAnimationWidget.flickr(
-          leftDotColor: context.gw.brandGreen,
-          rightDotColor: context.gw.statusInfo,
-          size: 50,
+    return Semantics(
+      liveRegion: true,
+      label: text ?? 'Loading',
+      child: ExcludeSemantics(
+        child: Wrap(
+          spacing: GeniusWalletConsts.space8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            LoadingAnimationWidget.flickr(
+              leftDotColor: context.gw.brandGreen,
+              rightDotColor: context.gw.statusInfo,
+              size: 50,
+            ),
+            if (text != null)
+              Text(text!, style: GeniusWalletTypography.headlineLg),
+          ],
         ),
-        if (text != null) Text(text!, style: GeniusWalletTypography.headlineLg),
-      ],
+      ),
     );
   }
 }

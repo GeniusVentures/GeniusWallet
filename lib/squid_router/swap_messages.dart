@@ -19,7 +19,8 @@ String? swapFailureMessage(SwapOutcome outcome) => switch (outcome) {
     "This token's spending allowance could not be checked, so nothing was "
         'swapped. Check your connection and try again.',
   SwapApprovalFailed() =>
-    'The spending approval did not go through, so nothing was swapped.',
+    'The spending approval did not go through, so nothing was swapped. '
+        'Check you have enough for gas, then try again.',
   SwapSendFailed() =>
     'The swap could not be sent. Check that you have enough to cover gas, '
         'then try again.',

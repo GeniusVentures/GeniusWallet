@@ -227,7 +227,7 @@ class _NetworkPickerState extends State<NetworkPicker> {
           child: matches.isEmpty
               ? GWEmptyState(
                   icon: Icons.search_off,
-                  title: 'No networks match "${_query.trim()}"',
+                  title: 'No networks match ${_query.trim()}',
                 )
               : ListView(
                   padding: const EdgeInsets.fromLTRB(

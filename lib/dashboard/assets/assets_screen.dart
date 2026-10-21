@@ -428,8 +428,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 // forbids callers pre-calling toUpperCase().
                 child: GWKicker(
                   visible.length == pairs.length
-                      ? '${pairs.length} assets'
-                      : '${visible.length} of ${pairs.length} assets',
+                      ? '${pairs.length} ${pairs.length == 1 ? 'asset' : 'assets'}'
+                      : '${visible.length} of ${pairs.length} ${pairs.length == 1 ? 'asset' : 'assets'}',
                   dense: true,
                   trailing: _AssetsSortToggle(
                     ascending: _ascending,
@@ -509,7 +509,8 @@ class _AssetsScreenState extends State<AssetsScreen> {
     if (state.coinsStatus == WalletStatus.error && state.coins.isEmpty) {
       return [
         GWErrorState(
-          message: 'Failed to load your assets.',
+          message:
+              "Couldn't load your assets. Check your connection and try again.",
           onRetry: () => context.read<WalletDetailsCubit>().getCoins(),
         ),
       ];
@@ -666,7 +667,7 @@ class _AssetsSortToggle extends StatelessWidget {
       // Matches markets_table's own sort header. The element must not change
       // size under the cursor - `gw_back_link.dart` states that rule for
       // interactive chrome. Desktop only; iOS is the review surface.
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
       child: Semantics(
         button: true,
         // excludeSemantics: the raw children announce "VALUE ↓", which tells a

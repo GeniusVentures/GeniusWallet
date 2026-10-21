@@ -227,7 +227,7 @@ double boxContentTop(WidgetTester tester) =>
 /// - and unlike glyph extents it does not move when a title happens to carry a
 /// descender ("Compute", "Next up") and it is expressible on the spacing grid.
 Rect titleLineBox(WidgetTester tester, String title) =>
-    tester.getRect(find.text(title));
+    tester.getRect(find.text(title).first);
 
 /// Whether [w]'s render object actually puts ink on the screen.
 ///
@@ -524,7 +524,7 @@ void main() {
       expectSectionRhythm(
         tester,
         label: 'Compute (${state.name})',
-        title: 'Compute',
+        title: 'Earning',
         content: find.byType(ComputePanel),
       );
 

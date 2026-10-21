@@ -369,7 +369,7 @@ void main() {
         TransactionsCubit(),
       );
       await _openReview(tester);
-      expect(find.text('Gas Fee'), findsOneWidget);
+      expect(find.text('Network fee'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(GWButton, 'Send'));
       await tester.pumpAndSettle();
@@ -391,7 +391,7 @@ void main() {
       await tester.tap(find.widgetWithText(GWButton, 'Cancel'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Gas Fee'), findsNothing);
+      expect(find.text('Network fee'), findsNothing);
       expect(find.byType(SendScreen), findsOneWidget);
       expect(api.signedTx, isNull);
     });
@@ -413,7 +413,7 @@ void main() {
       expect(find.byType(SendScreen), findsNothing);
 
       Navigator.of(
-        tester.element(find.text('Gas Fee')),
+        tester.element(find.text('Network fee')),
         rootNavigator: true,
       ).pop();
       await tester.pumpAndSettle();
@@ -461,7 +461,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The review drawer shows the fee in the gas coin, before approval.
-      expect(find.text('Gas Fee'), findsOneWidget);
+      expect(find.text('Network fee'), findsOneWidget);
       expect(find.textContaining('MATIC'), findsWidgets);
 
       await tester.tap(find.widgetWithText(GWButton, 'Send'));
@@ -543,7 +543,7 @@ void main() {
         findsNothing,
       );
       // The drawer never opened -- review refused before a review was built.
-      expect(find.text('Gas Fee'), findsNothing);
+      expect(find.text('Network fee'), findsNothing);
     },
   );
 
@@ -653,7 +653,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     // The last detail row is scrolled to, not cut off.
-    final priority = find.text('Priority Fee');
+    final priority = find.text('Priority fee');
     await tester.ensureVisible(priority);
     await tester.pumpAndSettle();
     expect(tester.getRect(priority).bottom, lessThanOrEqualTo(480));

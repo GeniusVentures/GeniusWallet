@@ -247,7 +247,7 @@ void main() {
 
       // Each row's own short address, plus the right status.
       expect(
-        find.textContaining('0xaaaa...1111 · Default account'),
+        find.textContaining('0xaaaa...1111, Default account'),
         findsOneWidget,
       );
       expect(find.text('0xaaaa...2222'), findsOneWidget);
@@ -698,7 +698,7 @@ void main() {
   );
 
   testWidgets(
-    'a switch the node has not confirmed tags its row "Switching…" and no '
+    'a switch the node has not confirmed tags its row "Switching" and no '
     'row "On node", until the node reports the account',
     (tester) async {
       final api = _Api(accounts: const [_mainA, _mainB], lands: false);
@@ -735,7 +735,7 @@ void main() {
       expect(
         find.descendant(
           of: rowFor('0xaaaa...2222'),
-          matching: find.text('Switching…'),
+          matching: find.text('Switching'),
         ),
         findsOneWidget,
       );
@@ -745,7 +745,7 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
       await tester.pump();
 
-      expect(find.text('Switching…'), findsNothing);
+      expect(find.text('Switching'), findsNothing);
       expect(
         find.descendant(
           of: rowFor('0xaaaa...2222'),

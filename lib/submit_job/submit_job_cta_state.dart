@@ -130,11 +130,11 @@ double submitJobShortfall({required int jobCost, required double gnusBalance}) {
 String submitJobCtaLabel(SubmitJobCtaState state, {double shortfall = 0}) {
   switch (state) {
     case SubmitJobCtaState.submitting:
-      return 'Submitting…';
+      return 'Submitting';
     case SubmitJobCtaState.noFileChosen:
       return 'Choose a job file';
     case SubmitJobCtaState.costUnknown:
-      return 'Pricing job…';
+      return 'Getting price';
     case SubmitJobCtaState.costError:
       return "Couldn't price job";
     case SubmitJobCtaState.insufficientFunds:

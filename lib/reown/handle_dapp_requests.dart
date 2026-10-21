@@ -163,6 +163,7 @@ void Function() handleDappRequests({
             totalGasFee: totalFeeEth,
             priorityFee: priorityFeeEth,
             maxFeePerGas: maxFeePerGasEth,
+            networkName: networkName,
           );
         } else {
           content = DappCallDetails(
@@ -232,7 +233,8 @@ void Function() handleDappRequests({
         // A signature that failed is not a user who said no, and a dApp that
         // cannot tell them apart retries the wrong one.
         final failure = JsonRpcError.serverError(
-          result.errorMessage ?? 'Signing failed',
+          result.errorMessage ??
+              'Could not send this transaction. Check your connection and try again.',
         );
         // A hash on a failure is a broadcast the node never answered. It may
         // be on the network, so it is recorded as pending for the next launch

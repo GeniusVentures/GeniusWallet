@@ -300,32 +300,38 @@ class _MobileBarSlot extends StatelessWidget {
         : LinearGradient(colors: [gw.textSecondary, gw.textSecondary]);
 
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: GeniusWalletConsts.space4,
-          ),
-          child: ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: shader.createShader,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: kMobileNavIconSize, color: Colors.white),
-                const SizedBox(height: GeniusWalletConsts.space2),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GeniusWalletTypography.labelMd.copyWith(
-                    fontSize: 10,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: Colors.white,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        excludeSemantics: true,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: GeniusWalletConsts.space4,
+            ),
+            child: ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: shader.createShader,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: kMobileNavIconSize, color: Colors.white),
+                  const SizedBox(height: GeniusWalletConsts.space2),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      fontSize: 11,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -422,6 +428,7 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                     'assets/images/geniusappbarlogo.png',
                     height: 40,
                     package: 'genius_wallet',
+                    semanticLabel: 'Genius Wallet',
                   ),
                   // FIX 2: logo→nav gap. The logo PNG (38×38) bakes in a ~9px
                   // transparent right margin (opaque bbox ends at x=29) but only
@@ -448,9 +455,10 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                         // mid-hover -- rare and harmless. Upgrade path: extract a
                         // _DesktopNavTab StatefulWidget if it ever matters.
                         bool hovered = false;
+                        bool focused = false;
                         final tabButton = StatefulBuilder(
                           builder: (context, setHover) {
-                            final lifted = hovered && !isSelected;
+                            final lifted = (hovered || focused) && !isSelected;
                             // WHITE on active OR hover, muted otherwise. No gradient
                             // on the label -- the gradient is the underline only.
                             final labelColor = (isSelected || lifted)
@@ -482,6 +490,8 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                 child: InkWell(
                                   onTap: () => context.go(dest.path),
                                   onHover: (h) => setHover(() => hovered = h),
+                                  onFocusChange: (f) =>
+                                      setHover(() => focused = f),
                                   borderRadius: BorderRadius.circular(
                                     GeniusWalletConsts.borderRadiusCard,
                                   ),
@@ -605,9 +615,16 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                           },
                         );
 
+                        final labelled = Semantics(
+                          button: true,
+                          selected: isSelected,
+                          label: dest.label,
+                          excludeSemantics: true,
+                          child: tabButton,
+                        );
                         return hideLabels
-                            ? Tooltip(message: dest.label, child: tabButton)
-                            : tabButton;
+                            ? Tooltip(message: dest.label, child: labelled)
+                            : labelled;
                       }),
                     ],
                   ),

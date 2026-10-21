@@ -174,7 +174,8 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
                       // resort; the empty-list case below is the real failure
                       // surface.
                       error: GWErrorState(
-                        message: 'Failed to load news.',
+                        message:
+                            "Couldn't load news. Check your connection and try again.",
                         onRetry: _retryNews,
                       ),
                       onData: (articles) {
@@ -277,7 +278,7 @@ class _UpdatedStampState extends State<_UpdatedStamp> {
         Transform.translate(
           offset: const Offset(0, _opticalNudge),
           child: Text(
-            updated == null ? 'Updating…' : 'Updated ${shortTimeAgo(updated)}',
+            updated == null ? 'Updating' : 'Updated ${shortTimeAgo(updated)}',
             style: GeniusWalletTypography.bodySm.copyWith(
               color: gw.textSecondary,
             ),
@@ -295,7 +296,6 @@ class _UpdatedStampState extends State<_UpdatedStamp> {
             tooltip: 'Refresh',
             onPressed: widget.onRefresh,
             icon: Icon(Icons.refresh, size: 18, color: gw.textSecondary),
-            visualDensity: VisualDensity.compact,
           ),
         ],
       ],
@@ -404,7 +404,7 @@ class _NewsMagazine extends StatelessWidget {
               ),
             ] else if (hero == null) ...[
               Text(
-                'No headlines match “$query”.',
+                'No headlines match $query.',
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: gw.textSecondary,
                 ),
@@ -632,7 +632,7 @@ class _NewsDigestPanel extends StatelessWidget {
                 horizontal: GeniusWalletConsts.space4,
               ),
               child: Text(
-                'No headlines match “$query”.',
+                'No headlines match $query.',
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: gw.textSecondary,
                 ),

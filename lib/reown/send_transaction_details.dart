@@ -61,7 +61,7 @@ class SendTransactionDetails extends StatelessWidget {
         // 28/FontWeight.bold pair is replaced here; the amount itself was
         // already borderless.
         Text(
-          amount,
+          '$amount $amountSymbol',
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -69,6 +69,14 @@ class SendTransactionDetails extends StatelessWidget {
             color: gw.textPrimary,
           ),
         ),
+        if (networkName != null && networkName!.isNotEmpty)
+          Text(
+            'on $networkName',
+            textAlign: TextAlign.center,
+            style: GeniusWalletTypography.bodyMd.copyWith(
+              color: gw.textSecondary,
+            ),
+          ),
         const SizedBox(height: GeniusWalletConsts.space6),
         const GWWarningNote(
           "Double-check the recipient address before approving. "
@@ -90,26 +98,21 @@ class SendTransactionDetails extends StatelessWidget {
               _PlainDetailRow(label: 'Network', value: networkName!),
             if (tokenContract != null && tokenContract!.isNotEmpty)
               GWCopyRow(label: 'Token', value: tokenContract!),
-            if (amount.isNotEmpty)
-              _PlainDetailRow(
-                label: 'You send',
-                value: '$amount $amountSymbol',
-              ),
             if (receiveTokenSymbol != null && receiveTokenSymbol!.isNotEmpty)
               _PlainDetailRow(label: 'You receive', value: receiveTokenSymbol!),
             if (totalGasFee.isNotEmpty)
               _PlainDetailRow(
-                label: 'Gas Fee',
+                label: 'Network fee',
                 value: '$totalGasFee $feeSymbol',
               ),
             if (maxFeePerGas.isNotEmpty)
               _PlainDetailRow(
-                label: 'Max Fee Per Gas',
+                label: 'Max fee per gas',
                 value: '$maxFeePerGas $feeSymbol',
               ),
             if (priorityFee.isNotEmpty)
               _PlainDetailRow(
-                label: 'Priority Fee',
+                label: 'Priority fee',
                 value: '$priorityFee $feeSymbol',
               ),
           ],

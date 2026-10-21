@@ -339,7 +339,9 @@ void main() {
 
       expect(find.text('Main Wallet'), findsOneWidget);
       expect(
-        find.text('No child wallets registered under this account.'),
+        find.text(
+          'No child wallets yet. Use Link to a main wallet on another account to add it here.',
+        ),
         findsOneWidget,
       );
       expect(find.text(_lagNote), findsOneWidget);
@@ -720,7 +722,9 @@ void main() {
 
       expect(find.text('Main Wallet'), findsOneWidget);
       expect(
-        find.text('No child wallets registered under this account.'),
+        find.text(
+          'No child wallets yet. Use Link to a main wallet on another account to add it here.',
+        ),
         findsOneWidget,
       );
       expect(find.text(_lagNote), findsOneWidget);
@@ -911,7 +915,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.widgetWithText(GWButton, 'Register as a child of…'),
+          find.widgetWithText(GWButton, 'Link to a main wallet'),
           findsNothing,
         );
 
@@ -982,7 +986,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Detaching…'), findsOneWidget);
+        expect(find.text('Detaching'), findsOneWidget);
 
         // The real signal: an OK read of the old main no longer lists the
         // subject.
@@ -995,7 +999,7 @@ void main() {
         await tester.tap(find.byTooltip('Refresh'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Detaching…'), findsNothing);
+        expect(find.text('Detaching'), findsNothing);
         expect(find.text('Not registered as a child'), findsOneWidget);
 
         await cubit.close();
@@ -1003,7 +1007,7 @@ void main() {
     );
 
     testWidgets(
-      "reads 'Register as a child of…' when not registered, with no Detach "
+      "reads 'Link to a main wallet' when not registered, with no Detach "
       'button',
       (tester) async {
         final api = _FakeApi(registrations: _emptyOkRegistrations);
@@ -1014,7 +1018,7 @@ void main() {
         );
 
         expect(
-          find.widgetWithText(GWButton, 'Register as a child of…'),
+          find.widgetWithText(GWButton, 'Link to a main wallet'),
           findsOneWidget,
         );
         expect(find.widgetWithText(GWButton, 'Detach'), findsNothing);
@@ -1036,7 +1040,7 @@ void main() {
         );
 
         await tester.tap(
-          find.widgetWithText(GWButton, 'Register as a child of…'),
+          find.widgetWithText(GWButton, 'Link to a main wallet'),
         );
         await tester.pumpAndSettle();
 
@@ -1065,7 +1069,7 @@ void main() {
         expect(api.registerCallCount, 1);
         expect(api.lastRegisteredMain, _otherOwnAddress);
         expect(api.lastRegisteredMetadata, const ChildRegistrationMetadata());
-        expect(find.text('Registering…'), findsOneWidget);
+        expect(find.text('Registering'), findsOneWidget);
 
         // The real signal: an OK read of the chosen main now lists the
         // subject.
@@ -1084,7 +1088,7 @@ void main() {
         await tester.tap(find.byTooltip('Refresh'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Registering…'), findsNothing);
+        expect(find.text('Registering'), findsNothing);
         expect(find.text('Child of Parent Wallet'), findsOneWidget);
 
         await cubit.close();
@@ -1126,7 +1130,7 @@ void main() {
       await tester.pump();
 
       final registerButton = tester.widget<GWButton>(
-        find.widgetWithText(GWButton, 'Register as a child of…'),
+        find.widgetWithText(GWButton, 'Link to a main wallet'),
       );
       expect(registerButton.onPressed, isNull);
       expect(

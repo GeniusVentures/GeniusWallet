@@ -10,6 +10,7 @@ import 'package:genius_wallet/screens/boot_sequence.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -83,7 +84,7 @@ class _SplashState extends State<Splash> {
   // statuses settle, and the closing run must start exactly once.
   bool _closingRunStarted = false;
 
-  String _statusText = 'Preparing your wallet…';
+  String _statusText = 'Preparing your wallet';
   double _railTarget = 0;
   Duration _railDuration = Duration.zero;
 
@@ -95,7 +96,7 @@ class _SplashState extends State<Splash> {
       _railTarget = railTarget;
       _railDuration = railDuration;
       _statusText = switch (stage) {
-        BootStage.preparing => 'Preparing your wallet…',
+        BootStage.preparing => 'Preparing your wallet',
         BootStage.walletsReady => 'Wallets ready',
         BootStage.balancesReady => 'Balances ready',
         BootStage.marketsReady => 'Markets ready',
@@ -241,17 +242,20 @@ class _SplashState extends State<Splash> {
                             ),
                             const SizedBox(width: GeniusWalletConsts.space6),
                             Flexible(
-                              child: Text(
-                                _statusText,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                // bodySm already bakes the const `textSecondary`
-                                // colour -- passed explicitly anyway so the
-                                // safety is visible at the call site rather
-                                // than inherited from a default that could
-                                // change.
-                                style: GeniusWalletTypography.bodySm.copyWith(
-                                  color: context.gw.textSecondary,
+                              child: Semantics(
+                                liveRegion: true,
+                                child: Text(
+                                  _statusText,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  // bodySm already bakes the const `textSecondary`
+                                  // colour -- passed explicitly anyway so the
+                                  // safety is visible at the call site rather
+                                  // than inherited from a default that could
+                                  // change.
+                                  style: GeniusWalletTypography.bodySm.copyWith(
+                                    color: GWColors.fixedTextSecondary,
+                                  ),
                                 ),
                               ),
                             ),

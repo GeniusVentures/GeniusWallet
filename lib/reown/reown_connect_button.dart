@@ -14,6 +14,7 @@ import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
@@ -382,7 +383,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     // colour.
     final isConnected = _session != null;
 
-    final isMobile = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
+    final isMobile = !GeniusBreakpoints.useDesktopLayout(context);
 
     IconData icon;
     Color stateColor;
@@ -476,10 +477,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                 // only this text's alpha channel -- the RGB value never
                 // reaches the screen (same pattern as GWButton's
                 // gradientOutline pre-mask placeholder).
-                child: const Text(
+                child: Text(
                   'Connect',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: GeniusWalletTypography.labelMd.copyWith(
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -488,8 +488,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             else
               Text(
                 text,
-                style: TextStyle(
-                  fontSize: 13,
+                style: GeniusWalletTypography.labelMd.copyWith(
                   fontWeight: FontWeight.w600,
                   color: textColor,
                 ),

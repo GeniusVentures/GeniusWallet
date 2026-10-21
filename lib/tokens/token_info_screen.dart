@@ -289,7 +289,11 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     // Reached from Markets, Assets and Home, and on desktop the
                     // top nav is the only other way out, so name no destination.
                     if (GoRouter.maybeOf(context)?.canPop() ?? false)
-                      GWBackLink(label: 'BACK', onTap: context.pop),
+                      Semantics(
+                        label: 'Back',
+                        excludeSemantics: true,
+                        child: GWBackLink(label: 'BACK', onTap: context.pop),
+                      ),
                     _header(context, selectedCoin, isDesktop),
                     // sketch 165 Synthesis, change 3: the actions sit on their
                     // own row under the identity block, not on the title's
@@ -1323,7 +1327,9 @@ class _PriceBlock extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: tone.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(
+                GeniusWalletConsts.radiusPill,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -1576,7 +1582,9 @@ class _ChartRangeFooter extends StatelessWidget {
                 height: 4,
                 decoration: BoxDecoration(
                   color: gw.borderStrong,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(
+                    GeniusWalletConsts.radiusXs,
+                  ),
                 ),
               ),
               Align(
@@ -1587,7 +1595,9 @@ class _ChartRangeFooter extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     gradient: GeniusWalletGradient.brandCta,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(
+                      GeniusWalletConsts.radiusXs,
+                    ),
                   ),
                 ),
               ),

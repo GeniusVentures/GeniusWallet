@@ -315,12 +315,12 @@ ComputeStatusView viewForComputeState(
       dotRole = ComputeDotRole.brand;
     case ComputeState.jobComplete:
       label = 'Job complete';
-      subline = 'Finished · your balance is updating';
+      subline = 'Finished, your balance is updating';
       trailing = 'just now';
       dotRole = ComputeDotRole.success;
     case ComputeState.ready:
       label = 'Ready';
-      subline = 'Online · waiting for work';
+      subline = 'Online, waiting for work';
       trailing = 'idle';
       dotRole = ComputeDotRole.success;
   }

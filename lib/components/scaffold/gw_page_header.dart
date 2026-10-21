@@ -129,13 +129,18 @@ class GWPageHeader extends StatelessWidget {
     // Fail-soft read: registers the InheritedWidget dependency that forces
     // this subtree to rebuild on a live appearance toggle (04-04 discipline).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final titleText = Text(
-      title,
-      textAlign: centered ? TextAlign.center : TextAlign.start,
-      // A squeezed title must ellipsize; wrapping breaks it one letter a line.
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: GeniusWalletTypography.headlineLg.copyWith(color: gw.textPrimary),
+    final titleText = Tooltip(
+      message: title,
+      child: Text(
+        title,
+        textAlign: centered ? TextAlign.center : TextAlign.start,
+        // A squeezed title must ellipsize; wrapping breaks it one letter a line.
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GeniusWalletTypography.headlineLg.copyWith(
+          color: gw.textPrimary,
+        ),
+      ),
     );
     final subtitleText = subtitle == null
         ? null

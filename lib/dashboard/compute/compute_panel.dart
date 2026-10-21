@@ -141,7 +141,7 @@ class ComputePanel extends StatelessWidget {
         // own height and has no budget to blow. The 306 and the 314 above are
         // unchanged and still measured; only the surface they describe
         // narrowed.
-        const GWSectionTitle(title: 'Compute'),
+        const GWSectionTitle(title: 'Earning'),
         _BalanceTile(
           view: view,
           balance: balance,

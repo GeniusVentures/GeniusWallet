@@ -15,6 +15,9 @@ abstract class GeniusBreakpoints {
 
   static const double xxl = 1536;
 
+  /// Width from which the dashboard shows Markets beside the chart.
+  static const double dashboardThreeColumn = 1440;
+
   static bool useDesktopLayout(BuildContext context) {
     return MediaQuery.sizeOf(context).width > medium && !isMobileApp();
   }

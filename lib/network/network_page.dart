@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -105,13 +106,13 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                   builder: (context, snapshot) {
                     final ConnectivityResult? statusValue =
                         snapshot.data ?? lastKnownConnectivity;
-                    String status = "Checking...";
+                    String status = "Checking connection";
                     if (statusValue != null) {
                       if (statusValue == ConnectivityResult.none) {
                         status = "Offline";
                       } else {
                         status =
-                            "Online (${statusValue.toString().split('.').last})";
+                            "Online over ${statusValue == ConnectivityResult.wifi ? 'Wi-Fi' : statusValue.name}";
                       }
                     }
                     return ListTile(
@@ -120,8 +121,8 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                             ? Icons.check_circle
                             : Icons.error,
                         color: status.startsWith("Online")
-                            ? Colors.green
-                            : Colors.red,
+                            ? context.gw.statusSuccess
+                            : context.gw.statusError,
                       ),
                       title: const Text("Network Connectivity"),
                       subtitle: Text(status),
@@ -145,20 +146,20 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                                 app.sdkAccountLinks,
                                 app.wallets,
                               )?.address ??
-                              'Unlinked';
+                              'No wallet linked';
                     return ListTile(
                       leading: Icon(
                         (connection != null && connection.isConnected)
                             ? Icons.check_circle
                             : Icons.error_outline,
                         color: (connection != null && connection.isConnected)
-                            ? Colors.green
-                            : Colors.red,
+                            ? context.gw.statusSuccess
+                            : context.gw.statusError,
                       ),
-                      title: const Text('SGNUS Connection'),
+                      title: const Text('Earning connection'),
                       subtitle: Text(
                         connection == null
-                            ? 'No data'
+                            ? 'Network stats unavailable'
                             : connection.isConnected
                             ? "Connected\nAddress: $nodeAddress\nWallet: $nodeWallet"
                             : "Disconnected",
@@ -172,15 +173,21 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                     leading: SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(
-                        value: _initPercentage ?? 0.0,
-                        strokeWidth: 2.0,
-                        color: (_initPercentage ?? 0.0) >= 1.0
-                            ? Colors.green
-                            : Colors.blue,
+                      child: Semantics(
+                        liveRegion: true,
+                        child: CircularProgressIndicator(
+                          value: _initPercentage ?? 0.0,
+                          strokeWidth: 2.0,
+                          semanticsLabel: 'Starting up',
+                          semanticsValue:
+                              '${((_initPercentage ?? 0.0) * 100).round()}%',
+                          color: (_initPercentage ?? 0.0) >= 1.0
+                              ? context.gw.statusSuccess
+                              : context.gw.brandPrimaryOnSurface,
+                        ),
                       ),
                     ),
-                    title: const Text('SDK Initialization'),
+                    title: const Text('Starting up'),
                     subtitle: Text(
                       _initStatusMessage ?? '',
                       maxLines: 2,

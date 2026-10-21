@@ -43,8 +43,14 @@ class RouteDetailsCard extends StatelessWidget {
         ? fromAmount
         : capDecimals(fromAmount, 4, roundUp: true);
     final getShown = showFull ? toAmount : capDecimals(toAmount, 4);
-    final pricing = '$payShown $fromSymbol ~ $getShown $toSymbol';
+    final pricing = '$payShown $fromSymbol = $getShown $toSymbol';
     final priceImpact = '${formatPercent(quote.priceImpact)}%';
+    final impactValue = double.tryParse(quote.priceImpact.trim()) ?? 0;
+    final impactColor = impactValue > 5
+        ? gw.statusErrorText
+        : impactValue >= 1
+        ? gw.statusWarningText
+        : gw.textPrimary;
 
     return Container(
       // Vertical only. A horizontal margin here inset this card 16px inside
@@ -61,12 +67,12 @@ class RouteDetailsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _DetailRow(label: "Pricing", value: pricing, showDivider: true),
-          _DetailRow(label: "Slippage", value: slippage, showDivider: true),
+          _DetailRow(label: "Slippage", value: '$slippage%', showDivider: true),
           _DetailRow(
             label: "Price Impact",
             value: priceImpact,
             showDivider: true,
-            valueColor: gw.statusSuccessText,
+            valueColor: impactColor,
           ),
           // Each fee the route charges is its own row, named the way the
           // route named it — never summed into one figure. Empty on a

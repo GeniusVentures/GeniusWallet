@@ -79,7 +79,7 @@ Future<void> startFund(
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
-      'Nothing was sent. Try again.',
+      'Nothing was sent. Check your connection and try again.',
       type: ToastType.error,
     );
     return;
@@ -142,7 +142,7 @@ Future<void> startRecover(
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
-      'Nothing was sent. Try again.',
+      'Nothing was sent. Check your connection and try again.',
       type: ToastType.error,
     );
     return;
@@ -200,7 +200,7 @@ Future<void> startRevoke(
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
-      'Nothing was sent. Try again.',
+      'Nothing was sent. Check your connection and try again.',
       type: ToastType.error,
     );
     return;
@@ -261,7 +261,7 @@ Future<void> startDetach(
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
-      'Nothing was sent. Try again.',
+      'Nothing was sent. Check your connection and try again.',
       type: ToastType.error,
     );
     return;
@@ -291,7 +291,7 @@ Future<void> startRegister(
   final main = await showMainPicker(
     // ignore: use_build_context_synchronously
     context,
-    title: 'Register as a child of…',
+    title: 'Link to a main wallet',
     candidates: registry.ownAccounts,
     excluded: {account},
   );
@@ -336,7 +336,7 @@ Future<void> startRegister(
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
-      'Nothing was sent. Try again.',
+      'Nothing was sent. Check your connection and try again.',
       type: ToastType.error,
     );
     return;
@@ -414,7 +414,7 @@ Future<void> startMove(
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
-      'Nothing was sent. Try again.',
+      'Nothing was sent. Check your connection and try again.',
       type: ToastType.error,
     );
     return;

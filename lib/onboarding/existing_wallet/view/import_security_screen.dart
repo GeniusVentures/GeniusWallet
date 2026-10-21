@@ -183,14 +183,15 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                               child: TabBarView(
                                 children: [
                                   PasteField(
-                                    hintText: 'Wallet Mnemonic Phrase',
+                                    hintText:
+                                        'Recovery phrase (12 or 24 words)',
                                     subtitle:
                                         'Typically 12 (sometimes 24) words separated by single spaces.',
                                     controller:
                                         tabControllers['phrase']!['pasteField']!,
                                   ),
                                   PasteField(
-                                    hintText: "Wallet Private Key",
+                                    hintText: 'Private key',
                                     controller:
                                         tabControllers['privatekey']!['pasteField']!,
                                     subtitle:
@@ -203,7 +204,7 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                                         tabControllers['keystore']!['pasteField']!,
                                   ),
                                   PasteField(
-                                    hintText: 'Wallet Address',
+                                    hintText: 'Wallet address',
                                     controller:
                                         tabControllers['address']!['pasteField']!,
                                     subtitle:
@@ -336,6 +337,7 @@ class KeystoreTabView extends StatelessWidget {
         textCapitalization: TextCapitalization.none,
         style: GeniusWalletTypography.bodyLg,
         decoration: InputDecoration(
+          labelText: 'Password',
           hintText: 'Password',
           hintStyle: GeniusWalletTypography.bodyLg.copyWith(
             color: gw.textSecondary,

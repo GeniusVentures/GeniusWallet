@@ -363,32 +363,36 @@ class _PresetChip extends StatelessWidget {
     // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
     // other state, so it is a `StatelessWidget` now.
     return GWHoverable(
-      builder: (hovered) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-        child: Container(
-          height: 40,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            gradient: selected ? GeniusWalletGradient.brandCta : null,
-            // Unselected hover is THE app-wide recipe (sketch 044): brand tint
-            // + brand hairline, no geometry.
-            color: selected
-                ? null
-                : (hovered ? GWDecorations.hoverFill : Colors.transparent),
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-            border: Border.all(
+      builder: (hovered) => Semantics(
+        button: true,
+        selected: selected,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+          child: Container(
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: selected ? GeniusWalletGradient.brandCta : null,
+              // Unselected hover is THE app-wide recipe (sketch 044): brand tint
+              // + brand hairline, no geometry.
               color: selected
-                  ? Colors.transparent
-                  : (hovered ? GWDecorations.hoverEdge : gw.borderSubtle),
-              width: 1,
+                  ? null
+                  : (hovered ? GWDecorations.hoverFill : Colors.transparent),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+              border: Border.all(
+                color: selected
+                    ? Colors.transparent
+                    : (hovered ? GWDecorations.hoverEdge : gw.borderSubtle),
+                width: 1,
+              ),
             ),
-          ),
-          child: Text(
-            label,
-            style: GeniusWalletTypography.titleMd.copyWith(
-              color: selected ? context.gw.textOnBrand : gw.textPrimary,
-              fontWeight: FontWeight.w600,
+            child: Text(
+              label,
+              style: GeniusWalletTypography.titleMd.copyWith(
+                color: selected ? context.gw.textOnBrand : gw.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ),

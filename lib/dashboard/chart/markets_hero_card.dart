@@ -346,7 +346,7 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
             const SizedBox(width: GeniusWalletConsts.space6),
             Flexible(
               child: Text(
-                '${_absChange(data)} · 24h',
+                '${_absChange(data)} in 24h',
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: gw.textSecondary,
                 ),
@@ -608,7 +608,7 @@ class _ChangePill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
       ),
       child: Text(
         '${percent >= 0 ? '+' : ''}${percent.toStringAsFixed(2)}%',

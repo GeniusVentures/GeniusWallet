@@ -120,68 +120,81 @@ class SwapField extends StatelessWidget {
                 Expanded(
                   child: (emptyPlaceholder != null && controller.text.isEmpty)
                       ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            emptyPlaceholder!,
-                            style: heroStyle.copyWith(color: gw.textPrimary60),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: GeniusWalletConsts.space4,
+                          ),
+                          child: Semantics(
+                            label: 'No quote available',
+                            excludeSemantics: true,
+                            child: Text(
+                              emptyPlaceholder!,
+                              style: heroStyle.copyWith(
+                                color: gw.textPrimary60,
+                              ),
+                            ),
                           ),
                         )
                       : GWKeyboardDoneBar(
                           enabled: isSelectingFrom,
-                          child: TextField(
-                            style: heroStyle.copyWith(color: gw.textPrimary),
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
+                          child: Semantics(
+                            label: label,
+                            textField: true,
+                            child: TextField(
+                              style: heroStyle.copyWith(color: gw.textPrimary),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              // The bridge — this screen's twin — has guarded its
+                              // amount field since 08-04; Swap accepted letters.
+                              // `decimalRange` caps precision at what the token can
+                              // actually represent, so the field cannot promise more
+                              // digits than survive on chain.
+                              inputFormatters: [
+                                DecimalTextInputFormatter(
+                                  decimalRange: selectedToken?.decimals,
+                                ),
+                              ],
+                              // "You Receive" is derived from the route, never typed:
+                              // its `onChanged` only calls `setState`, and the next
+                              // quote overwrites whatever was entered. A field that
+                              // accepts input and silently discards it is worse than
+                              // one that declines it. If a reverse quote ever lands,
+                              // this becomes its own flag rather than riding along.
+                              readOnly: !isSelectingFrom,
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              decoration: InputDecoration(
+                                hintText: "0.0",
+                                hintStyle: heroStyle.copyWith(
+                                  color: gw.textPrimary60,
+                                ),
+                                border: InputBorder.none,
+                                // `border` is only the FALLBACK. theme.dart:242 sets
+                                // an app-wide `focusedBorder` (a radiusLg brand
+                                // outline), and a per-state border always beats the
+                                // fallback — so this "borderless" hero amount grew a
+                                // blue rounded box the moment it took focus, cutting
+                                // across the card that is its real frame. Silencing
+                                // the state explicitly is the only thing that holds;
+                                // the card already carries the border.
+                                focusedBorder: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                // Material 3's default for an unfilled, non-dense
+                                // borderless field is vertical 8 (measured, not
+                                // assumed: input_decorator.dart:2617). Pinning it
+                                // keeps this branch and the placeholder branch above
+                                // on ONE baseline — a framework default drifting
+                                // would otherwise make the amount jump as the "—"
+                                // is replaced by a number.
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: GeniusWalletConsts.space4,
+                                ),
+                              ),
+                              controller: controller,
+                              onChanged: onChanged,
                             ),
-                            // The bridge — this screen's twin — has guarded its
-                            // amount field since 08-04; Swap accepted letters.
-                            // `decimalRange` caps precision at what the token can
-                            // actually represent, so the field cannot promise more
-                            // digits than survive on chain.
-                            inputFormatters: [
-                              DecimalTextInputFormatter(
-                                decimalRange: selectedToken?.decimals,
-                              ),
-                            ],
-                            // "You Receive" is derived from the route, never typed:
-                            // its `onChanged` only calls `setState`, and the next
-                            // quote overwrites whatever was entered. A field that
-                            // accepts input and silently discards it is worse than
-                            // one that declines it. If a reverse quote ever lands,
-                            // this becomes its own flag rather than riding along.
-                            readOnly: !isSelectingFrom,
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            decoration: InputDecoration(
-                              hintText: "0.0",
-                              hintStyle: heroStyle.copyWith(
-                                color: gw.textPrimary60,
-                              ),
-                              border: InputBorder.none,
-                              // `border` is only the FALLBACK. theme.dart:242 sets
-                              // an app-wide `focusedBorder` (a radiusLg brand
-                              // outline), and a per-state border always beats the
-                              // fallback — so this "borderless" hero amount grew a
-                              // blue rounded box the moment it took focus, cutting
-                              // across the card that is its real frame. Silencing
-                              // the state explicitly is the only thing that holds;
-                              // the card already carries the border.
-                              focusedBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              // Material 3's default for an unfilled, non-dense
-                              // borderless field is vertical 8 (measured, not
-                              // assumed: input_decorator.dart:2617). Pinning it
-                              // keeps this branch and the placeholder branch above
-                              // on ONE baseline — a framework default drifting
-                              // would otherwise make the amount jump as the "—"
-                              // is replaced by a number.
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                              ),
-                            ),
-                            controller: controller,
-                            onChanged: onChanged,
                           ),
                         ),
                 ),
@@ -190,76 +203,81 @@ class SwapField extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     GWHoverable(
-                      builder: (hovered) => InkWell(
-                        onTap: () {
-                          TokenSelectorDrawer.show(
-                            context: context,
-                            tokens: tokens,
-                            onTokenSelected: onTokenSelected,
-                            // Without this the picker reopens showing no trace
-                            // of what is already chosen (032-A1's selection).
-                            selectedToken: selectedToken,
-                            emptyTitle: pickerEmptyTitle,
-                            emptyMessage: pickerEmptyMessage,
-                            emptyActions: pickerEmptyActions,
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(
-                          GeniusWalletConsts.radiusPill,
-                        ),
-                        child: Container(
-                          // The logo makes the pill 36px tall; without one it is
-                          // shorter and the card jumped when a token was picked.
-                          constraints: const BoxConstraints(minHeight: 36),
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.only(
-                            left: 4,
-                            right: 8,
-                            top: 2,
-                            bottom: 2,
+                      builder: (hovered) => Semantics(
+                        button: true,
+                        label:
+                            '$label token, ${selectedToken?.symbol ?? 'none selected'}',
+                        excludeSemantics: true,
+                        child: InkWell(
+                          onTap: () {
+                            TokenSelectorDrawer.show(
+                              context: context,
+                              tokens: tokens,
+                              onTokenSelected: onTokenSelected,
+                              // Without this the picker reopens showing no trace
+                              // of what is already chosen (032-A1's selection).
+                              selectedToken: selectedToken,
+                              emptyTitle: pickerEmptyTitle,
+                              emptyMessage: pickerEmptyMessage,
+                              emptyActions: pickerEmptyActions,
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(
+                            GeniusWalletConsts.radiusPill,
                           ),
-                          decoration: BoxDecoration(
-                            // THE app-wide hover recipe (sketch 044 variant 3):
-                            // brand tint + brand hairline, no geometry — the same
-                            // two tokens nav chips, tabs and GWCard read. This
-                            // control is the primary affordance on the card and
-                            // was the only one on it that read as inert.
-                            color: hovered
-                                ? GWDecorations.hoverFill
-                                : gw.surfaceMenu,
-                            borderRadius: BorderRadius.circular(
-                              GeniusWalletConsts.radiusPill,
+                          child: Container(
+                            // The logo makes the pill 36px tall; without one it is
+                            // shorter and the card jumped when a token was picked.
+                            constraints: const BoxConstraints(minHeight: 44),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.only(
+                              left: 4,
+                              right: 8,
+                              top: 2,
+                              bottom: 2,
                             ),
-                            border: Border.all(
+                            decoration: BoxDecoration(
+                              // THE app-wide hover recipe (sketch 044 variant 3):
+                              // brand tint + brand hairline, no geometry — the same
+                              // two tokens nav chips, tabs and GWCard read. This
+                              // control is the primary affordance on the card and
+                              // was the only one on it that read as inert.
                               color: hovered
-                                  ? GWDecorations.hoverEdge
-                                  : gw.borderSubtle,
-                              width: 1,
+                                  ? GWDecorations.hoverFill
+                                  : gw.surfaceMenu,
+                              borderRadius: BorderRadius.circular(
+                                GeniusWalletConsts.radiusPill,
+                              ),
+                              border: Border.all(
+                                color: hovered
+                                    ? GWDecorations.hoverEdge
+                                    : gw.borderSubtle,
+                                width: 1,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              if (selectedToken != null)
-                                TokenIcon(
-                                  iconPath: selectedToken!.logoUri,
-                                  size: 32,
-                                  label: selectedToken!.symbol,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (selectedToken != null)
+                                  TokenIcon(
+                                    iconPath: selectedToken!.logoUri,
+                                    size: 32,
+                                    label: selectedToken!.symbol,
+                                  ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  selectedToken?.symbol ?? "Select",
+                                  style: GeniusWalletTypography.titleMd
+                                      .copyWith(color: gw.textPrimary),
                                 ),
-                              const SizedBox(width: 8),
-                              Text(
-                                selectedToken?.symbol ?? "Select",
-                                style: GeniusWalletTypography.titleMd.copyWith(
-                                  color: gw.textPrimary,
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: gw.textSecondary,
+                                  size: 14,
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Icon(
-                                Icons.keyboard_arrow_down,
-                                color: gw.textSecondary,
-                                size: 14,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -288,54 +306,62 @@ class SwapField extends StatelessWidget {
                           if (showMax) ...[
                             const SizedBox(width: GeniusWalletConsts.space4),
                             GWHoverable(
-                              builder: (hovered) => InkWell(
-                                onTap: () {
-                                  final formatted =
-                                      selectedToken!.formattedBalance;
-                                  controller.text = formatted;
-                                  onChanged(controller.text);
-                                },
-                                borderRadius: BorderRadius.circular(
-                                  GeniusWalletConsts.radiusSm,
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: GeniusWalletConsts.space4,
-                                    vertical: 2,
+                              builder: (hovered) => Semantics(
+                                button: true,
+                                label: 'Use maximum balance',
+                                excludeSemantics: true,
+                                child: InkWell(
+                                  onTap: () {
+                                    final formatted =
+                                        selectedToken!.formattedBalance;
+                                    controller.text = formatted;
+                                    onChanged(controller.text);
+                                  },
+                                  borderRadius: BorderRadius.circular(
+                                    GeniusWalletConsts.radiusSm,
                                   ),
-                                  decoration: BoxDecoration(
-                                    // This chip's resting fill IS the hover tint
-                                    // (`brandPrimarySubtle` == `GWDecorations
-                                    // .hoverFill`), so re-tinting would say nothing.
-                                    // Hover adds the recipe's other half — the brand
-                                    // hairline — and the control still answers.
-                                    color: context.gw.brandPrimarySubtle,
-                                    borderRadius: BorderRadius.circular(
-                                      GeniusWalletConsts.radiusSm,
+                                  child: Container(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 44,
                                     ),
-                                    // ALWAYS a 1px border, transparent at rest.
-                                    // A `BoxDecoration` border is layout, not
-                                    // paint: `Border.all(width: 1)` adds 1px to
-                                    // every side of the box, so appearing on
-                                    // hover grew the chip 2x2, which grew the
-                                    // Row, the card and the whole centred swap
-                                    // column - the page visibly jumped under the
-                                    // cursor. Same defect `GWSelectRow` fixed on
-                                    // 2026-07-28 (068-A) and pins with a test.
-                                    border: Border.all(
-                                      color: hovered
-                                          ? GWDecorations.hoverEdge
-                                          : Colors.transparent,
-                                      width: 1,
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: GeniusWalletConsts.space4,
                                     ),
-                                  ),
-                                  child: Text(
-                                    "MAX",
-                                    style: GeniusWalletTypography.labelMd
-                                        .copyWith(
-                                          color:
-                                              context.gw.brandPrimaryOnSurface,
-                                        ),
+                                    decoration: BoxDecoration(
+                                      // This chip's resting fill IS the hover tint
+                                      // (`brandPrimarySubtle` == `GWDecorations
+                                      // .hoverFill`), so re-tinting would say nothing.
+                                      // Hover adds the recipe's other half — the brand
+                                      // hairline — and the control still answers.
+                                      color: context.gw.brandPrimarySubtle,
+                                      borderRadius: BorderRadius.circular(
+                                        GeniusWalletConsts.radiusSm,
+                                      ),
+                                      // ALWAYS a 1px border, transparent at rest.
+                                      // A `BoxDecoration` border is layout, not
+                                      // paint: `Border.all(width: 1)` adds 1px to
+                                      // every side of the box, so appearing on
+                                      // hover grew the chip 2x2, which grew the
+                                      // Row, the card and the whole centred swap
+                                      // column - the page visibly jumped under the
+                                      // cursor.
+                                      border: Border.all(
+                                        color: hovered
+                                            ? GWDecorations.hoverEdge
+                                            : Colors.transparent,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "MAX",
+                                      style: GeniusWalletTypography.labelMd
+                                          .copyWith(
+                                            color: context
+                                                .gw
+                                                .brandPrimaryOnSurface,
+                                          ),
+                                    ),
                                   ),
                                 ),
                               ),

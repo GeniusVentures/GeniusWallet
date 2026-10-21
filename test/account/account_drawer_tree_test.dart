@@ -617,7 +617,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(api.fundCalls, [nestMainB]);
-        expect(find.text('Funding 1.5 GNUS…'), findsOneWidget);
+        expect(find.text('Funding 1.5 GNUS'), findsOneWidget);
 
         await openMenu(tester, accountRow(nestMainB));
         final fundItem = tester.widget<MenuItemButton>(

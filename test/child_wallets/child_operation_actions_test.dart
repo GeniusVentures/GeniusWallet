@@ -361,14 +361,14 @@ void main() {
     expect(api.fundCallCount, 1);
     expect(api.lastFundedAmount, '1.500000');
     expect(api.lastFundedChild, _childAddress);
-    expect(find.text('Funding 1.5 GNUS…'), findsOneWidget);
+    expect(find.text('Funding 1.5 GNUS'), findsOneWidget);
 
     // The real signal: the child's balance actually rose by the amount.
     api.balances[_childAddress] = BigInt.from(1500000);
     await tester.tap(find.byTooltip('Refresh'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Funding 1.5 GNUS…'), findsNothing);
+    expect(find.text('Funding 1.5 GNUS'), findsNothing);
     expect(find.text('Funded 1.5 GNUS to Game Wallet'), findsOneWidget);
 
     await childWallets.close();
@@ -395,7 +395,7 @@ void main() {
 
     expect(api.fundCallCount, 1);
     expect(find.text("Couldn't fund this child."), findsOneWidget);
-    expect(find.text('Funding 1.5 GNUS…'), findsNothing);
+    expect(find.text('Funding 1.5 GNUS'), findsNothing);
 
     await childWallets.close();
     await operations.close();
@@ -705,8 +705,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Funding 1 GNUS…'), findsOneWidget);
-    expect(find.text('Funding 2.5 GNUS…'), findsOneWidget);
+    expect(find.text('Funding 1 GNUS'), findsOneWidget);
+    expect(find.text('Funding 2.5 GNUS'), findsOneWidget);
 
     final firstRowTop = tester.getTopLeft(find.text('Game Wallet')).dy;
     final secondRowTop = tester.getTopLeft(find.text('Second Wallet')).dy;
@@ -767,14 +767,14 @@ void main() {
       expect(api.recoverCallCount, 1);
       expect(api.lastRecoveredAmount, '1.500000');
       expect(api.lastRecoveredChild, _childAddress);
-      expect(find.text('Recovering 1.5 GNUS…'), findsOneWidget);
+      expect(find.text('Recovering 1.5 GNUS'), findsOneWidget);
 
       // The real signal: the child's balance actually fell by the amount.
       api.balances[_childAddress] = BigInt.from(500000);
       await tester.tap(find.byTooltip('Refresh'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Recovering 1.5 GNUS…'), findsNothing);
+      expect(find.text('Recovering 1.5 GNUS'), findsNothing);
       expect(find.text('Recovered 1.5 GNUS from Game Wallet'), findsOneWidget);
 
       await childWallets.close();
@@ -803,7 +803,7 @@ void main() {
 
     expect(api.recoverCallCount, 1);
     expect(find.text("Couldn't recover from this child."), findsOneWidget);
-    expect(find.text('Recovering 1.5 GNUS…'), findsNothing);
+    expect(find.text('Recovering 1.5 GNUS'), findsNothing);
 
     await childWallets.close();
     await operations.close();
@@ -838,7 +838,7 @@ void main() {
 
       expect(api.revokeCallCount, 1);
       expect(api.lastRevokedChild, _childAddress);
-      expect(find.text('Revoking…'), findsOneWidget);
+      expect(find.text('Revoking'), findsOneWidget);
 
       // The real signal: an OK read of the main no longer lists the child.
       api.registrations = (
@@ -876,7 +876,7 @@ void main() {
 
     expect(api.revokeCallCount, 1);
     expect(find.text("Couldn't revoke this child."), findsOneWidget);
-    expect(find.text('Revoking…'), findsNothing);
+    expect(find.text('Revoking'), findsNothing);
 
     await childWallets.close();
     await operations.close();
@@ -970,7 +970,7 @@ void main() {
 
       expect(api.detachCallCount, 1);
       expect(api.lastDetachMetadata, const ChildRegistrationMetadata());
-      expect(find.text('Detaching…'), findsOneWidget);
+      expect(find.text('Detaching'), findsOneWidget);
 
       // The real signal: an OK read of the old main no longer lists the
       // subject.
@@ -983,7 +983,7 @@ void main() {
       await tester.tap(find.byTooltip('Refresh'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Detaching…'), findsNothing);
+      expect(find.text('Detaching'), findsNothing);
       expect(find.text('Detached from Parent Wallet'), findsOneWidget);
 
       await childWallets.close();
@@ -1029,7 +1029,7 @@ void main() {
 
     expect(api.detachCallCount, 1);
     expect(find.text("Couldn't detach this account."), findsOneWidget);
-    expect(find.text('Detaching…'), findsNothing);
+    expect(find.text('Detaching'), findsNothing);
 
     await childWallets.close();
     await operations.close();
@@ -1090,9 +1090,7 @@ void main() {
         appState: _withParentAppState,
       );
 
-      await tester.tap(
-        find.widgetWithText(GWButton, 'Register as a child of…'),
-      );
+      await tester.tap(find.widgetWithText(GWButton, 'Link to a main wallet'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Parent Wallet'));
       await tester.pumpAndSettle();
@@ -1109,7 +1107,7 @@ void main() {
       expect(api.registerCallCount, 1);
       expect(api.lastRegisteredMain, _parentAddress);
       expect(api.lastRegisteredMetadata, const ChildRegistrationMetadata());
-      expect(find.text('Registering…'), findsOneWidget);
+      expect(find.text('Registering'), findsOneWidget);
 
       // The real signal: an OK read of the chosen main now lists the
       // subject.
@@ -1128,7 +1126,7 @@ void main() {
       await tester.tap(find.byTooltip('Refresh'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Registering…'), findsNothing);
+      expect(find.text('Registering'), findsNothing);
       expect(
         find.text('Registered as a child of Parent Wallet'),
         findsOneWidget,
@@ -1153,7 +1151,7 @@ void main() {
       appState: _withParentAppState,
     );
 
-    await tester.tap(find.widgetWithText(GWButton, 'Register as a child of…'));
+    await tester.tap(find.widgetWithText(GWButton, 'Link to a main wallet'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Parent Wallet'));
     await tester.pumpAndSettle();
@@ -1169,7 +1167,7 @@ void main() {
 
     expect(api.registerCallCount, 1);
     expect(find.text("Couldn't register this account."), findsOneWidget);
-    expect(find.text('Registering…'), findsNothing);
+    expect(find.text('Registering'), findsNothing);
 
     await childWallets.close();
     await operations.close();
@@ -1195,7 +1193,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final registerButton = tester.widget<GWButton>(
-      find.widgetWithText(GWButton, 'Register as a child of…'),
+      find.widgetWithText(GWButton, 'Link to a main wallet'),
     );
     expect(registerButton.onPressed, isNull);
     expect(find.byTooltip('Already registering this account'), findsOneWidget);
@@ -1285,7 +1283,7 @@ void main() {
       expect(api.moveCallCount, 1);
       expect(api.lastMoveNewMain, _newMainAddress);
       expect(api.lastMoveMetadata, const ChildRegistrationMetadata());
-      expect(find.text('Moving to New Main Wallet…'), findsOneWidget);
+      expect(find.text('Moving to New Main Wallet'), findsOneWidget);
       // Still the list-based truth until the real signal lands -- the new
       // main is never claimed early.
       expect(find.text('Child of Parent Wallet'), findsOneWidget);
@@ -1311,7 +1309,7 @@ void main() {
       await tester.tap(find.byTooltip('Refresh'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Moving to New Main Wallet…'), findsNothing);
+      expect(find.text('Moving to New Main Wallet'), findsNothing);
       expect(find.text('Moved to New Main Wallet'), findsOneWidget);
 
       await childWallets.close();
@@ -1438,7 +1436,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Funding 1 GNUS…'), findsOneWidget);
+    expect(find.text('Funding 1 GNUS'), findsOneWidget);
     expect(find.text('Not confirmed yet'), findsOneWidget);
 
     await childWallets.close();
@@ -1488,7 +1486,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Not confirmed yet'), findsOneWidget);
-    expect(find.text('Moving to New Main Wallet…'), findsOneWidget);
+    expect(find.text('Moving to New Main Wallet'), findsOneWidget);
 
     await childWallets.close();
     await operations.close();

@@ -11,7 +11,7 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/formatters.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-class PinScreen extends StatelessWidget {
+class PinScreen extends StatefulWidget {
   final String title;
 
   /// Typed `void Function(String)` DELIBERATELY, not `Function(String)`.
@@ -28,6 +28,22 @@ class PinScreen extends StatelessWidget {
   final void Function(String) onCompleted;
 
   const PinScreen({super.key, required this.title, required this.onCompleted});
+
+  @override
+  State<PinScreen> createState() => _PinScreenState();
+}
+
+class _PinScreenState extends State<PinScreen> {
+  bool _submitted = false;
+
+  // Enter and Continue share this guard; typing again re-arms it.
+  void _submit(String pin) {
+    if (_submitted) {
+      return;
+    }
+    _submitted = true;
+    widget.onCompleted(pin);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,18 +63,27 @@ class PinScreen extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            spacing: 12,
+            spacing: GeniusWalletConsts.space6,
             children: [
               Text(
-                title,
+                widget.title,
                 style: GeniusWalletTypography.headlineLg.copyWith(
                   color: gw.textPrimary,
                 ),
               ),
               MaterialPinField(
                 length: GeniusWalletConsts.pinCount,
+                autoFocus: true,
+                onSubmitted: (pin) {
+                  if (pin.length == GeniusWalletConsts.pinCount) {
+                    _submit(pin);
+                  }
+                },
                 obscureText: true,
-                onChanged: context.read<PinCubit>().desktopOnChanged,
+                onChanged: (value) {
+                  _submitted = false;
+                  context.read<PinCubit>().desktopOnChanged(value);
+                },
                 pinController: context.watch<PinCubit>().state.pinController,
                 inputFormatters: [Formatters.allowIntegers],
                 // Geometry is deliberately NOT set here. cellSize (48x56) and
@@ -94,7 +119,7 @@ class PinScreen extends StatelessWidget {
                     return Semantics(
                       liveRegion: true,
                       child: Text(
-                        'Incorrect PIN',
+                        "PINs don't match. Enter the PIN you just created.",
                         // gw.statusErrorText, NOT GeniusWalletColors.statusError:
                         // the static is one mode-invariant #FF4D4D, ~3.4:1 on
                         // a light surface (an AA fail). The extension's text
@@ -122,7 +147,7 @@ class PinScreen extends StatelessWidget {
                       // CLOSURE-wrapped. develop had `onCompleted(...)` here,
                       // which invoked during build and disabled the button.
                       onPressed: state.pinFullness == PinFullness.completed
-                          ? () => onCompleted(state.pinController.text)
+                          ? () => _submit(state.pinController.text)
                           : null,
                     );
                   },

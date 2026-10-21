@@ -165,7 +165,19 @@ class _JobStepTile extends StatelessWidget {
               // working exactly as before, with no ink paint at all.
               child: onTap == null
                   ? titleAndContent
-                  : GestureDetector(onTap: onTap, child: titleAndContent),
+                  : Semantics(
+                      button: true,
+                      child: InkWell(
+                        onTap: onTap,
+                        hoverColor: Colors.transparent,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 44),
+                          child: titleAndContent,
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),
