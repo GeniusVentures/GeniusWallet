@@ -192,6 +192,7 @@ class BridgeScreenState extends State<BridgeScreen> {
     return Semantics(
       button: true,
       label: 'Destination network, ${name ?? 'not selected'}',
+      onTap: onTap,
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,

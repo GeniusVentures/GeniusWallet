@@ -57,6 +57,25 @@ class SwapField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void openPicker() {
+      TokenSelectorDrawer.show(
+        context: context,
+        tokens: tokens,
+        onTokenSelected: onTokenSelected,
+        // Without this the picker reopens showing no trace
+        // of what is already chosen (032-A1's selection).
+        selectedToken: selectedToken,
+        emptyTitle: pickerEmptyTitle,
+        emptyMessage: pickerEmptyMessage,
+        emptyActions: pickerEmptyActions,
+      );
+    }
+
+    void useMax() {
+      controller.text = selectedToken!.formattedBalance;
+      onChanged(controller.text);
+    }
+
     // Fail-soft read: registers the InheritedWidget dependency that forces
     // this subtree to rebuild on a live appearance toggle (04-04 discipline).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
@@ -207,21 +226,10 @@ class SwapField extends StatelessWidget {
                         button: true,
                         label:
                             '$label token, ${selectedToken?.symbol ?? 'none selected'}',
+                        onTap: openPicker,
                         excludeSemantics: true,
                         child: InkWell(
-                          onTap: () {
-                            TokenSelectorDrawer.show(
-                              context: context,
-                              tokens: tokens,
-                              onTokenSelected: onTokenSelected,
-                              // Without this the picker reopens showing no trace
-                              // of what is already chosen (032-A1's selection).
-                              selectedToken: selectedToken,
-                              emptyTitle: pickerEmptyTitle,
-                              emptyMessage: pickerEmptyMessage,
-                              emptyActions: pickerEmptyActions,
-                            );
-                          },
+                          onTap: openPicker,
                           borderRadius: BorderRadius.circular(
                             GeniusWalletConsts.radiusPill,
                           ),
@@ -309,14 +317,10 @@ class SwapField extends StatelessWidget {
                               builder: (hovered) => Semantics(
                                 button: true,
                                 label: 'Use maximum balance',
+                                onTap: useMax,
                                 excludeSemantics: true,
                                 child: InkWell(
-                                  onTap: () {
-                                    final formatted =
-                                        selectedToken!.formattedBalance;
-                                    controller.text = formatted;
-                                    onChanged(controller.text);
-                                  },
+                                  onTap: useMax,
                                   borderRadius: BorderRadius.circular(
                                     GeniusWalletConsts.radiusSm,
                                   ),
