@@ -296,16 +296,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: const Icon(Icons.save),
         onPressed: _saveCrdtConfig,
       ),
-      // Whitelist filter (Network-section precedent): render only known
-      // flat keys. A nested entry - e.g. the blockstore object (v1.1
-      // Phase 7) - is never stringified into a text field nor replaced on
-      // save; it round-trips _loadCrdtConfig -> edit -> _saveCrdtConfig
-      // untouched, so the node's strict section parser never sees a
-      // UI-corrupted shape.
+      // The table renders only whitelisted keys (filter inside
+      // _configFieldsTable), but edits must mutate THIS map so
+      // _saveCrdtConfig persists them: passing a filtered COPY here would
+      // silently discard every edit (07-REVIEW CR-02). A nested entry -
+      // e.g. the blockstore object (v1.1 Phase 7) - is never rendered as a
+      // text field nor stringified; it round-trips load -> edit -> save
+      // untouched (Pitfall 7 / T-7-08).
       child: _configFieldsTable(
-        config: Map.fromEntries(
-          _crdtConfig.entries.where((e) => crdtKeyLabels.containsKey(e.key)),
-        ),
+        config: _crdtConfig,
         keyLabels: crdtKeyLabels,
         boolKeys: const {
           'backup_enabled',
@@ -404,7 +403,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Column(
       spacing: GeniusWalletConsts.space4,
-      children: config.entries.map((entry) {
+      // Whitelist filter (Network-section precedent): render only known
+      // flat keys so a nested entry (e.g. blockstore) never renders as a
+      // text field; edits still mutate the ORIGINAL config map passed in.
+      children: config.entries
+          .where((e) => keyLabels.containsKey(e.key))
+          .map((entry) {
         final label = keyLabels[entry.key] ?? entry.key;
         if (boolKeys.contains(entry.key)) {
           // GWSwitch renders its own label + 48px-tap-target toggle in a
