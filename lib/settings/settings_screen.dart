@@ -279,6 +279,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildCrdtSection() {
+    const crdtKeyLabels = {
+      'backup_enabled': 'Backup Enabled',
+      'backup_interval_minutes': 'Interval (min)',
+      'backup_keep_count': 'Keep Count',
+      'backup_auto_restore_on_repair_failure': 'Auto Restore',
+    };
     return _buildSectionCard(
       title: 'CRDT Config',
       icon: Icons.backup,
@@ -290,14 +296,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: const Icon(Icons.save),
         onPressed: _saveCrdtConfig,
       ),
+      // Whitelist filter (Network-section precedent): render only known
+      // flat keys. A nested entry - e.g. the blockstore object (v1.1
+      // Phase 7) - is never stringified into a text field nor replaced on
+      // save; it round-trips _loadCrdtConfig -> edit -> _saveCrdtConfig
+      // untouched, so the node's strict section parser never sees a
+      // UI-corrupted shape.
       child: _configFieldsTable(
-        config: _crdtConfig,
-        keyLabels: const {
-          'backup_enabled': 'Backup Enabled',
-          'backup_interval_minutes': 'Interval (min)',
-          'backup_keep_count': 'Keep Count',
-          'backup_auto_restore_on_repair_failure': 'Auto Restore',
-        },
+        config: Map.fromEntries(
+          _crdtConfig.entries.where((e) => crdtKeyLabels.containsKey(e.key)),
+        ),
+        keyLabels: crdtKeyLabels,
         boolKeys: const {
           'backup_enabled',
           'backup_auto_restore_on_repair_failure',
