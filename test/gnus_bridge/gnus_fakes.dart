@@ -10,6 +10,7 @@ import 'package:genius_api/models/token.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
@@ -53,6 +54,7 @@ class FakeGnusApi implements GeniusApi {
   GeniusNodeReturnValue processResponse =
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   SgnsNet net = SgnsNet.staging;
+  String sgnusBalance = '12.5';
 
   /// Runs when the process call starts, before it answers.
   Future<void> Function()? onProcess;
@@ -67,6 +69,9 @@ class FakeGnusApi implements GeniusApi {
 
   @override
   Future<SgnsNet> sgnsNet() async => net;
+
+  @override
+  String getSGNUSBalance() => sgnusBalance;
 
   @override
   Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
@@ -210,6 +215,31 @@ class GnusHarness {
   DateTime clock = DateTime.utc(2026, 10, 27, 12);
   final List<RecordedConfirm> confirms = [];
 
+  /// Main address to the children it lists, or null when the read fails.
+  Map<String, List<String>>? registrations = {};
+  bool hasRegistrationReader = true;
+  int registrationReads = 0;
+
+  Map<String, List<ChildWallet>>? _readRegistrations() {
+    registrationReads++;
+    final own = registrations;
+    if (own == null) {
+      return null;
+    }
+    return {
+      for (final entry in own.entries)
+        entry.key: [
+          for (final child in entry.value)
+            ChildWallet(
+              address: child,
+              name: 'child',
+              linkedWallet: null,
+              balanceGnus: '0',
+            ),
+        ],
+    };
+  }
+
   /// A handler that confirms every submit and records what it was shown.
   GnusRpcHandler build({GnusConfirm? confirm}) => _handler(
     confirm:
@@ -248,6 +278,7 @@ class GnusHarness {
         gnusCubit: gnus,
         resolveGate: resolve,
         store: store,
+        readRegistrations: hasRegistrationReader ? _readRegistrations : null,
         now: now,
       );
     }
@@ -259,6 +290,7 @@ class GnusHarness {
       resolveGate: resolve,
       store: store,
       confirm: confirm,
+      readRegistrations: hasRegistrationReader ? _readRegistrations : null,
       now: now,
     );
   }

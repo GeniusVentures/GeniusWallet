@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
+import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/submit_job/job_submission.dart';
 import 'package:genius_wallet/submit_job/submit_job_cta_state.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -43,6 +45,32 @@ Future<bool> rejectGnusConfirm({
   required String nodeAccount,
 }) async => false;
 
+/// The node account's role from the child registrations: a child when another
+/// main lists it, a main when its own list is non-empty, else none. Keys and
+/// values compare lowercased. Whether a child may spend stays the gate's call.
+({String role, String? main}) gnusNodeRole(
+  String node,
+  Map<String, Iterable<String>>? registrations,
+) {
+  if (registrations == null) {
+    return (role: 'none', main: null);
+  }
+  final self = node.toLowerCase();
+  var ownsChildren = false;
+  for (final entry in registrations.entries) {
+    final main = entry.key.toLowerCase();
+    final children = entry.value.map((child) => child.toLowerCase());
+    if (main == self) {
+      ownsChildren = children.isNotEmpty;
+    } else if (children.contains(self)) {
+      return (role: 'child', main: main);
+    }
+  }
+  return (role: ownsChildren ? 'main' : 'none', main: null);
+}
+
+final RegExp _evmAddress = RegExp(r'^0x[0-9a-f]{40}$');
+
 /// Answers the `gnus_*` contract for any transport. Takes `(origin, method,
 /// params)`, returns a JSON-encodable result and throws only [GnusRpcError].
 /// Holds no domain rule of its own: the gate, the owner and the store decide.
@@ -54,6 +82,7 @@ class GnusRpcHandler {
     required GnusCubit gnusCubit,
     required BridgeGate Function({bool fresh}) resolveGate,
     required GnusJobStore store,
+    Map<String, List<ChildWallet>>? Function()? readRegistrations,
     GnusConfirm confirm = rejectGnusConfirm,
     DateTime Function()? now,
   }) : _geniusApi = geniusApi,
@@ -63,6 +92,7 @@ class GnusRpcHandler {
        _gnusCubit = gnusCubit,
        _resolveGate = resolveGate,
        _store = store,
+       _readRegistrations = readRegistrations,
        _confirm = confirm,
        _now = now ?? DateTime.now;
 
@@ -73,6 +103,7 @@ class GnusRpcHandler {
   final GnusCubit _gnusCubit;
   final BridgeGate Function({bool fresh}) _resolveGate;
   final GnusJobStore _store;
+  final Map<String, List<ChildWallet>>? Function()? _readRegistrations;
   final GnusConfirm _confirm;
   final DateTime Function() _now;
 
@@ -119,6 +150,10 @@ class GnusRpcHandler {
         return _listJobs(args);
       case GnusRpcMethod.getJob:
         return _getJob(origin, args);
+      case GnusRpcMethod.getAccounts:
+        return _getAccounts();
+      case GnusRpcMethod.getEarnings:
+        return _getEarnings(args);
       default:
         throw const GnusRpcError(
           GnusRpcCode.unsupportedMethod,
@@ -377,6 +412,108 @@ class GnusRpcHandler {
     if (gateError != null) {
       throw gateError;
     }
+  }
+
+  /// The `gnus_getAccounts` result, or null when the node is not ready (the
+  /// 4900 case). A switch in progress is a result with `switching: true`, so a
+  /// page can see why every other method answers -32015.
+  Future<Map<String, Object?>?> _accountsPayload() async {
+    final app = _readAppState();
+    final switchingTo = app.switchingSDKAccount;
+    final selected = app.selectedSDKAccount;
+    final String? nodeRaw;
+    if (switchingTo != null) {
+      nodeRaw = selected ?? switchingTo;
+    } else {
+      nodeRaw = _geniusApi.isSdkInitialized ? selected : null;
+    }
+    if (nodeRaw == null) {
+      return null;
+    }
+    final node = nodeRaw.toLowerCase();
+
+    final linked = app.sdkAccountLinks[node]?.walletAddress.toLowerCase();
+    final registrations = _readRegistrations?.call();
+    final role = gnusNodeRole(
+      node,
+      registrations == null
+          ? null
+          : {
+              for (final entry in registrations.entries)
+                entry.key: [for (final child in entry.value) child.address],
+            },
+    );
+
+    final details = _walletDetails.state;
+    final wallet = details.selectedWallet;
+    final payerAddress = wallet?.address.toLowerCase();
+    final canSign =
+        wallet != null &&
+        walletCanSign(wallet) &&
+        _resolveGate().state != BridgeGateState.child;
+
+    return {
+      'node': {
+        'sdkAddress': node,
+        'linkedEvm': linked != null && _evmAddress.hasMatch(linked)
+            ? linked
+            : null,
+        'role': role.role,
+        'main': role.main,
+      },
+      'payer': {
+        'evmAddress': payerAddress != null && _evmAddress.hasMatch(payerAddress)
+            ? payerAddress
+            : null,
+        'canSign': canSign,
+      },
+      'switching': switchingTo != null,
+      'network': {
+        'sdk': (await _readSgnsNet()).name,
+        'evmChainId': details.selectedNetwork?.chainId,
+      },
+      'version': kGnusRpcVersion,
+      'unit': {'symbol': 'GNUS', 'decimals': kGnusDecimals},
+    };
+  }
+
+  Future<Object?> _getAccounts() async {
+    final payload = await _accountsPayload();
+    if (payload == null) {
+      throw const GnusRpcError(GnusRpcCode.disconnected, 'Wallet not ready');
+    }
+    return payload;
+  }
+
+  /// The node's balance and processing flag. `jobsProcessed` and `earned.*`
+  /// are null until the SDK reports them, never 0. `includeChildren` is
+  /// accepted and ignored.
+  // ponytail: isProcessing is false both when idle and while the processing
+  // feed has never ticked or is unavailable. Upgrade path: expose
+  // processingFeedStatus as a field once the contract has a place for it.
+  Future<Object?> _getEarnings(Map<String, Object?> args) async {
+    final includeChildren = args['includeChildren'];
+    if (includeChildren != null && includeChildren is! bool) {
+      throw _invalidParams('includeChildren');
+    }
+    final node = _requireReadyNode();
+    final balance = sgnusBalanceBaseUnits(_geniusApi.getSGNUSBalance());
+    if (balance == null) {
+      throw const GnusRpcError(
+        GnusRpcCode.internal,
+        'Wallet not ready',
+        data: {'reason': GnusRpcReason.balanceUnavailable},
+      );
+    }
+    return {
+      'sdkAddress': node,
+      'balance': balance,
+      'processing': {
+        'isProcessing': _readAppState().isProcessing,
+        'jobsProcessed': null,
+      },
+      'earned': {'total': null, 'history': null},
+    };
   }
 
   GnusRpcError _submitInFlight() => const GnusRpcError(
