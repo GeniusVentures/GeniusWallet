@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:genius_api/ffi/genius_api_ffi.dart';
@@ -174,11 +175,26 @@ class RecordedConfirm {
 
 int _boxCounter = 0;
 
+/// The real store, with every write able to fail as a full disk would.
+class FlakyGnusJobStore extends GnusJobStore {
+  FlakyGnusJobStore(super.box);
+
+  bool failWrites = false;
+
+  @override
+  Future<void> put(GnusJob job) async {
+    if (failWrites) {
+      throw const FileSystemException('disk full');
+    }
+    await super.put(job);
+  }
+}
+
 /// One wallet, one network, one node account, an in-memory job box and a fixed
 /// clock: everything a handler test needs, with nothing real behind it.
 class GnusHarness {
   GnusHarness._(this.api, this.walletDetails, this.gnus, this.box) {
-    store = GnusJobStore(box);
+    store = FlakyGnusJobStore(box);
   }
 
   static Future<GnusHarness> create({Box<String>? box}) async {
@@ -209,7 +225,7 @@ class GnusHarness {
   final PushableWalletDetails walletDetails;
   final SeededGnusCubit gnus;
   final Box<String> box;
-  late final GnusJobStore store;
+  late final FlakyGnusJobStore store;
 
   AppState app = AppState(selectedSDKAccount: gnusTestNode);
   final StreamController<AppState> appStates = StreamController.broadcast();

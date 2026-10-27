@@ -24,6 +24,8 @@ const int _maxListLimit = 100;
 const int _maxCursorLength = 512;
 const int _maxSelectorLength = 256;
 const Duration _idempotencyWindow = Duration(hours: 24);
+const int _recordWriteAttempts = 3;
+const Duration _recordRetryDelay = Duration(seconds: 2);
 
 /// The seam that decides whether a submit may spend. [cost] is the contract
 /// base-unit string, [gas] the contract gas map or null, [payer] the lowercased
@@ -135,6 +137,14 @@ class GnusRpcHandler {
   /// or null. Set synchronously before the first await of a submit, so two
   /// calls can never both pass the check.
   String? _inFlightSlot;
+
+  /// The newest record of every burn this handler made, by
+  /// `origin|idempotencyKey`. A same-key retry answers from here before the
+  /// store, so a failed or stale write can never let it burn twice.
+  // ponytail: memory only. If every write fails and the app restarts, the key
+  // is forgotten and a same-key retry burns again. Upgrade: a second store
+  // that is written before the burn.
+  final Map<String, GnusJob> _burned = {};
 
   final StreamController<GnusEvent> _events = StreamController.broadcast();
   late final List<StreamSubscription<Object?>> _subscriptions;
@@ -251,6 +261,33 @@ class GnusRpcHandler {
     await _store.put(job);
     if (before != null && before != job.status) {
       _emit(GnusRpcEventName.jobUpdated, job.toContract());
+    }
+  }
+
+  /// Keeps [job] as [slot]'s answer, then writes it. Never throws: the burn has
+  /// happened, so the reply must not depend on the write. A failed write is
+  /// retried in the background until a newer record for [slot] replaces it.
+  Future<void> _record(String slot, GnusJob job) {
+    _burned[slot] = job;
+    return _write(slot, job, 1);
+  }
+
+  Future<void> _write(String slot, GnusJob job, int attempt) async {
+    if (_disposed || !identical(_burned[slot], job)) {
+      return;
+    }
+    try {
+      await _putAnnouncing(job);
+    } catch (e) {
+      debugPrint('gnus_rpc record write failed ${e.runtimeType} $attempt');
+      if (attempt < _recordWriteAttempts) {
+        unawaited(
+          Future<void>.delayed(
+            _recordRetryDelay * attempt,
+            () => _write(slot, job, attempt + 1),
+          ),
+        );
+      }
     }
   }
 
@@ -675,11 +712,12 @@ class GnusRpcHandler {
     if (_inFlightSlot == slot) {
       throw _submitInFlight();
     }
-    final first = _store.byIdempotencyKey(
-      origin,
-      idempotencyKey,
-      notBefore: _now().toUtc().subtract(_idempotencyWindow),
-    );
+    final notBefore = _now().toUtc().subtract(_idempotencyWindow);
+    final remembered = _burned[slot];
+    final first =
+        remembered != null && !remembered.submittedAt.isBefore(notBefore)
+        ? remembered
+        : _store.byIdempotencyKey(origin, idempotencyKey, notBefore: notBefore);
     if (first != null) {
       if (first.bodyHash != gnusJobBodyHash(job)) {
         throw const GnusRpcError(
@@ -700,7 +738,13 @@ class GnusRpcHandler {
     }
     _inFlightSlot = slot;
     try {
-      return await _burnAndRecord(origin, job, idempotencyKey, nodeAccount);
+      return await _burnAndRecord(
+        origin,
+        job,
+        idempotencyKey,
+        nodeAccount,
+        slot,
+      );
     } finally {
       _inFlightSlot = null;
     }
@@ -711,6 +755,7 @@ class GnusRpcHandler {
     Map<String, dynamic> job,
     String idempotencyKey,
     String nodeAccount,
+    String slot,
   ) async {
     final networkBefore = _walletDetails.state.selectedNetwork;
     final token = await _gnusCubit.fetchGnusInfo();
@@ -843,14 +888,15 @@ class GnusRpcHandler {
       jobCost: minions,
       jobJson: job,
       onBurned: (burnHash) =>
-          _store.put(record(burnHash, GnusJobStatus.bridgedNotProcessed)),
+          _record(slot, record(burnHash, GnusJobStatus.bridgedNotProcessed)),
     );
     switch (result) {
       case JobDone(:final txHash):
-        await _putAnnouncing(record(txHash, GnusJobStatus.submitted));
+        await _record(slot, record(txHash, GnusJobStatus.submitted));
         return _submitReply(txHash, nodeAccount, GnusJobStatus.submitted);
       case JobBridgedNotProcessed(:final bridgeHash):
-        await _putAnnouncing(
+        await _record(
+          slot,
           record(bridgeHash, GnusJobStatus.bridgedNotProcessed),
         );
         return _submitReply(

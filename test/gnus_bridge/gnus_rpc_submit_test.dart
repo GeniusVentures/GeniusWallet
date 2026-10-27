@@ -328,6 +328,47 @@ void main() {
       },
     );
 
+    test('both record writes failing still replies the burn hash and a '
+        'same-key retry does not burn again', () async {
+      final h = await harness();
+      final handler = h.build();
+      h.store.failWrites = true;
+
+      final first = await viaDirect(handler, _origin, _submit, _params());
+      final second = await viaJson(handler, _origin, _submit, _params());
+
+      final result = first['result']! as Map<String, Object?>;
+      expect(result['burnTxHash'], gnusTestBurnHash);
+      expect(result['status'], 'submitted');
+      expect(second, equals(first));
+      expect(h.store.byBurnHash(gnusTestBurnHash), isNull);
+      expect(h.api.count('burn'), 1);
+    });
+
+    test(
+      'a failed final write replays submitted, not the early record',
+      () async {
+        final h = await harness();
+        final handler = h.build();
+        h.api.onProcess = () async {
+          h.store.failWrites = true;
+        };
+
+        await viaDirect(handler, _origin, _submit, _params());
+        final again = await viaDirect(handler, _origin, _submit, _params());
+
+        expect(
+          h.store.byBurnHash(gnusTestBurnHash)!.status,
+          GnusJobStatus.bridgedNotProcessed,
+        );
+        expect(
+          (again['result']! as Map<String, Object?>)['status'],
+          'submitted',
+        );
+        expect(h.api.count('burn'), 1);
+      },
+    );
+
     test('the same key after 24 hours runs again', () async {
       final h = await harness();
       final handler = h.build();
