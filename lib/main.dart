@@ -21,14 +21,18 @@ import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/components/toast/secure_storage_failure_toasts.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
+import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_tools_host.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/network/connectivity_fallback.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -391,6 +395,10 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   }
 }
 
+/// The handler's private [GnusCubit], so the provider can close it with the
+/// handler (the handler's own dispose only cancels subscriptions).
+final Expando<GnusCubit> _gnusRpcCubits = Expando<GnusCubit>();
+
 class MyApp extends StatelessWidget {
   final GeniusApi geniusApi;
   const MyApp({super.key, required this.geniusApi});
@@ -529,6 +537,36 @@ class MyApp extends StatelessWidget {
               walletDetails: context.read<WalletDetailsCubit>(),
               childOperations: context.read<ChildOperationsCubit>(),
             ),
+          ),
+          // Nothing reads this until the dashboard transports land. The confirm
+          // is left at its rejecting default until the consent prompt supplies
+          // one, so no call can spend.
+          RepositoryProvider<GnusRpcHandler>(
+            create: (context) {
+              final walletDetails = context.read<WalletDetailsCubit>();
+              final gnusCubit = GnusCubit(CoinService(), walletDetails);
+              final handler = GnusRpcHandler(
+                geniusApi: context.read<GeniusApi>(),
+                readAppState: () => context.read<AppBloc>().state,
+                appStates: context.read<AppBloc>().stream,
+                walletDetails: walletDetails,
+                gnusCubit: gnusCubit,
+                resolveGate: context.read<BridgeGateCubit>().resolveNow,
+                store: GnusJobStore.app(),
+                readRegistrations: context
+                    .read<ChildOperationsCubit>()
+                    .ownRegistrations,
+                registrationChanges: context
+                    .read<ChildOperationsCubit>()
+                    .stream,
+              );
+              _gnusRpcCubits[handler] = gnusCubit;
+              return handler;
+            },
+            dispose: (handler) async {
+              await handler.dispose();
+              await _gnusRpcCubits[handler]?.close();
+            },
           ),
         ],
         child: ValueListenableBuilder<GWAppearanceMode>(
