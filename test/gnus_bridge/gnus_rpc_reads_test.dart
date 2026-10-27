@@ -191,11 +191,17 @@ void main() {
         },
       );
 
-      test('a child wallet cannot sign', () async {
-        final h = await harness();
-        h.gate = const BridgeGate(BridgeGateState.child);
-        final payer = await payerWith(h, gnusTestWallet);
-        expect(payer['canSign'], isFalse);
+      test('every gate state submit refuses with -32012 cannot sign', () async {
+        for (final state in [
+          BridgeGateState.child,
+          BridgeGateState.notEarning,
+          BridgeGateState.wrongNetwork,
+        ]) {
+          final h = await harness();
+          h.gate = BridgeGate(state);
+          final payer = await payerWith(h, gnusTestWallet);
+          expect(payer['canSign'], isFalse, reason: state.name);
+        }
       });
 
       test('a private-key wallet with the gate open can sign', () async {

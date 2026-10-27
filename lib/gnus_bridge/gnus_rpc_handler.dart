@@ -685,10 +685,12 @@ class GnusRpcHandler {
     final details = _walletDetails.state;
     final wallet = details.selectedWallet;
     final payerAddress = wallet?.address.toLowerCase();
+    // False exactly when a submit would refuse the payer with -32012.
     final canSign =
         wallet != null &&
         walletCanSign(wallet) &&
-        _resolveGate().state != BridgeGateState.child;
+        gnusErrorForGate(_resolveGate().state)?.code !=
+            GnusRpcCode.payerCannotSign;
 
     return {
       'node': {
