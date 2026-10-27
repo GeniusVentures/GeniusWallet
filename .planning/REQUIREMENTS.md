@@ -260,7 +260,7 @@ a normal browser.
 - [ ] **RPC-06**: Repeating `gnus_submitJob` with the same idempotency key returns the first result instead of burning again, and a second submit from the same origin while one is in flight is refused (`-32005`)
 - [ ] **RPC-07**: Every job submitted through the bridge is recorded in the wallet (origin, burn hash, SDK account, cost, time, status), survives an app restart, and is readable with `gnus_listJobs` and `gnus_getJob`; status and results come from the SDK once it can answer per job
 - [ ] **RPC-08**: The dashboard can read the node account's balance and whether it is processing with `gnus_getEarnings`; processed-job counts and earnings come back as null (not 0) until the SDK exposes them
-- [ ] **RPC-09**: Calls made while the SDK is not initialized fail with `4900`, and calls made during an account switch fail with `4901`, so no estimate or submit ever runs as the wrong account
+- [ ] **RPC-09**: Calls made while the SDK is not initialized fail with `4900`, and calls made during an account switch fail with `-32015`, so no estimate or submit ever runs as the wrong account
 
 ### In-wallet dashboard WebView (DWV)
 
@@ -491,5 +491,45 @@ lands. None is counted in this milestone's coverage.
 - Phases: 34-37 (4 phases), continuing numbering from v1.0/v2.0 (last phase: 33)
 - Note: VER-02 ("each v3.0 phase closes only after a walk on the live testnet") is cross-cutting by design — it appears as a standing success criterion in Phases 34-37's ROADMAP entries, but is mapped/counted at Phase 37 only, where the milestone's last write operation closes it
 - Precondition flag: live testnet is currently stuck in `INITIALIZING_BLOCKCHAIN` (unrelated to the required SuperGenius `c575a16` SDK); VER-02 walks are recorded as blocked gaps, not silently skipped, until this clears
+
+### Milestone v4.0 — processing dashboard bridge
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ISO-01 | Phase 42 — Shared job submission off the UI isolate | Pending |
+| RPC-01 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-02 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-03 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-04 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-05 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-06 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-07 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-08 | Phase 43 — gnus RPC handler and job record | Pending |
+| RPC-09 | Phase 43 — gnus RPC handler and job record | Pending |
+| CNS-01 | Phase 44 — Dashboard consent and limits | Pending |
+| CNS-02 | Phase 44 — Dashboard consent and limits | Pending |
+| CNS-03 | Phase 44 — Dashboard consent and limits | Pending |
+| CNS-04 | Phase 44 — Dashboard consent and limits | Pending |
+| DWV-02 | Phase 45 — Hardened bridge transports | Pending |
+| DWV-03 | Phase 45 — Hardened bridge transports | Pending |
+| DWV-01 | Phase 46 — In-wallet dashboard screen | Pending |
+| DWV-04 | Phase 46 — In-wallet dashboard screen | Pending |
+| DWV-05 | Phase 46 — In-wallet dashboard screen | Pending |
+| DWV-06 | Phase 46 — In-wallet dashboard screen | Pending |
+| DWV-07 | Phase 46 — In-wallet dashboard screen | Pending |
+| DWC-01 | Phase 47 — Dashboard over WalletConnect | Pending |
+| DWC-02 | Phase 47 — Dashboard over WalletConnect | Pending |
+| DWC-03 | Phase 47 — Dashboard over WalletConnect | Pending |
+| DWC-04 | Phase 47 — Dashboard over WalletConnect | Pending |
+| WALK-01 | Phase 48 — Dashboard device walks | Pending |
+| WALK-02 | Phase 48 — Dashboard device walks | Pending |
+
+**Coverage (v4.0):**
+
+- v4.0 requirements: **27 total** (9 RPC + 7 DWV + 4 DWC + 4 CNS + 1 ISO + 2 WALK)
+- Mapped to phases: **27/27** - every v4.0 requirement maps to exactly one phase; no orphans, no duplicates
+- Phases: 42-48 (7 phases), continuing numbering from Phase 41
+- The SDK-* rows are dependencies, not requirements, and are not counted; each phase's ROADMAP entry names the ones it waits on
+- The DWV requirements are cut by concern, not by desktop and mobile: each maps to the phase where it holds on all five platforms, so no phase closes one only partly
 
 *Last updated: 2026-09-16 — merged into `phase-26-swap-wiring`. The drafted SWP-01..08 were retired into SWAP-01, the id the branch's plans and commits already cite; v2.0 is now SWAP-01, FEE-01..02, DAP-01..03 mapped to phases 26-30 (6/6, no orphans). Previous v1.0 traceability stands unchanged below*

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Processing dashboard bridge (wallet side)
-current_phase: null
-current_phase_name: null
-status: planning
-stopped_at: "v4.0 started 2026-10-26: requirements defined, roadmap being created. v3.0 stays open alongside (phases 34-40 executed, live walks pending; phase 41 merged as PR #274)."
+current_phase: 42
+current_phase_name: "Shared job submission off the UI isolate"
+status: ready_to_plan
+stopped_at: "v4.0 roadmap created 2026-10-26: phases 42-48, 27/27 requirements mapped. Next: plan Phase 42. v3.0 stays open alongside (phases 34-40 executed, live walks pending; phase 41 merged as PR #274)."
 last_updated: "2026-10-26T23:59:00.000Z"
 last_activity: 2026-10-26
 last_activity_desc: Milestone v4.0 started (dashboard bridge, wallet side)
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -25,16 +25,29 @@ resume_file: null
 See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** v4.0 — defining requirements and roadmap (v3.0 live walks still pending)
+**Current focus:** v4.0 Phase 42 — shared job submission off the UI isolate (v3.0 live walks still pending)
 
 ## Current Position
 
 ### v4.0 Processing dashboard bridge (wallet side) — started 2026-10-26
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements, then roadmap
-Last activity: 2026-10-26 — Milestone v4.0 started
+Phase: 42 (Shared job submission off the UI isolate), first of 7 v4.0 phases (42-48)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-26 — Roadmap created: 7 phases, 27/27 requirements mapped
+
+| Phase | Name | Requirements | Status |
+|-------|------|--------------|--------|
+| 42 | Shared job submission off the UI isolate | ISO-01 | Ready to plan |
+| 43 | gnus RPC handler and job record | RPC-01..09 | Not started |
+| 44 | Dashboard consent and limits | CNS-01..04 | Not started |
+| 45 | Hardened bridge transports | DWV-02, DWV-03 | Not started |
+| 46 | In-wallet dashboard screen | DWV-01, DWV-04..07 | Not started |
+| 47 | Dashboard over WalletConnect | DWC-01..04 | Not started |
+| 48 | Dashboard device walks | WALK-01, WALK-02 | Not started |
+
+Order: 42, 43, then 44 and 45 (both need only 43), 46 (needs 44 and 45), 47 (needs 43 and 44; can run
+alongside 45-46), 48 last.
 
 Inputs: `research/v4.0-webview-bridge-spike.md`, `research/v4.0-wallet-identity.md`, contract
 `research/v4.0-gnus-rpc-contract.md` (mirrored to the side-session notes for the gnus-dashboard GSD

@@ -1688,3 +1688,180 @@ Plans:
 - [ ] 41-03-PLAN.md — close control like Windows, Web tab follows the probe, no-WebKit fallback walked (wave 3)
 - [ ] 41-04-PLAN.md — Banxa checkout in the Linux dialog, one permission rule, menu over the page (wave 4)
 
+---
+
+# Milestone v4.0: Processing dashboard bridge (wallet side) — IN PROGRESS
+
+Started 2026-10-26. Requirements: `REQUIREMENTS.md` ## v4.0 Requirements. Contract (methods, results, error
+codes, events): `research/v4.0-gnus-rpc-contract.md`, shared with the gnus-dashboard GSD project. Inputs:
+`research/v4.0-webview-bridge-spike.md`, `research/v4.0-wallet-identity.md`.
+Continues phase numbering (last phase: 41), so v4.0 starts at Phase 42. v1.0 and v3.0 stay open alongside;
+no milestone is archived to make room for this one.
+
+**Precondition:** most live results wait on SuperGenius changes, listed as the SDK-* rows in
+REQUIREMENTS.md and not counted in coverage. Until SDK-CA lands the SDK cost is always 0, so a live
+estimate answers `-32010` and a live submit stops before it burns. Every phase ships verification that
+does not need an SDK change: dev mocks under `GW_DEV_TOOLS`, and the contract's nulls for fields the SDK
+cannot fill yet. A live result blocked on the SDK is recorded as a blocked gap naming its SDK id, never
+silently skipped.
+
+**Cross-project inputs:** the dashboard's hosted https origin per network, and its `gnus_*` client
+(injected and WalletConnect), are gnus-dashboard work. Until they exist, the spike's test page
+(`gnus-dashboard/public/bridge-test.html`) on a dev `http://localhost` origin drives the checks.
+
+### Build order
+
+Refactor first, then change behaviour (AGENTS.md). Phase 42 moves the compute panel's job flow
+(estimate, `bridgeOut` burn, `GeniusSDKProcess`, `bridgedNotProcessed`) out of `SubmitJobCubit` into one
+owner and runs the SDK cost and process calls off the UI isolate, so the handler in 43 reuses the flow
+instead of copying it. Phase 43 builds the transport-independent `gnus_*` handler and the persisted job
+record, tested headless. Phase 44 puts consent and limits inside the handler, so the WebView and
+WalletConnect paths both inherit them. Phase 45 hardens the message channel on all five web views, and
+Phase 46 then ships the dashboard screen on all five at once. No page a user can open reaches the bridge
+before 44 and 45 are in. Phase 47 (WalletConnect) needs only 43 and 44. Phase 48 walks the whole thing
+on every platform.
+
+Parallel lanes: 44 and 45 each need only 43; 47 needs 43 and 44 and can run alongside 45 and 46. DWC-02
+and DWC-03 (account events, refusing unsignable sessions, the `tx.from` check) are wallet bugs today and
+do not need the handler, so those plans can start at any time. Code-committing executors still run one
+per git index, so a parallel phase needs its own worktree.
+
+## Phases
+
+- [ ] **Phase 42: Shared job submission off the UI isolate** - The compute panel's job flow has one owner, and pricing or submitting a job no longer freezes the wallet
+- [ ] **Phase 43: gnus RPC handler and job record** - One handler answers every `gnus_*` method in the contract; every bridge job is recorded and survives a restart
+- [ ] **Phase 44: Dashboard consent and limits** - Per-origin connect, a native confirm on every submit, prompt limits, and no secret in any bridge output
+- [ ] **Phase 45: Hardened bridge transports** - On all five web views only the top frame reaches the bridge, and the caller's origin comes from the message itself
+- [ ] **Phase 46: In-wallet dashboard screen** - The user opens the dashboard inside the wallet on all five platforms, pinned to its origin, with wallet dialogs above the page
+- [ ] **Phase 47: Dashboard over WalletConnect** - The dashboard in a normal browser calls the same `gnus_*` methods over WalletConnect, with the session fixes that path needs
+- [ ] **Phase 48: Dashboard device walks** - The bridge is walked end to end on Android, iOS, macOS, Windows and Linux, and over WalletConnect from a desktop browser
+
+## Phase Details
+
+### Phase 42: Shared job submission off the UI isolate
+
+**Goal**: The compute panel's job flow (price, burn, process, bridged-not-processed) lives in one owner that the panel and the coming bridge both call, and pricing or submitting a job never freezes the wallet UI.
+**Depends on**: Nothing (first phase of v4.0)
+**Requirements**: ISO-01
+**Context**: the flow lives in `lib/submit_job/cubit/submit_job_cubit.dart` today (`_resolveJobCost`, `bridgeTokens`, with the dev-mock fixture in `lib/dev/dev_mock_job.dart`). `GeniusApi.selectGeniusAccountAsync` already runs an SDK call on its own isolate and is the precedent. The extraction lands first as its own behaviour-preserving plan; the isolate move follows. Research flag: the SDK is not documented as thread-safe, so planning should check what the existing async account switch already relies on before a second SDK call runs off the UI isolate.
+**Success Criteria** (what must be TRUE):
+
+  1. The compute panel prices and submits a job exactly as before: the same outcomes (submitted, bridged-not-processed, bridge failed, cost failure, insufficient funds), the same double-submit guard and the same dev-mock scenarios, with the panel's existing tests passing unchanged after the extraction and before the isolate change.
+  2. The panel calls one shared owner for estimate, burn and process; `submit_job_cubit.dart` no longer calls `bridgeOut`, `requestGeniusSDKCost` or `requestGeniusSDKProcess` itself.
+  3. While the compute panel prices or submits a job, the wallet keeps animating and stays responsive, and a test fails if the SDK cost or process call runs on the UI isolate.
+
+**SDK dependencies**: SDK-ASYNC would make ISO-01 lighter, but the wallet moves the calls either way, so nothing waits on it. SDK-CA for a live cost: until it lands the live cost is 0 and the panel shows its cost error, as it does today; the priced path is verified with the dev-mock scenarios.
+**Plans**: TBD
+
+### Phase 43: gnus RPC handler and job record
+
+**Goal**: One transport-independent handler answers every `gnus_*` method in the contract through the Phase 42 job flow, and every job submitted through it is recorded in the wallet and survives a restart. No page can reach it yet; tests and dev mocks drive it.
+**Depends on**: Phase 42 (submits through the shared job flow)
+**Requirements**: RPC-01, RPC-02, RPC-03, RPC-04, RPC-05, RPC-06, RPC-07, RPC-08, RPC-09
+**Context**: start from the spike's `lib/gnus_bridge/gnus_bridge.dart` (uncommitted, worktree `C:\Users\User\Documents\Projects\GNUS\GW-webview-spike`, branch `spike/webview-bridge`). The spike's `gnus_getAddress` is retired in favour of `gnus_getAccounts`. The submit confirm is a step the handler calls; Phase 44 supplies its content.
+**Success Criteria** (what must be TRUE):
+
+  1. A headless test calls every `gnus_*` method through two fake transports and gets the same result and error code from both: `4200` for an unknown method, `-32602` for bad params, `4900` while the SDK is not initialized, the contract's account-switch error during a switch, and `-32010` for a zero or failed cost, never `cost: "0"`.
+  2. `gnus_getAccounts` returns the node account, the paying wallet, `switching` and the network in the contract's shape, and `gnus_accountsChanged` and `gnus_networkChanged` fire when the user switches wallet, node account or network.
+  3. `gnus_submitJob` prices, confirms, burns and processes through the Phase 42 owner and returns the burn hash, the SDK account, `jobId: null` and `submitted` or `bridgedNotProcessed`; the same idempotency key returns the first result without a second burn, and a second submit from the same origin while one is in flight gets `-32005`.
+  4. Every job submitted through the handler is listed by `gnus_listJobs` and found by `gnus_getJob` with its origin, burn hash, SDK account, cost, time and status, also after an app restart.
+  5. `gnus_getEarnings` returns the node account's balance and whether it is processing; processed-job counts and earnings come back as null, never 0.
+
+**SDK dependencies**: SDK-CA for a live cost (until then every live estimate is `-32010` and a live submit stops before burning); SDK-COSTERR for `data.reason` on `-32010`; SDK-JOBID for `jobId`; SDK-STATUS and SDK-RESULT for live job status and results (until then status stays `submitted` or `bridgedNotProcessed` and `result` is null); SDK-EARNINGS for counts and earnings. Each is verified now with dev mocks and the contract's nulls; the live result is recorded as a blocked gap.
+**Plans**: TBD
+
+### Phase 44: Dashboard consent and limits
+
+**Goal**: The user decides which origins may use the bridge and approves every spend: a connect prompt per origin, a native confirm on every submit, limits on prompts, and no secret in any bridge output. It sits in the handler, so the WebView and WalletConnect paths both inherit it.
+**Depends on**: Phase 43 (wraps the handler)
+**Requirements**: CNS-01, CNS-02, CNS-03, CNS-04
+**Success Criteria** (what must be TRUE):
+
+  1. The first `gnus_*` call from a new origin shows a prompt naming that origin; approving lets later reads through with no prompt, declining returns `4100`. The user sees connected origins in Settings, and after revoking one, that origin's next call prompts again.
+  2. Every `gnus_submitJob` shows a native confirm naming the origin, the cost, the bridge gas, the paying wallet and the node account; Reject returns `4001` and nothing is burned.
+  3. While a confirm from an origin is open, further prompts from it get `-32005`, and so do prompts past the per-origin rate limit, so dialogs never stack.
+  4. A test pushes known key and mnemonic fixtures through every method and fails if any response, log line or Sentry event from the bridge carries one or anything derived from one.
+  5. The prompts and the Settings list can be exercised from the dev tools bubble with dev mocks, without a dashboard page, and meet WCAG AA in light and dark mode.
+
+**SDK dependencies**: SDK-CA for a live cost in the confirm; until then the confirm is walked with dev-mock costs, and a live submit stops at `-32010` before any confirm shows.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 45: Hardened bridge transports
+
+**Goal**: On every web view the wallet uses (WebView2 on Windows, WebKitGTK on Linux, Android, iOS and macOS), only the top frame can reach the bridge, and the caller's origin comes from the message source wherever the platform gives one. No dashboard entry ships yet; the checks run on the dev bridge route with a test page.
+**Depends on**: Phase 43 (carries messages to the handler). Can run alongside Phase 44.
+**Requirements**: DWV-02, DWV-03
+**Context**: spike security concerns 1 and 2. `webview_windows` drops WebView2's `args->get_Source()` (patch it to pass the source; the wallet already vendors patched plugins). Android's `addJavaScriptChannel` is reachable from every frame, including cross-origin iframes; the fix is `WebViewCompat.addWebMessageListener` with allowed-origin rules, which `webview_flutter_android` does not expose. The iOS/macOS plugin registers its channel with `isForMainFrameOnly: false`; the fix reads `WKScriptMessage.frameInfo` (`isMainFrame`, `securityOrigin`). WebKitGTK passes no frame or origin, and its message handler is not proven top-frame-only. Android checks run on the `GW_Test` AVD from a CI APK, so that build needs the dev route.
+**Success Criteria** (what must be TRUE):
+
+  1. On each of the five platforms, a test page with a cross-origin iframe gets `window.gnus` in the top frame only, and nothing the iframe posts reaches Dart.
+  2. On each platform that gives a message source (WebView2, Android, iOS, macOS), a message whose source origin is not on the allowlist gets `4100`, even while the top-level URL is allowed; Linux, which gives none, checks the top-level URL.
+  3. A page that navigates to another origin while a request is in flight never receives the reply.
+  4. Windows, Linux, Android, macOS and iOS builds compile with the hardened transports; a platform that cannot be run (iOS: the simulator is blocked by device-only SDK libraries) is recorded as a blocked gap with its reason.
+
+**SDK dependencies**: None. Transport checks use cheap reads (`gnus_getAccounts`) and dev mocks.
+**Plans**: TBD
+
+### Phase 46: In-wallet dashboard screen
+
+**Goal**: The user opens the processing dashboard from the wallet in an in-app screen on Windows, Linux, Android, iOS and macOS. The screen loads only the pinned dashboard origin, keeps navigation on it, shows wallet dialogs above the page, and falls back to the system browser where there is no usable web view.
+**Depends on**: Phase 44 (consent) and Phase 45 (hardened transports)
+**Requirements**: DWV-01, DWV-04, DWV-05, DWV-06, DWV-07
+**Context**: Linux's native view paints above Flutter; the spike fixed the hidden confirm with the existing `WebOverlayGate` (`lib/web/web_overlay_gate.dart`). Windows renders WebView2 as a texture. Stacking over Android and iOS platform views is unchecked. The release origin per network comes from the gnus-dashboard project; until it is known, release-build pinning is checked with a placeholder origin and dev builds use the configured localhost origin. Start from the spike's `gnus_bridge_screen.dart` and `gnus_bridge_linux_view.dart`.
+**Success Criteria** (what must be TRUE):
+
+  1. The user opens the dashboard from a wallet entry point on all five platforms and the page finds `window.gnus`: at load on Windows and Linux, after the `gnus#initialized` event on Android, iOS and macOS. The entry meets WCAG AA in light and dark mode.
+  2. A release build loads only the pinned https origin for the current network, and a dev build also the configured `http://localhost` origin; a link to any other origin does not navigate the screen, and popups and `target=_blank` links open in the system browser.
+  3. The connect prompt, the submit confirm and any wallet sheet render above the page on every platform.
+  4. On Android, the dashboard's job-file picker opens and hands the chosen file to the page, and Back steps back through the page's history before it leaves the screen.
+  5. On Linux without WebKitGTK, the dashboard entry opens the dashboard in the system browser instead.
+
+**SDK dependencies**: SDK-CA for a live estimate and submit from the page; until then the page is walked with dev-mock costs and a live estimate shows `-32010`. The screen itself needs no SDK change.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 47: Dashboard over WalletConnect
+
+**Goal**: The dashboard in a normal browser pairs with GeniusWallet over WalletConnect and calls every `gnus_*` method, answered by the same handler as the WebView, and the wallet's WalletConnect sessions stop acting on stale or unsignable accounts.
+**Depends on**: Phase 43 (handler) and Phase 44 (consent covers WalletConnect origins too). Independent of Phases 45 and 46.
+**Requirements**: DWC-01, DWC-02, DWC-03, DWC-04
+**Context**: identity research edge cases 2 and 3. The wallet never emits `accountsChanged` today, and `eth_sendTransaction` signs with the current Selected wallet without checking `tx.from` (`lib/reown/handle_dapp_requests.dart`); session proposals are not checked against `walletCanSign` (`lib/reown/utilities.dart`). Contract section 2: the `gnus_*` methods and events ride the `eip155` namespace as optional methods on `eip155:80002` plus the wallet's GNUS chains.
+**Success Criteria** (what must be TRUE):
+
+  1. A dApp page in a desktop browser pairs with GeniusWallet, and every `gnus_*` call returns the same result and error code as the same call through the in-wallet bridge.
+  2. After the user switches wallet, node account or network, a connected dApp receives the matching account and network events before its next request, so it never acts on the old account.
+  3. A session proposal is refused with a stated reason while the Selected wallet is watch-only or an SDK-only row, and an `eth_sendTransaction` whose `from` is not the session's account is refused.
+  4. A `gnus_*` request the wallet cannot serve (SDK down, switch in progress, rejected confirm) gets the contract's error code for that case back instead of hanging.
+
+**SDK dependencies**: SDK-CA for a live submit over WalletConnect; until then submit is checked with dev-mock costs. Cross-project: the real dashboard's WalletConnect `gnus_*` client is gnus-dashboard work; until it lands, a test dApp page drives the checks.
+**Plans**: TBD
+
+### Phase 48: Dashboard device walks
+
+**Goal**: The whole bridge is walked end to end on every platform the wallet ships on and over WalletConnect: open the dashboard, connect the origin, estimate, confirm and reject a submit, read jobs and earnings.
+**Depends on**: Phase 46 and Phase 47
+**Requirements**: WALK-01, WALK-02
+**Context**: Android runs on the `GW_Test` AVD with a CI-built APK (never `Pixel_8`; PR builds keep no APK, so the walk uses a develop build). macOS runs on the Tart VM. The iOS simulator is blocked by device-only SDK libraries, so iOS needs a device or stays a blocked gap. Linux runs on the slave box against the real SDK.
+**Success Criteria** (what must be TRUE):
+
+  1. On the Android emulator, the walk passes: open the dashboard, connect the origin, estimate, confirm and reject a submit, read jobs and earnings.
+  2. The same walk passes on macOS; on iOS it passes or is recorded as a blocked gap with its reason, never silently skipped.
+  3. The same walk passes on Windows and on Linux against the real SDK.
+  4. The same walk passes from the dashboard in a desktop browser over WalletConnect.
+  5. Each walk record says which steps ran live and which ran on dev-mock costs because an SDK change has not landed, naming the SDK id.
+
+**SDK dependencies**: SDK-CA for a live estimate and submit on every platform (until then those steps run on dev-mock costs and the live step is a blocked gap); SDK-JOBID, SDK-STATUS, SDK-RESULT and SDK-EARNINGS for live job ids, status, results and earnings (until then the walk checks the contract's nulls).
+**Plans**: TBD
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 42. Shared job submission off the UI isolate | 0/TBD | Not started | - |
+| 43. gnus RPC handler and job record | 0/TBD | Not started | - |
+| 44. Dashboard consent and limits | 0/TBD | Not started | - |
+| 45. Hardened bridge transports | 0/TBD | Not started | - |
+| 46. In-wallet dashboard screen | 0/TBD | Not started | - |
+| 47. Dashboard over WalletConnect | 0/TBD | Not started | - |
+| 48. Dashboard device walks | 0/TBD | Not started | - |
