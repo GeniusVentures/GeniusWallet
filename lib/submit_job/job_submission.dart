@@ -25,18 +25,23 @@ class JobFacts {
 }
 
 sealed class JobCostResult {
-  const JobCostResult();
+  const JobCostResult({this.fixtureBalance});
+
+  /// The wallet's GNUS balance, set only when the dev fixture answered. A
+  /// caller that sees it must use it instead of reading the real balance.
+  final double? fixtureBalance;
 }
 
 final class JobCostOk extends JobCostResult {
-  const JobCostOk(this.minions);
+  const JobCostOk(this.minions, {super.fixtureBalance});
 
   final int minions;
 }
 
 /// The SDK could not price the job. [reason] is only set by the dev fixture.
 final class JobCostFailed extends JobCostResult {
-  const JobCostFailed([this.reason]);
+  const JobCostFailed([this.reason, double? fixtureBalance])
+    : super(fixtureBalance: fixtureBalance);
 
   final String? reason;
 }
@@ -108,12 +113,17 @@ class JobSubmission {
   DevJobScenario? get devScenario =>
       devToolsEnabled ? DevMockJob.instance.scenario.value : null;
 
+  /// The fixture's GNUS balance, or null when the real balance applies.
+  double? get fixtureBalance =>
+      devScenario != null ? DevMockJob.instance.balance : null;
+
   Future<JobCostResult> cost(String jobJson) async {
-    if (devScenario != null) {
+    final balance = fixtureBalance;
+    if (balance != null) {
       if (DevMockJob.instance.costShouldFail) {
-        return const JobCostFailed(DevMockJob.costErrorMessage);
+        return JobCostFailed(DevMockJob.costErrorMessage, balance);
       }
-      return const JobCostOk(DevMockJob.jobCost);
+      return JobCostOk(DevMockJob.jobCost, fixtureBalance: balance);
     }
 
     final minions = await geniusApi.requestGeniusSDKCostAsync(jobJson: jobJson);

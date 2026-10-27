@@ -90,15 +90,15 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
   // Fetches and updates balance from gnusCubit
   Future<double?> fetchGnusBalance() async {
-    if (jobSubmission.devScenario != null) {
+    final fixtureBalance = jobSubmission.fixtureBalance;
+    if (fixtureBalance != null) {
       // DEV-ONLY (Task 2, 2026-07-31): answers from the fixture instead of
       // gnusCubit, so `_initialize()` never parks a stale "Unable to fetch
       // GNUS balance" error on the state before the walk even starts.
-      final balance = DevMockJob.instance.balance;
       if (!isClosed) {
-        emit(state.copyWith(gnusBalance: balance));
+        emit(state.copyWith(gnusBalance: fixtureBalance));
       }
-      return balance;
+      return fixtureBalance;
     }
 
     final resp = await gnusCubit.fetchGnusBalance();
@@ -216,43 +216,42 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   // not `Map<String, dynamic>`: the real branch's `isGasFetchable` includes
   // a `jsonData != null` check whose current meaning depends on that.
   Future<int> _resolveJobCost(dynamic jsonData) async {
-    final isDev = jobSubmission.devScenario != null;
     final costResult = await jobSubmission.cost(jsonEncode(jsonData));
     final int jobCost = switch (costResult) {
       JobCostOk(:final minions) => minions,
       JobCostFailed() => 0,
     };
 
-    if (isDev) {
-      // DEV-ONLY (Task 2, 2026-07-31): a DevJobScenario is armed. The owner
-      // answered from the fixture; skip the isGasFetchable gate so the whole
-      // flow runs with no native SDK.
-      final fixture = DevMockJob.instance;
-      switch (costResult) {
-        case JobCostFailed(:final reason):
-          // Pricing-failure scenario: lands the walk on exactly the state
-          // Task 1 made visible - a kept file, jobCost 0, costError set.
-          // If Task 1 regresses, this button reproduces a blank step 1
-          // again, which is why the two tasks verify each other.
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                costError: reason ?? 'Unable to retrieve job cost',
-                gnusBalance: fixture.balance,
-              ),
-            );
-          }
-        case JobCostOk():
-          // Balance is emitted in the SAME emit as the gas string, not a
-          // separate call - this is still the one detail that makes the
-          // panel usable mid-walk. What changed here (Task 1, 2026-07-31):
-          // arming a scenario AFTER a file is already chosen used to do
-          // nothing, because this whole branch only ran once, at pick time.
-          // It now also runs from `_repriceForDevScenario`, reached through
-          // the listener registered in the constructor above - a scenario
-          // armed (or cleared) after a pick pushes a re-price through that
-          // listener, which is the half that was missing and the half that
-          // stuck a real walk.
+    switch (costResult) {
+      case JobCostFailed(:final reason):
+        // 1a (2026-07-31): a pricing failure keeps the picked file and sets
+        // costError, rather than returning early and discarding it:
+        // uploadedFileName/uploadedJson/jobCost are only written by the emit
+        // in the caller, so returning early meant the file vanished with no
+        // visible trace. That silence mattered beyond this method -
+        // job_steps.dart's auto-advance listener and its step 0 footer both
+        // gate on uploadedJson being non-empty, and costError only renders in
+        // step 2, so a discarded file also made step 2 unreachable. The dev
+        // fixture's pricing-failure scenario lands on exactly this state, and
+        // carries its own balance so the walk shows the fixture's number.
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              costError: reason ?? 'Unable to retrieve job cost',
+              gnusBalance: costResult.fixtureBalance,
+            ),
+          );
+        }
+      case JobCostOk(:final fixtureBalance):
+        if (fixtureBalance != null) {
+          // DEV-ONLY (Task 2, 2026-07-31): the owner answered from the
+          // fixture; skip the isGasFetchable gate so the whole flow runs with
+          // no native SDK. Balance is emitted in the SAME emit as the gas
+          // string, not a separate call - this is still the one detail that
+          // makes the panel usable mid-walk. It also runs from
+          // `_repriceForDevScenario`, so a scenario armed (or cleared) after
+          // a pick re-prices through the listener registered in the
+          // constructor.
           final gasResult = await jobSubmission.estimateGas(
             _jobFacts(),
             jobCost,
@@ -260,37 +259,20 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
           if (gasResult case GasEstimateOk(:final gas)) {
             if (!isClosed) {
               emit(
-                state.copyWith(jobGasCost: gas, gnusBalance: fixture.balance),
+                state.copyWith(jobGasCost: gas, gnusBalance: fixtureBalance),
               );
             }
           }
-      }
-    } else {
-      final isGasFetchable =
-          jsonData != null &&
-          state.gnusTokenDetails.address != null &&
-          jobCost != 0;
-
-      // 1a (2026-07-31): a gas-estimate failure one line below already
-      // sets costError and falls through to the emit rather than
-      // returning early - that is the precedent this now matches. Before
-      // this change, a pricing failure returned here instead, discarding
-      // the picked file: uploadedFileName/uploadedJson/jobCost are only
-      // written by the emit below, so returning early meant the file
-      // vanished with no visible trace. That silence mattered beyond this
-      // method - job_steps.dart's auto-advance listener and its step 0
-      // footer both gate on uploadedJson being non-empty, and costError
-      // only renders in step 2, so a discarded file also made step 2
-      // unreachable. isGasFetchable is now used only to decide whether to
-      // ATTEMPT the gas estimate, never to abandon the method.
-      if (isGasFetchable) {
-        // Get gas cost associated with uploaded job
-        await getBridgeOutGasCost(jobCost);
-      } else {
-        // Do not call getBridgeOutGasCost with a zero cost - a pointless
-        // RPC round trip against an amount of nothing.
-        setCostError('Unable to retrieve job cost');
-      }
+        } else if (jsonData != null &&
+            state.gnusTokenDetails.address != null &&
+            jobCost != 0) {
+          // Get gas cost associated with uploaded job
+          await getBridgeOutGasCost(jobCost);
+        } else {
+          // Do not call getBridgeOutGasCost with a zero cost - a pointless
+          // RPC round trip against an amount of nothing.
+          setCostError('Unable to retrieve job cost');
+        }
     }
 
     return jobCost;

@@ -385,6 +385,8 @@ void main() {
 
         expect(JobSubmission.devToolsEnabled, isFalse);
         expect(owner.devScenario, isNull);
+        expect(owner.fixtureBalance, isNull);
+        expect((await owner.cost('{}')).fixtureBalance, isNull);
 
         final result = await owner.submit(_facts, jobCost: 10, jobJson: _job);
 
