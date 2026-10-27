@@ -249,7 +249,10 @@ GnusJob _decodeCursor(String cursor) {
   }
   final bar = text.indexOf('|');
   final micros = bar < 0 ? null : int.tryParse(text.substring(0, bar));
-  if (micros == null || micros.abs() > _maxCursorMicros) {
+  // Not micros.abs(): the smallest int is its own negation.
+  if (micros == null ||
+      micros < -_maxCursorMicros ||
+      micros > _maxCursorMicros) {
     throw const FormatException('bad cursor');
   }
   return GnusJob(

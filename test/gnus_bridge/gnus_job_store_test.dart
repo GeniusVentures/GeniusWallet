@@ -114,6 +114,7 @@ void main() {
         enc('no-separator'),
         enc('abc|0x1'),
         enc('9000000000000000000|0x1'),
+        enc('-9223372036854775808|0x1'),
         '',
       ]) {
         expect(
