@@ -40,6 +40,28 @@ The defects sit after the burn and around it:
 
 The `Expando` is not the simplest option. It exists only to close a Cubit that the handler uses as a fetch helper (WR-09).
 
+## Fix status (2026-10-27)
+
+| Finding | Status | Commit | Note |
+|---|---|---|---|
+| CR-01 | fixed | d04c0459 | In-memory record per origin and key, checked before the store; failed writes logged and retried 3 times. Ceiling: memory only, a restart after every write failed forgets the key (ponytail). |
+| WR-01 | fixed | 6da54829 | The burn converts the decimal string exactly (`toBaseUnits`, moved into genius_api). It refuses a token whose decimals are not 18 (ponytail), so the confirmed cost is the burned amount. |
+| WR-02 | fixed | 56d5e1ef | Affordability compares base units against the exact on-chain balance. |
+| WR-03 | fixed | b2701b09 | Lock moved into `JobSubmission` (static, all instances); `JobBusy` maps to -32005. The handler keeps its slot for the confirm window. |
+| WR-04 | fixed | 5bd97f5f | A failed gas estimate is -32010 before the confirm on submit; the estimate still returns `gas: null`. Contract row updated. |
+| WR-05 | fixed | 66bf7859 | |
+| WR-06 | fixed, handler only | 1f0e2c7b | `submit(expectedNode:)` skips Process when the SDK reports another account. The panel does not pass it: it has no node account in scope. |
+| WR-07 | fixed | 36339949 | 10 min timeout, answers 4001. Contract updated. |
+| WR-08 | fixed, depth only | def9ba95 | Depth cap 32 (also stops self-containing maps). The `inputs/outputs/passes` key check is not done. |
+| WR-09 | fixed | 56d5e1ef | Balance read through `GeniusApi.readTokenBalance` for the payer and token captured in the request's facts; token through `CoinService`. Private `GnusCubit` and the `Expando` deleted. |
+| WR-10 | fixed | 58da6a7e | |
+| WR-11 | fixed | 43434464 | |
+| WR-12 | fixed | c147a9da | `canSign` is false exactly when submit would answer -32012. Gate still read non-fresh, as events drive it. Contract updated. |
+| IN-01 | fixed | 1e550738 | `JobSubmission.maxJobBytes`. |
+| IN-02..IN-07 | open | | Out of scope for this pass. |
+
+Verified in the main checkout of this worktree after the last fix: `flutter analyze --no-pub lib test` and `packages/genius_api` clean, brace check clean, full `flutter test` 2878 pass / 6 skip / 0 fail (was 2866).
+
 ## Critical Issues
 
 ### CR-01: A failed record write after the burn loses the spend and allows a second burn for the same key
