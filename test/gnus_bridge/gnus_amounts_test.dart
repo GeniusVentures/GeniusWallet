@@ -1,4 +1,7 @@
+import 'dart:math' show pow;
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/web3/utilities.dart' show gnusBurnBaseUnits;
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 
@@ -8,6 +11,23 @@ void main() {
     expect(gnusCostBaseUnits(1234), '1234000000000000000000');
     expect(gnusCostBaseUnits(0), isNull);
     expect(gnusCostBaseUnits(-5), isNull);
+  });
+
+  test('the burn converts exactly the cost the confirm shows', () {
+    // 2363 is the first odd cost a double product cannot hold.
+    for (final minions in [1, 1234, 2363, 999999999]) {
+      final shown = BigInt.parse(gnusCostBaseUnits(minions)!);
+      expect(gnusBurnBaseUnits('$minions', 18), shown, reason: '$minions');
+    }
+    expect(
+      BigInt.from(double.parse('2363') * pow(10, 18)),
+      isNot(BigInt.parse(gnusCostBaseUnits(2363)!)),
+    );
+  });
+
+  test('the burn refuses a token whose decimals are not 18', () {
+    expect(gnusBurnBaseUnits('1234', 6), isNull);
+    expect(gnusBurnBaseUnits('12e3', 18), isNull);
   });
 
   test('payer balance conversion is exact for plain and exponent doubles', () {

@@ -2,13 +2,12 @@
 // amount is an integer in base units of [kGnusDecimals], as a decimal string.
 // This file is the only place the unit is decided. BigInt and string only.
 
+import 'package:genius_api/web3/utilities.dart' show gnusTokenDecimals;
 import 'package:genius_wallet/squid_router/squid_util.dart';
 
-// ponytail: assumes the GNUS token has 18 decimals on every chain the wallet
-// burns on. `Token` carries no decimals field, so none can be read from the
-// app's token info. Upgrade: read `decimals()` from the token contract once per
-// chain and cache it.
-const int kGnusDecimals = 18;
+/// The burn refuses a token that reports other decimals (`gnusBurnBaseUnits`),
+/// so a cost in these units is exactly what `bridgeOut` burns.
+const int kGnusDecimals = gnusTokenDecimals;
 
 final BigInt _gnusScale = BigInt.from(10).pow(kGnusDecimals);
 
