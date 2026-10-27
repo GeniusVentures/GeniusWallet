@@ -1786,7 +1786,7 @@ per git index, so a parallel phase needs its own worktree.
 **Requirements**: CNS-01, CNS-02, CNS-03, CNS-04
 **Success Criteria** (what must be TRUE):
 
-  1. The first `gnus_*` call from a new origin shows a prompt naming that origin; approving lets later reads through with no prompt, declining returns `4100`. The user sees connected origins in Settings, and after revoking one, that origin's next call prompts again.
+  1. The first `gnus_*` call from a new origin shows a prompt naming that origin; approving lets later reads through with no prompt, declining returns `4001`. The user sees connected origins in Settings, and after revoking one, that origin's next call prompts again.
   2. Every `gnus_submitJob` shows a native confirm naming the origin, the cost, the bridge gas, the paying wallet and the node account; Reject returns `4001` and nothing is burned.
   3. While a confirm from an origin is open, further prompts from it get `-32005`, and so do prompts past the per-origin rate limit, so dialogs never stack.
   4. A test pushes known key and mnemonic fixtures through every method and fails if any response, log line or Sentry event from the bridge carries one or anything derived from one.
