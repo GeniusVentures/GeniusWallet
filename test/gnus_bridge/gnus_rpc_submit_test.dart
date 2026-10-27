@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/models/network.dart';
@@ -90,6 +91,33 @@ void main() {
     expect(result['burnTxHash'], gnusTestBurnHash);
     expect(result['status'], 'submitted');
     expect(result['sdkAddress'], matches(RegExp(r'^0x[0-9a-f]{128}$')));
+  });
+
+  test('a confirm that never answers rejects after the timeout', () async {
+    final h = await harness();
+    final handler = h.build(
+      confirm:
+          ({
+            required origin,
+            required cost,
+            required gas,
+            required payer,
+            required nodeAccount,
+          }) => Completer<bool>().future,
+    );
+    Map<String, Object?>? reply;
+
+    fakeAsync((async) {
+      viaDirect(handler, _origin, _submit, _params()).then((r) => reply = r);
+      async.elapse(kGnusConfirmTimeout - const Duration(seconds: 1));
+      expect(reply, isNull);
+      async.elapse(const Duration(seconds: 1));
+    });
+
+    expect(_error(reply!)['code'], GnusRpcCode.userRejected);
+    expect(h.api.count('burn'), 0);
+    final next = await viaDirect(h.build(), _origin, _submit, _params());
+    expect(next['result'], isNotNull);
   });
 
   test('the default confirm rejects and nothing burns', () async {

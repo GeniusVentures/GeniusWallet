@@ -28,9 +28,14 @@ const Duration _idempotencyWindow = Duration(hours: 24);
 const int _recordWriteAttempts = 3;
 const Duration _recordRetryDelay = Duration(seconds: 2);
 
+/// A confirm still open after this is a rejection, so a prompt that never
+/// completes cannot hold the wallet's one burn slot.
+const Duration kGnusConfirmTimeout = Duration(minutes: 10);
+
 /// The seam that decides whether a submit may spend. [cost] is the contract
 /// base-unit string, [gas] the contract gas map or null, [payer] the lowercased
-/// EVM address and [nodeAccount] the lowercased SDK address.
+/// EVM address and [nodeAccount] the lowercased SDK address. It must complete:
+/// after [kGnusConfirmTimeout] the handler rejects and ignores a late answer.
 typedef GnusConfirm =
     Future<bool> Function({
       required String origin,
@@ -870,13 +875,18 @@ class GnusRpcHandler {
 
     final bool confirmed;
     try {
-      confirmed = await _confirm(
-        origin: origin,
-        cost: cost,
-        gas: gas,
-        payer: payer,
-        nodeAccount: nodeAccount,
-      );
+      // Re-typed first: a confirm written `async => throw` returns a
+      // Future<Never>, whose timeout cannot answer false.
+      confirmed =
+          await _confirm(
+                origin: origin,
+                cost: cost,
+                gas: gas,
+                payer: payer,
+                nodeAccount: nodeAccount,
+              )
+              .then<bool>((answer) => answer)
+              .timeout(kGnusConfirmTimeout, onTimeout: () => false);
     } catch (e) {
       debugPrint('gnus_rpc confirm failed ${e.runtimeType}');
       throw const GnusRpcError(
