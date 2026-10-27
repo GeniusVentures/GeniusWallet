@@ -23,6 +23,44 @@ class JobFacts {
   final String? gnusAddress;
 }
 
+sealed class JobCostResult {
+  const JobCostResult();
+}
+
+final class JobCostOk extends JobCostResult {
+  const JobCostOk(this.minions);
+
+  final int minions;
+}
+
+/// The SDK could not price the job. [reason] is only set by the dev fixture.
+final class JobCostFailed extends JobCostResult {
+  const JobCostFailed([this.reason]);
+
+  final String? reason;
+}
+
+sealed class GasEstimateResult {
+  const GasEstimateResult();
+}
+
+final class GasEstimateOk extends GasEstimateResult {
+  const GasEstimateOk(this.gas);
+
+  final String gas;
+}
+
+final class GasEstimateMissingData extends GasEstimateResult {
+  const GasEstimateMissingData();
+}
+
+/// [reason] is the bridge response's own error message, passed through.
+final class GasEstimateFailed extends GasEstimateResult {
+  const GasEstimateFailed(this.reason);
+
+  final String? reason;
+}
+
 sealed class JobSubmitResult {
   const JobSubmitResult();
 }
@@ -68,6 +106,54 @@ class JobSubmission {
   /// closed.
   DevJobScenario? get devScenario =>
       devToolsEnabled ? DevMockJob.instance.scenario.value : null;
+
+  Future<JobCostResult> cost(String jobJson) async {
+    if (devScenario != null) {
+      if (DevMockJob.instance.costShouldFail) {
+        return const JobCostFailed(DevMockJob.costErrorMessage);
+      }
+      return const JobCostOk(DevMockJob.jobCost);
+    }
+
+    final minions = geniusApi.requestGeniusSDKCost(jobJson: jobJson);
+    if (minions == 0) {
+      return const JobCostFailed();
+    }
+    return JobCostOk(minions);
+  }
+
+  Future<GasEstimateResult> estimateGas(JobFacts facts, int jobCost) async {
+    // The fixture skips every precondition, as the dev pricing path always did.
+    if (devScenario != null) {
+      return const GasEstimateOk(DevMockJob.jobGasCost);
+    }
+
+    final chainId = facts.chainId;
+    final rpcUrl = facts.rpcUrl;
+    final walletAddress = facts.walletAddress;
+    final gnusAddress = facts.gnusAddress;
+    if (chainId == null ||
+        rpcUrl == null ||
+        walletAddress == null ||
+        gnusAddress == null) {
+      return const GasEstimateMissingData();
+    }
+
+    final resp = await geniusApi.getBrigeOutGasCost(
+      sourceChainId: chainId,
+      contractAddress: gnusAddress,
+      rpcUrl: rpcUrl,
+      address: walletAddress,
+      amountToBurn: "$jobCost",
+      destinationChainId: _bridgeDestinationChainId,
+    );
+
+    final gas = resp.data;
+    if (!resp.isSuccess || gas == null) {
+      return GasEstimateFailed(resp.errorMessage);
+    }
+    return GasEstimateOk(gas);
+  }
 
   Future<JobSubmitResult> submit(
     JobFacts facts, {

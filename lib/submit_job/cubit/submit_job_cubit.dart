@@ -218,53 +218,56 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   // not `Map<String, dynamic>`: the real branch's `isGasFetchable` includes
   // a `jsonData != null` check whose current meaning depends on that.
   Future<int> _resolveJobCost(dynamic jsonData) async {
-    final int jobCost;
-    final devScenario = jobSubmission.devScenario;
+    final isDev = jobSubmission.devScenario != null;
+    final costResult = await jobSubmission.cost(jsonEncode(jsonData));
+    final int jobCost = switch (costResult) {
+      JobCostOk(:final minions) => minions,
+      JobCostFailed() => 0,
+    };
 
-    if (devScenario != null) {
-      // DEV-ONLY (Task 2, 2026-07-31): a DevJobScenario is armed. Skip
-      // both requestGeniusSDKCost and getBridgeOutGasCost entirely and
-      // answer from the fixture instead, so the whole flow runs with no
-      // native SDK.
+    if (isDev) {
+      // DEV-ONLY (Task 2, 2026-07-31): a DevJobScenario is armed. The owner
+      // answered from the fixture; skip the isGasFetchable gate so the whole
+      // flow runs with no native SDK.
       final fixture = DevMockJob.instance;
-      if (fixture.costShouldFail) {
-        // Pricing-failure scenario: lands the walk on exactly the state
-        // Task 1 made visible - a kept file, jobCost 0, costError set.
-        // If Task 1 regresses, this button reproduces a blank step 1
-        // again, which is why the two tasks verify each other.
-        jobCost = 0;
-        if (!isClosed) {
-          emit(
-            state.copyWith(
-              costError: DevMockJob.costErrorMessage,
-              gnusBalance: fixture.balance,
-            ),
+      switch (costResult) {
+        case JobCostFailed(:final reason):
+          // Pricing-failure scenario: lands the walk on exactly the state
+          // Task 1 made visible - a kept file, jobCost 0, costError set.
+          // If Task 1 regresses, this button reproduces a blank step 1
+          // again, which is why the two tasks verify each other.
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                costError: reason ?? 'Unable to retrieve job cost',
+                gnusBalance: fixture.balance,
+              ),
+            );
+          }
+        case JobCostOk():
+          // Balance is emitted in the SAME emit as the gas string, not a
+          // separate call - this is still the one detail that makes the
+          // panel usable mid-walk. What changed here (Task 1, 2026-07-31):
+          // arming a scenario AFTER a file is already chosen used to do
+          // nothing, because this whole branch only ran once, at pick time.
+          // It now also runs from `_repriceForDevScenario`, reached through
+          // the listener registered in the constructor above - a scenario
+          // armed (or cleared) after a pick pushes a re-price through that
+          // listener, which is the half that was missing and the half that
+          // stuck a real walk.
+          final gasResult = await jobSubmission.estimateGas(
+            _jobFacts(),
+            jobCost,
           );
-        }
-      } else {
-        jobCost = DevMockJob.jobCost;
-        // Balance is emitted in the SAME emit as the gas string, not a
-        // separate call - this is still the one detail that makes the panel
-        // usable mid-walk. What changed here (Task 1, 2026-07-31): arming a
-        // scenario AFTER a file is already chosen used to do nothing,
-        // because this whole branch only ran once, at pick time. It now
-        // also runs from `_repriceForDevScenario`, reached through the
-        // listener registered in the constructor above - a scenario armed
-        // (or cleared) after a pick pushes a re-price through that listener,
-        // which is the half that was missing and the half that stuck a real
-        // walk.
-        if (!isClosed) {
-          emit(
-            state.copyWith(
-              jobGasCost: DevMockJob.jobGasCost,
-              gnusBalance: fixture.balance,
-            ),
-          );
-        }
+          if (gasResult case GasEstimateOk(:final gas)) {
+            if (!isClosed) {
+              emit(
+                state.copyWith(jobGasCost: gas, gnusBalance: fixture.balance),
+              );
+            }
+          }
       }
     } else {
-      jobCost = geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
-
       final isGasFetchable =
           jsonData != null &&
           state.gnusTokenDetails.address != null &&
@@ -296,51 +299,27 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   Future<void> getBridgeOutGasCost(int jobCost) async {
-    final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
-    final chainId = selectedNetwork?.chainId;
-    final rpcUrl = selectedNetwork?.rpcUrl;
-    final selectedWallet = walletDetailsCubit.state.selectedWallet;
-    final walletAddress = selectedWallet?.address;
-    final gnusAddress = gnusCubit.state.tokenInfo?.address;
+    final result = await jobSubmission.estimateGas(_jobFacts(), jobCost);
 
-    if (selectedNetwork == null ||
-        chainId == null ||
-        gnusAddress == null ||
-        walletAddress == null ||
-        rpcUrl == null) {
-      setCostError(
-        'Missing required data for bridge gas estimation. Please select a wallet and network.',
-      );
-      return;
-    }
-
-    final resp = await geniusApi.getBrigeOutGasCost(
-      sourceChainId: chainId,
-      contractAddress: gnusAddress,
-      rpcUrl: rpcUrl,
-      address: walletAddress,
-      amountToBurn: "$jobCost",
-      destinationChainId: 15305752297694, // TODO: unhardcode bridge address
-    );
-
-    final jobGasCost = resp.data;
-
-    if (!resp.isSuccess || jobGasCost == null) {
-      // Pass through the underlying reason (e.g. "Not enough funds for gas
-      // to bridge tokens" from web3.dart's hasEnoughFundsForGas check)
-      // instead of replacing it with a generic line - that check already
-      // runs, the only thing missing was its message reaching the user.
-      final underlyingReason = resp.errorMessage;
-      setCostError(
-        underlyingReason != null && underlyingReason.isNotEmpty
-            ? underlyingReason
-            : 'Failed to estimate bridge gas cost.',
-      );
-      return;
-    }
-
-    if (!isClosed) {
-      emit(state.copyWith(jobGasCost: jobGasCost));
+    switch (result) {
+      case GasEstimateMissingData():
+        setCostError(
+          'Missing required data for bridge gas estimation. Please select a wallet and network.',
+        );
+      case GasEstimateFailed(:final reason):
+        // Pass through the underlying reason (e.g. "Not enough funds for gas
+        // to bridge tokens" from web3.dart's hasEnoughFundsForGas check)
+        // instead of replacing it with a generic line - that check already
+        // runs, the only thing missing was its message reaching the user.
+        setCostError(
+          reason != null && reason.isNotEmpty
+              ? reason
+              : 'Failed to estimate bridge gas cost.',
+        );
+      case GasEstimateOk(:final gas):
+        if (!isClosed) {
+          emit(state.copyWith(jobGasCost: gas));
+        }
     }
   }
 

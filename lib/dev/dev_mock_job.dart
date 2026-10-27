@@ -18,7 +18,7 @@ import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 // fail immediately after - reachable in production only by burning real
 // GNUS and hoping the node misbehaves at exactly the right moment.
 //
-// This is intercepted at the point of use inside `SubmitJobCubit`, not
+// This is intercepted at the point of use inside `JobSubmission`, not
 // provided further up the widget tree - the cubit is built per-subtree in
 // two places (`lib/components/wallet_overview.dart`, `lib/navigation/
 // router.dart`) and the dev bubble sits above neither, so it has no
@@ -56,8 +56,8 @@ enum DevJobScenario {
 
 /// The submit-job flow's dev fixture. See the file-level DEV-ONLY comment
 /// above for what it replaces. Never used outside a `kDebugMode &&
-/// kShowDevTools` call site - see `SubmitJobCubit`'s gated `_devJobScenario`
-/// getter and `dev_tools_bubble.dart`'s JOB section.
+/// kShowDevTools` call site - see `JobSubmission.devScenario` and
+/// `dev_tools_bubble.dart`'s JOB section.
 class DevMockJob {
   DevMockJob._() {
     assert(
