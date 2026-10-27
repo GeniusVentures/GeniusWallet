@@ -26,6 +26,8 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 
 **Constraints:** Most live results depend on SuperGenius SDK changes that are not wallet work (cost is always 0 until the CA bundle path is fixed; Process returns no job id; no per-job status, result or earnings query). Each is tracked as a dependency in REQUIREMENTS.md; the wallet ships the contract with those fields null and fills them when the SDK lands. v3.0 stays open alongside (only its live walks remain); v1.0 residue too. No milestone is archived to make room.
 
+**Cross-project design boundary (reviewed 2026-10-27):** The dashboard uses the injected `window.gnus` provider inside GeniusWallet and Reown WalletConnect Sign Client in an external browser. GeniusWallet already provides ordinary EVM signing and owns all `gnus_*` requests and native signing; neither the dashboard nor the future GCS public API should add a separate signing stack or custodial wallet. A `gnus_submitJob` call orchestrates user approval, EVM `bridgeOut`, and native `GeniusSDKProcess`, with `bridgedNotProcessed` and idempotent recovery; the burn and Process steps are not one atomic cross-chain transaction.
+
 **Provenance:** spike 2026-10-26 (`research/v4.0-webview-bridge-spike.md`, Windows WebView2 and Linux WebKitGTK against the real SDK) and the identity research (`research/v4.0-wallet-identity.md`). Scoping decisions were taken by the planning session overnight on Braian's instruction to answer GSD questions itself; each is marked (D) in the contract and listed in STATE.md.
 
 <details>
@@ -66,6 +68,16 @@ what shipped as the swap execution path; the Squid client was finished 2025-05 b
 Symbiosis named once, never built) and the go-forward decision.
 
 </details>
+
+## Later Integration: GCS Decentralized API Funding (post-v4.0)
+
+The separately specified GCS OpenAI-compatible API (`api.gnus.ai/v1`) uses Cloudflare Workers and sharded Durable Objects to route HTTPS requests over outbound WebSockets to authorized high-reputation GCS nodes. Membership of the `PrivilegedAPIHandlerRegistry` is quorum-authorized through SuperGenius-style signed SecureCRDT policy; no GCS validator privileges are conferred by API handling. Public API connectivity and load balancing belong to the GCS/Cloudflare workstream, not to GeniusWallet or the dashboard.
+
+GeniusWallet will eventually be the **user's signing and authorization interface** for restricted, reusable native `APIFundingEscrow` pools. A later, explicitly versioned wallet RPC contract must support wallet-authorized EVM deposits, bridge/mint confirmation, native funding pool creation/top-up, bounded API credential authorization and revocation, refund signatures, and verified balance/usage queries. Existing Reown/WalletConnect EVM signing and the `window.gnus` path are reused; no new dashboard back end or web-held native signing key is allowed.
+
+**Dependencies and release gates:** The native UTXO-restricted spending rules and GCS authorization interface must be specified and implemented before any feature is represented as live. The wallet's current `bridgeOut` ABI encodes three arguments; the current `gnus-ai-contracts/GNUSBridge.sol` source uses five arguments including `sgnsDestination` and `destinationYOdd`. Confirm deployed bridge versions and update the ABI, native-destination selection, gas estimation and transaction encoding as a coordinated contract change. The current v4.0 manual job path remains distinct from the future reusable API funding path. Do not treat wallet-level idempotency as native atomic escrow protection.
+
+This future integration is **not part of PR #294** and should be planned as a separate GSD milestone with SuperGenius, GCS, GeniusWallet and dashboard dependencies. Current v4.0 scope and schedule remain unchanged.
 
 ## Requirements
 
@@ -144,6 +156,8 @@ Symbiosis named once, never built) and the go-forward decision.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Reuse GeniusWallet's existing Reown/WalletConnect signing capabilities; browser dashboard uses Sign Client only (2026-10-27) | Ordinary EVM signing is already in the wallet. The web dashboard needs a transport for `gnus_*` methods, not an additional signing implementation or AppKit dependency | Approved product direction |
+| Keep manual job submission, prepaid API authorization, and native escrow separate (2026-10-27) | Manual `bridgeOut` then `GeniusSDKProcess` is a wallet-orchestrated sequence with a recoverable partial-success state; the future `APIFundingEscrow` must enforce atomic restricted UTXO spending at native consensus | Approved architecture; future funding pending native work |
 | **Take Alex's visual, never his behavior or his new features** (2026-07-16) | Alex's own `WIRING.md` documents 11 `WIRE-N` stubs — surfaces that look finished but are demos. Send shows "submitted (demo)" and never broadcasts; Swap quotes are mocked; recipient validation is `length >= 6`; `"1,000"` parses to `1.0` (1000× under-send); the dashboard's 24h delta is `balance * 0.024`. Six touch money. develop has the real implementations. His branch is a design prototype, so porting a screen wholesale would downgrade working money-handling code into a demo. Rule: re-skin develop's screens in place; develop's logic always wins; Alex-only features (`lib/ai/`, `lib/preferences/`, address book, convert section, NFTs tab) are new capability needing product decisions and are out of scope | — Pending |
 | **Re-skin, never restructure** (2026-07-16) | Applying an adopted design system to existing widgets is a translation with a right answer; moving items, changing IA or adding capability is a product judgement with no owner in this milestone. Surfaces keep their exact structure, order and behavior — they just wear the new tokens. Structural questions get recorded for product rather than decided here | — Pending |
 | **Port the design incrementally, layer by layer** (2026-07-16) | The designer forked 2026-04-30; develop has +127 commits since, and **128 of the design's 172 files are files develop also changed** (74% overlap). Landing it in one step means reconciling all 128 at once with nothing verifiable in between. Layer by layer — tokens → primitives → shell → one screen area per phase — makes each step small enough to check by running the app, and each lands on develop on its own | — Pending |
@@ -172,4 +186,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-26 after milestone v4.0 (Processing dashboard bridge, wallet side) started*
+*Last updated: 2026-10-27 after sister-PR architecture alignment review*
