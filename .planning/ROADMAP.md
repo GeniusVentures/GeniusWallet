@@ -1771,7 +1771,13 @@ per git index, so a parallel phase needs its own worktree.
   5. `gnus_getEarnings` returns the node account's balance and whether it is processing; processed-job counts and earnings come back as null, never 0.
 
 **SDK dependencies**: SDK-CA for a live cost (until then every live estimate is `-32010` and a live submit stops before burning); SDK-COSTERR for `data.reason` on `-32010`; SDK-JOBID for `jobId`; SDK-STATUS and SDK-RESULT for live job status and results (until then status stays `submitted` or `bridgedNotProcessed` and `result` is null); SDK-EARNINGS for counts and earnings. Each is verified now with dev mocks and the contract's nulls; the live result is recorded as a blocked gap.
-**Plans**: TBD
+**Plans**: 5 plans, sequential (waves 1-5)
+
+- [ ] 43-01-PLAN.md — Re-measure the baseline, then the tracer: one `gnus_submitJob` through two fake transports, the gate, the Phase 42 owner, a rejecting-by-default confirm and a Hive record; owner `onBurned` writes the record before Process (criteria 1, 3, 4)
+- [ ] 43-02-PLAN.md — Finish the job record (box in `initHive`, cursor pages, real-disk restart test), `gnus_listJobs` and `gnus_getJob`, idempotency replay and the in-flight `-32005` lock (criteria 3, 4)
+- [ ] 43-03-PLAN.md — Every unit conversion in one file with exact tests (18 decimals, `ponytail:`), `gnus_estimate`, and every submit refusal and outcome including the post-confirm account recheck (criteria 1, 3)
+- [ ] 43-04-PLAN.md — `gnus_getAccounts` (role, payer, switching), `gnus_getEarnings` with nulls, readiness on every method, and the deduplicated event stream (criteria 1, 2, 5)
+- [ ] 43-05-PLAN.md — App wiring with the rejecting confirm, logging and boundary guards, the every-method two-transport contract test, contract text for the handler's choices, phase gate (criterion 1)
 
 ### Phase 44: Dashboard consent and limits
 
