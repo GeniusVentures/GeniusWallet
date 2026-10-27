@@ -800,8 +800,8 @@ class GnusRpcHandler {
     final network = details.selectedNetwork;
     if (network != networkBefore) {
       throw const GnusRpcError(
-        GnusRpcCode.internal,
-        'Wallet not ready',
+        GnusRpcCode.accountSwitching,
+        'Account changed',
         data: {'reason': GnusRpcReason.accountChanged},
       );
     }
