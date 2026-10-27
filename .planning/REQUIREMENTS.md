@@ -496,16 +496,16 @@ lands. None is counted in this milestone's coverage.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ISO-01 | Phase 42 — Shared job submission off the UI isolate | Pending |
-| RPC-01 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-02 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-03 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-04 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-05 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-06 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-07 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-08 | Phase 43 — gnus RPC handler and job record | Pending |
-| RPC-09 | Phase 43 — gnus RPC handler and job record | Pending |
+| ISO-01 | Phase 42 — Shared job submission off the UI isolate | Complete (code; real-SDK animation walk in phase 48) |
+| RPC-01 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-02 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-03 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-04 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-05 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-06 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-07 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-08 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-09 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
 | CNS-01 | Phase 44 — Dashboard consent and limits | Pending |
 | CNS-02 | Phase 44 — Dashboard consent and limits | Pending |
 | CNS-03 | Phase 44 — Dashboard consent and limits | Pending |

@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Processing dashboard bridge (wallet side)
-current_phase: 43
-current_phase_name: "gnus RPC handler and job record"
-status: planning
-stopped_at: "2026-10-27 overnight: Phase 42 executed (2/2), reviewed (CR-01 + 3 warnings fixed), verified human_needed (real-SDK animation check deferred to phase 48). Phase 43 context and research in progress. v3.0 live walks still pending."
+current_phase: 44
+current_phase_name: "Dashboard consent and limits"
+status: ready_to_plan
+stopped_at: "2026-10-27 overnight: Phases 42 and 43 executed, reviewed (all critical and warning findings fixed or partially fixed with ponytails) and verified human_needed. Phase 44 (consent UI) deliberately not started: it wants Braian. v3.0 live walks still pending."
 last_updated: "2026-10-26T23:59:00.000Z"
 last_activity: 2026-10-26
 last_activity_desc: Milestone v4.0 started (dashboard bridge, wallet side)
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 14
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
+  percent: 29
 resume_file: null
 ---
 
@@ -25,7 +25,7 @@ resume_file: null
 See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** v4.0 Phase 43 — gnus RPC handler and job record (v3.0 live walks still pending)
+**Current focus:** v4.0 Phase 44 — dashboard consent and limits, waiting on Braian (v3.0 live walks still pending)
 
 ## Current Position
 
