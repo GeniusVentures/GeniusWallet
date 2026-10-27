@@ -41,6 +41,7 @@ class _FakeGeniusApi implements GeniusApi {
   final List<String> processed = [];
   final List<String> costed = [];
   final List<_BurnCall> gasCalls = [];
+  final List<String> order = [];
 
   @override
   Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
@@ -80,6 +81,7 @@ class _FakeGeniusApi implements GeniusApi {
     required int destinationChainId,
     bool shouldMintTokens = false,
   }) async {
+    order.add('burn');
     burns.add(
       _BurnCall(
         contractAddress: contractAddress,
@@ -97,6 +99,7 @@ class _FakeGeniusApi implements GeniusApi {
   Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
     required String jobJson,
   }) async {
+    order.add('process');
     processed.add(jobJson);
     if (processThrows) {
       throw StateError('isolate failed');
@@ -248,6 +251,71 @@ void main() {
         bridged.processResult,
         GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
       );
+    });
+  });
+
+  group('onBurned', () {
+    test(
+      'runs once with the burn hash, between the burn and the process',
+      () async {
+        final seen = <String>[];
+
+        final result = await owner.submit(
+          _facts,
+          jobCost: 10,
+          jobJson: _job,
+          onBurned: (hash) async {
+            api.order.add('onBurned');
+            seen.add(hash);
+          },
+        );
+
+        expect(result, isA<JobDone>());
+        expect(seen, ['0xHASH']);
+        expect(api.order, ['burn', 'onBurned', 'process']);
+      },
+    );
+
+    test('is not called when the burn fails', () async {
+      api.bridgeOutResponse = ApiResponse.error('no');
+      var called = false;
+
+      final result = await owner.submit(
+        _facts,
+        jobCost: 10,
+        jobJson: _job,
+        onBurned: (_) async => called = true,
+      );
+
+      expect(result, isA<JobBridgeFailed>());
+      expect(called, isFalse);
+    });
+
+    test('is not called when data is missing', () async {
+      var called = false;
+
+      final result = await owner.submit(
+        _facts,
+        jobCost: 0,
+        jobJson: _job,
+        onBurned: (_) async => called = true,
+      );
+
+      expect(result, isA<JobMissingData>());
+      expect(called, isFalse);
+    });
+
+    test('a callback that throws still lets the process call run', () async {
+      final result = await owner.submit(
+        _facts,
+        jobCost: 10,
+        jobJson: _job,
+        onBurned: (_) async => throw StateError('disk full'),
+      );
+
+      expect(result, isA<JobDone>());
+      expect((result as JobDone).txHash, '0xHASH');
+      expect(api.processed, hasLength(1));
     });
   });
 

@@ -262,7 +262,16 @@ class GnusRpcHandler {
       bodyHash: bodyHash,
     );
 
-    final result = await _jobs.submit(facts, jobCost: minions, jobJson: job);
+    // Written the moment the burn lands, as bridgedNotProcessed: if the app is
+    // killed before Process returns, the record says the spend happened and
+    // the job is unconfirmed, never a false submitted.
+    final result = await _jobs.submit(
+      facts,
+      jobCost: minions,
+      jobJson: job,
+      onBurned: (burnHash) =>
+          _store.put(record(burnHash, GnusJobStatus.bridgedNotProcessed)),
+    );
     switch (result) {
       case JobDone(:final txHash):
         await _store.put(record(txHash, GnusJobStatus.submitted));

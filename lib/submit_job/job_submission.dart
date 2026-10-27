@@ -170,6 +170,7 @@ class JobSubmission {
     JobFacts facts, {
     required int jobCost,
     required Map<String, dynamic> jobJson,
+    Future<void> Function(String burnHash)? onBurned,
   }) async {
     // Sits before the precondition guard: that guard protects the two calls
     // the fixture replaces, and a dev environment with no token info would
@@ -206,8 +207,18 @@ class JobSubmission {
       return const JobBridgeFailed();
     }
 
-    // The tokens are burned. A throw from the worker isolate must not lose the
-    // burn hash, so it becomes the bridged-not-processed outcome.
+    // The tokens are burned. [onBurned] lets a caller record the spend before
+    // Process runs; a throw from it must not skip Process.
+    if (onBurned != null) {
+      try {
+        await onBurned(txHash);
+      } catch (e) {
+        debugPrint('onBurned failed: ${e.runtimeType}');
+      }
+    }
+
+    // A throw from the worker isolate must not lose the burn hash, so it
+    // becomes the bridged-not-processed outcome.
     final GeniusNodeReturnValue processResult;
     try {
       processResult = await geniusApi.requestGeniusSDKProcessAsync(

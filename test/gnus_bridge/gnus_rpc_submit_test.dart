@@ -254,6 +254,39 @@ void main() {
     );
   });
 
+  test('the record exists before Process runs and ends submitted', () async {
+    final h = await harness();
+    GnusJob? seenDuringProcess;
+    h.api.onProcess = () async {
+      seenDuringProcess = h.store.byBurnHash(gnusTestBurnHash);
+    };
+
+    await viaDirect(h.build(), _origin, _submit, _params());
+
+    expect(seenDuringProcess, isNotNull);
+    expect(seenDuringProcess!.status, GnusJobStatus.bridgedNotProcessed);
+    expect(
+      h.store.byBurnHash(gnusTestBurnHash)!.status,
+      GnusJobStatus.submitted,
+    );
+  });
+
+  test('a process that throws after the burn leaves the record', () async {
+    final h = await harness();
+    h.api.onProcess = () async => throw StateError('isolate died');
+
+    final reply = await viaDirect(h.build(), _origin, _submit, _params());
+
+    expect(
+      (reply['result']! as Map<String, Object?>)['status'],
+      'bridgedNotProcessed',
+    );
+    expect(
+      h.store.byBurnHash(gnusTestBurnHash)!.status,
+      GnusJobStatus.bridgedNotProcessed,
+    );
+  });
+
   test('a gas estimate that fails does not block the submit', () async {
     final h = await harness();
     h.api.gasResponse = ApiResponse.error('rpc down');
