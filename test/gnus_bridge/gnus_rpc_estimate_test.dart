@@ -44,7 +44,7 @@ void main() {
     final replies = <Map<String, Object?>>[];
     for (final transport in [viaDirect, viaJson]) {
       final h = await harness();
-      h.gnus.balance = 99999.99;
+      h.api.gnusBalance = 99999.99;
 
       replies.add(await transport(h.build(), _origin, _estimate, _params()));
 
@@ -86,7 +86,7 @@ void main() {
 
   test('an unreadable balance is balance null, still a result', () async {
     final h = await harness();
-    h.gnus.balanceReadable = false;
+    h.api.balanceReadable = false;
 
     final reply = await viaJson(h.build(), _origin, _estimate, _params());
 

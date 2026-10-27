@@ -580,7 +580,7 @@ void main() {
 
     test('a balance below the cost is -32011 and nothing burns', () async {
       final h = await harness();
-      h.gnus.balance = 12.34;
+      h.api.gnusBalance = 12.34;
 
       final reply = await viaJson(h.build(), _origin, _submit, _params());
 
@@ -589,9 +589,21 @@ void main() {
       expect(h.confirms, isEmpty);
     });
 
+    test('a balance a hair below the cost is -32011, not rounded up', () async {
+      final h = await harness();
+      h.api.costResponse = 10;
+      h.api.gnusBalance = 9.99996;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.insufficientFunds);
+      expect(h.api.balanceReadFor, gnusTestWalletAddress);
+      expect(h.confirms, isEmpty);
+    });
+
     test('a balance exactly equal to the cost proceeds', () async {
       final h = await harness();
-      h.gnus.balance = 1234.0;
+      h.api.gnusBalance = 1234.0;
 
       final reply = await viaJson(h.build(), _origin, _submit, _params());
 
@@ -601,7 +613,7 @@ void main() {
 
     test('an unreadable balance fails closed with -32603', () async {
       final h = await harness();
-      h.gnus.balanceReadable = false;
+      h.api.balanceReadable = false;
 
       final reply = await viaJson(h.build(), _origin, _submit, _params());
 
@@ -613,7 +625,7 @@ void main() {
 
     test('an unknown GNUS token address is missing_data, no burn', () async {
       final h = await harness();
-      h.gnus.tokenKnown = false;
+      h.coins.tokenKnown = false;
 
       final reply = await viaJson(h.build(), _origin, _submit, _params());
 

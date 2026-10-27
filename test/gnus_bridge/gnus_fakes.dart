@@ -6,7 +6,6 @@ import 'dart:typed_data';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -14,7 +13,7 @@ import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
-import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
@@ -57,6 +56,11 @@ class FakeGnusApi implements GeniusApi {
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   SgnsNet net = SgnsNet.staging;
   String sgnusBalance = '12.5';
+
+  /// The payer's GNUS balance in whole GNUS, and the payer it was last read for.
+  double gnusBalance = 5000;
+  bool balanceReadable = true;
+  String? balanceReadFor;
 
   /// Runs when the process call starts, before it answers.
   Future<void> Function()? onProcess;
@@ -112,6 +116,19 @@ class FakeGnusApi implements GeniusApi {
   }
 
   @override
+  Future<BigInt> readTokenBalance({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
+    balanceReadFor = address;
+    if (!balanceReadable) {
+      throw StateError('rpc down');
+    }
+    return BigInt.parse(gnusBalanceBaseUnits(gnusBalance)!);
+  }
+
+  @override
   Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
     required String jobJson,
   }) async {
@@ -124,27 +141,13 @@ class FakeGnusApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Answers both fetches from the seed, so no asset or network is touched.
-class SeededGnusCubit extends GnusCubit {
-  SeededGnusCubit(
-    super.coinService,
-    super.walletDetailsCubit,
-    Token tokenInfo,
-  ) {
-    emit(state.copyWith(tokenInfo: tokenInfo));
-  }
-
-  double balance = 5000;
-  bool balanceReadable = true;
+/// Answers the token read from the seed, so no asset is touched.
+class SeededCoinService extends CoinService {
   bool tokenKnown = true;
 
   @override
-  Future<Token?> fetchGnusInfo() async =>
-      tokenKnown ? state.tokenInfo : const Token();
-
-  @override
-  Future<Coin?> fetchGnusBalance() async =>
-      balanceReadable ? Coin(balance: balance) : null;
+  Future<Token?> fetchGnusInfo(Network network) async =>
+      tokenKnown ? const Token(address: '0xGNUS') : const Token();
 }
 
 class PushableWalletDetails extends WalletDetailsCubit {
@@ -193,7 +196,7 @@ class FlakyGnusJobStore extends GnusJobStore {
 /// One wallet, one network, one node account, an in-memory job box and a fixed
 /// clock: everything a handler test needs, with nothing real behind it.
 class GnusHarness {
-  GnusHarness._(this.api, this.walletDetails, this.gnus, this.box) {
+  GnusHarness._(this.api, this.walletDetails, this.box) {
     store = FlakyGnusJobStore(box);
   }
 
@@ -207,23 +210,18 @@ class GnusHarness {
       geniusApi: api,
       networkTokensProvider: NetworkTokensProvider(),
     );
-    final gnus = SeededGnusCubit(
-      CoinService(),
-      walletDetails,
-      const Token(address: '0xGNUS'),
-    );
     final opened =
         box ??
         await Hive.openBox<String>(
           'gnusTest${_boxCounter++}',
           bytes: Uint8List(0),
         );
-    return GnusHarness._(api, walletDetails, gnus, opened);
+    return GnusHarness._(api, walletDetails, opened);
   }
 
   final FakeGnusApi api;
   final PushableWalletDetails walletDetails;
-  final SeededGnusCubit gnus;
+  final SeededCoinService coins = SeededCoinService();
   final Box<String> box;
   late final FlakyGnusJobStore store;
 
@@ -309,7 +307,7 @@ class GnusHarness {
         geniusApi: api,
         readAppState: () => app,
         walletDetails: walletDetails,
-        gnusCubit: gnus,
+        coinService: coins,
         resolveGate: resolve,
         store: store,
         appStates: appStates.stream,
@@ -322,7 +320,7 @@ class GnusHarness {
       geniusApi: api,
       readAppState: () => app,
       walletDetails: walletDetails,
-      gnusCubit: gnus,
+      coinService: coins,
       resolveGate: resolve,
       store: store,
       appStates: appStates.stream,
@@ -339,7 +337,6 @@ class GnusHarness {
     }
     await appStates.close();
     await registrationChanges.close();
-    await gnus.close();
     await walletDetails.close();
     if (closeBox) {
       await box.close();

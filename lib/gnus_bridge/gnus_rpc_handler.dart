@@ -3,16 +3,17 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/network.dart';
+import 'package:genius_api/models/token.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
-import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/reown/utilities.dart';
+import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/submit_job/job_submission.dart';
-import 'package:genius_wallet/submit_job/submit_job_cta_state.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Same cap as the submit panel's file limit, which is private to it.
@@ -90,7 +91,7 @@ class GnusRpcHandler {
     required GeniusApi geniusApi,
     required AppState Function() readAppState,
     required WalletDetailsCubit walletDetails,
-    required GnusCubit gnusCubit,
+    required CoinService coinService,
     required BridgeGate Function({bool fresh}) resolveGate,
     required GnusJobStore store,
     required Stream<AppState> appStates,
@@ -102,7 +103,7 @@ class GnusRpcHandler {
        _jobs = JobSubmission(geniusApi: geniusApi),
        _readAppState = readAppState,
        _walletDetails = walletDetails,
-       _gnusCubit = gnusCubit,
+       _coins = coinService,
        _resolveGate = resolveGate,
        _store = store,
        _readRegistrations = readRegistrations,
@@ -126,7 +127,7 @@ class GnusRpcHandler {
   final JobSubmission _jobs;
   final AppState Function() _readAppState;
   final WalletDetailsCubit _walletDetails;
-  final GnusCubit _gnusCubit;
+  final CoinService _coins;
   final BridgeGate Function({bool fresh}) _resolveGate;
   final GnusJobStore _store;
   final Map<String, List<ChildWallet>>? Function()? _readRegistrations;
@@ -505,9 +506,43 @@ class GnusRpcHandler {
     );
   }
 
-  /// The payer's whole-GNUS balance, or null when it cannot be read.
-  Future<double?> _payerBalance(double? fixtureBalance) async =>
-      fixtureBalance ?? (await _gnusCubit.fetchGnusBalance())?.balance;
+  /// The GNUS token on [network], or null when it is unknown there.
+  Future<Token?> _gnusToken(Network? network) async {
+    if (network == null) {
+      return null;
+    }
+    try {
+      return await _coins.fetchGnusInfo(network);
+    } catch (e) {
+      debugPrint('gnus_rpc token read failed ${e.runtimeType}');
+      return null;
+    }
+  }
+
+  /// The GNUS balance of the payer in [facts], as the exact integer the token
+  /// contract holds, or null when it cannot be read.
+  Future<BigInt?> _payerBalance(double? fixtureBalance, JobFacts facts) async {
+    if (fixtureBalance != null) {
+      final units = gnusBalanceBaseUnits(fixtureBalance);
+      return units == null ? null : BigInt.parse(units);
+    }
+    final payer = facts.walletAddress;
+    final token = facts.gnusAddress;
+    final rpcUrl = facts.rpcUrl;
+    if (payer == null || token == null || rpcUrl == null) {
+      return null;
+    }
+    try {
+      return await _geniusApi.readTokenBalance(
+        address: payer,
+        contractAddress: token,
+        rpcUrl: rpcUrl,
+      );
+    } catch (e) {
+      debugPrint('gnus_rpc balance read failed ${e.runtimeType}');
+      return null;
+    }
+  }
 
   /// The contract gas map, null when it cannot be estimated. [missingData] is
   /// set when the owner lacks what it needs to estimate at all, which a burn
@@ -535,9 +570,9 @@ class GnusRpcHandler {
     final job = _jobParam(args['job']);
     _requireReadyNode();
 
-    final token = await _gnusCubit.fetchGnusInfo();
     final details = _walletDetails.state;
     final network = details.selectedNetwork;
+    final token = await _gnusToken(network);
     final facts = JobFacts(
       chainId: network?.chainId,
       rpcUrl: network?.rpcUrl,
@@ -546,7 +581,7 @@ class GnusRpcHandler {
     );
 
     final priced = await _priceJob(job);
-    final balance = await _payerBalance(priced.fixtureBalance);
+    final balance = await _payerBalance(priced.fixtureBalance, facts);
     final gas = await _gasPrice(
       facts,
       priced.minions,
@@ -555,7 +590,7 @@ class GnusRpcHandler {
     return {
       'cost': priced.cost,
       'gas': gas.gas,
-      'balance': gnusBalanceBaseUnits(balance),
+      'balance': balance?.toString(),
       'network': {
         'sdk': (await _readSgnsNet()).name,
         'evmChainId': network?.chainId,
@@ -758,7 +793,7 @@ class GnusRpcHandler {
     String slot,
   ) async {
     final networkBefore = _walletDetails.state.selectedNetwork;
-    final token = await _gnusCubit.fetchGnusInfo();
+    final token = await _gnusToken(networkBefore);
 
     // One synchronous block from here to the facts: the gate, the wallet and
     // the network are read together so they describe the same moment.
@@ -782,6 +817,17 @@ class GnusRpcHandler {
       walletAddress: wallet?.address,
       gnusAddress: token?.address,
     );
+    final payer = facts.walletAddress?.toLowerCase();
+    if (payer == null ||
+        facts.gnusAddress == null ||
+        facts.rpcUrl == null ||
+        facts.chainId == null) {
+      throw const GnusRpcError(
+        GnusRpcCode.internal,
+        'Wallet not ready',
+        data: {'reason': GnusRpcReason.missingData},
+      );
+    }
 
     final priced = await _priceJob(job);
     final minions = priced.minions;
@@ -789,7 +835,7 @@ class GnusRpcHandler {
 
     // Fails closed: with no balance, affordability cannot be checked, and a
     // submit is the one call that spends. The estimate leaves it null.
-    final balance = await _payerBalance(priced.fixtureBalance);
+    final balance = await _payerBalance(priced.fixtureBalance, facts);
     if (balance == null) {
       throw const GnusRpcError(
         GnusRpcCode.internal,
@@ -797,22 +843,12 @@ class GnusRpcHandler {
         data: {'reason': GnusRpcReason.balanceUnavailable},
       );
     }
-    // The panel's rule, rounding and boundary included, decides affordability.
-    final affordability = resolveSubmitJobCtaState(
-      isSubmitting: false,
-      hasFileChosen: true,
-      jobCost: minions,
-      gnusBalance: balance,
-      costError: '',
-    );
-    if (affordability == SubmitJobCtaState.insufficientFunds) {
+    // The token's own rule, in base units: the burn fails below the amount.
+    if (BigInt.parse(cost) > balance) {
       throw const GnusRpcError(
         GnusRpcCode.insufficientFunds,
         'Insufficient GNUS balance',
       );
-    }
-    if (affordability != SubmitJobCtaState.ready) {
-      throw const GnusRpcError(GnusRpcCode.costUnavailable, 'Cost unavailable');
     }
 
     final gasPrice = await _gasPrice(
@@ -829,14 +865,6 @@ class GnusRpcHandler {
     }
     final gas = gasPrice.gas;
 
-    final payer = facts.walletAddress?.toLowerCase();
-    if (payer == null) {
-      throw const GnusRpcError(
-        GnusRpcCode.internal,
-        'Wallet not ready',
-        data: {'reason': GnusRpcReason.missingData},
-      );
-    }
     final bool confirmed;
     try {
       confirmed = await _confirm(

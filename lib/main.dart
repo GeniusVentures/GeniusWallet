@@ -21,7 +21,6 @@ import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/components/toast/secure_storage_failure_toasts.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
-import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_tools_host.dart';
@@ -395,10 +394,6 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   }
 }
 
-/// The handler's private [GnusCubit], so the provider can close it with the
-/// handler (the handler's own dispose only cancels subscriptions).
-final Expando<GnusCubit> _gnusRpcCubits = Expando<GnusCubit>();
-
 class MyApp extends StatelessWidget {
   final GeniusApi geniusApi;
   const MyApp({super.key, required this.geniusApi});
@@ -542,31 +537,20 @@ class MyApp extends StatelessWidget {
           // is left at its rejecting default until the consent prompt supplies
           // one, so no call can spend.
           RepositoryProvider<GnusRpcHandler>(
-            create: (context) {
-              final walletDetails = context.read<WalletDetailsCubit>();
-              final gnusCubit = GnusCubit(CoinService(), walletDetails);
-              final handler = GnusRpcHandler(
-                geniusApi: context.read<GeniusApi>(),
-                readAppState: () => context.read<AppBloc>().state,
-                appStates: context.read<AppBloc>().stream,
-                walletDetails: walletDetails,
-                gnusCubit: gnusCubit,
-                resolveGate: context.read<BridgeGateCubit>().resolveNow,
-                store: GnusJobStore.app(),
-                readRegistrations: context
-                    .read<ChildOperationsCubit>()
-                    .ownRegistrations,
-                registrationChanges: context
-                    .read<ChildOperationsCubit>()
-                    .stream,
-              );
-              _gnusRpcCubits[handler] = gnusCubit;
-              return handler;
-            },
-            dispose: (handler) async {
-              await handler.dispose();
-              await _gnusRpcCubits[handler]?.close();
-            },
+            create: (context) => GnusRpcHandler(
+              geniusApi: context.read<GeniusApi>(),
+              readAppState: () => context.read<AppBloc>().state,
+              appStates: context.read<AppBloc>().stream,
+              walletDetails: context.read<WalletDetailsCubit>(),
+              coinService: CoinService(),
+              resolveGate: context.read<BridgeGateCubit>().resolveNow,
+              store: GnusJobStore.app(),
+              readRegistrations: context
+                  .read<ChildOperationsCubit>()
+                  .ownRegistrations,
+              registrationChanges: context.read<ChildOperationsCubit>().stream,
+            ),
+            dispose: (handler) => handler.dispose(),
           ),
         ],
         child: ValueListenableBuilder<GWAppearanceMode>(
