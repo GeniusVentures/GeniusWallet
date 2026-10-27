@@ -1728,7 +1728,7 @@ per git index, so a parallel phase needs its own worktree.
 
 ## Phases
 
-- [ ] **Phase 42: Shared job submission off the UI isolate** - The compute panel's job flow has one owner, and pricing or submitting a job no longer freezes the wallet
+- [x] **Phase 42: Shared job submission off the UI isolate** - The compute panel's job flow has one owner, and pricing or submitting a job no longer freezes the wallet
 - [ ] **Phase 43: gnus RPC handler and job record** - One handler answers every `gnus_*` method in the contract; every bridge job is recorded and survives a restart
 - [ ] **Phase 44: Dashboard consent and limits** - Per-origin connect, a native confirm on every submit, prompt limits, and no secret in any bridge output
 - [ ] **Phase 45: Hardened bridge transports** - On all five web views only the top frame reaches the bridge, and the caller's origin comes from the message itself
@@ -1861,7 +1861,7 @@ per git index, so a parallel phase needs its own worktree.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 42. Shared job submission off the UI isolate | 0/TBD | Not started | - |
+| 42. Shared job submission off the UI isolate | 2/2 | Verified in code; real-SDK animation check deferred to the phase 48 walk | 2026-10-27 |
 | 43. gnus RPC handler and job record | 0/TBD | Not started | - |
 | 44. Dashboard consent and limits | 0/TBD | Not started | - |
 | 45. Hardened bridge transports | 0/TBD | Not started | - |
