@@ -544,23 +544,21 @@ class GnusRpcHandler {
     }
   }
 
-  /// The contract gas map, null when it cannot be estimated. [missingData] is
-  /// set when the owner lacks what it needs to estimate at all, which a burn
-  /// would lack too. [GasEstimateFailed.reason] is never forwarded.
-  Future<({Map<String, String>? gas, bool missingData})> _gasPrice(
+  /// The contract gas map, null when it cannot be estimated, and the owner's
+  /// result, which a submit refuses on. [GasEstimateFailed.reason] is never
+  /// forwarded.
+  Future<({Map<String, String>? gas, GasEstimateResult result})> _gasPrice(
     JobFacts facts,
     int minions,
     String? nativeSymbol,
   ) async {
     final result = await _jobs.estimateGas(facts, minions);
-    return switch (result) {
-      GasEstimateOk(:final gas) => (
-        gas: gnusGasPrice(gas, nativeSymbol),
-        missingData: false,
-      ),
-      GasEstimateMissingData() => (gas: null, missingData: true),
-      GasEstimateFailed() => (gas: null, missingData: false),
-    };
+    return (
+      gas: result is GasEstimateOk
+          ? gnusGasPrice(result.gas, nativeSymbol)
+          : null,
+      result: result,
+    );
   }
 
   /// A read: it prices the job and reports what the payer holds, ignores the
@@ -856,12 +854,17 @@ class GnusRpcHandler {
       minions,
       network?.nativeSymbol ?? network?.symbol,
     );
-    if (gasPrice.missingData) {
+    if (gasPrice.result is GasEstimateMissingData) {
       throw const GnusRpcError(
         GnusRpcCode.internal,
         'Wallet not ready',
         data: {'reason': GnusRpcReason.missingData},
       );
+    }
+    // The panel's rule: the estimate builds the burn's own transaction, so a
+    // failed estimate (no gas funds, a reverting call) is a failed burn.
+    if (gasPrice.result is GasEstimateFailed) {
+      throw const GnusRpcError(GnusRpcCode.costUnavailable, 'Cost unavailable');
     }
     final gas = gasPrice.gas;
 

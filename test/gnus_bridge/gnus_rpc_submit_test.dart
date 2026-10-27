@@ -531,14 +531,16 @@ void main() {
     },
   );
 
-  test('a gas estimate that fails does not block the submit', () async {
+  test('a gas estimate that fails is -32010 before the confirm', () async {
     final h = await harness();
     h.api.gasResponse = ApiResponse.error('rpc down');
 
     final reply = await viaDirect(h.build(), _origin, _submit, _params());
 
-    expect(reply['result'], isNotNull);
-    expect(h.confirms.single.gas, isNull);
+    expect(_error(reply)['code'], GnusRpcCode.costUnavailable);
+    expect(_error(reply)['data'], isNull);
+    expect(h.confirms, isEmpty);
+    expect(h.api.count('burn'), 0);
   });
 
   group('who can pay and what it costs, all before the burn', () {
