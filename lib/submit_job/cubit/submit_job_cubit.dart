@@ -350,6 +350,17 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
             ),
           );
         }
+      case JobBusy():
+        // A dashboard submit holds the wallet's one burn slot.
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              isBridgingTokens: false,
+              submitError:
+                  'Another job is being submitted. Try again when it finishes.',
+            ),
+          );
+        }
       case JobBridgeFailed():
         // Nothing was spent - both hash fields stay untouched (still empty on
         // a fresh state).

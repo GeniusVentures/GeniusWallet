@@ -93,6 +93,11 @@ final class JobMissingData extends JobSubmitResult {
   const JobMissingData();
 }
 
+/// Another submit is running from this app; nothing was burned.
+final class JobBusy extends JobSubmitResult {
+  const JobBusy();
+}
+
 /// Prices and submits a job: the one owner of the burn, the gas estimate, the
 /// SDK cost and the SDK process calls, and of the dev fixture that stands in
 /// for them. Holds no UI state and never emits; callers own state and copy.
@@ -100,6 +105,10 @@ class JobSubmission {
   JobSubmission({required this.geniusApi});
 
   final GeniusApi geniusApi;
+
+  /// True while any instance's [submit] runs. The panel and the gnus handler
+  /// burn from the same wallet, and two burns at once race on the nonce.
+  static bool _submitting = false;
 
   // TODO: unhardcode bridge address
   static const int _bridgeDestinationChainId = 15305752297694;
@@ -166,7 +175,31 @@ class JobSubmission {
     return GasEstimateOk(gas);
   }
 
+  /// Burns and processes one job, or answers [JobBusy] at once while another
+  /// submit from any instance is running.
   Future<JobSubmitResult> submit(
+    JobFacts facts, {
+    required int jobCost,
+    required Map<String, dynamic> jobJson,
+    Future<void> Function(String burnHash)? onBurned,
+  }) async {
+    if (_submitting) {
+      return const JobBusy();
+    }
+    _submitting = true;
+    try {
+      return await _submit(
+        facts,
+        jobCost: jobCost,
+        jobJson: jobJson,
+        onBurned: onBurned,
+      );
+    } finally {
+      _submitting = false;
+    }
+  }
+
+  Future<JobSubmitResult> _submit(
     JobFacts facts, {
     required int jobCost,
     required Map<String, dynamic> jobJson,

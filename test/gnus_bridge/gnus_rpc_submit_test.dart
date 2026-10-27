@@ -9,6 +9,7 @@ import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
+import 'package:genius_wallet/submit_job/job_submission.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 import 'gnus_fakes.dart';
@@ -501,6 +502,34 @@ void main() {
       expect(reply['result'], isNotNull);
     });
   });
+
+  test(
+    'a panel burn in progress makes a submit -32005 with no second burn',
+    () async {
+      final h = await harness();
+      final release = Completer<void>();
+      h.api.onProcess = () => release.future;
+      final panel = JobSubmission(geniusApi: h.api).submit(
+        const JobFacts(
+          chainId: 80002,
+          rpcUrl: 'https://rpc.invalid',
+          walletAddress: gnusTestWalletAddress,
+          gnusAddress: '0xGNUS',
+        ),
+        jobCost: 1,
+        jobJson: {'inputs': 'panel'},
+      );
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.busy);
+      expect(_error(reply)['data'], {'reason': GnusRpcReason.submitInFlight});
+      release.complete();
+      expect(await panel, isA<JobDone>());
+      expect(h.api.count('burn'), 1);
+      expect(h.box.isEmpty, isTrue);
+    },
+  );
 
   test('a gas estimate that fails does not block the submit', () async {
     final h = await harness();

@@ -934,6 +934,8 @@ class GnusRpcHandler {
         );
       case JobBridgeFailed():
         throw const GnusRpcError(GnusRpcCode.bridgeFailed, 'Bridge failed');
+      case JobBusy():
+        throw _submitInFlight();
       case JobMissingData():
         throw const GnusRpcError(
           GnusRpcCode.internal,

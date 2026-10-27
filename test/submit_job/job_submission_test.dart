@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -38,6 +39,9 @@ class _FakeGeniusApi implements GeniusApi {
   ApiResponse<String> gasResponse = ApiResponse.success('1.00 Gwei');
 
   final List<_BurnCall> burns = [];
+
+  /// Runs inside the burn, before it answers.
+  Future<void> Function()? onBurn;
   final List<String> processed = [];
   final List<String> costed = [];
   final List<_BurnCall> gasCalls = [];
@@ -82,6 +86,7 @@ class _FakeGeniusApi implements GeniusApi {
     bool shouldMintTokens = false,
   }) async {
     order.add('burn');
+    await onBurn?.call();
     burns.add(
       _BurnCall(
         contractAddress: contractAddress,
@@ -250,6 +255,40 @@ void main() {
       expect(
         bridged.processResult,
         GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
+      );
+    });
+  });
+
+  group('one submit at a time', () {
+    test('a second instance gets JobBusy while a submit runs, and burns '
+        'nothing', () async {
+      final release = Completer<void>();
+      api.onBurn = () => release.future;
+      final first = owner.submit(_facts, jobCost: 10, jobJson: _job);
+
+      final second = await JobSubmission(
+        geniusApi: api,
+      ).submit(_facts, jobCost: 10, jobJson: _job);
+
+      expect(second, isA<JobBusy>());
+      release.complete();
+      expect(await first, isA<JobDone>());
+      expect(api.order.where((call) => call == 'burn'), hasLength(1));
+    });
+
+    test('the slot frees after a submit ends, failed or not', () async {
+      api.bridgeOutResponse = ApiResponse.error('no');
+      expect(
+        await owner.submit(_facts, jobCost: 10, jobJson: _job),
+        isA<JobBridgeFailed>(),
+      );
+      api.bridgeOutResponse = ApiResponse.success('0xHASH');
+
+      expect(
+        await JobSubmission(
+          geniusApi: api,
+        ).submit(_facts, jobCost: 10, jobJson: _job),
+        isA<JobDone>(),
       );
     });
   });
