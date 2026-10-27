@@ -327,6 +327,7 @@ class MyWindowListener extends WindowListener {
       }
     }
 
+    await geniusApi.waitForJobCall();
     final result = geniusApi.shutdownSDK();
     debugPrint("Window closed. GeniusApi shutdown: $result");
 

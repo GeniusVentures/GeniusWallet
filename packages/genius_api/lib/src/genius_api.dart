@@ -1114,6 +1114,7 @@ class GeniusApi {
   }
 
   GeniusNodeReturnValue shutdownSDK() {
+    _isSdkInitialized = false;
     final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKShutdown();
     final mappedResult = _mapNodeReturnValue(result);
     debugPrint("Shutting Down SDK: $mappedResult");
@@ -1150,7 +1151,39 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
     }
 
-    return _mapNodeReturnValue(await _geniusSdkProcessOffIsolate(jobJson));
+    final call = _geniusSdkProcessOffIsolate(jobJson);
+    _processInFlight = call;
+    try {
+      return _mapNodeReturnValue(await call);
+    } finally {
+      if (identical(_processInFlight, call)) {
+        _processInFlight = null;
+      }
+    }
+  }
+
+  Future<void>? _processInFlight;
+
+  /// Resolves once an in-flight process call has finished, or after [timeout].
+  /// A burned job must not meet a shut-down node, so the window-close path
+  /// awaits this before [shutdownSDK].
+  ///
+  /// ponytail: only the window-close path waits. The `detached` lifecycle
+  /// shutdown is synchronous and does not, and a close during the bridge burn
+  /// itself (before the process call starts) is not covered either. Upgrade
+  /// path: SDK-ASYNC, or one job-call queue that shutdown drains.
+  Future<void> waitForJobCall({
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    final pending = _processInFlight;
+    if (pending == null) {
+      return;
+    }
+    try {
+      await pending.timeout(timeout);
+    } catch (_) {
+      // Timed out or the call failed; either way shutdown goes ahead.
+    }
   }
 
   // Take in a created wallet and return the mnemonic
