@@ -47,6 +47,7 @@ const gnusTestWallet = Wallet(
 class FakeGnusApi implements GeniusApi {
   bool sdkInitialized = true;
   int costResponse = 1234;
+  bool costThrows = false;
   ApiResponse<String> gasResponse = ApiResponse.success('1.00 Gwei');
   ApiResponse<String> burnResponse = ApiResponse.success(gnusTestBurnHash);
   GeniusNodeReturnValue processResponse =
@@ -66,6 +67,9 @@ class FakeGnusApi implements GeniusApi {
   @override
   Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
     calls.add('cost');
+    if (costThrows) {
+      throw StateError('worker died');
+    }
     return costResponse;
   }
 

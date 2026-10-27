@@ -2,8 +2,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:hive_ce/hive.dart';
+
+import 'gnus_fakes.dart';
 
 // Plain test() on a real temp dir: real Hive disk I/O inside testWidgets never
 // completes in the fake-async zone.
@@ -50,5 +53,52 @@ void main() {
       expect(found.bodyHash, job.bodyHash);
       expect(found.submittedAt, job.submittedAt);
     }
+  });
+
+  test('a handler over the reopened box lists, finds and replays', () async {
+    const origin = 'https://dash.example';
+    final params = {
+      'job': {
+        'inputs': ['a'],
+      },
+      'idempotencyKey': 'key-1',
+    };
+    final before = await GnusHarness.create(
+      box: await Hive.openBox<String>(gnusJobsBoxName),
+    );
+    final first = await viaJson(
+      before.build(),
+      origin,
+      GnusRpcMethod.submitJob,
+      params,
+    );
+    await before.dispose(closeBox: false);
+    await Hive.close();
+
+    Hive.init(dir.path);
+    final after = await GnusHarness.create(
+      box: await Hive.openBox<String>(gnusJobsBoxName),
+    );
+    final handler = after.build();
+
+    final listed = await viaJson(handler, origin, GnusRpcMethod.listJobs, null);
+    final jobs = (listed['result']! as Map<String, Object?>)['jobs']! as List;
+    expect(jobs, hasLength(1));
+    expect((jobs.single as Map)['burnTxHash'], gnusTestBurnHash);
+
+    final found = await viaJson(handler, origin, GnusRpcMethod.getJob, {
+      'idempotencyKey': 'key-1',
+    });
+    expect((found['result']! as Map)['burnTxHash'], gnusTestBurnHash);
+
+    final replay = await viaJson(
+      handler,
+      origin,
+      GnusRpcMethod.submitJob,
+      params,
+    );
+    expect(replay, equals(first));
+    expect(after.api.calls, isEmpty);
+    await after.dispose(closeBox: false);
   });
 }

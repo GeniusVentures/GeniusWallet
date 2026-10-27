@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/web3/api_response.dart';
@@ -285,6 +287,177 @@ void main() {
       h.store.byBurnHash(gnusTestBurnHash)!.status,
       GnusJobStatus.bridgedNotProcessed,
     );
+  });
+
+  group('idempotency', () {
+    test(
+      'the same key and body replays the first reply with one burn',
+      () async {
+        final h = await harness();
+        final handler = h.build();
+
+        final first = await viaDirect(handler, _origin, _submit, _params());
+        h.clock = h.clock.add(const Duration(hours: 23));
+        final second = await viaJson(handler, _origin, _submit, _params());
+
+        expect(second, equals(first));
+        expect(h.api.count('burn'), 1);
+        expect(h.confirms, hasLength(1));
+      },
+    );
+
+    test(
+      'the same key with another body is -32602 and burns nothing more',
+      () async {
+        final h = await harness();
+        final handler = h.build();
+        await viaDirect(handler, _origin, _submit, _params());
+
+        final other = <String, Object?>{
+          'job': {'different': true},
+          'idempotencyKey': 'key-1',
+        };
+        final reply = await viaJson(handler, _origin, _submit, other);
+
+        expect(_error(reply)['code'], GnusRpcCode.invalidParams);
+        expect(_error(reply)['data'], {
+          'reason': GnusRpcReason.idempotencyKeyReused,
+        });
+        expect(h.api.count('burn'), 1);
+      },
+    );
+
+    test('the same key after 24 hours runs again', () async {
+      final h = await harness();
+      final handler = h.build();
+      await viaDirect(handler, _origin, _submit, _params());
+      h.clock = h.clock.add(const Duration(hours: 24, seconds: 1));
+      h.api.burnResponse = ApiResponse.success('0xsecond');
+
+      final reply = await viaDirect(handler, _origin, _submit, _params());
+
+      expect(
+        (reply['result']! as Map<String, Object?>)['burnTxHash'],
+        '0xsecond',
+      );
+      expect(h.api.count('burn'), 2);
+    });
+
+    test('the same key from another origin is a new submit', () async {
+      final h = await harness();
+      final handler = h.build();
+      await viaDirect(handler, _origin, _submit, _params());
+      h.api.burnResponse = ApiResponse.success('0xsecond');
+
+      final reply = await viaDirect(
+        handler,
+        'https://other.example',
+        _submit,
+        _params(),
+      );
+
+      expect(reply['result'], isNotNull);
+      expect(h.api.count('burn'), 2);
+    });
+
+    test('a refused submit can be retried with the same key', () async {
+      final h = await harness();
+      final rejecting = h.build(
+        confirm:
+            ({
+              required origin,
+              required cost,
+              required gas,
+              required payer,
+              required nodeAccount,
+            }) async => false,
+      );
+      await viaDirect(rejecting, _origin, _submit, _params());
+
+      final reply = await viaDirect(h.build(), _origin, _submit, _params());
+
+      expect(reply['result'], isNotNull);
+      expect(h.api.count('burn'), 1);
+    });
+  });
+
+  group('one submit at a time', () {
+    late GnusHarness h;
+    late Completer<bool> held;
+    late GnusRpcHandler handler;
+
+    setUp(() async {
+      h = await harness();
+      held = Completer<bool>();
+      handler = h.build(
+        confirm:
+            ({
+              required origin,
+              required cost,
+              required gas,
+              required payer,
+              required nodeAccount,
+            }) => held.future,
+      );
+    });
+
+    Future<Map<String, Object?>> inFlightCall(String origin, String key) =>
+        viaJson(handler, origin, _submit, _params(key: key));
+
+    test(
+      'a second submit gets -32005 from any origin, including a retry',
+      () async {
+        final first = viaDirect(handler, _origin, _submit, _params());
+
+        for (final reply in [
+          await inFlightCall(_origin, 'key-2'),
+          await inFlightCall('https://other.example', 'key-3'),
+          await inFlightCall(_origin, 'key-1'),
+        ]) {
+          expect(_error(reply)['code'], GnusRpcCode.busy);
+          expect(_error(reply)['data'], {
+            'reason': GnusRpcReason.submitInFlight,
+          });
+        }
+
+        held.complete(true);
+        expect((await first)['result'], isNotNull);
+        expect(h.api.count('burn'), 1);
+      },
+    );
+
+    test('the lock is free after the first submit finishes', () async {
+      final first = viaDirect(handler, _origin, _submit, _params());
+      held.complete(true);
+      await first;
+      h.api.burnResponse = ApiResponse.success('0xsecond');
+
+      final reply = await inFlightCall(_origin, 'key-2');
+
+      expect(reply['result'], isNotNull);
+    });
+
+    test('the lock is free after a rejected confirm', () async {
+      final first = viaDirect(handler, _origin, _submit, _params());
+      held.complete(false);
+      expect(_error(await first)['code'], GnusRpcCode.userRejected);
+
+      final reply = await viaDirect(h.build(), _origin, _submit, _params());
+
+      expect(reply['result'], isNotNull);
+    });
+
+    test('the lock is free after the owner throws', () async {
+      h.api.costThrows = true;
+      final first = viaDirect(handler, _origin, _submit, _params());
+      held.complete(true);
+      expect(_error(await first)['code'], GnusRpcCode.internal);
+      h.api.costThrows = false;
+
+      final reply = await inFlightCall(_origin, 'key-1');
+
+      expect(reply['result'], isNotNull);
+    });
   });
 
   test('a gas estimate that fails does not block the submit', () async {

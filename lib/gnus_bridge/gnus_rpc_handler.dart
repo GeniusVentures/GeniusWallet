@@ -15,6 +15,11 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 const int kGnusMaxJobBytes = 5 * 1024 * 1024;
 
 const int _maxIdempotencyKeyLength = 128;
+const int _defaultListLimit = 20;
+const int _maxListLimit = 100;
+const int _maxCursorLength = 512;
+const int _maxSelectorLength = 256;
+const Duration _idempotencyWindow = Duration(hours: 24);
 
 /// The seam that decides whether a submit may spend. [cost] is the contract
 /// base-unit string, [gas] the contract gas map or null, [payer] the lowercased
@@ -70,6 +75,11 @@ class GnusRpcHandler {
   final GnusConfirm _confirm;
   final DateTime Function() _now;
 
+  /// `origin|idempotencyKey` of the submit holding the wallet's one burn slot,
+  /// or null. Set synchronously before the first await of a submit, so two
+  /// calls can never both pass the check.
+  String? _inFlightSlot;
+
   Future<Object?> handle(String origin, String method, Object? params) async {
     final name = GnusRpcMethod.all.contains(method) ? method : 'unsupported';
     try {
@@ -96,6 +106,10 @@ class GnusRpcHandler {
     switch (method) {
       case GnusRpcMethod.submitJob:
         return _submitJob(origin, args);
+      case GnusRpcMethod.listJobs:
+        return _listJobs(args);
+      case GnusRpcMethod.getJob:
+        return _getJob(origin, args);
       default:
         throw const GnusRpcError(
           GnusRpcCode.unsupportedMethod,
@@ -146,6 +160,55 @@ class GnusRpcHandler {
     return value;
   }
 
+  int _limitParam(Object? value) {
+    if (value == null) {
+      return _defaultListLimit;
+    }
+    final int limit;
+    if (value is int) {
+      limit = value;
+    } else if (value is double &&
+        value.isFinite &&
+        value == value.truncateToDouble()) {
+      // JS numbers can cross a transport as doubles.
+      limit = value.toInt();
+    } else {
+      throw _invalidParams('limit');
+    }
+    if (limit < 1 || limit > _maxListLimit) {
+      throw _invalidParams('limit');
+    }
+    return limit;
+  }
+
+  String? _cursorParam(Object? value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is! String || value.isEmpty || value.length > _maxCursorLength) {
+      throw _invalidParams('cursor');
+    }
+    return value;
+  }
+
+  /// The one selector `gnus_getJob` was given, as `(name, value)`.
+  (String, String) _jobSelectorParam(Map<String, Object?> args) {
+    final given = [
+      for (final name in const ['jobId', 'burnTxHash', 'idempotencyKey'])
+        if (args[name] != null) name,
+    ];
+    if (given.length != 1) {
+      throw _invalidParams('selector');
+    }
+    final value = args[given.single];
+    if (value is! String ||
+        value.isEmpty ||
+        value.length > _maxSelectorLength) {
+      throw _invalidParams(given.single);
+    }
+    return (given.single, value);
+  }
+
   /// Switching and not-ready refusals shared by every method that needs the
   /// node.
   String _requireReadyNode() {
@@ -163,11 +226,91 @@ class GnusRpcHandler {
     return node.toLowerCase();
   }
 
+  Future<Object?> _listJobs(Map<String, Object?> args) async {
+    final limit = _limitParam(args['limit']);
+    final cursor = _cursorParam(args['cursor']);
+    final node = _requireReadyNode();
+    try {
+      final page = _store.page(sdkAddress: node, limit: limit, cursor: cursor);
+      return {
+        'jobs': [for (final job in page.jobs) job.toContract()],
+        'nextCursor': page.nextCursor,
+      };
+    } on FormatException {
+      throw _invalidParams('cursor');
+    }
+  }
+
+  /// The record plus `result: null`, or null when nothing matches. A record of
+  /// another node account counts as not found.
+  Future<Object?> _getJob(String origin, Map<String, Object?> args) async {
+    final (name, value) = _jobSelectorParam(args);
+    final node = _requireReadyNode();
+    final job = switch (name) {
+      'jobId' => _store.byJobId(value),
+      'burnTxHash' => _store.byBurnHash(value),
+      _ => _store.byIdempotencyKey(origin, value),
+    };
+    if (job == null || job.sdkAddress.toLowerCase() != node) {
+      return null;
+    }
+    return {...job.toContract(), 'result': null};
+  }
+
+  GnusRpcError _submitInFlight() => const GnusRpcError(
+    GnusRpcCode.busy,
+    'A submit is already in flight',
+    data: {'reason': GnusRpcReason.submitInFlight},
+  );
+
   Future<Object?> _submitJob(String origin, Map<String, Object?> args) async {
     final job = _jobParam(args['job']);
     final idempotencyKey = _idempotencyKeyParam(args['idempotencyKey']);
     final nodeAccount = _requireReadyNode();
 
+    // A retry of the call still in flight is busy, not a replay: nothing is
+    // recorded for it yet.
+    final slot = '$origin|$idempotencyKey';
+    if (_inFlightSlot == slot) {
+      throw _submitInFlight();
+    }
+    final first = _store.byIdempotencyKey(
+      origin,
+      idempotencyKey,
+      notBefore: _now().toUtc().subtract(_idempotencyWindow),
+    );
+    if (first != null) {
+      if (first.bodyHash != gnusJobBodyHash(job)) {
+        throw const GnusRpcError(
+          GnusRpcCode.invalidParams,
+          'Idempotency key reused',
+          data: {'reason': GnusRpcReason.idempotencyKeyReused},
+        );
+      }
+      return _submitReply(
+        first.burnTxHash,
+        first.sdkAddress,
+        first.status,
+        jobId: first.jobId,
+      );
+    }
+    if (_inFlightSlot != null) {
+      throw _submitInFlight();
+    }
+    _inFlightSlot = slot;
+    try {
+      return await _burnAndRecord(origin, job, idempotencyKey, nodeAccount);
+    } finally {
+      _inFlightSlot = null;
+    }
+  }
+
+  Future<Object?> _burnAndRecord(
+    String origin,
+    Map<String, dynamic> job,
+    String idempotencyKey,
+    String nodeAccount,
+  ) async {
     final networkBefore = _walletDetails.state.selectedNetwork;
     final token = await _gnusCubit.fetchGnusInfo();
 
@@ -297,9 +440,10 @@ class GnusRpcHandler {
   Map<String, Object?> _submitReply(
     String burnTxHash,
     String sdkAddress,
-    GnusJobStatus status,
-  ) => {
-    'jobId': null,
+    GnusJobStatus status, {
+    String? jobId,
+  }) => {
+    'jobId': jobId,
     'burnTxHash': burnTxHash,
     'sdkAddress': sdkAddress,
     'status': status.name,
