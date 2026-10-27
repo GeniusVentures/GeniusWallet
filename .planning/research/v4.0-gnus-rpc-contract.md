@@ -101,13 +101,19 @@ Result:
 ```json
 {
   "cost": "<decimal string: the exact amount the wallet would burn, base units>",
-  "gas": { "amount": "<decimal string>", "symbol": "<native coin symbol>" } ,
+  "gas": { "gasPriceGwei": "<decimal string>", "symbol": "<native coin symbol>" },
   "balance": "<decimal string: payer's GNUS balance, same units as cost>",
   "network": { "sdk": "...", "evmChainId": 80002 }
 }
 ```
 
-- `gas` is null when it cannot be estimated (the call still succeeds; `cost` is what matters).
+- `gas` is the bridge transaction's gas price in gwei on the payer's chain (what the wallet can estimate
+  before signing), not a total fee; null when it cannot be estimated (the call still succeeds). Show it as a
+  network fee rate, never add it to `cost`.
+- Wallet-side units (2026-10-27): the SDK cost is burned as whole GNUS, the payer balance is held in whole
+  GNUS and the node SGNUS balance has 6 decimals. The wallet converts all of them, in one place, to base
+  units of `unit.decimals` (18, the GNUS token's decimals) before answering, so every GNUS amount in this
+  contract uses the same unit.
 - A zero or failed SDK cost is an error (`-32010`), never `cost: "0"`.
 - Open question U1: the wallet burns the SDK cost integer as-is; the current dashboard multiplies the
   estimate by 1e18. Until the SDK documents its unit, the wallet's behaviour (burn as-is) is the
