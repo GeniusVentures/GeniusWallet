@@ -32,6 +32,7 @@ class _FakeGeniusApi implements GeniusApi {
   ApiResponse<String> bridgeOutResponse = ApiResponse.success('0xHASH');
   GeniusNodeReturnValue processResponse =
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  bool processThrows = false;
 
   int costResponse = 10;
   ApiResponse<String> gasResponse = ApiResponse.success('1.00 Gwei');
@@ -97,6 +98,9 @@ class _FakeGeniusApi implements GeniusApi {
     required String jobJson,
   }) async {
     processed.add(jobJson);
+    if (processThrows) {
+      throw StateError('isolate failed');
+    }
     return processResponse;
   }
 
@@ -229,6 +233,20 @@ void main() {
       expect(
         bridged.processResult,
         GeniusNodeReturnValue.GENIUS_NODE_ERROR_PROCESS_IMAGE,
+      );
+    });
+
+    test('a process call that throws after the burn keeps the hash', () async {
+      api.processThrows = true;
+
+      final result = await owner.submit(_facts, jobCost: 10, jobJson: _job);
+
+      expect(result, isA<JobBridgedNotProcessed>());
+      final bridged = result as JobBridgedNotProcessed;
+      expect(bridged.bridgeHash, '0xHASH');
+      expect(
+        bridged.processResult,
+        GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
       );
     });
   });

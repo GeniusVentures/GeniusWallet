@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show kDebugMode, visibleForTesting;
+import 'package:flutter/foundation.dart'
+    show debugPrint, kDebugMode, visibleForTesting;
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
@@ -195,9 +196,20 @@ class JobSubmission {
       return const JobBridgeFailed();
     }
 
-    final processResult = await geniusApi.requestGeniusSDKProcessAsync(
-      jobJson: jsonEncode(jobJson),
-    );
+    // The tokens are burned. A throw from the worker isolate must not lose the
+    // burn hash, so it becomes the bridged-not-processed outcome.
+    final GeniusNodeReturnValue processResult;
+    try {
+      processResult = await geniusApi.requestGeniusSDKProcessAsync(
+        jobJson: jsonEncode(jobJson),
+      );
+    } catch (e) {
+      debugPrint('GeniusSDKProcess failed after burn: ${e.runtimeType}');
+      return JobBridgedNotProcessed(
+        txHash,
+        GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
+      );
+    }
     if (processResult != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       return JobBridgedNotProcessed(txHash, processResult);
     }
