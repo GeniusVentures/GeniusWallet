@@ -264,7 +264,7 @@ a normal browser.
 
 ### In-wallet dashboard WebView (DWV)
 
-- [ ] **DWV-01**: User can open the processing dashboard from the wallet in an in-app screen on Windows, Linux, Android, iOS and macOS, with `window.gnus` available to the page (immediately on Windows and Linux, after the `gnus#initialized` event elsewhere)
+- [ ] **DWV-01**: User can open the processing dashboard from the wallet in an in-app screen on Windows, Linux, Android, iOS and macOS, with `window.gnus` available to the page (immediately on Windows and Linux, after the `gnus#initialized` event elsewhere) and a user agent that ends with the contract's GeniusWallet marker
 - [ ] **DWV-02**: Only the top frame can reach the bridge on every platform; a cross-origin iframe inside the dashboard gets no `window.gnus` and its messages never reach Dart
 - [ ] **DWV-03**: The bridge takes the caller's origin from the message source where the platform provides it (WebView2 source, Android web message listener, iOS frame info) and drops any reply whose origin changed between request and reply
 - [ ] **DWV-04**: Release builds load the dashboard only from one pinned https origin per network, and dev builds additionally allow a configured `http://localhost` origin; top-level navigation off the allowlist is blocked and popups or `target=_blank` links open in the system browser
