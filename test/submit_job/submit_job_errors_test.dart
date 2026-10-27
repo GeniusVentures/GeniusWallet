@@ -40,7 +40,7 @@ class _FakeGeniusApi implements GeniusApi {
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
 
   @override
-  int requestGeniusSDKCost({required String jobJson}) =>
+  Future<int> requestGeniusSDKCostAsync({required String jobJson}) async =>
       requestGeniusSDKCostResponse;
 
   @override

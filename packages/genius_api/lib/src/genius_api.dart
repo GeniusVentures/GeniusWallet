@@ -86,6 +86,42 @@ void _selectGeniusAccountIsolate(List<Object> args) {
   sendPort.send(result);
 }
 
+/// Runs `GeniusSDKGetCost` on a worker isolate. The closure captures only
+/// [jobJson]; the worker re-opens the native library itself.
+Future<int> _geniusSdkCostOffIsolate(String jobJson) {
+  return Isolate.run(() {
+    final dylib = loadGeniusSDKLibrary();
+    if (dylib == null) {
+      return 0;
+    }
+    final lib = NativeLibrary(dylib);
+    final jsonPointer = jobJson.toNativeUtf8().cast<Char>();
+    try {
+      return lib.GeniusSDKGetCost(jsonPointer);
+    } finally {
+      malloc.free(jsonPointer);
+    }
+  });
+}
+
+/// Runs `GeniusSDKProcess` on a worker isolate. Returns the raw native code;
+/// the caller maps it.
+Future<int> _geniusSdkProcessOffIsolate(String jobJson) {
+  return Isolate.run(() {
+    final dylib = loadGeniusSDKLibrary();
+    if (dylib == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.value;
+    }
+    final lib = NativeLibrary(dylib);
+    final jsonPointer = jobJson.toNativeUtf8().cast<Char>();
+    try {
+      return lib.GeniusSDKProcess(jsonPointer);
+    } finally {
+      malloc.free(jsonPointer);
+    }
+  });
+}
+
 /// Deserialized result of [GeniusApi.getInitializationStatus].
 class GeniusInitStatus {
   /// Initialization progress from 0.0 to 1.0.
@@ -1130,6 +1166,38 @@ class GeniusApi {
     }
 
     return cost;
+  }
+
+  // ponytail: the SDK holds one global mutex for the whole cost call (it makes
+  // a live price request) and the whole process call. Main-isolate SDK polls
+  // such as the processing-status tick and balance reads wait behind it and can
+  // still hitch the UI. Upgrade path: SDK-ASYNC.
+  Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
+    if (jobJson.isEmpty || !_isSdkInitialized) {
+      return 0;
+    }
+
+    try {
+      return await _geniusSdkCostOffIsolate(jobJson);
+    } catch (e, stackTrace) {
+      debugPrint("Error in GeniusSDKGetCost: $e");
+      debugPrint('$stackTrace');
+      return 0;
+    }
+  }
+
+  Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
+    required String jobJson,
+  }) async {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+
+    if (jobJson.isEmpty) {
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
+
+    return _mapNodeReturnValue(await _geniusSdkProcessOffIsolate(jobJson));
   }
 
   // Take in a created wallet and return the mnemonic

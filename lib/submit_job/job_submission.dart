@@ -115,7 +115,7 @@ class JobSubmission {
       return const JobCostOk(DevMockJob.jobCost);
     }
 
-    final minions = geniusApi.requestGeniusSDKCost(jobJson: jobJson);
+    final minions = await geniusApi.requestGeniusSDKCostAsync(jobJson: jobJson);
     if (minions == 0) {
       return const JobCostFailed();
     }

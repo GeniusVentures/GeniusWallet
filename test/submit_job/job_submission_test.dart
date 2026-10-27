@@ -42,7 +42,7 @@ class _FakeGeniusApi implements GeniusApi {
   final List<_BurnCall> gasCalls = [];
 
   @override
-  int requestGeniusSDKCost({required String jobJson}) {
+  Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
     costed.add(jobJson);
     return costResponse;
   }
