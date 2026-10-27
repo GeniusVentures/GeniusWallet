@@ -1121,53 +1121,6 @@ class GeniusApi {
     return mappedResult;
   }
 
-  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) {
-    if (!_isSdkInitialized) {
-      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
-    }
-
-    if (jobJson.isEmpty) {
-      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
-    }
-
-    // Allocate memory for the jobJson string
-    final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
-
-    try {
-      // Call the native function
-      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKProcess(jsonPointer);
-      return _mapNodeReturnValue(result);
-    } finally {
-      // Free the allocated memory to prevent memory leaks
-      calloc.free(jsonPointer);
-    }
-  }
-
-  int requestGeniusSDKCost({required String jobJson}) {
-    if (jobJson.isEmpty || !_isSdkInitialized) {
-      return 0;
-    }
-
-    // Allocate memory for the jobJson string
-    final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
-
-    int cost = 0; // Default value if something goes wrong
-
-    try {
-      // Call the native function
-      cost = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetCost(jsonPointer);
-    } catch (e, stackTrace) {
-      // Handle the exception gracefully, e.g., log it
-      debugPrint("Error in GeniusSDKGetCost: $e");
-      debugPrint('$stackTrace');
-    } finally {
-      // Free the allocated memory to prevent memory leaks
-      calloc.free(jsonPointer);
-    }
-
-    return cost;
-  }
-
   // ponytail: the SDK holds one global mutex for the whole cost call (it makes
   // a live price request) and the whole process call. Main-isolate SDK polls
   // such as the processing-status tick and balance reads wait behind it and can
