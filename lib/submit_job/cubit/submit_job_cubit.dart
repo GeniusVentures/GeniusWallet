@@ -17,7 +17,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   final GnusCubit gnusCubit;
   final GeniusApi geniusApi;
 
-  final JobSubmission jobSubmission;
+  late final JobSubmission jobSubmission = JobSubmission(geniusApi: geniusApi);
 
   // ponytail: a synchronous JSON parse on the UI isolate, gated only by the
   // length check below. A file just under the cap can still block the UI
@@ -30,9 +30,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     required this.walletDetailsCubit,
     required this.gnusCubit,
     required this.geniusApi,
-    JobSubmission? jobSubmission,
-  }) : jobSubmission = jobSubmission ?? JobSubmission(geniusApi: geniusApi),
-       super(const SubmitJobState()) {
+  }) : super(const SubmitJobState()) {
     _initialize();
     if (JobSubmission.devToolsEnabled) {
       // Task 1 (2026-07-31): this cubit is constructed per-subtree in two
