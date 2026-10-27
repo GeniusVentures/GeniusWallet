@@ -115,6 +115,8 @@ Result:
   units of `unit.decimals` (18, the GNUS token's decimals) before answering, so every GNUS amount in this
   contract uses the same unit.
 - A zero or failed SDK cost is an error (`-32010`), never `cost: "0"`.
+- (D, 2026-10-27) `balance` is null when the payer's balance cannot be read; the estimate still succeeds.
+  A submit with an unreadable balance fails closed with `-32603` and `data.reason: "balance_unavailable"`.
 - Open question U1: the wallet burns the SDK cost integer as-is; the current dashboard multiplies the
   estimate by 1e18. Until the SDK documents its unit, the wallet's behaviour (burn as-is) is the
   reference: `cost` is in base units and the dashboard displays it with `unit.decimals`, never re-scaled.
@@ -148,6 +150,8 @@ Result:
   per click. Same key with a different job body: `-32602` with `data.reason: "idempotency_key_reused"`.
 - A second submit from one origin while one is in flight: `-32005` with `data.reason: "submit_in_flight"`.
 - Rejected confirm: `4001`.
+- (D, 2026-10-27) The wallet writes the job record at burn time as `bridgedNotProcessed` and moves it to
+  `submitted` when Process succeeds, so a wallet killed mid-submit shows the recoverable state.
 
 ### `gnus_listJobs` (read, no prompt)
 
@@ -170,6 +174,7 @@ Job = {
 ```
 
 `status` is `submitted` or `bridgedNotProcessed` until SDK-STATUS lands; then the live states.
+(D, 2026-10-27) Only the current node account's jobs are listed.
 
 ### `gnus_getJob` (read, no prompt)
 
@@ -178,6 +183,8 @@ Params: exactly one of `{ "jobId": string }`, `{ "burnTxHash": string }`, `{ "id
 `{ "result": { "cids": [string], "data"?: object } | null, "error"?: string }`.
 Needs SDK-JOBID and SDK-STATUS/SDK-RESULT; until then it returns the wallet's own record with
 `result: null`.
+(D, 2026-10-27) The result is `null` when no record matches for the current node account. A lookup by
+`idempotencyKey` only finds keys sent from the same origin.
 
 ### `gnus_getEarnings` (read, no prompt)
 
@@ -224,6 +231,15 @@ Params: `{ "includeChildren"?: false }`. Result:
 | -32013 | Bridge (burn) failed; nothing spent |
 | -32014 | Burn succeeded, Process failed; `data.burnTxHash` set (same as `status: bridgedNotProcessed`) |
 | -32015 | Account switch in progress (`switching: true`); retry after `gnus_accountsChanged`. Not 4901, which EIP-1193 reserves for "chain disconnected" |
+
+(D, 2026-10-27) The `data.reason` values the wallet sends:
+
+| Code | `data.reason` |
+|---|---|
+| -32012 | `no_wallet`, `view_only`, `child`, `not_earning`, `wrong_network` |
+| -32011 | `no_gnus`, `gnus_elsewhere` |
+| -32603 | `balance_unavailable`, `checking`, `missing_data` |
+| -32015 | `account_changed`: the account, wallet or network changed while the confirm was open; nothing was burned |
 
 ## 6. Security rules the wallet enforces (dashboard can rely on them)
 
