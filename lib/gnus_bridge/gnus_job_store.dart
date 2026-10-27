@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:hive_ce/hive.dart';
 
 /// `.name` is the contract string. The contract's live states arrive with
@@ -129,9 +131,13 @@ Object? _canonical(Object? value) {
 }
 
 /// The wallet's own record of jobs submitted over gnus: one JSON string per
-/// burn, keyed by the lowercased burn hash.
+/// burn, keyed by the lowercased burn hash. Reads and writes records only.
 class GnusJobStore {
   GnusJobStore(this._box);
+
+  /// The app's box, opened by `initHive`. The only place outside `lib/hive/`
+  /// that names it.
+  factory GnusJobStore.app() => GnusJobStore(Hive.box<String>(gnusJobsBoxName));
 
   final Box<String> _box;
 
@@ -142,4 +148,119 @@ class GnusJobStore {
     final raw = _box.get(burnTxHash.toLowerCase());
     return raw == null ? null : GnusJob.decode(raw);
   }
+
+  /// Exact match on a set `jobId`; every record has none until SDK-JOBID.
+  GnusJob? byJobId(String jobId) {
+    for (final job in _records()) {
+      if (job.jobId != null && job.jobId == jobId) {
+        return job;
+      }
+    }
+    return null;
+  }
+
+  /// The newest record from [origin] carrying [key], not older than
+  /// [notBefore] when given.
+  GnusJob? byIdempotencyKey(String origin, String key, {DateTime? notBefore}) {
+    GnusJob? newest;
+    for (final job in _records()) {
+      if (job.origin != origin || job.idempotencyKey != key) {
+        continue;
+      }
+      if (notBefore != null && job.submittedAt.isBefore(notBefore)) {
+        continue;
+      }
+      if (newest == null || job.submittedAt.isAfter(newest.submittedAt)) {
+        newest = job;
+      }
+    }
+    return newest;
+  }
+
+  /// [sdkAddress]'s jobs, newest first (then burn hash descending), strictly
+  /// after [cursor]. [nextCursor] is set only when more remain. Throws
+  /// [FormatException] for a cursor it cannot decode.
+  ({List<GnusJob> jobs, String? nextCursor}) page({
+    required String sdkAddress,
+    required int limit,
+    String? cursor,
+  }) {
+    final after = cursor == null ? null : _decodeCursor(cursor);
+    final node = sdkAddress.toLowerCase();
+    final all =
+        _records().where((j) => j.sdkAddress.toLowerCase() == node).toList()
+          ..sort(_newestFirst);
+    final rest = after == null
+        ? all
+        : all.where((j) => _newestFirst(j, after) > 0).toList();
+    final jobs = rest.take(limit).toList();
+    return (
+      jobs: jobs,
+      nextCursor: rest.length > jobs.length ? _encodeCursor(jobs.last) : null,
+    );
+  }
+
+  // ponytail: every lookup decodes the whole box. Fine to a few thousand jobs.
+  // Upgrade: a secondary index key per origin and idempotency key pointing at
+  // the burn hash.
+  List<GnusJob> _records() {
+    final jobs = <GnusJob>[];
+    var skipped = 0;
+    for (final raw in _box.values) {
+      final job = GnusJob.decode(raw);
+      if (job == null) {
+        skipped++;
+      } else {
+        jobs.add(job);
+      }
+    }
+    if (skipped > 0) {
+      debugPrint('gnus_job_store skipped $skipped unreadable records');
+    }
+    return jobs;
+  }
+}
+
+int _newestFirst(GnusJob a, GnusJob b) {
+  final byTime = b.submittedAt.compareTo(a.submittedAt);
+  if (byTime != 0) {
+    return byTime;
+  }
+  return b.burnTxHash.toLowerCase().compareTo(a.burnTxHash.toLowerCase());
+}
+
+String _encodeCursor(GnusJob last) => base64Url.encode(
+  utf8.encode(
+    '${last.submittedAt.microsecondsSinceEpoch}|'
+    '${last.burnTxHash.toLowerCase()}',
+  ),
+);
+
+// DateTime's own range, in microseconds; beyond it the constructor throws.
+const int _maxCursorMicros = 8640000000000000000;
+
+/// A position, as a stand-in record that sorts where the cursor points.
+GnusJob _decodeCursor(String cursor) {
+  final String text;
+  try {
+    text = utf8.decode(base64Url.decode(cursor));
+  } on FormatException {
+    throw const FormatException('bad cursor');
+  }
+  final bar = text.indexOf('|');
+  final micros = bar < 0 ? null : int.tryParse(text.substring(0, bar));
+  if (micros == null || micros.abs() > _maxCursorMicros) {
+    throw const FormatException('bad cursor');
+  }
+  return GnusJob(
+    jobId: null,
+    burnTxHash: text.substring(bar + 1),
+    sdkAddress: '',
+    origin: '',
+    idempotencyKey: '',
+    submittedAt: DateTime.fromMicrosecondsSinceEpoch(micros, isUtc: true),
+    cost: '',
+    status: GnusJobStatus.unknown,
+    bodyHash: '',
+  );
 }
