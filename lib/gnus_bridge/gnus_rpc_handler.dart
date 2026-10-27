@@ -19,6 +19,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 /// Same cap as the submit panel's file limit, which is private to it.
 const int kGnusMaxJobBytes = 5 * 1024 * 1024;
 
+const int _maxJobDepth = 32;
 const int _maxIdempotencyKeyLength = 128;
 const int _defaultListLimit = 20;
 const int _maxListLimit = 100;
@@ -360,11 +361,14 @@ class GnusRpcHandler {
   GnusRpcError _invalidParams(String name) =>
       GnusRpcError(GnusRpcCode.invalidParams, 'Invalid params: $name');
 
-  /// A non-empty JSON object that encodes and fits [kGnusMaxJobBytes].
+  /// A non-empty JSON object no deeper than [_maxJobDepth] that encodes and
+  /// fits [kGnusMaxJobBytes]. The depth cap comes first: the encoder and the
+  /// SDK's parser both recurse, and a deep enough job would crash the process.
   Map<String, dynamic> _jobParam(Object? value) {
     if (value is! Map ||
         value.isEmpty ||
-        !value.keys.every((k) => k is String)) {
+        !value.keys.every((k) => k is String) ||
+        !_withinJobDepth(value, 1)) {
       throw _invalidParams('job');
     }
     final job = Map<String, dynamic>.from(value);
@@ -378,6 +382,21 @@ class GnusRpcHandler {
       throw _invalidParams('job');
     }
     return job;
+  }
+
+  /// False past [_maxJobDepth] levels, which also stops a map that contains
+  /// itself.
+  bool _withinJobDepth(Object? value, int depth) {
+    if (depth > _maxJobDepth) {
+      return false;
+    }
+    if (value is Map) {
+      return value.values.every((child) => _withinJobDepth(child, depth + 1));
+    }
+    if (value is List) {
+      return value.every((child) => _withinJobDepth(child, depth + 1));
+    }
+    return true;
   }
 
   String _idempotencyKeyParam(Object? value) {

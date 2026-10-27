@@ -8,6 +8,9 @@ import 'gnus_fakes.dart';
 
 const _origin = 'https://dash.example';
 
+/// A list holding a list, [depth] levels deep.
+Object? _nested(int depth) => depth == 0 ? 1 : [_nested(depth - 1)];
+
 Map<String, Object?> _job() => {
   'inputs': ['a'],
   'passes': [
@@ -115,6 +118,13 @@ List<_Case> _cases() {
       GnusRpcMethod.submitJob,
       {
         'job': [1],
+        'idempotencyKey': 'k',
+      },
+    ),
+    'submit with a job nested 33 deep': (
+      GnusRpcMethod.submitJob,
+      {
+        'job': {'inputs': _nested(32)},
         'idempotencyKey': 'k',
       },
     ),
