@@ -12,7 +12,26 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 
 **v2.0 Squid Router integration shipped 2026-09-24** (phases 26, 29, 30, 31; PRs #233-#235, #244): real Squid swaps on the `/swap` tab, every route fee named before confirming, dApp calldata decoded instead of blind-signed, and Send for native coins and ERC-20 tokens. DAP-02 ships the input side only; FEE-01 waits on Squid (business). Archive: `milestones/v2.0-ROADMAP.md`. v1.0 (redesign port) is still executing: phase 11 closeout and phase 14's last plan are open.
 
-## Current Milestone: v3.0 Child wallets & account linking
+## Current Milestone: v4.0 Processing dashboard bridge (wallet side)
+
+**Goal:** The GNUS processing dashboard (`GeniusVentures/gnus-dashboard`, a static Next.js SPA) can submit compute jobs, show their status and results, and show what the user's node processed and earned, by asking GeniusWallet through one `gnus_*` contract. Inside the wallet it runs in a WebView with an injected `window.gnus` bridge; in a normal browser the same calls go over WalletConnect.
+
+**Target features:**
+- One transport-independent `gnus_*` handler (accounts, estimate, submit, jobs, earnings) that reuses the compute panel's job-submission flow rather than copying it. Contract: `research/v4.0-gnus-rpc-contract.md`
+- An in-wallet dashboard screen with the bridge hardened per platform: top frame only, origin from the message source, navigation locked to a pinned https origin, dialogs above the page
+- WalletConnect `gnus_*` request handlers and session events for the dashboard in a normal browser, plus the session fixes that path needs (account events, `tx.from` check, no unsignable session accounts)
+- Native consent: per-origin connect permission, a confirm on every submit showing origin and cost, rate limiting
+- SDK cost and process calls off the UI isolate, for the bridge and the compute panel alike
+- Device walks on Android, iOS and macOS (the spike ran Windows and Linux only)
+
+**Constraints:** Most live results depend on SuperGenius SDK changes that are not wallet work (cost is always 0 until the CA bundle path is fixed; Process returns no job id; no per-job status, result or earnings query). Each is tracked as a dependency in REQUIREMENTS.md; the wallet ships the contract with those fields null and fills them when the SDK lands. v3.0 stays open alongside (only its live walks remain); v1.0 residue too. No milestone is archived to make room.
+
+**Provenance:** spike 2026-10-26 (`research/v4.0-webview-bridge-spike.md`, Windows WebView2 and Linux WebKitGTK against the real SDK) and the identity research (`research/v4.0-wallet-identity.md`). Scoping decisions were taken by the planning session overnight on Braian's instruction to answer GSD questions itself; each is marked (D) in the contract and listed in STATE.md.
+
+<details>
+<summary>v3.0 milestone brief (in progress alongside, live walks pending)</summary>
+
+### Milestone: v3.0 Child wallets & account linking
 
 **Goal:** One account switcher shows which wallet the SDK node runs as and which wallet the user manages, every SDK account is tied to the ETH wallet it came from, and the user can register their own sub-accounts as children of a main account and move GNUS between them.
 
@@ -23,6 +42,8 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 - Child-wallet UI for the user's own sub-accounts: register, list with balances, fund, recover, revoke, detach, replace main
 
 **Constraints:** fund/recover/revoke return "submitted", not "confirmed" — the UI shows a pending state. `RegisterChild` runs on the child's node. Needs SuperGenius `c575a16` with `upnp_enabled: false`. v1.0 stays open alongside (no phase archival, as with v2.0).
+
+</details>
 
 <details>
 <summary>v2.0 milestone brief (archived)</summary>
@@ -86,6 +107,14 @@ Symbiosis named once, never built) and the go-forward decision.
 - [ ] Every SDK account linked to and labelled with its source ETH wallet
 - [ ] Child wallets: register, list, fund, recover, revoke, detach, replace main
 
+<!-- v4.0 scope — started 2026-10-26, see REQUIREMENTS.md ## v4.0. -->
+
+- [ ] One `gnus_*` handler serving the processing dashboard over two transports
+- [ ] In-wallet dashboard WebView with a hardened `window.gnus` bridge on all five platforms
+- [ ] WalletConnect `gnus_*` handlers for the dashboard in a normal browser
+- [ ] Native consent, per-origin permission and rate limiting for dashboard calls
+- [ ] SDK cost/process calls off the UI isolate
+
 ### Out of Scope
 
 - ~~Broad new-feature milestones (staking, new chains, etc.) — deferred until the redesign port lands~~ — superseded 2026-09-16: v2.0 (Squid Router integration) was authorized to proceed alongside the redesign tail; staking and other new chains remain deferred
@@ -143,4 +172,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-28 after milestone v3.0 (Child wallets & account linking) started*
+*Last updated: 2026-10-26 after milestone v4.0 (Processing dashboard bridge, wallet side) started*

@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Child wallets & account linking
-current_phase: 40
-current_phase_name: Always-available GNUS bridge
-status: human_needed
-stopped_at: "Phase 40 executed and verified in code (4/4 plans, review 4 warnings); live walk in 40-UAT.md pending, phases 34-39 live walks still pending"
-last_updated: "2026-10-07T12:00:00.000Z"
-last_activity: 2026-10-09
-last_activity_desc: Quick task 261009-wwk (re-implement PR 231 and 232), uncommitted
+milestone: v4.0
+milestone_name: Processing dashboard bridge (wallet side)
+current_phase: null
+current_phase_name: null
+status: planning
+stopped_at: "v4.0 started 2026-10-26: requirements defined, roadmap being created. v3.0 stays open alongside (phases 34-40 executed, live walks pending; phase 41 merged as PR #274)."
+last_updated: "2026-10-26T23:59:00.000Z"
+last_activity: 2026-10-26
+last_activity_desc: Milestone v4.0 started (dashboard bridge, wallet side)
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 19
-  completed_plans: 19
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 resume_file: null
 ---
 
@@ -22,12 +22,27 @@ resume_file: null
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-21)
+See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 38 — Account tree switcher
+**Current focus:** v4.0 — defining requirements and roadmap (v3.0 live walks still pending)
 
 ## Current Position
+
+### v4.0 Processing dashboard bridge (wallet side) — started 2026-10-26
+
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements, then roadmap
+Last activity: 2026-10-26 — Milestone v4.0 started
+
+Inputs: `research/v4.0-webview-bridge-spike.md`, `research/v4.0-wallet-identity.md`, contract
+`research/v4.0-gnus-rpc-contract.md` (mirrored to the side-session notes for the gnus-dashboard GSD
+project). Spike code is uncommitted in worktree `GW-webview-spike` (branch `spike/webview-bridge`,
+`lib/gnus_bridge/`), based on develop `7b0d7a1a`.
+
+### v3.0 Child wallets & account linking — open alongside, live walks pending
+
 
 Phase: 38 (Account tree switcher) — 3/3 PLANS EXECUTED, awaiting human live-testnet walk
 Plan: 3 of 3 — complete (38-03: Fund/Recover/Revoke on nested own rows, collapsible mains with a
@@ -258,6 +273,14 @@ Progress: [████████████████████] 36/36 p
 
 Full log in PROJECT.md Key Decisions. Recent:
 
+- **v4.0 scoping (2026-10-26), taken by the planning session overnight on Braian's instruction "run both projects on GSD during the night and answer stuff yourself".** Each is reversible; Braian has not reviewed them yet:
+  - v4.0 runs alongside v3.0 (only live walks left there), no archive, numbering continues at 42 — the v3.0-beside-v1.0 precedent.
+  - Milestone research skipped: the 2026-10-26 spike and identity research already answer the domain questions; per-phase research stays on (`workflow.research: true`).
+  - `gnus_submitJob` is atomic inside the wallet (estimate, confirm, burn, process) and reuses the compute panel's flow; the dashboard never calls `bridgeOut` when a GeniusWallet provider is present.
+  - One provider per dashboard session: `window.gnus` in the WebView, WalletConnect in a browser, never both.
+  - Release builds pin one https dashboard origin per network; bundling the static export behind a custom scheme is deferred.
+  - Browser users without GeniusWallet cannot submit through this contract (read-only on the dashboard side); child earnings aggregation and two-device account linking are out of v4.0.
+  - SDK gaps (CA path, cost error codes, job id, per-job status/result, earnings, payout getter) are dependencies, not wallet requirements; the contract carries those fields as null until the SDK lands.
 - **Phase 38 plan 01 (2026-09-29): account tree nesting** — `buildAccountTree` (pure, `lib/account/account_tree.dart`) walks each own SDK account's registrations with one visited set so a cycle, self-listing or second main all dedupe to first placement; `ChildOperationsCubit.ownRegistrations()` does the keyed SDK/dev-mock read (null when the node is down or any read fails), reached through the cubit rather than a direct `GeniusApi` call from the drawer's `State` per AGENTS.md. The switcher's two headers ("Sending from"/"Node running as") are merged into one "Accounts" section with a single flat-list note. SWT-07 stays Pending in REQUIREMENTS.md — plans 02-03 still owe the merged SDK-account-onto-wallet-row and collapsible mains.
 - **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWAP-01, FEE-01..02, DAP-01..03 (6/6 mapped, no orphans — the drafted SWP-01..08 were retired into SWAP-01's criteria on 2026-09-16, that being the id the branch's plans and commits already cite); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
 - **Port the design incrementally, layer by layer** (2026-07-16) — 128 of the design's 172 files collide with develop (74%); one step means reconciling all of them with nothing verifiable in between
