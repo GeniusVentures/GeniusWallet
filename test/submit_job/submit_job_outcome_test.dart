@@ -15,7 +15,7 @@ import 'package:genius_wallet/submit_job/view/widgets/job_steps.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Hand-written fake for [GeniusApi] - the only two calls `bridgeTokens()`
-/// makes are `bridgeOut` and `requestGeniusSDKProcess`, so those are the
+/// makes are `bridgeOut` and `requestGeniusSDKProcessAsync`, so those are the
 /// only two overridden here. `implements` + a `noSuchMethod` forward (the
 /// same mechanism the language uses for hand-rolled test doubles, no
 /// package required) is used instead of extending the real `GeniusApi` -
@@ -45,7 +45,9 @@ class _FakeGeniusApi implements GeniusApi {
   }
 
   @override
-  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) {
+  Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
+    required String jobJson,
+  }) async {
     return processResponse;
   }
 

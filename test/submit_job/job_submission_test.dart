@@ -93,7 +93,9 @@ class _FakeGeniusApi implements GeniusApi {
   }
 
   @override
-  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) {
+  Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
+    required String jobJson,
+  }) async {
     processed.add(jobJson);
     return processResponse;
   }

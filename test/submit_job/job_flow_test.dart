@@ -63,8 +63,9 @@ class _FakeGeniusApi implements GeniusApi {
   }) async => bridgeOutResponse;
 
   @override
-  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) =>
-      processResponse;
+  Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
+    required String jobJson,
+  }) async => processResponse;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

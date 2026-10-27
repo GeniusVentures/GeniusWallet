@@ -195,7 +195,7 @@ class JobSubmission {
       return const JobBridgeFailed();
     }
 
-    final processResult = geniusApi.requestGeniusSDKProcess(
+    final processResult = await geniusApi.requestGeniusSDKProcessAsync(
       jobJson: jsonEncode(jobJson),
     );
     if (processResult != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
