@@ -70,8 +70,14 @@ class FakeGnusApi implements GeniusApi {
 
   int count(String call) => calls.where((c) => c == call).length;
 
+  /// The account the SDK itself reports running as.
+  String? sdkAccount = gnusTestNode;
+
   @override
   bool get isSdkInitialized => sdkInitialized;
+
+  @override
+  String? getSelectedAccountAddress() => sdkAccount;
 
   @override
   Future<SgnsNet> sgnsNet() async => net;

@@ -275,6 +275,19 @@ void main() {
     );
   });
 
+  test('an SDK account switch during the burn skips Process', () async {
+    final h = await harness();
+    h.api.sdkAccount = '0x${'c' * 128}';
+
+    final reply = await viaDirect(h.build(), _origin, _submit, _params());
+
+    final result = reply['result']! as Map<String, Object?>;
+    expect(result['status'], 'bridgedNotProcessed');
+    expect(result['sdkAddress'], gnusTestNode.toLowerCase());
+    expect(h.api.count('burn'), 1);
+    expect(h.api.count('process'), 0);
+  });
+
   test('a process that throws after the burn leaves the record', () async {
     final h = await harness();
     h.api.onProcess = () async => throw StateError('isolate died');

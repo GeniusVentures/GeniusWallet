@@ -920,6 +920,7 @@ class GnusRpcHandler {
       jobJson: job,
       onBurned: (burnHash) =>
           _record(slot, record(burnHash, GnusJobStatus.bridgedNotProcessed)),
+      expectedNode: nodeAccount,
     );
     switch (result) {
       case JobDone(:final txHash):

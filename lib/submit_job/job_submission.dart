@@ -176,12 +176,14 @@ class JobSubmission {
   }
 
   /// Burns and processes one job, or answers [JobBusy] at once while another
-  /// submit from any instance is running.
+  /// submit from any instance is running. With [expectedNode], Process is
+  /// skipped unless the SDK still runs as that account when the burn lands.
   Future<JobSubmitResult> submit(
     JobFacts facts, {
     required int jobCost,
     required Map<String, dynamic> jobJson,
     Future<void> Function(String burnHash)? onBurned,
+    String? expectedNode,
   }) async {
     if (_submitting) {
       return const JobBusy();
@@ -193,6 +195,7 @@ class JobSubmission {
         jobCost: jobCost,
         jobJson: jobJson,
         onBurned: onBurned,
+        expectedNode: expectedNode,
       );
     } finally {
       _submitting = false;
@@ -204,6 +207,7 @@ class JobSubmission {
     required int jobCost,
     required Map<String, dynamic> jobJson,
     Future<void> Function(String burnHash)? onBurned,
+    String? expectedNode,
   }) async {
     // Sits before the precondition guard: that guard protects the two calls
     // the fixture replaces, and a dev environment with no token info would
@@ -248,6 +252,17 @@ class JobSubmission {
       } catch (e) {
         debugPrint('onBurned failed: ${e.runtimeType}');
       }
+    }
+
+    // Process credits whichever account the SDK runs as now. A switch during
+    // the burn would credit the wrong one, so the job waits, recoverable.
+    if (expectedNode != null &&
+        geniusApi.getSelectedAccountAddress()?.toLowerCase() !=
+            expectedNode.toLowerCase()) {
+      return JobBridgedNotProcessed(
+        txHash,
+        GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
+      );
     }
 
     // A throw from the worker isolate must not lose the burn hash, so it
