@@ -24,7 +24,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   // thread while it parses. Upgrade path: parse off-isolate (compute() /
   // Isolate.run) once a job file large enough to matter shows up in
   // practice.
-  static const int _maxJobFileBytes = 5 * 1024 * 1024; // 5 MB
+  static const int _maxJobFileBytes = JobSubmission.maxJobBytes;
 
   SubmitJobCubit({
     required this.walletDetailsCubit,

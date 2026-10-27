@@ -106,6 +106,9 @@ class JobSubmission {
 
   final GeniusApi geniusApi;
 
+  /// The largest job, encoded, that the panel or the gnus handler accepts.
+  static const int maxJobBytes = 5 * 1024 * 1024;
+
   /// True while any instance's [submit] runs. The panel and the gnus handler
   /// burn from the same wallet, and two burns at once race on the nonce.
   static bool _submitting = false;

@@ -221,7 +221,7 @@ void main() {
         GnusRpcCode.invalidParams,
         (h) async {},
         params: {
-          'job': {'blob': 'x' * kGnusMaxJobBytes},
+          'job': {'blob': 'x' * JobSubmission.maxJobBytes},
           'idempotencyKey': 'k',
         },
       );

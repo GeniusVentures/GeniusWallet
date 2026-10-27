@@ -16,9 +16,6 @@ import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/submit_job/job_submission.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-/// Same cap as the submit panel's file limit, which is private to it.
-const int kGnusMaxJobBytes = 5 * 1024 * 1024;
-
 const int _maxJobDepth = 32;
 const int _maxIdempotencyKeyLength = 128;
 const int _defaultListLimit = 20;
@@ -362,7 +359,7 @@ class GnusRpcHandler {
       GnusRpcError(GnusRpcCode.invalidParams, 'Invalid params: $name');
 
   /// A non-empty JSON object no deeper than [_maxJobDepth] that encodes and
-  /// fits [kGnusMaxJobBytes]. The depth cap comes first: the encoder and the
+  /// fits [JobSubmission.maxJobBytes]. The depth cap comes first: the encoder and the
   /// SDK's parser both recurse, and a deep enough job would crash the process.
   Map<String, dynamic> _jobParam(Object? value) {
     if (value is! Map ||
@@ -378,7 +375,7 @@ class GnusRpcHandler {
     } catch (_) {
       throw _invalidParams('job');
     }
-    if (utf8.encode(encoded).length > kGnusMaxJobBytes) {
+    if (utf8.encode(encoded).length > JobSubmission.maxJobBytes) {
       throw _invalidParams('job');
     }
     return job;
