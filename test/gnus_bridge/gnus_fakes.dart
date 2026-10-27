@@ -52,6 +52,7 @@ class FakeGnusApi implements GeniusApi {
   ApiResponse<String> burnResponse = ApiResponse.success(gnusTestBurnHash);
   GeniusNodeReturnValue processResponse =
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  SgnsNet net = SgnsNet.staging;
 
   /// Runs when the process call starts, before it answers.
   Future<void> Function()? onProcess;
@@ -63,6 +64,9 @@ class FakeGnusApi implements GeniusApi {
 
   @override
   bool get isSdkInitialized => sdkInitialized;
+
+  @override
+  Future<SgnsNet> sgnsNet() async => net;
 
   @override
   Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
@@ -124,12 +128,16 @@ class SeededGnusCubit extends GnusCubit {
   }
 
   double balance = 5000;
+  bool balanceReadable = true;
+  bool tokenKnown = true;
 
   @override
-  Future<Token?> fetchGnusInfo() async => state.tokenInfo;
+  Future<Token?> fetchGnusInfo() async =>
+      tokenKnown ? state.tokenInfo : const Token();
 
   @override
-  Future<Coin?> fetchGnusBalance() async => Coin(balance: balance);
+  Future<Coin?> fetchGnusBalance() async =>
+      balanceReadable ? Coin(balance: balance) : null;
 }
 
 class PushableWalletDetails extends WalletDetailsCubit {

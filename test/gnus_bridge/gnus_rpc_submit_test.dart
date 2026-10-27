@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
-import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 import 'gnus_fakes.dart';
 
@@ -470,21 +471,220 @@ void main() {
     expect(h.confirms.single.gas, isNull);
   });
 
-  test('gas price parsing keeps only a real number', () {
-    expect(gnusGasPrice('1.00 Gwei', 'pol'), {
-      'gasPriceGwei': '1.00',
-      'symbol': 'POL',
+  group('who can pay and what it costs, all before the burn', () {
+    Map<String, Object?>? errorData(Map<String, Object?> reply) =>
+        _error(reply)['data'] as Map<String, Object?>?;
+
+    test('every refused gate state has its code and reason', () async {
+      const expected = <BridgeGateState, (int, String?)>{
+        BridgeGateState.noWallet: (
+          GnusRpcCode.payerCannotSign,
+          GnusRpcReason.noWallet,
+        ),
+        BridgeGateState.viewOnly: (
+          GnusRpcCode.payerCannotSign,
+          GnusRpcReason.viewOnly,
+        ),
+        BridgeGateState.child: (
+          GnusRpcCode.payerCannotSign,
+          GnusRpcReason.child,
+        ),
+        BridgeGateState.notEarning: (
+          GnusRpcCode.payerCannotSign,
+          GnusRpcReason.notEarning,
+        ),
+        BridgeGateState.wrongNetwork: (
+          GnusRpcCode.payerCannotSign,
+          GnusRpcReason.wrongNetwork,
+        ),
+        BridgeGateState.noGnus: (
+          GnusRpcCode.insufficientFunds,
+          GnusRpcReason.noGnus,
+        ),
+        BridgeGateState.gnusElsewhere: (
+          GnusRpcCode.insufficientFunds,
+          GnusRpcReason.gnusElsewhere,
+        ),
+        BridgeGateState.balanceUnavailable: (
+          GnusRpcCode.internal,
+          GnusRpcReason.balanceUnavailable,
+        ),
+        BridgeGateState.checking: (
+          GnusRpcCode.internal,
+          GnusRpcReason.checking,
+        ),
+        BridgeGateState.switching: (GnusRpcCode.accountSwitching, null),
+        BridgeGateState.notStarted: (GnusRpcCode.disconnected, null),
+      };
+      expect(
+        expected.keys.toSet(),
+        BridgeGateState.values.toSet()..remove(BridgeGateState.enabled),
+      );
+
+      for (final entry in expected.entries) {
+        final h = await harness();
+        h.gate = BridgeGate(entry.key);
+
+        final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+        expect(_error(reply)['code'], entry.value.$1, reason: entry.key.name);
+        expect(
+          errorData(reply)?['reason'],
+          entry.value.$2,
+          reason: entry.key.name,
+        );
+        expect(h.api.calls, isEmpty, reason: entry.key.name);
+      }
     });
-    expect(gnusGasPrice('null Gwei', 'POL'), isNull);
-    expect(gnusGasPrice('1.00 Gwei', null), isNull);
-    expect(gnusGasPrice('1.00 Gwei', ''), isNull);
-    expect(gnusGasPrice(null, 'POL'), isNull);
+
+    test('a balance below the cost is -32011 and nothing burns', () async {
+      final h = await harness();
+      h.gnus.balance = 12.34;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.insufficientFunds);
+      expect(h.api.calls, ['cost']);
+      expect(h.confirms, isEmpty);
+    });
+
+    test('a balance exactly equal to the cost proceeds', () async {
+      final h = await harness();
+      h.gnus.balance = 1234.0;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(reply['result'], isNotNull);
+      expect(h.api.count('burn'), 1);
+    });
+
+    test('an unreadable balance fails closed with -32603', () async {
+      final h = await harness();
+      h.gnus.balanceReadable = false;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.internal);
+      expect(errorData(reply), {'reason': GnusRpcReason.balanceUnavailable});
+      expect(h.api.count('burn'), 0);
+      expect(h.confirms, isEmpty);
+    });
+
+    test('an unknown GNUS token address is missing_data, no burn', () async {
+      final h = await harness();
+      h.gnus.tokenKnown = false;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.internal);
+      expect(errorData(reply), {'reason': GnusRpcReason.missingData});
+      expect(h.api.count('burn'), 0);
+      expect(h.confirms, isEmpty);
+    });
+
+    test('a burn that fails leaves no record and never processes', () async {
+      final h = await harness();
+      h.api.burnResponse = ApiResponse.error('node said no');
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.bridgeFailed);
+      expect(h.api.count('process'), 0);
+      expect(h.box.isEmpty, isTrue);
+    });
   });
 
-  test('cost conversion is exact and rejects a non-positive cost', () {
-    expect(gnusCostBaseUnits(1), '1000000000000000000');
-    expect(gnusCostBaseUnits(0), isNull);
-    expect(gnusCostBaseUnits(-5), isNull);
+  group('the account changes while the confirm is open', () {
+    Future<Map<String, Object?>> submitChanging(
+      GnusHarness h,
+      void Function() change,
+    ) {
+      final handler = h.build(
+        confirm:
+            ({
+              required origin,
+              required cost,
+              required gas,
+              required payer,
+              required nodeAccount,
+            }) async {
+              change();
+              return true;
+            },
+      );
+      return viaJson(handler, _origin, _submit, _params());
+    }
+
+    void expectStopped(GnusHarness h, Map<String, Object?> reply, int code) {
+      expect(_error(reply)['code'], code);
+      expect(h.api.count('burn'), 0);
+      expect(h.box.isEmpty, isTrue);
+    }
+
+    test('a started account switch is -32015', () async {
+      final h = await harness();
+      final reply = await submitChanging(h, () {
+        h.app = AppState(
+          selectedSDKAccount: gnusTestNode,
+          switchingSDKAccount: '0x${'c' * 128}',
+        );
+      });
+      expectStopped(h, reply, GnusRpcCode.accountSwitching);
+    });
+
+    test('another node account is -32015 account_changed', () async {
+      final h = await harness();
+      final reply = await submitChanging(h, () {
+        h.app = AppState(selectedSDKAccount: '0x${'d' * 128}');
+      });
+      expectStopped(h, reply, GnusRpcCode.accountSwitching);
+      expect(_error(reply)['data'], {'reason': GnusRpcReason.accountChanged});
+    });
+
+    test('another payer wallet is -32015 account_changed', () async {
+      final h = await harness();
+      final reply = await submitChanging(h, () {
+        h.walletDetails.push(
+          WalletDetailsState(
+            selectedWallet: gnusTestWallet.copyWith(
+              address: '0x1111111111111111111111111111111111111111',
+            ),
+            selectedNetwork: gnusTestAmoy,
+          ),
+        );
+      });
+      expectStopped(h, reply, GnusRpcCode.accountSwitching);
+      expect(_error(reply)['data'], {'reason': GnusRpcReason.accountChanged});
+    });
+
+    test('another network is -32015 account_changed', () async {
+      final h = await harness();
+      final reply = await submitChanging(h, () {
+        h.walletDetails.push(
+          const WalletDetailsState(
+            selectedWallet: gnusTestWallet,
+            selectedNetwork: Network(
+              name: 'Other',
+              symbol: 'eth',
+              nativeSymbol: 'ETH',
+              chainId: 1,
+              rpcUrl: 'https://rpc.invalid',
+            ),
+          ),
+        );
+      });
+      expectStopped(h, reply, GnusRpcCode.accountSwitching);
+      expect(_error(reply)['data'], {'reason': GnusRpcReason.accountChanged});
+    });
+
+    test('a payer that can no longer sign is -32012', () async {
+      final h = await harness();
+      final reply = await submitChanging(h, () {
+        h.gate = const BridgeGate(BridgeGateState.viewOnly);
+      });
+      expectStopped(h, reply, GnusRpcCode.payerCannotSign);
+      expect(_error(reply)['data'], {'reason': GnusRpcReason.viewOnly});
+    });
   });
 
   test('the body hash ignores key order', () {

@@ -9,6 +9,7 @@ import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/submit_job/job_submission.dart';
+import 'package:genius_wallet/submit_job/submit_job_cta_state.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Same cap as the submit panel's file limit, which is private to it.
@@ -80,6 +81,12 @@ class GnusRpcHandler {
   /// calls can never both pass the check.
   String? _inFlightSlot;
 
+  /// The SDK network applies only after a restart, so one read serves the
+  /// handler's lifetime.
+  Future<SgnsNet>? _sgnsNet;
+
+  Future<SgnsNet> _readSgnsNet() => _sgnsNet ??= _geniusApi.sgnsNet();
+
   Future<Object?> handle(String origin, String method, Object? params) async {
     final name = GnusRpcMethod.all.contains(method) ? method : 'unsupported';
     try {
@@ -104,6 +111,8 @@ class GnusRpcHandler {
     }
     final args = _paramsMap(params);
     switch (method) {
+      case GnusRpcMethod.estimate:
+        return _estimate(args);
       case GnusRpcMethod.submitJob:
         return _submitJob(origin, args);
       case GnusRpcMethod.listJobs:
@@ -257,6 +266,119 @@ class GnusRpcHandler {
     return {...job.toContract(), 'result': null};
   }
 
+  /// Prices [job] through the owner: the whole-GNUS SDK cost, its contract
+  /// base-unit string, and the dev fixture's balance when one answered.
+  Future<({int minions, String cost, double? fixtureBalance})> _priceJob(
+    Map<String, dynamic> job,
+  ) async {
+    final priced = await _jobs.cost(jsonEncode(job));
+    final int minions = switch (priced) {
+      JobCostFailed(:final reason) => throw GnusRpcError(
+        GnusRpcCode.costUnavailable,
+        'Cost unavailable',
+        data: reason == null ? null : {'reason': reason},
+      ),
+      JobCostOk(minions: final cost) => cost,
+    };
+    final cost = gnusCostBaseUnits(minions);
+    if (cost == null) {
+      throw const GnusRpcError(GnusRpcCode.costUnavailable, 'Cost unavailable');
+    }
+    return (
+      minions: minions,
+      cost: cost,
+      fixtureBalance: priced.fixtureBalance,
+    );
+  }
+
+  /// The payer's whole-GNUS balance, or null when it cannot be read.
+  Future<double?> _payerBalance(double? fixtureBalance) async =>
+      fixtureBalance ?? (await _gnusCubit.fetchGnusBalance())?.balance;
+
+  /// The contract gas map, null when it cannot be estimated. [missingData] is
+  /// set when the owner lacks what it needs to estimate at all, which a burn
+  /// would lack too. [GasEstimateFailed.reason] is never forwarded.
+  Future<({Map<String, String>? gas, bool missingData})> _gasPrice(
+    JobFacts facts,
+    int minions,
+    String? nativeSymbol,
+  ) async {
+    final result = await _jobs.estimateGas(facts, minions);
+    return switch (result) {
+      GasEstimateOk(:final gas) => (
+        gas: gnusGasPrice(gas, nativeSymbol),
+        missingData: false,
+      ),
+      GasEstimateMissingData() => (gas: null, missingData: true),
+      GasEstimateFailed() => (gas: null, missingData: false),
+    };
+  }
+
+  /// A read: it prices the job and reports what the payer holds, ignores the
+  /// gate, and never prompts or burns. A balance it cannot read stays null
+  /// rather than failing the call; a submit fails closed on the same value.
+  Future<Object?> _estimate(Map<String, Object?> args) async {
+    final job = _jobParam(args['job']);
+    _requireReadyNode();
+
+    final token = await _gnusCubit.fetchGnusInfo();
+    final details = _walletDetails.state;
+    final network = details.selectedNetwork;
+    final facts = JobFacts(
+      chainId: network?.chainId,
+      rpcUrl: network?.rpcUrl,
+      walletAddress: details.selectedWallet?.address,
+      gnusAddress: token?.address,
+    );
+
+    final priced = await _priceJob(job);
+    final balance = await _payerBalance(priced.fixtureBalance);
+    final gas = await _gasPrice(
+      facts,
+      priced.minions,
+      network?.nativeSymbol ?? network?.symbol,
+    );
+    return {
+      'cost': priced.cost,
+      'gas': gas.gas,
+      'balance': gnusBalanceBaseUnits(balance),
+      'network': {
+        'sdk': (await _readSgnsNet()).name,
+        'evmChainId': network?.chainId,
+      },
+    };
+  }
+
+  /// Stops the burn if anything the user approved has moved since the confirm
+  /// opened. The prompt can stay open for minutes.
+  void _recheckAfterConfirm({
+    required String nodeAccount,
+    required String payer,
+    required int? chainId,
+  }) {
+    final app = _readAppState();
+    if (app.switchingSDKAccount != null) {
+      throw const GnusRpcError(
+        GnusRpcCode.accountSwitching,
+        'Account switch in progress',
+      );
+    }
+    final details = _walletDetails.state;
+    if (app.selectedSDKAccount?.toLowerCase() != nodeAccount ||
+        details.selectedWallet?.address.toLowerCase() != payer ||
+        details.selectedNetwork?.chainId != chainId) {
+      throw const GnusRpcError(
+        GnusRpcCode.accountSwitching,
+        'Account changed',
+        data: {'reason': GnusRpcReason.accountChanged},
+      );
+    }
+    final gateError = gnusErrorForGate(_resolveGate(fresh: true).state);
+    if (gateError != null) {
+      throw gateError;
+    }
+  }
+
   GnusRpcError _submitInFlight() => const GnusRpcError(
     GnusRpcCode.busy,
     'A submit is already in flight',
@@ -337,28 +459,51 @@ class GnusRpcHandler {
       gnusAddress: token?.address,
     );
 
-    final priced = await _jobs.cost(jsonEncode(job));
-    final int minions = switch (priced) {
-      JobCostFailed(:final reason) => throw GnusRpcError(
-        GnusRpcCode.costUnavailable,
-        'Cost unavailable',
-        data: reason == null ? null : {'reason': reason},
-      ),
-      JobCostOk(minions: final cost) => cost,
-    };
-    final cost = gnusCostBaseUnits(minions);
-    if (cost == null) {
+    final priced = await _priceJob(job);
+    final minions = priced.minions;
+    final cost = priced.cost;
+
+    // Fails closed: with no balance, affordability cannot be checked, and a
+    // submit is the one call that spends. The estimate leaves it null.
+    final balance = await _payerBalance(priced.fixtureBalance);
+    if (balance == null) {
+      throw const GnusRpcError(
+        GnusRpcCode.internal,
+        'Wallet not ready',
+        data: {'reason': GnusRpcReason.balanceUnavailable},
+      );
+    }
+    // The panel's rule, rounding and boundary included, decides affordability.
+    final affordability = resolveSubmitJobCtaState(
+      isSubmitting: false,
+      hasFileChosen: true,
+      jobCost: minions,
+      gnusBalance: balance,
+      costError: '',
+    );
+    if (affordability == SubmitJobCtaState.insufficientFunds) {
+      throw const GnusRpcError(
+        GnusRpcCode.insufficientFunds,
+        'Insufficient GNUS balance',
+      );
+    }
+    if (affordability != SubmitJobCtaState.ready) {
       throw const GnusRpcError(GnusRpcCode.costUnavailable, 'Cost unavailable');
     }
 
-    final gasResult = await _jobs.estimateGas(facts, minions);
-    final gas = switch (gasResult) {
-      GasEstimateOk(:final gas) => gnusGasPrice(
-        gas,
-        network?.nativeSymbol ?? network?.symbol,
-      ),
-      GasEstimateMissingData() || GasEstimateFailed() => null,
-    };
+    final gasPrice = await _gasPrice(
+      facts,
+      minions,
+      network?.nativeSymbol ?? network?.symbol,
+    );
+    if (gasPrice.missingData) {
+      throw const GnusRpcError(
+        GnusRpcCode.internal,
+        'Wallet not ready',
+        data: {'reason': GnusRpcReason.missingData},
+      );
+    }
+    final gas = gasPrice.gas;
 
     final payer = facts.walletAddress?.toLowerCase();
     if (payer == null) {
@@ -390,6 +535,12 @@ class GnusRpcHandler {
         'User rejected the request',
       );
     }
+
+    _recheckAfterConfirm(
+      nodeAccount: nodeAccount,
+      payer: payer,
+      chainId: facts.chainId,
+    );
 
     final submittedAt = _now().toUtc();
     final bodyHash = gnusJobBodyHash(job);
