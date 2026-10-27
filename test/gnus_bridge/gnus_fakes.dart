@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -211,6 +212,17 @@ class GnusHarness {
   late final GnusJobStore store;
 
   AppState app = AppState(selectedSDKAccount: gnusTestNode);
+  final StreamController<AppState> appStates = StreamController.broadcast();
+  final StreamController<Object?> registrationChanges =
+      StreamController.broadcast();
+  final List<GnusRpcHandler> _handlers = [];
+
+  /// Sets the app state and announces it, as the app bloc does.
+  void pushApp(AppState next) {
+    app = next;
+    appStates.add(next);
+  }
+
   BridgeGate gate = const BridgeGate(BridgeGateState.enabled);
   DateTime clock = DateTime.utc(2026, 10, 27, 12);
   final List<RecordedConfirm> confirms = [];
@@ -268,6 +280,12 @@ class GnusHarness {
   GnusRpcHandler buildDefaultConfirm() => _handler();
 
   GnusRpcHandler _handler({GnusConfirm? confirm}) {
+    final handler = _create(confirm: confirm);
+    _handlers.add(handler);
+    return handler;
+  }
+
+  GnusRpcHandler _create({GnusConfirm? confirm}) {
     BridgeGate resolve({bool fresh = false}) => gate;
     DateTime now() => clock;
     if (confirm == null) {
@@ -278,6 +296,8 @@ class GnusHarness {
         gnusCubit: gnus,
         resolveGate: resolve,
         store: store,
+        appStates: appStates.stream,
+        registrationChanges: registrationChanges.stream,
         readRegistrations: hasRegistrationReader ? _readRegistrations : null,
         now: now,
       );
@@ -289,6 +309,8 @@ class GnusHarness {
       gnusCubit: gnus,
       resolveGate: resolve,
       store: store,
+      appStates: appStates.stream,
+      registrationChanges: registrationChanges.stream,
       confirm: confirm,
       readRegistrations: hasRegistrationReader ? _readRegistrations : null,
       now: now,
@@ -296,6 +318,11 @@ class GnusHarness {
   }
 
   Future<void> dispose({bool closeBox = true}) async {
+    for (final handler in _handlers) {
+      await handler.dispose();
+    }
+    await appStates.close();
+    await registrationChanges.close();
     await gnus.close();
     await walletDetails.close();
     if (closeBox) {

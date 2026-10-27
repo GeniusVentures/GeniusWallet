@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -69,6 +70,14 @@ Future<bool> rejectGnusConfirm({
   return (role: ownsChildren ? 'main' : 'none', main: null);
 }
 
+/// One event for the page: [name] is a `GnusRpcEventName` value.
+class GnusEvent {
+  const GnusEvent(this.name, this.payload);
+
+  final String name;
+  final Map<String, Object?> payload;
+}
+
 final RegExp _evmAddress = RegExp(r'^0x[0-9a-f]{40}$');
 
 /// Answers the `gnus_*` contract for any transport. Takes `(origin, method,
@@ -82,7 +91,9 @@ class GnusRpcHandler {
     required GnusCubit gnusCubit,
     required BridgeGate Function({bool fresh}) resolveGate,
     required GnusJobStore store,
+    required Stream<AppState> appStates,
     Map<String, List<ChildWallet>>? Function()? readRegistrations,
+    Stream<Object?>? registrationChanges,
     GnusConfirm confirm = rejectGnusConfirm,
     DateTime Function()? now,
   }) : _geniusApi = geniusApi,
@@ -94,7 +105,20 @@ class GnusRpcHandler {
        _store = store,
        _readRegistrations = readRegistrations,
        _confirm = confirm,
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now {
+    _lastKey = _stateKey();
+    _lastChainId = _walletDetails.state.selectedNetwork?.chainId;
+    // The first state is a baseline, not a change.
+    _enqueue(() async {
+      final payload = await _accountsPayload();
+      _lastPayload = payload == null ? null : jsonEncode(payload);
+    });
+    _subscriptions = [
+      appStates.listen((_) => _onStateChange()),
+      _walletDetails.stream.listen((_) => _onStateChange()),
+      ?registrationChanges?.listen((_) => _enqueue(_publishAccounts)),
+    ];
+  }
 
   final GeniusApi _geniusApi;
   final JobSubmission _jobs;
@@ -111,6 +135,124 @@ class GnusRpcHandler {
   /// or null. Set synchronously before the first await of a submit, so two
   /// calls can never both pass the check.
   String? _inFlightSlot;
+
+  final StreamController<GnusEvent> _events = StreamController.broadcast();
+  late final List<StreamSubscription<Object?>> _subscriptions;
+  Future<void> _queue = Future<void>.value();
+  String? _lastKey;
+  String? _lastPayload;
+  int? _lastChainId;
+  bool _disposed = false;
+
+  /// `gnus_accountsChanged`, `gnus_networkChanged` and `gnus_jobUpdated`.
+  Stream<GnusEvent> get events => _events.stream;
+
+  /// Stops listening and closes [events]. Safe to call twice.
+  Future<void> dispose() async {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    for (final subscription in _subscriptions) {
+      await subscription.cancel();
+    }
+    await _events.close();
+  }
+
+  void _emit(String name, Map<String, Object?> payload) {
+    if (!_disposed) {
+      _events.add(GnusEvent(name, payload));
+    }
+  }
+
+  /// Runs recomputes one at a time, so two emissions cannot interleave across
+  /// the awaits inside a payload read.
+  void _enqueue(Future<void> Function() job) {
+    _queue = _queue.then((_) async {
+      if (_disposed) {
+        return;
+      }
+      try {
+        await job();
+      } catch (e) {
+        debugPrint('gnus_rpc event failed ${e.runtimeType}');
+      }
+    });
+  }
+
+  /// Everything an accounts payload depends on that an app or wallet emission
+  /// can change, cheap enough to compare on every emission. The processing
+  /// feed ticks AppState about once a second; a key that ignores it keeps those
+  /// ticks from reading registrations.
+  String _stateKey() {
+    final app = _readAppState();
+    final details = _walletDetails.state;
+    return jsonEncode([
+      app.selectedSDKAccount,
+      app.switchingSDKAccount,
+      app.sdkAccounts,
+      [
+        for (final e in app.sdkAccountLinks.entries)
+          '${e.key}>${e.value.walletAddress}',
+      ],
+      _geniusApi.isSdkInitialized,
+      details.selectedWallet?.address,
+      details.selectedWallet?.walletType.name,
+      details.selectedNetwork?.chainId,
+    ]);
+  }
+
+  void _onStateChange() {
+    if (_disposed) {
+      return;
+    }
+    final key = _stateKey();
+    if (key == _lastKey) {
+      return;
+    }
+    _lastKey = key;
+    _enqueue(_publishChange);
+  }
+
+  Future<void> _publishChange() async {
+    final chainId = _walletDetails.state.selectedNetwork?.chainId;
+    if (chainId != _lastChainId) {
+      _lastChainId = chainId;
+      // The SDK half never changes inside a session: the SDK net applies only
+      // after a restart. Do not fake it.
+      _emit(GnusRpcEventName.networkChanged, {
+        'sdk': (await _readSgnsNet()).name,
+        'evmChainId': chainId,
+      });
+    }
+    await _publishAccounts();
+  }
+
+  /// Emits the accounts payload when it differs from the last one. A node that
+  /// is not ready clears the last payload, so its return is announced.
+  Future<void> _publishAccounts() async {
+    final payload = await _accountsPayload();
+    if (payload == null) {
+      _lastPayload = null;
+      return;
+    }
+    final encoded = jsonEncode(payload);
+    if (encoded == _lastPayload) {
+      return;
+    }
+    _lastPayload = encoded;
+    _emit(GnusRpcEventName.accountsChanged, payload);
+  }
+
+  /// Writes [job] and announces it when a record already stored under the same
+  /// burn hash changes status. A first write is not a status change.
+  Future<void> _putAnnouncing(GnusJob job) async {
+    final before = _store.byBurnHash(job.burnTxHash)?.status;
+    await _store.put(job);
+    if (before != null && before != job.status) {
+      _emit(GnusRpcEventName.jobUpdated, job.toContract());
+    }
+  }
 
   /// The SDK network applies only after a restart, so one read serves the
   /// handler's lifetime.
@@ -705,10 +847,12 @@ class GnusRpcHandler {
     );
     switch (result) {
       case JobDone(:final txHash):
-        await _store.put(record(txHash, GnusJobStatus.submitted));
+        await _putAnnouncing(record(txHash, GnusJobStatus.submitted));
         return _submitReply(txHash, nodeAccount, GnusJobStatus.submitted);
       case JobBridgedNotProcessed(:final bridgeHash):
-        await _store.put(record(bridgeHash, GnusJobStatus.bridgedNotProcessed));
+        await _putAnnouncing(
+          record(bridgeHash, GnusJobStatus.bridgedNotProcessed),
+        );
         return _submitReply(
           bridgeHash,
           nodeAccount,
