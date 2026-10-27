@@ -212,6 +212,29 @@ void main() {
       });
     });
 
+    test('a failed SDK net read is retried on the next call', () async {
+      final h = await harness();
+      h.api.netThrows = true;
+      final handler = h.build();
+
+      final failed = await viaDirect(
+        handler,
+        _origin,
+        GnusRpcMethod.getAccounts,
+        null,
+      );
+      h.api.netThrows = false;
+      final next = await viaDirect(
+        handler,
+        _origin,
+        GnusRpcMethod.getAccounts,
+        null,
+      );
+
+      expect((failed['error']! as Map)['code'], GnusRpcCode.internal);
+      expect((_result(next)['network']! as Map)['sdk'], 'staging');
+    });
+
     test('a switch in progress is reported, not refused', () async {
       final h = await harness();
       final target = '0x${'c' * 128}';

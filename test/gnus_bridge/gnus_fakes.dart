@@ -79,8 +79,15 @@ class FakeGnusApi implements GeniusApi {
   @override
   String? getSelectedAccountAddress() => sdkAccount;
 
+  bool netThrows = false;
+
   @override
-  Future<SgnsNet> sgnsNet() async => net;
+  Future<SgnsNet> sgnsNet() async {
+    if (netThrows) {
+      throw const FileSystemException('override unreadable');
+    }
+    return net;
+  }
 
   @override
   String getSGNUSBalance() => sgnusBalance;

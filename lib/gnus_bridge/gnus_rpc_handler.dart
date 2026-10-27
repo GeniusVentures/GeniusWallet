@@ -296,10 +296,15 @@ class GnusRpcHandler {
   }
 
   /// The SDK network applies only after a restart, so one read serves the
-  /// handler's lifetime.
+  /// handler's lifetime. A failed read is not kept, so the next call retries.
   Future<SgnsNet>? _sgnsNet;
 
-  Future<SgnsNet> _readSgnsNet() => _sgnsNet ??= _geniusApi.sgnsNet();
+  Future<SgnsNet> _readSgnsNet() => _sgnsNet ??= _geniusApi
+      .sgnsNet()
+      .catchError((Object e, StackTrace stack) {
+        _sgnsNet = null;
+        Error.throwWithStackTrace(e, stack);
+      });
 
   Future<Object?> handle(String origin, String method, Object? params) async {
     final name = GnusRpcMethod.all.contains(method) ? method : 'unsupported';
