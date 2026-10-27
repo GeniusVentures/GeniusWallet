@@ -1751,7 +1751,10 @@ per git index, so a parallel phase needs its own worktree.
   3. While the compute panel prices or submits a job, the wallet keeps animating and stays responsive, and a test fails if the SDK cost or process call runs on the UI isolate.
 
 **SDK dependencies**: SDK-ASYNC would make ISO-01 lighter, but the wallet moves the calls either way, so nothing waits on it. SDK-CA for a live cost: until it lands the live cost is 0 and the panel shows its cost error, as it does today; the priced path is verified with the dev-mock scenarios.
-**Plans**: TBD
+**Plans**: 2 plans, sequential (wave 1, then wave 2)
+
+- [ ] 42-01-PLAN.md — Make the worktree buildable and record the baseline, then extract the job flow into one owner, `JobSubmission` (typed results, the one dev gate), behaviour-preserving with the existing submit_job tests unchanged (criteria 1, 2)
+- [ ] 42-02-PLAN.md — Run the SDK cost and process calls in `Isolate.run` workers, delete the sync calls, add the async-only fake, source guards and "keeps pumping" widget tests (criterion 3); residual poll hitch left to the phase 48 walk
 
 ### Phase 43: gnus RPC handler and job record
 
