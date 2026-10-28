@@ -346,17 +346,17 @@ class GnusRpcHandler {
     final args = _paramsMap(params);
     switch (method) {
       case GnusRpcMethod.estimate:
-        return _estimate(args);
+        return _estimate(origin, args);
       case GnusRpcMethod.submitJob:
         return _submitJob(origin, args);
       case GnusRpcMethod.listJobs:
-        return _listJobs(args);
+        return _listJobs(origin, args);
       case GnusRpcMethod.getJob:
         return _getJob(origin, args);
       case GnusRpcMethod.getAccounts:
         return _getAccounts(origin);
       case GnusRpcMethod.getEarnings:
-        return _getEarnings(args);
+        return _getEarnings(origin, args);
       default:
         throw const GnusRpcError(
           GnusRpcCode.unsupportedMethod,
@@ -525,9 +525,10 @@ class GnusRpcHandler {
     return node.toLowerCase();
   }
 
-  Future<Object?> _listJobs(Map<String, Object?> args) async {
+  Future<Object?> _listJobs(String origin, Map<String, Object?> args) async {
     final limit = _limitParam(args['limit']);
     final cursor = _cursorParam(args['cursor']);
+    await _requireConnected(origin);
     final node = _requireReadyNode();
     try {
       final page = _store.page(sdkAddress: node, limit: limit, cursor: cursor);
@@ -544,6 +545,7 @@ class GnusRpcHandler {
   /// another node account counts as not found.
   Future<Object?> _getJob(String origin, Map<String, Object?> args) async {
     final (name, value) = _jobSelectorParam(args);
+    await _requireConnected(origin);
     final node = _requireReadyNode();
     final job = switch (name) {
       'jobId' => _store.byJobId(value),
@@ -671,8 +673,9 @@ class GnusRpcHandler {
   /// A read: it prices the job and reports what the payer holds, ignores the
   /// gate, and never prompts or burns. A balance it cannot read stays null
   /// rather than failing the call; a submit fails closed on the same value.
-  Future<Object?> _estimate(Map<String, Object?> args) async {
+  Future<Object?> _estimate(String origin, Map<String, Object?> args) async {
     final job = _jobParam(args['job']);
+    await _requireConnected(origin);
     _requireReadyNode();
 
     final details = _walletDetails.state;
@@ -813,11 +816,12 @@ class GnusRpcHandler {
   // ponytail: isProcessing is false both when idle and while the processing
   // feed has never ticked or is unavailable. Upgrade path: expose
   // processingFeedStatus as a field once the contract has a place for it.
-  Future<Object?> _getEarnings(Map<String, Object?> args) async {
+  Future<Object?> _getEarnings(String origin, Map<String, Object?> args) async {
     final includeChildren = args['includeChildren'];
     if (includeChildren != null && includeChildren is! bool) {
       throw _invalidParams('includeChildren');
     }
+    await _requireConnected(origin);
     final node = _requireReadyNode();
     final balance = sgnusBalanceBaseUnits(_geniusApi.getSGNUSBalance());
     if (balance == null) {
@@ -872,6 +876,7 @@ class GnusRpcHandler {
   Future<Object?> _submitJob(String origin, Map<String, Object?> args) async {
     final job = _jobParam(args['job']);
     final idempotencyKey = _idempotencyKeyParam(args['idempotencyKey']);
+    await _requireConnected(origin);
     final nodeAccount = _requireReadyNode();
 
     // A retry of the call still in flight is busy, not a replay: nothing is

@@ -288,7 +288,7 @@ class GnusHarness {
   final Box<String> box;
   final Box<String> connectionBox;
   late final FlakyGnusJobStore store;
-  late final GnusConnectionStore connections;
+  late GnusConnectionStore connections;
 
   AppState app = AppState(selectedSDKAccount: gnusTestNode);
   final StreamController<AppState> appStates = StreamController.broadcast();
