@@ -237,9 +237,10 @@ class _Request {
   final Object? params;
 }
 
-// Captures the post function and JSON.stringify before any page script runs,
-// so a later script cannot read the secret or reroute messages. Runs only in
-// the top frame: a frame has no window.gnus and cannot use the secret.
+// Binds the native post function and captures JSON.stringify before any page
+// script runs, so a later script cannot read the secret or reroute messages.
+// The secret lasts for the view. Runs only in the top frame: a frame has no
+// window.gnus and cannot use the secret.
 const String _shimTemplate = r'''
 (function () {
   'use strict';
@@ -248,21 +249,20 @@ const String _shimTemplate = r'''
   }
   var secret = __SECRET__;
   var stringify = JSON.stringify;
-  var post = null;
   var host = null;
   if (window.chrome && window.chrome.webview) {
     host = window.chrome.webview;
   } else if (window.webkit && window.webkit.messageHandlers &&
       window.webkit.messageHandlers.gnusBridge) {
     host = window.webkit.messageHandlers.gnusBridge;
-  } else if (window.gnusBridge && typeof window.gnusBridge.postMessage === 'function') {
+  } else if (window.gnusBridge) {
     host = window.gnusBridge;
   }
-  if (host) {
-    post = function (m) {
-      host.postMessage(m);
-    };
-  }
+  // Bound now: a page that later replaces postMessage on the host or its
+  // prototype never sees a message.
+  var post = host && typeof host.postMessage === 'function'
+    ? host.postMessage.bind(host)
+    : null;
   var pending = {};
   var listeners = {};
   var nextId = 1;
@@ -315,10 +315,14 @@ const String _shimTemplate = r'''
           reject(fail(-32600, 'Invalid request'));
           return;
         }
+        if (!post) {
+          reject(fail(-32603, 'Internal error'));
+          return;
+        }
         var id = docId + '-' + (nextId++);
         pending[id] = { resolve: resolve, reject: reject };
         try {
-          (post || function (m) { window.gnusBridge.postMessage(m); })(
+          post(
             secret + ':' + stringify({
               id: id,
               method: args.method,
