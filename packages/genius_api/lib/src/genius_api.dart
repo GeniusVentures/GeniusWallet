@@ -2078,6 +2078,7 @@ class GeniusApi {
       amountToBurn: amountToBurn,
       sourceChainId: sourceChainId,
       destinationChainId: destinationChainId,
+      sgnsAccount: getSelectedAccountAddress(),
       wallet: wallet,
       beforeBroadcast: beforeBroadcast,
     );
@@ -2115,7 +2116,9 @@ class GeniusApi {
       contractAddress: contractAddress,
       rpcUrl: rpcUrl,
       amountToBurn: amountToBurn,
+      sourceChainId: sourceChainId,
       destinationChainId: destinationChainId,
+      sgnsAccount: getSelectedAccountAddress(),
       wallet: wallet,
     );
 

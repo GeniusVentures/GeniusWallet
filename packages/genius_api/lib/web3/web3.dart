@@ -8,6 +8,7 @@ import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart';
 import 'package:genius_api/web3/send_service.dart' show pollReceipt;
 import 'package:genius_api/web3/utilities.dart';
 import 'package:http/http.dart';
@@ -35,22 +36,6 @@ class Web3 {
   final multiCallContractAddress = EthereumAddress.fromHex(
     "0xca11bde05977b3631167028862be2a173976ca11",
   );
-
-  static final bridgeOutAbi = ContractAbi.fromJson('''
-    [
-      {
-        "inputs": [
-          { "internalType": "uint256", "name": "amount", "type": "uint256" },
-          { "internalType": "uint256", "name": "id", "type": "uint256" },
-          { "internalType": "uint256", "name": "destChainID", "type": "uint256" }
-        ],
-        "name": "bridgeOut",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      }
-    ]
-  ''', '');
 
   static final abi = ContractAbi.fromJson('''[
           { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "type": "function" },
@@ -440,32 +425,27 @@ class Web3 {
     }
   }
 
+  /// Builds the burn for the `bridgeOut` form [contractAddress] has on
+  /// [sourceChainId]. Refuses before the key is read where it has none.
   Future<ApiResponse<Transaction>> createBridgeOutTransaction({
     required String contractAddress,
     required String rpcUrl,
     required StoredKeyWallet wallet,
     required String amountToBurn,
+    required int sourceChainId,
     required int destinationChainId,
+    String? sgnsAccount,
   }) async {
     final client = Web3Client(rpcUrl, Client());
-    final hardCodedTokenIdForNow = 0;
-
-    final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
-    final ownAddress = credentials.address;
 
     EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
 
     try {
-      // Contract Setup
-      final bridgeContract = DeployedContract(bridgeOutAbi, contractAddr);
-      final contract = DeployedContract(abi, contractAddr);
-      final bridgeOutFunction = bridgeContract.function('bridgeOut');
-      final decimalsFunction = contract.function('decimals');
-
       // Get Token Decimals
+      final contract = DeployedContract(abi, contractAddr);
       final tokenDecimals = await client.call(
-        contract: bridgeContract,
-        function: decimalsFunction,
+        contract: contract,
+        function: contract.function('decimals'),
         params: [],
       );
 
@@ -477,16 +457,28 @@ class Web3 {
         return ApiResponse.error("Invalid amount or token decimals");
       }
 
+      final callResponse = await resolveBridgeOutCall(
+        client: client,
+        chainId: sourceChainId,
+        contract: contractAddr,
+        amount: burnAmountConverted,
+        destinationChainId: destinationChainId,
+        sgnsAccount: sgnsAccount,
+      );
+      final call = callResponse.data;
+      if (!callResponse.isSuccess || call == null) {
+        return ApiResponse.error(callResponse.errorMessage ?? "Error bridging");
+      }
+
+      final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
+      final ownAddress = credentials.address;
+
       // Estimate Gas Price and Gas Limit
       final gasPrice = await client.getGasPrice();
       final gasLimit = await client.estimateGas(
         sender: ownAddress,
         to: contractAddr,
-        data: bridgeOutFunction.encodeCall([
-          burnAmountConverted,
-          BigInt.from(hardCodedTokenIdForNow),
-          BigInt.from(destinationChainId),
-        ]),
+        data: call.function.encodeCall(call.params),
       );
 
       final hasFundsResponse = await hasEnoughFundsForGas(
@@ -503,13 +495,9 @@ class Web3 {
 
       // Create Transaction
       final transaction = Transaction.callContract(
-        contract: bridgeContract,
-        function: bridgeOutFunction,
-        parameters: [
-          burnAmountConverted,
-          BigInt.from(hardCodedTokenIdForNow),
-          BigInt.from(destinationChainId),
-        ],
+        contract: call.contract,
+        function: call.function,
+        parameters: call.params,
         from: ownAddress,
         gasPrice: gasPrice,
         maxGas: gasLimit.toInt(),
@@ -530,6 +518,7 @@ class Web3 {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
+    String? sgnsAccount,
     Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     final client = Web3Client(rpcUrl, Client());
@@ -541,7 +530,9 @@ class Web3 {
         rpcUrl: rpcUrl,
         wallet: wallet,
         amountToBurn: amountToBurn,
+        sourceChainId: sourceChainId,
         destinationChainId: destinationChainId,
+        sgnsAccount: sgnsAccount,
       );
 
       if (!transactionResponse.isSuccess || transactionResponse.data == null) {
@@ -683,14 +674,18 @@ class Web3 {
     required String rpcUrl,
     required StoredKeyWallet wallet,
     required String amountToBurn,
+    required int sourceChainId,
     required int destinationChainId,
+    String? sgnsAccount,
   }) async {
     final transactionResponse = await createBridgeOutTransaction(
       contractAddress: contractAddress,
       rpcUrl: rpcUrl,
       wallet: wallet,
       amountToBurn: amountToBurn,
+      sourceChainId: sourceChainId,
       destinationChainId: destinationChainId,
+      sgnsAccount: sgnsAccount,
     );
 
     if (!transactionResponse.isSuccess) {
