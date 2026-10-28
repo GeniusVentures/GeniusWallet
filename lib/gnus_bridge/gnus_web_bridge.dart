@@ -122,7 +122,8 @@ class GnusWebBridge {
   /// A null [source] is a page nobody can vouch for, and is dropped unanswered.
   /// The payload is never trusted for who is calling.
   Future<void> onMessage(String raw, {required String? source}) async {
-    if (source == null) {
+    // A message queued as the view closed must not open a prompt.
+    if (_disposed || source == null) {
       return;
     }
     final generation = _generation;

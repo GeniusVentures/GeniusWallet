@@ -269,6 +269,19 @@ void main() {
       },
     );
 
+    test('a message that arrives after dispose opens no prompt', () async {
+      rig.bridge.pageCommitted('$_dev/');
+      await rig.bridge.dispose();
+
+      await rig.bridge.onMessage(
+        rig.message(GnusRpcMethod.getAccounts),
+        source: _dev,
+      );
+
+      expect(h.connects, isEmpty);
+      expect(rig.delivered, isEmpty);
+    });
+
     test('a reply for a page that has not moved is delivered', () async {
       rig.bridge.pageCommitted('$_dev/');
 
