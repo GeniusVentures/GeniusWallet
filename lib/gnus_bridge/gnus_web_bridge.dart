@@ -47,6 +47,10 @@ class GnusWebBridge {
 
   GnusOrigin? _topOrigin;
 
+  // Bumped by every main-frame page start. A request holds the number it
+  // began under, and its answer is dropped if the page has moved on.
+  int _generation = 0;
+
   static String _newSecret(Random random) {
     final bytes = [for (var i = 0; i < 16; i++) random.nextInt(256)];
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
@@ -54,6 +58,7 @@ class GnusWebBridge {
 
   /// A main-frame navigation began at [url].
   void pageStarted(String? url) {
+    _generation++;
     _topOrigin = url == null
         ? null
         : GnusOrigin.tryParse(GnusTransport.webview, url);
@@ -63,6 +68,7 @@ class GnusWebBridge {
   /// the sender, or the top-level URL on a platform that names none. The
   /// payload is never trusted for who is calling.
   Future<void> onMessage(String raw, {required String? source}) async {
+    final generation = _generation;
     final prefix = '$_secret:';
     if (!raw.startsWith(prefix)) {
       return;
@@ -79,13 +85,15 @@ class GnusWebBridge {
       return;
     }
     try {
-      final result = await _answer(request, origin);
-      await _send(guard, {'id': request.id, 'result': result});
+      final result = await _answer(request, origin, generation);
+      await _send(guard, generation, {'id': request.id, 'result': result});
+    } on _Stale {
+      debugPrint('gnus_web reply dropped ${guard.value}');
     } on GnusRpcError catch (e) {
-      await _send(guard, {'id': request.id, 'error': e.toJson()});
+      await _send(guard, generation, {'id': request.id, 'error': e.toJson()});
     } catch (e) {
       debugPrint('gnus_web request failed ${e.runtimeType}');
-      await _send(guard, {
+      await _send(guard, generation, {
         'id': request.id,
         'error': const GnusRpcError(
           GnusRpcCode.internal,
@@ -95,7 +103,11 @@ class GnusWebBridge {
     }
   }
 
-  Future<Object?> _answer(_Request request, GnusOrigin? origin) async {
+  Future<Object?> _answer(
+    _Request request,
+    GnusOrigin? origin,
+    int generation,
+  ) async {
     if (origin == null) {
       throw const GnusRpcError(GnusRpcCode.unauthorized, 'Unauthorized');
     }
@@ -103,11 +115,24 @@ class GnusWebBridge {
     if (!allowed.contains(origin)) {
       throw const GnusRpcError(GnusRpcCode.unauthorized, 'Unauthorized');
     }
+    // The page that asked is gone: do not open a prompt for it.
+    if (generation != _generation) {
+      throw const _Stale();
+    }
     return _handler.handle(origin, request.method, request.params);
   }
 
-  Future<void> _send(GnusOrigin origin, Map<String, Object?> reply) =>
-      _run('__gnusBridgeReply(${jsonEncode(reply)})', origin);
+  Future<void> _send(
+    GnusOrigin origin,
+    int generation,
+    Map<String, Object?> reply,
+  ) {
+    if (generation != _generation) {
+      debugPrint('gnus_web reply dropped ${origin.value}');
+      return Future<void>.value();
+    }
+    return _run('__gnusBridgeReply(${jsonEncode(reply)})', origin);
+  }
 
   /// Runs [call] only if the document that executes it is on [origin].
   Future<void> _run(String call, GnusOrigin origin) async {
@@ -143,6 +168,10 @@ class GnusWebBridge {
 
   @visibleForTesting
   String get secretForTest => _secret;
+}
+
+class _Stale implements Exception {
+  const _Stale();
 }
 
 class _Request {

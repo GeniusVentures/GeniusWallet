@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show SgnsNet;
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_web_bridge.dart';
 
 import 'gnus_fakes.dart';
@@ -13,10 +16,15 @@ const _dev = 'http://localhost:3000';
 final _reply = RegExp(r'window\.__gnusBridgeReply\((.*)\);$');
 
 class _Rig {
-  _Rig(this.h, {bool dev = true}) {
+  _Rig(
+    this.h, {
+    bool dev = true,
+    GnusConnect? connect,
+    Future<SgnsNet> Function()? readNet,
+  }) {
     bridge = GnusWebBridge(
-      handler: h.build(),
-      readNet: () async => SgnsNet.staging,
+      handler: h.build(connect: connect),
+      readNet: readNet ?? () async => SgnsNet.staging,
       deliver: (script) async => delivered.add(script),
       dev: dev,
       random: Random(1),
@@ -27,13 +35,20 @@ class _Rig {
   late final GnusWebBridge bridge;
   final List<String> delivered = [];
 
-  String message(String method, {String id = 'doc-1', Object? params}) =>
-      '${bridge.secretForTest}:${jsonEncode({'id': id, 'method': method, 'params': params})}';
+  String message(String method, {String id = 'doc-1', Object? params}) {
+    final body = jsonEncode({'id': id, 'method': method, 'params': params});
+    return '${bridge.secretForTest}:$body';
+  }
 
   /// The reply objects delivered so far.
   List<Map<String, Object?>> get replies => [
     for (final script in delivered)
       jsonDecode(_reply.firstMatch(script)!.group(1)!) as Map<String, Object?>,
+  ];
+
+  /// The error codes of the replies delivered so far.
+  List<Object?> get errorCodes => [
+    for (final reply in replies) (reply['error']! as Map)['code'],
   ];
 }
 
@@ -74,5 +89,189 @@ void main() {
     expect(shim, contains('version: "$kGnusRpcVersion"'));
     expect(shim, isNot(contains('__SECRET__')));
     expect(shim, isNot(contains('__VERSION__')));
+  });
+
+  group('input the page controls', () {
+    test(
+      'a message without the right secret, or malformed, does nothing',
+      () async {
+        final secret = rig.bridge.secretForTest;
+        String body(Map<String, Object?> m) => '$secret:${jsonEncode(m)}';
+        const method = GnusRpcMethod.getAccounts;
+        final inputs = [
+          jsonEncode({'id': 'a', 'method': method}),
+          ':${jsonEncode({'id': 'a', 'method': method})}',
+          '${'0' * secret.length}:${jsonEncode({'id': 'a', 'method': method})}',
+          '$secret:not json',
+          '$secret:[]',
+          body({'method': method}),
+          body({'id': 7, 'method': method}),
+          body({'id': '', 'method': method}),
+          body({'id': 'a', 'method': 5}),
+          body({'id': 'a' * 65, 'method': method}),
+          secret,
+          '',
+        ];
+        rig.bridge.pageStarted('$_dev/');
+
+        for (final raw in inputs) {
+          await rig.bridge.onMessage(raw, source: _dev);
+        }
+
+        expect(rig.delivered, isEmpty);
+        expect(h.connects, isEmpty);
+      },
+    );
+
+    test('quotes and script tags stay inside the JSON of the reply', () async {
+      const id = '"});alert(1);//</script>\n';
+      await rig.bridge.onMessage(
+        rig.message('x"</script>', id: id),
+        source: _dev,
+      );
+
+      expect(rig.delivered, hasLength(1));
+      final script = rig.delivered.single;
+      expect(script, startsWith('if (location.origin === "$_dev") window.'));
+      expect(script.split('\n'), hasLength(1));
+      expect(rig.replies.single['id'], id);
+      expect(rig.errorCodes, [GnusRpcCode.unsupportedMethod]);
+    });
+  });
+
+  group('who is calling', () {
+    test(
+      'a source that is missing or not an origin gets 4100 and no prompt',
+      () async {
+        rig.bridge.pageStarted('$_dev/page');
+
+        for (final source in [null, '', 'null', 'about:blank', 'file:///x']) {
+          await rig.bridge.onMessage(
+            rig.message(GnusRpcMethod.getAccounts),
+            source: source,
+          );
+        }
+
+        expect(rig.errorCodes, List.filled(5, GnusRpcCode.unauthorized));
+        expect(h.connects, isEmpty);
+      },
+    );
+
+    test('with no page and no source there is nobody to answer', () async {
+      await rig.bridge.onMessage(
+        rig.message(GnusRpcMethod.getAccounts),
+        source: null,
+      );
+
+      expect(rig.delivered, isEmpty);
+    });
+
+    test(
+      'an off-list source gets 4100 and the handler is not called',
+      () async {
+        rig.bridge.pageStarted('$_dev/');
+
+        await rig.bridge.onMessage(
+          rig.message(GnusRpcMethod.getAccounts),
+          source: 'https://evil.example/path',
+        );
+
+        expect(h.connects, isEmpty);
+        expect(rig.errorCodes, [GnusRpcCode.unauthorized]);
+      },
+    );
+
+    test('the payload cannot name the caller', () async {
+      final body = jsonEncode({
+        'id': 'a',
+        'method': GnusRpcMethod.getAccounts,
+        'origin': _dev,
+        'params': {'origin': _dev},
+      });
+
+      await rig.bridge.onMessage(
+        '${rig.bridge.secretForTest}:$body',
+        source: 'https://evil.example',
+      );
+
+      expect(h.connects, isEmpty);
+    });
+
+    test('a non-dev session rejects the dev origin', () async {
+      final prod = _Rig(h, dev: false);
+
+      await prod.bridge.onMessage(
+        prod.message(GnusRpcMethod.getAccounts),
+        source: _dev,
+      );
+
+      expect(h.connects, isEmpty);
+      expect(prod.errorCodes, [GnusRpcCode.unauthorized]);
+    });
+
+    test('a failed net read answers an internal error', () async {
+      final broken = _Rig(h, readNet: () async => throw StateError('x'));
+
+      await broken.bridge.onMessage(
+        broken.message(GnusRpcMethod.getAccounts),
+        source: _dev,
+      );
+
+      expect(h.connects, isEmpty);
+      expect(broken.errorCodes, [GnusRpcCode.internal]);
+    });
+  });
+
+  group('a page that moved on', () {
+    test('a page start while the prompt is open drops the reply', () async {
+      final answer = Completer<bool>();
+      final held = _Rig(
+        h,
+        connect: ({required GnusOrigin origin}) => answer.future,
+      );
+      held.bridge.pageStarted('$_dev/');
+
+      final call = held.bridge.onMessage(
+        held.message(GnusRpcMethod.getAccounts),
+        source: _dev,
+      );
+      await pumpEventQueue();
+      held.bridge.pageStarted('$_dev/next');
+      answer.complete(true);
+      await call;
+
+      expect(held.delivered, isEmpty);
+    });
+
+    test(
+      'a page start before the net read returns never reaches the handler',
+      () async {
+        final net = Completer<SgnsNet>();
+        final held = _Rig(h, readNet: () => net.future);
+
+        final call = held.bridge.onMessage(
+          held.message(GnusRpcMethod.getAccounts),
+          source: _dev,
+        );
+        await pumpEventQueue();
+        held.bridge.pageStarted('$_dev/next');
+        net.complete(SgnsNet.staging);
+        await call;
+
+        expect(h.connects, isEmpty);
+        expect(held.delivered, isEmpty);
+      },
+    );
+
+    test('a reply for a page that has not moved is delivered', () async {
+      rig.bridge.pageStarted('$_dev/');
+
+      await rig.bridge.onMessage(
+        rig.message(GnusRpcMethod.getAccounts),
+        source: _dev,
+      );
+
+      expect(rig.delivered, hasLength(1));
+    });
   });
 }
