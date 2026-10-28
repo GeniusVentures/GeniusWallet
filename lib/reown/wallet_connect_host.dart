@@ -121,14 +121,28 @@ class WalletConnectHost {
     final gnusMethods = requestedGnusMethods(event.params);
     var dappUrl = metadata.url;
     if (gnusMethods.isNotEmpty) {
-      final origin = gnusProposalOrigin(event.verifyContext, metadata.url);
+      final check = gnusProposalOrigin(
+        event.verifyContext,
+        metadata.url,
+        devBuild: devBuild,
+      );
+      final origin = check.origin;
       if (origin == null) {
+        final flagged = check.refusal == GnusRefusal.flagged;
         await _reject(
           event.id,
-          const ReownSignError(code: 5000, message: 'Site not verified'),
+          ReownSignError(
+            code: 5000,
+            message: flagged
+                ? 'Site flagged by WalletConnect Verify'
+                : 'Site could not be verified',
+          ),
         );
         _toast(
-          'This site could not be verified, so it was not connected.',
+          flagged
+              ? 'WalletConnect flagged this site as unsafe, so it was not '
+                    'connected.'
+              : 'This site could not be verified, so it was not connected.',
           ToastType.error,
         );
         return;

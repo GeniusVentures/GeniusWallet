@@ -17,6 +17,9 @@ const Set<String> _gnusEvents = {
   GnusRpcEventName.jobUpdated,
 };
 
+/// Why a `gnus_*` proposal was turned away.
+enum GnusRefusal { unverified, flagged }
+
 /// Whether [method] is a `gnus_*` call, which only the bridge answers.
 bool isGnusMethod(String method) => method.startsWith('gnus_');
 
@@ -42,11 +45,34 @@ Set<String> requestedGnusEvents(ProposalData proposal) => {
       if (_gnusEvents.contains(event)) event,
 };
 
-/// The caller a `gnus_*` proposal is: only a page Verify says is VALID.
-GnusOrigin? gnusProposalOrigin(VerifyContext? verifyContext, String url) =>
-    verifyContext?.validation == Validation.VALID
-    ? GnusOrigin.tryParse(GnusTransport.walletconnect, url)
-    : null;
+bool _isLoopback(GnusOrigin origin) {
+  final host = Uri.parse(origin.value).host;
+  return host == 'localhost' || host == '127.0.0.1';
+}
+
+/// The caller a `gnus_*` proposal is, or why it is refused. Verify must say
+/// VALID. Unknown passes only in a dev build for a loopback host, and that
+/// host is refused in every other build.
+({GnusOrigin? origin, GnusRefusal? refusal}) gnusProposalOrigin(
+  VerifyContext? verifyContext,
+  String metadataUrl, {
+  required bool devBuild,
+}) {
+  final validation = verifyContext?.validation ?? Validation.UNKNOWN;
+  if (validation == Validation.SCAM ||
+      validation == Validation.INVALID ||
+      verifyContext?.isScam == true) {
+    return (origin: null, refusal: GnusRefusal.flagged);
+  }
+  final origin = GnusOrigin.tryParse(GnusTransport.walletconnect, metadataUrl);
+  if (origin == null || (_isLoopback(origin) && !devBuild)) {
+    return (origin: null, refusal: GnusRefusal.unverified);
+  }
+  if (validation == Validation.VALID || _isLoopback(origin)) {
+    return (origin: origin, refusal: null);
+  }
+  return (origin: null, refusal: GnusRefusal.unverified);
+}
 
 /// The caller behind a session, or null when it no longer qualifies: the
 /// proposal was checked once, so a session restored into a build that would
@@ -56,6 +82,9 @@ GnusOrigin? gnusSessionOrigin(SessionData session, {required bool devBuild}) {
     GnusTransport.walletconnect,
     session.peer.metadata.url,
   );
+  if (origin == null || (_isLoopback(origin) && !devBuild)) {
+    return null;
+  }
   return origin;
 }
 
