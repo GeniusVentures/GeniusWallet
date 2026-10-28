@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
@@ -57,12 +60,34 @@ class _OrderedKit extends FakeWalletKit {
   }
 }
 
+/// A handler that fails in a way the contract never does.
+class _ThrowingHandler implements GnusRpcHandler {
+  @override
+  Future<Object?> handle(GnusOrigin origin, String method, Object? params) =>
+      Future.error(StateError('boom'));
+
+  @override
+  Stream<GnusEvent> eventsFor(GnusOrigin origin) => const Stream.empty();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Map<String, Object?> _submitParams(String key) => {
   'job': {
     'inputs': ['a'],
   },
   'idempotencyKey': key,
 };
+
+Map<String, Object?> _errorOf(JsonRpcResponse response) {
+  final error = response.error!;
+  final parsed = jsonDecode(error.message!);
+  return {
+    'code': error.code,
+    ...(parsed is Map ? parsed.cast<String, Object?>() : const {}),
+  };
+}
 
 void main() {
   late GnusHarness h;
@@ -295,6 +320,196 @@ void main() {
       kit.holdEmit!.complete();
       await pumpEventQueue();
       expect(kit.sent, ['event', 'reply']);
+    });
+  });
+
+  group('a slow prompt stays answerable', () {
+    test('every gnus request gets an expiry past the prompt timeout, before '
+        'the handler runs', () async {
+      final seen = <bool>[];
+      attach(
+        connect: ({required GnusOrigin origin}) async {
+          seen.add(kit.core.expirer.expiries.containsKey('7'));
+          return true;
+        },
+      );
+
+      kit.request.broadcast(gnusRequest('gnus_getAccounts', id: 7));
+      kit.request.broadcast(gnusRequest('eth_chainId', id: 8));
+      await pumpEventQueue();
+
+      final soonest = ReownCoreUtils.calculateExpiry(
+        kGnusConfirmTimeout.inSeconds + 55,
+      );
+      expect(seen, [true]);
+      expect(kit.core.expirer.expiries['7'], greaterThan(soonest));
+      expect(kit.core.expirer.expiries.containsKey('8'), isFalse);
+    });
+
+    test('the first call from a new origin opens the prompt once; decline is '
+        '4001', () async {
+      var asked = 0;
+      attach(
+        connect: ({required GnusOrigin origin}) async {
+          asked++;
+          return false;
+        },
+      );
+
+      kit.request.broadcast(gnusRequest('gnus_getAccounts'));
+      await pumpEventQueue();
+
+      expect(asked, 1);
+      expect(kit.responses.single.response.error?.code, 4001);
+    });
+
+    test('a prompt held past five minutes and then approved still answers '
+        'once', () {
+      fakeAsync((async) {
+        final held = Completer<bool>();
+        attach(connect: ({required GnusOrigin origin}) => held.future);
+
+        kit.request.broadcast(gnusRequest('gnus_getAccounts'));
+        async.elapse(const Duration(minutes: 6));
+        expect(kit.responses, isEmpty);
+
+        held.complete(true);
+        async.flushMicrotasks();
+        expect(kit.responses, hasLength(1));
+        expect(kit.responses.single.response.error, isNull);
+        expect(kit.responses.single.response.result, isNotNull);
+      });
+    });
+
+    test('a second origin during a prompt is -32005 confirm_open', () async {
+      kit.activeSessions['topic-2'] = sessionData(
+        topic: 'topic-2',
+        url: _otherUrl,
+      );
+      final held = Completer<bool>();
+      attach(connect: ({required GnusOrigin origin}) => held.future);
+
+      kit.request.broadcast(gnusRequest('gnus_getAccounts'));
+      await pumpEventQueue();
+      kit.request.broadcast(
+        gnusRequest('gnus_getAccounts', id: 2, topic: 'topic-2'),
+      );
+      await pumpEventQueue();
+
+      final error = _errorOf(kit.responses.single.response);
+      expect(error['code'], GnusRpcCode.busy);
+      expect((error['data']! as Map)['reason'], GnusRpcReason.confirmOpen);
+      held.complete(true);
+    });
+  });
+
+  group('everything the wallet cannot serve gets its code', () {
+    setUp(() async {
+      await h.connections.connect(_origin, h.clock);
+    });
+
+    test('an SDK that is not initialized is 4900', () async {
+      h.api.sdkInitialized = false;
+      attach();
+
+      kit.request.broadcast(gnusRequest('gnus_getAccounts'));
+      await pumpEventQueue();
+
+      expect(kit.responses.single.response.error?.code, 4900);
+    });
+
+    test('a switch in progress is -32015', () async {
+      h.app = AppState(
+        selectedSDKAccount: gnusTestNode,
+        switchingSDKAccount: '0x${'c' * 128}',
+      );
+      attach();
+
+      kit.request.broadcast(gnusRequest('gnus_listJobs'));
+      await pumpEventQueue();
+
+      expect(kit.responses.single.response.error?.code, -32015);
+    });
+
+    test('a rejected confirm is 4001 and burns nothing', () async {
+      attach(
+        confirm:
+            ({
+              required origin,
+              required cost,
+              required gas,
+              required payer,
+              required nodeAccount,
+              required network,
+            }) async => false,
+      );
+
+      kit.request.broadcast(
+        gnusRequest('gnus_submitJob', params: _submitParams('k')),
+      );
+      await pumpEventQueue();
+
+      expect(kit.responses.single.response.error?.code, 4001);
+      expect(h.api.count('burn'), 0);
+    });
+
+    test('a refused gate keeps its reason', () async {
+      h.gate = const BridgeGate(BridgeGateState.viewOnly);
+      attach();
+
+      kit.request.broadcast(
+        gnusRequest('gnus_submitJob', params: _submitParams('k')),
+      );
+      await pumpEventQueue();
+
+      final error = _errorOf(kit.responses.single.response);
+      expect(error['code'], GnusRpcCode.payerCannotSign);
+      expect((error['data']! as Map)['reason'], GnusRpcReason.viewOnly);
+    });
+
+    test('a throw that is not a contract error is -32603', () async {
+      stop = handleGnusRequests(
+        walletKit: kit,
+        handler: _ThrowingHandler(),
+        devBuild: false,
+      );
+
+      kit.request.broadcast(gnusRequest('gnus_getAccounts'));
+      await pumpEventQueue();
+
+      expect(kit.responses.single.response.error?.code, -32603);
+      expect(kit.responses.single.response.error?.message, 'Internal error');
+    });
+
+    test('a reply that cannot be delivered is dropped and the submit '
+        'stands', () async {
+      attach();
+      kit.failResponds = 1;
+
+      kit.request.broadcast(
+        gnusRequest('gnus_submitJob', params: _submitParams('k')),
+      );
+      await pumpEventQueue();
+
+      expect(kit.responses, isEmpty);
+      expect(h.api.count('burn'), 1);
+      expect(h.store.byBurnHash(gnusTestBurnHash), isNotNull);
+    });
+
+    test('a session deleted while a prompt is open gets no answer and '
+        'nothing throws', () async {
+      await h.connections.revoke(_origin);
+      final held = Completer<bool>();
+      attach(connect: ({required GnusOrigin origin}) => held.future);
+
+      kit.request.broadcast(gnusRequest('gnus_getAccounts'));
+      await pumpEventQueue();
+      kit.activeSessions.clear();
+      kit.delete.broadcast(SessionDelete('topic-1'));
+      held.complete(true);
+      await pumpEventQueue();
+
+      expect(kit.responses, isEmpty);
     });
   });
 }
