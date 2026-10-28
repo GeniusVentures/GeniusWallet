@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>gnus frame check</title>
+<style>body { font: 13px/1.4 monospace; margin: 8px; }</style>
+</head>
+<body>
+<p>Loaded from another origin. It must not reach the wallet.</p>
+<script>
+// Copy of frameCheck in index.html. Keep the two equal.
+function frameCheck(id) {
+  var out = document.createElement('pre');
+  document.body.appendChild(out);
+  function say(ok, text) { out.textContent += id + ' ' + (ok ? 'PASS' : 'FAIL') + ' ' + text + '\n'; }
+  say(typeof window.gnus === 'undefined', 'window.gnus is undefined in this frame');
+  var topReadable = true;
+  try { void window.top.gnus; } catch (e) { topReadable = false; }
+  say(!topReadable, 'the frame cannot read window.top.gnus');
+  var replied = false;
+  window.__gnusBridgeReply = function () { replied = true; };
+  var forged = JSON.stringify({ id: 'frame-1', method: 'gnus_getAccounts', params: null });
+  var posted = 0;
+  [
+    function () { return window.webkit.messageHandlers.gnusBridge; },
+    function () { return window.gnusBridge; },
+    function () { return window.chrome.webview; }
+  ].forEach(function (find) {
+    try { find().postMessage(forged); posted++; } catch (e) { /* no such transport here */ }
+  });
+  setTimeout(function () {
+    say(!replied, 'a forged request via ' + posted + ' transport(s) got no reply');
+  }, 2500);
+}
+var match = /[?&]id=(\w+)/.exec(location.search);
+frameCheck(match ? match[1] : 'C4');
+</script>
+</body>
+</html>
