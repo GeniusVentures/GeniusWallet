@@ -85,6 +85,8 @@ abstract final class GnusRpcReason {
   static const String checking = 'checking';
   static const String submissionOutcomeUnknown = 'submission_outcome_unknown';
   static const String bridgeUnavailable = 'bridge_unavailable';
+  static const String rateLimited = 'rate_limited';
+  static const String confirmOpen = 'confirm_open';
 }
 
 GnusRpcError _payerError(String reason) => GnusRpcError(

@@ -641,17 +641,27 @@ void main() {
       'a second submit gets -32005 from any origin, including a retry',
       () async {
         final first = viaDirect(handler, _origin, _submit, _params());
+        await pumpEventQueue();
 
-        for (final reply in [
-          await inFlightCall(_origin, 'key-2'),
-          await inFlightCall('https://other.example', 'key-3'),
-          await inFlightCall(_origin, 'key-1'),
-        ]) {
+        // Its own origin has the confirm open, so it learns that; anyone
+        // else, and a retry of the call in flight, learn the wallet is busy.
+        void expectBusy(Map<String, Object?> reply, String reason) {
           expect(_error(reply)['code'], GnusRpcCode.busy);
-          expect(_error(reply)['data'], {
-            'reason': GnusRpcReason.submitInFlight,
-          });
+          expect(_error(reply)['data'], {'reason': reason});
         }
+
+        expectBusy(
+          await inFlightCall(_origin, 'key-2'),
+          GnusRpcReason.confirmOpen,
+        );
+        expectBusy(
+          await inFlightCall('https://other.example', 'key-3'),
+          GnusRpcReason.submitInFlight,
+        );
+        expectBusy(
+          await inFlightCall(_origin, 'key-1'),
+          GnusRpcReason.submitInFlight,
+        );
 
         held.complete(true);
         expect((await first)['result'], isNotNull);

@@ -26,6 +26,8 @@ const int _maxSelectorLength = 256;
 const Duration _idempotencyWindow = Duration(hours: 24);
 const int _recordWriteAttempts = 3;
 const Duration _recordRetryDelay = Duration(seconds: 2);
+const int _maxPromptsPerWindow = 3;
+const Duration _promptWindow = Duration(minutes: 1);
 
 /// A confirm still open after this is a rejection, so a prompt that never
 /// completes cannot hold the wallet's one burn slot.
@@ -159,6 +161,11 @@ class GnusRpcHandler {
   /// `origin|idempotencyKey`. A same-key retry answers from here before the
   /// store; after a restart the intent written before the burn stops it.
   final Map<String, GnusJob> _burned = {};
+
+  /// Origins with a prompt on screen, and when each origin's recent prompts
+  /// were opened. In memory only; an origin's entry goes when it empties.
+  final Set<String> _promptOpen = {};
+  final Map<String, List<DateTime>> _promptTimes = {};
 
   final StreamController<GnusEvent> _events = StreamController.broadcast();
   late final List<StreamSubscription<Object?>> _subscriptions;
@@ -480,20 +487,7 @@ class GnusRpcHandler {
     if (_connections.isConnected(origin)) {
       return;
     }
-    final bool approved;
-    try {
-      // Re-typed first, as the confirm is: a seam written `async => throw`
-      // returns a Future<Never>, whose timeout cannot answer false.
-      approved = await _connect(origin: origin)
-          .then<bool>((answer) => answer)
-          .timeout(kGnusConfirmTimeout, onTimeout: () => false);
-    } catch (e) {
-      debugPrint('gnus_rpc connect failed ${e.runtimeType}');
-      throw const GnusRpcError(
-        GnusRpcCode.userRejected,
-        'User rejected the request',
-      );
-    }
+    final approved = await _prompt(origin, () => _connect(origin: origin));
     if (!approved) {
       throw const GnusRpcError(
         GnusRpcCode.userRejected,
@@ -507,6 +501,48 @@ class GnusRpcHandler {
       throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
     }
   }
+
+  /// Runs [show] as [origin]'s one open prompt. A second prompt while one is
+  /// open, or a fourth inside the window, is -32005 and shows nothing. A
+  /// decline, a timeout and a throw all answer false.
+  Future<bool> _prompt(String origin, Future<bool> Function() show) async {
+    if (_promptOpen.contains(origin)) {
+      throw _confirmOpen();
+    }
+    final now = _now();
+    final recent = [
+      for (final at in _promptTimes[origin] ?? const <DateTime>[])
+        if (now.difference(at) < _promptWindow) at,
+    ];
+    if (recent.length >= _maxPromptsPerWindow) {
+      _promptTimes[origin] = recent;
+      throw const GnusRpcError(
+        GnusRpcCode.busy,
+        'Busy',
+        data: {'reason': GnusRpcReason.rateLimited},
+      );
+    }
+    _promptTimes[origin] = [...recent, now];
+    _promptOpen.add(origin);
+    try {
+      // Re-typed first: a seam written `async => throw` returns a
+      // Future<Never>, whose timeout cannot answer false.
+      return await show()
+          .then<bool>((answer) => answer)
+          .timeout(kGnusConfirmTimeout, onTimeout: () => false);
+    } catch (e) {
+      debugPrint('gnus_rpc prompt failed ${e.runtimeType}');
+      return false;
+    } finally {
+      _promptOpen.remove(origin);
+    }
+  }
+
+  GnusRpcError _confirmOpen() => const GnusRpcError(
+    GnusRpcCode.busy,
+    'Busy',
+    data: {'reason': GnusRpcReason.confirmOpen},
+  );
 
   /// Switching and not-ready refusals shared by every method that needs the
   /// node.
@@ -918,6 +954,9 @@ class GnusRpcHandler {
       }
       throw _outcomeUnknown(idempotencyKey, pending);
     }
+    if (_promptOpen.contains(origin)) {
+      throw _confirmOpen();
+    }
     if (_inFlightSlot != null) {
       throw _submitInFlight();
     }
@@ -1029,27 +1068,16 @@ class GnusRpcHandler {
     }
     final gas = gasPrice.gas;
 
-    final bool confirmed;
-    try {
-      // Re-typed first: a confirm written `async => throw` returns a
-      // Future<Never>, whose timeout cannot answer false.
-      confirmed =
-          await _confirm(
-                origin: origin,
-                cost: cost,
-                gas: gas,
-                payer: payer,
-                nodeAccount: nodeAccount,
-              )
-              .then<bool>((answer) => answer)
-              .timeout(kGnusConfirmTimeout, onTimeout: () => false);
-    } catch (e) {
-      debugPrint('gnus_rpc confirm failed ${e.runtimeType}');
-      throw const GnusRpcError(
-        GnusRpcCode.userRejected,
-        'User rejected the request',
-      );
-    }
+    final confirmed = await _prompt(
+      origin,
+      () => _confirm(
+        origin: origin,
+        cost: cost,
+        gas: gas,
+        payer: payer,
+        nodeAccount: nodeAccount,
+      ),
+    );
     if (!confirmed) {
       throw const GnusRpcError(
         GnusRpcCode.userRejected,

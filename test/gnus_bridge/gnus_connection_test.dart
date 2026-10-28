@@ -71,6 +71,7 @@ void main() {
     for (final entry in _valid.entries) {
       h.connects.clear();
       await h.connections.revoke(_origin);
+      h.clock = h.clock.add(const Duration(seconds: 61));
 
       final reply = await viaJson(handler, _origin, entry.key, entry.value);
 
@@ -84,6 +85,7 @@ void main() {
     final handler = h.build(connect: ({required String origin}) async => false);
 
     for (final entry in _valid.entries) {
+      h.clock = h.clock.add(const Duration(seconds: 61));
       final reply = await viaJson(handler, _origin, entry.key, entry.value);
 
       expect(_code(reply), GnusRpcCode.userRejected, reason: entry.key);
