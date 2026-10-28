@@ -83,6 +83,10 @@ void main() {
     expect((reply['result']! as Map)['version'], kGnusRpcVersion);
   });
 
+  test('the user agent marker names the app and the contract version', () {
+    expect(gnusUserAgentSuffix, matches(RegExp(r'^ GeniusWallet/\S* gnus/1$')));
+  });
+
   test('the shim carries the secret and version only as JSON strings', () {
     final shim = rig.bridge.shimSource;
 

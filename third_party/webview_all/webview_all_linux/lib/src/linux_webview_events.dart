@@ -157,6 +157,7 @@ extension LinuxWebViewControllerEventHandling on LinuxWebViewController {
               NavigationRequest(
                 url: '${event['url'] ?? ''}',
                 isMainFrame: event['isMainFrame'] != false,
+                isNewWindow: event['isNewWindow'] == true,
               ),
             );
         allow = decision == NavigationDecision.navigate;

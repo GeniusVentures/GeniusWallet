@@ -33,6 +33,10 @@ typedef struct {
 
 constexpr guint kPendingRequestTimeoutSeconds = 30;
 
+// Holds the URI of a window.open() that was turned into a load in place, so
+// the navigation decision for that load can say it came from a new window.
+constexpr char kNewWindowUriKey[] = "webview-all-new-window-uri";
+
 static void destroy_pending_tls_error(gpointer data) {
   PendingTlsError *error = static_cast<PendingTlsError *>(data);
   if (error == nullptr) {
@@ -236,12 +240,18 @@ void use_navigation_decision(LinuxWebView *webview,
 
 static WebKitWebView *
 create_web_view_cb(WebKitWebView *widget,
-                   WebKitNavigationAction *navigation_action, gpointer) {
+                   WebKitNavigationAction *navigation_action,
+                   gpointer user_data) {
+  LinuxWebView *webview = static_cast<LinuxWebView *>(user_data);
   WebKitURIRequest *request =
       webkit_navigation_action_get_request(navigation_action);
   const gchar *uri =
       request == nullptr ? nullptr : webkit_uri_request_get_uri(request);
   if (uri != nullptr && *uri != '\0') {
+    if (webview->event_listening) {
+      g_object_set_data_full(G_OBJECT(widget), kNewWindowUriKey, g_strdup(uri),
+                             g_free);
+    }
     webkit_web_view_load_uri(widget, uri);
   }
   return nullptr;
@@ -265,6 +275,15 @@ static gboolean decide_policy_cb(WebKitWebView *widget,
   WebKitURIRequest *request =
       webkit_navigation_action_get_request(navigation_action);
   const gchar *uri = webkit_uri_request_get_uri(request);
+
+  gboolean is_new_window =
+      type == WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION;
+  const gchar *opened = static_cast<const gchar *>(
+      g_object_get_data(G_OBJECT(widget), kNewWindowUriKey));
+  if (!is_new_window && opened != nullptr && g_strcmp0(opened, uri) == 0) {
+    is_new_window = TRUE;
+    g_object_set_data(G_OBJECT(widget), kNewWindowUriKey, nullptr);
+  }
 
   if (type == WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION &&
       (!webview->event_listening || uri == nullptr || *uri == '\0')) {
@@ -303,6 +322,8 @@ static gboolean decide_policy_cb(WebKitWebView *widget,
   // default, not a fact. Callers must not trust it; load-changed, notify::uri
   // and load-failed are the main-frame-only signals.
   fl_value_set_string_take(event, "isMainFrame", fl_value_new_bool(true));
+  fl_value_set_string_take(event, "isNewWindow",
+                           fl_value_new_bool(is_new_window));
   send_event(webview, event);
   return TRUE;
 }

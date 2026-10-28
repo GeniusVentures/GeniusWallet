@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart' show SgnsNet;
+import 'package:genius_wallet/gnus_bridge/gnus_dashboard_origins.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_web_bridge.dart';
 import 'package:genius_wallet/web/web_overlay_gate.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_all/webview_all.dart';
 import 'package:webview_all_linux/webview_all_linux.dart';
 
@@ -33,6 +36,7 @@ class GnusBridgeViewLinux extends StatefulWidget {
 class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
   final WebViewController _controller = WebViewController();
   late final GnusWebBridge _bridge;
+  Set<GnusOrigin> _allowed = const {};
   String? _topUrl;
   bool _ready = false;
 
@@ -60,8 +64,15 @@ class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
     await _controller.addUserScript(
       WebViewUserScript(source: _bridge.shimSource),
     );
+    try {
+      _allowed = await _bridge.allowedOrigins();
+    } catch (e) {
+      // With no allowlist every load is refused, which is the safe failure.
+      debugPrint('Bridge allowlist unavailable: ${e.runtimeType}');
+    }
     await _controller.setNavigationDelegate(
       NavigationDelegate(
+        onNavigationRequest: _onNavigationRequest,
         onPageStarted: (url) {
           _topUrl = url;
           _bridge.pageStarted(url);
@@ -69,9 +80,29 @@ class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
         onUrlChange: (change) => _topUrl = change.url,
       ),
     );
+    final agent = await _controller.getUserAgent();
+    if (agent != null) {
+      await _controller.setUserAgent('$agent$gnusUserAgentSuffix');
+    }
     await _controller.loadRequest(Uri.parse(widget.url));
     if (mounted) {
       setState(() => _ready = true);
+    }
+  }
+
+  // WebKitGTK names no frame for a decision, so a subframe load is held to the
+  // same list as the page; only a new-window request opens the system browser.
+  NavigationDecision _onNavigationRequest(NavigationRequest request) {
+    final uri = Uri.tryParse(request.url);
+    final frame = request.isNewWindow ? GnusFrame.newWindow : GnusFrame.unknown;
+    switch (gnusNavigation(url: uri, frame: frame, allowed: _allowed)) {
+      case GnusNavigation.allow:
+        return NavigationDecision.navigate;
+      case GnusNavigation.external:
+        unawaited(launchUrl(uri!, mode: LaunchMode.externalApplication));
+        return NavigationDecision.prevent;
+      case GnusNavigation.block:
+        return NavigationDecision.prevent;
     }
   }
 
