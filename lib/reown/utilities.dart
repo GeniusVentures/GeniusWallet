@@ -25,6 +25,25 @@ bool walletCanSign(Wallet wallet) =>
     wallet.walletType != WalletType.tracking &&
     wallet.walletType != WalletType.sgnus;
 
+/// Whether a transaction naming [from] may be signed: [from] is the selected
+/// wallet, that wallet holds a key, and [sessionAccounts] (CAIP-10) list it.
+bool canTransactFrom(
+  Object? from,
+  Wallet? selected,
+  Iterable<String> sessionAccounts,
+) {
+  if (from is! String || selected == null || !walletCanSign(selected)) {
+    return false;
+  }
+  final address = from.toLowerCase();
+  return selected.address.toLowerCase() == address &&
+      sessionAccounts.any(
+        (account) =>
+            account.substring(account.lastIndexOf(':') + 1).toLowerCase() ==
+            address,
+      );
+}
+
 /// Whether [wallet] can sign a send on [network].
 bool canSendFrom(Wallet? wallet, Network? network) =>
     wallet != null &&

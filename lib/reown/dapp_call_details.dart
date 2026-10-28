@@ -63,6 +63,14 @@ String wrongChainWarning(int requested, String selectedName) =>
     'Switch the wallet to that network and ask the dApp again. This request '
     'is declined either way -- nothing on this screen approves anything.';
 
+/// A transaction for an account other than the selected wallet, or from a
+/// wallet that cannot sign. Nothing is signed either way.
+const kWrongAccountWarning =
+    'This request is for an account other than the selected wallet, or the '
+    'selected wallet cannot sign. Switch the wallet and ask the dApp again. '
+    'This request is declined either way -- nothing on this screen approves '
+    'anything.';
+
 /// A method with no handler is declined whichever button is pressed, so the
 /// copy must not imply that approving does anything.
 const kUnhandledMethodWarning =

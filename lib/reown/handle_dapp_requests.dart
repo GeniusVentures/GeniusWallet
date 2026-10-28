@@ -116,6 +116,43 @@ void Function() handleDappRequests({
       if (kind == DappRequestKind.transaction) {
         final tx = transactionParam(event.params)!;
         final from = tx['from'] ?? 'Unknown';
+
+        // The dApp names `from` and the signer uses the selected key: the two
+        // must be the same account, and the session must have been given it.
+        final selected = walletDetailsCubit.state.selectedWallet;
+        final sessionAccounts = walletKit
+            .getActiveSessions()[topic]
+            ?.namespaces['eip155']
+            ?.accounts;
+        if (!canTransactFrom(
+          tx['from'],
+          selected,
+          sessionAccounts ?? const [],
+        )) {
+          await ApproveTransactionDrawer.show(
+            context: navigatorKey.currentContext!,
+            content: DappCallDetails(
+              headline: 'Request for another account',
+              warning: kWrongAccountWarning,
+              rows: [
+                DappCallRow(label: 'Requested account', value: '$from'),
+                if (selected != null)
+                  DappCallRow(
+                    label: 'Selected wallet',
+                    value: selected.address,
+                  ),
+              ],
+            ),
+            dappName: dappName,
+            dappUrl: dappUrl,
+            iconUrl: iconUrl,
+          );
+          await respond(
+            error: const JsonRpcError(code: 4100, message: 'Unauthorized'),
+          );
+          debugPrint('Declined, request is for another account');
+          return;
+        }
         final to = tx['to'] ?? 'Unknown';
         final amountWei = parseHexToBigInt(tx['value']);
 
