@@ -37,12 +37,61 @@ class _Home extends StatelessWidget {
   }
 }
 
+/// A host that reports its creation and lets a test fire each callback.
+class _FakeHost extends StatefulWidget {
+  const _FakeHost({
+    required this.start,
+    required this.created,
+    required this.onLoaded,
+    required this.onFailed,
+    required this.onNoBridge,
+    required this.autoLoad,
+  });
+
+  final Uri start;
+  final List<Uri> created;
+  final VoidCallback onLoaded;
+  final VoidCallback onFailed;
+  final VoidCallback onNoBridge;
+  final bool autoLoad;
+
+  @override
+  State<_FakeHost> createState() => _FakeHostState();
+}
+
+class _FakeHostState extends State<_FakeHost> {
+  @override
+  void initState() {
+    super.initState();
+    widget.created.add(widget.start);
+    if (widget.autoLoad) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => widget.onLoaded());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Text('fake host'),
+        TextButton(onPressed: widget.onLoaded, child: const Text('finish')),
+        TextButton(onPressed: widget.onFailed, child: const Text('error')),
+        TextButton(
+          onPressed: widget.onNoBridge,
+          child: const Text('no bridge'),
+        ),
+      ],
+    );
+  }
+}
+
 Widget _app({
   required bool dev,
   required List<Uri> hosted,
-  GnusDashboardHostBuilder? host,
   bool listed = true,
+  bool autoLoad = true,
   GWAppearanceMode mode = GWAppearanceMode.dark,
+  GnusBrowserLauncher launcher = launchUrl,
 }) {
   final router = GoRouter(
     routes: [
@@ -55,17 +104,36 @@ Widget _app({
         builder: (_, _) => GnusDashboardScreen(
           readNet: () async => SgnsNet.staging,
           dev: dev,
+          launcher: launcher,
           hostBuilder:
-              host ??
-              (context, start) {
-                hosted.add(start);
-                return const Text('fake host');
-              },
+              (
+                context,
+                start, {
+                required onLoaded,
+                required onFailed,
+                required onNoBridge,
+              }) => _FakeHost(
+                start: start,
+                created: hosted,
+                autoLoad: autoLoad,
+                onLoaded: onLoaded,
+                onFailed: onFailed,
+                onNoBridge: onNoBridge,
+              ),
         ),
       ),
     ],
   );
   return MaterialApp.router(theme: themeFor(mode), routerConfig: router);
+}
+
+/// Opens the screen from the home entry. The loading bar animates forever, so
+/// this pumps instead of settling.
+Future<void> _openScreen(WidgetTester tester) async {
+  await tester.tap(find.text('Jobs and earnings'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump();
 }
 
 void main() {
@@ -78,8 +146,7 @@ void main() {
         final hosted = <Uri>[];
         await tester.pumpWidget(_app(dev: dev, hosted: hosted));
 
-        await tester.tap(find.text('Jobs and earnings'));
-        await tester.pumpAndSettle();
+        await _openScreen(tester);
 
         expect(find.text('fake host'), findsOneWidget);
         expect(hosted, [Uri.parse(expected)]);
@@ -231,6 +298,143 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Jobs and earnings'), findsOneWidget);
+    });
+  });
+
+  group('states', () {
+    Finder loading() => find.bySemanticsLabel('Loading jobs and earnings');
+    const failedTitle = "Jobs and earnings didn't load";
+
+    testWidgets('a loading bar shows until the first page finishes', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(_app(dev: true, hosted: [], autoLoad: false));
+      await _openScreen(tester);
+
+      expect(loading(), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(
+        tester.getSemantics(loading()).flagsCollection.isLiveRegion,
+        isTrue,
+      );
+
+      await tester.tap(find.text('finish'));
+      await tester.pump();
+
+      expect(loading(), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      semantics.dispose();
+    });
+
+    testWidgets('a main-frame error replaces the page with Try again', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(_app(dev: true, hosted: [], autoLoad: false));
+      await _openScreen(tester);
+
+      await tester.tap(find.text('error'));
+      await tester.pump();
+
+      expect(find.text('fake host'), findsNothing);
+      expect(find.text(failedTitle), findsOneWidget);
+      expect(
+        find.text('Check your connection, then try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Try again'), findsOneWidget);
+      expect(find.text('Close'), findsOneWidget);
+      expect(loading(), findsNothing);
+      expect(
+        tester
+            .getSemantics(find.text(failedTitle))
+            .flagsCollection
+            .isLiveRegion,
+        isTrue,
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('Try again builds a fresh host on the same start', (
+      tester,
+    ) async {
+      final hosted = <Uri>[];
+      await tester.pumpWidget(_app(dev: true, hosted: hosted, autoLoad: false));
+      await _openScreen(tester);
+      await tester.tap(find.text('error'));
+      await tester.pump();
+
+      await tester.tap(find.text('Try again'));
+      await tester.pump();
+
+      expect(hosted, hasLength(2));
+      expect(hosted.first, hosted.last);
+      expect(find.text('fake host'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('a network that cannot be read fails the screen', (
+      tester,
+    ) async {
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => GnusDashboardScreen(
+              readNet: () async => throw StateError('not ready'),
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: themeFor(GWAppearanceMode.dark),
+          routerConfig: router,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(failedTitle), findsOneWidget);
+      expect(find.text('Try again'), findsOneWidget);
+    });
+
+    testWidgets('no bridge shows no page, only the browser notice', (
+      tester,
+    ) async {
+      final launched = <Uri>[];
+      await tester.pumpWidget(
+        _app(
+          dev: false,
+          hosted: [],
+          autoLoad: false,
+          launcher: (url, {mode = LaunchMode.platformDefault}) async {
+            launched.add(url);
+            return true;
+          },
+        ),
+      );
+      await _openScreen(tester);
+
+      await tester.tap(find.text('no bridge'));
+      await tester.pump();
+
+      expect(find.text('fake host'), findsNothing);
+      expect(
+        find.text('Open jobs and earnings in your browser'),
+        findsOneWidget,
+      );
+      expect(
+        find.text("This device's web view can't connect to the wallet safely."),
+        findsOneWidget,
+      );
+      expect(loading(), findsNothing);
+
+      await tester.tap(find.text('Open in browser'));
+      await tester.pump();
+
+      expect(launched, [Uri.parse('https://gnus-dashboard-staging.invalid/')]);
     });
   });
 

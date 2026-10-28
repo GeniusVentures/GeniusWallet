@@ -22,12 +22,20 @@ class GnusBridgeViewLinux extends StatefulWidget {
     required this.handler,
     required this.readNet,
     required this.dev,
+    this.onPageFinished,
+    this.onLoadFailed,
   });
 
   final String url;
   final GnusRpcHandler handler;
   final Future<SgnsNet> Function() readNet;
   final bool dev;
+
+  /// A main-frame page finished loading.
+  final VoidCallback? onPageFinished;
+
+  /// A main-frame load failed. WebKitGTK reports main-frame failures only.
+  final VoidCallback? onLoadFailed;
 
   @override
   State<GnusBridgeViewLinux> createState() => _GnusBridgeViewLinuxState();
@@ -78,6 +86,12 @@ class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
           _bridge.pageStarted(url);
         },
         onUrlChange: (change) => _topUrl = change.url,
+        onPageFinished: (_) => widget.onPageFinished?.call(),
+        onWebResourceError: (error) {
+          if (error.isForMainFrame == true) {
+            widget.onLoadFailed?.call();
+          }
+        },
       ),
     );
     final agent = await _controller.getUserAgent();

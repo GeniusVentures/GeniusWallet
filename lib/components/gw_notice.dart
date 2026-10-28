@@ -12,17 +12,39 @@ class GWNotice extends StatelessWidget {
     required this.title,
     required this.message,
     this.busy = false,
+    this.liveRegion = false,
     this.actions = const [],
   });
 
   final String title;
   final String message;
   final bool busy;
+
+  /// Announces the title and message when the notice appears.
+  final bool liveRegion;
   final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final text = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: GeniusWalletTypography.titleLg.copyWith(color: gw.textPrimary),
+        ),
+        const SizedBox(height: GeniusWalletConsts.space4),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: GeniusWalletTypography.bodyMd.copyWith(
+            color: gw.textSecondary,
+          ),
+        ),
+      ],
+    );
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(GeniusWalletConsts.space12),
@@ -35,21 +57,10 @@ class GWNotice extends StatelessWidget {
                 const Loading(),
                 const SizedBox(height: GeniusWalletConsts.space8),
               ],
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: GeniusWalletTypography.titleLg.copyWith(
-                  color: gw.textPrimary,
-                ),
-              ),
-              const SizedBox(height: GeniusWalletConsts.space4),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: GeniusWalletTypography.bodyMd.copyWith(
-                  color: gw.textSecondary,
-                ),
-              ),
+              if (liveRegion)
+                MergeSemantics(child: Semantics(liveRegion: true, child: text))
+              else
+                text,
               for (final action in actions) ...[
                 const SizedBox(height: GeniusWalletConsts.space6),
                 action,

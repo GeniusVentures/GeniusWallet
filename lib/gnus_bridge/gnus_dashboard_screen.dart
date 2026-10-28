@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart' show SgnsNet;
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/gw_notice.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
@@ -35,10 +36,24 @@ GnusBridgeHostKind gnusBridgeHostKind(String os, {required bool linuxWebKit}) =>
       _ => GnusBridgeHostKind.browser,
     };
 
+/// Builds the web view for [start]. The view reports its first finished page,
+/// a main-frame load failure, and an install that left no safe bridge.
 typedef GnusDashboardHostBuilder =
-    Widget Function(BuildContext context, Uri start);
+    Widget Function(
+      BuildContext context,
+      Uri start, {
+      required VoidCallback onLoaded,
+      required VoidCallback onFailed,
+      required VoidCallback onNoBridge,
+    });
 
-Widget defaultGnusDashboardHost(BuildContext context, Uri start) {
+Widget defaultGnusDashboardHost(
+  BuildContext context,
+  Uri start, {
+  required VoidCallback onLoaded,
+  required VoidCallback onFailed,
+  required VoidCallback onNoBridge,
+}) {
   const dev = kDebugMode && kShowDevTools;
   final handler = context.read<GnusRpcHandler>();
   final url = '$start';
@@ -51,6 +66,8 @@ Widget defaultGnusDashboardHost(BuildContext context, Uri start) {
       handler: handler,
       readNet: handler.readSgnsNet,
       dev: dev,
+      onPageFinished: onLoaded,
+      onLoadFailed: onFailed,
     ),
     GnusBridgeHostKind.windows => GnusBridgeViewWindows(
       url: url,
@@ -70,6 +87,25 @@ Widget defaultGnusDashboardHost(BuildContext context, Uri start) {
 
 typedef GnusBrowserLauncher = Future<bool> Function(Uri url, {LaunchMode mode});
 
+Future<void> _openInBrowser(
+  BuildContext context,
+  Future<Uri> Function() start,
+  GnusBrowserLauncher launcher,
+) async {
+  var opened = false;
+  try {
+    opened = await launcher(
+      await start(),
+      mode: LaunchMode.externalApplication,
+    );
+  } catch (e) {
+    debugPrint('Dashboard browser open failed: ${e.runtimeType}');
+  }
+  if (!opened && context.mounted) {
+    showToast(context, "Couldn't open your browser.", type: ToastType.error);
+  }
+}
+
 /// Opens the dashboard: the in-app screen, or the system browser where there is
 /// no in-app web view. The route reads no URL, so the page cannot be chosen from
 /// outside. The seams are for tests.
@@ -83,20 +119,13 @@ Future<void> openGnusDashboard(
     unawaited(context.push('/gnus-dashboard'));
     return;
   }
-  var opened = false;
-  try {
-    const dev = kDebugMode && kShowDevTools;
-    final net = await (readNet ?? context.read<GnusRpcHandler>().readSgnsNet)();
-    opened = await launcher(
-      gnusDashboardStart(net, dev: dev),
-      mode: LaunchMode.externalApplication,
-    );
-  } catch (e) {
-    debugPrint('Dashboard browser open failed: ${e.runtimeType}');
-  }
-  if (!opened && context.mounted) {
-    showToast(context, "Couldn't open your browser.", type: ToastType.error);
-  }
+  const dev = kDebugMode && kShowDevTools;
+  final net = readNet ?? context.read<GnusRpcHandler>().readSgnsNet;
+  await _openInBrowser(
+    context,
+    () async => gnusDashboardStart(await net(), dev: dev),
+    launcher,
+  );
 }
 
 /// Full-screen host for the dashboard web view, pinned to the start the
@@ -107,11 +136,13 @@ class GnusDashboardScreen extends StatefulWidget {
     required this.readNet,
     this.dev = kDebugMode && kShowDevTools,
     this.hostBuilder = defaultGnusDashboardHost,
+    this.launcher = launchUrl,
   });
 
   final Future<SgnsNet> Function() readNet;
   final bool dev;
   final GnusDashboardHostBuilder hostBuilder;
+  final GnusBrowserLauncher launcher;
 
   @override
   State<GnusDashboardScreen> createState() => _GnusDashboardScreenState();
@@ -119,6 +150,10 @@ class GnusDashboardScreen extends StatefulWidget {
 
 class _GnusDashboardScreenState extends State<GnusDashboardScreen> {
   Uri? _start;
+  bool _loaded = false;
+  bool _failed = false;
+  bool _noBridge = false;
+  int _hostKey = 0;
 
   @override
   void initState() {
@@ -132,10 +167,41 @@ class _GnusDashboardScreenState extends State<GnusDashboardScreen> {
       net = await widget.readNet();
     } catch (e) {
       debugPrint('Dashboard network unavailable: ${e.runtimeType}');
+      _onFailed();
       return;
     }
     if (mounted) {
       setState(() => _start = gnusDashboardStart(net, dev: widget.dev));
+    }
+  }
+
+  void _onLoaded() {
+    if (mounted && !_loaded) {
+      setState(() => _loaded = true);
+    }
+  }
+
+  void _onFailed() {
+    if (mounted) {
+      setState(() => _failed = true);
+    }
+  }
+
+  void _onNoBridge() {
+    if (mounted) {
+      setState(() => _noBridge = true);
+    }
+  }
+
+  // A fresh host is a fresh page and a fresh bridge session.
+  void _restart() {
+    setState(() {
+      _hostKey++;
+      _loaded = false;
+      _failed = false;
+    });
+    if (_start == null) {
+      unawaited(_resolve());
     }
   }
 
@@ -152,18 +218,93 @@ class _GnusDashboardScreenState extends State<GnusDashboardScreen> {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final start = _start;
+    final Widget body;
+    if (_noBridge && start != null) {
+      body = GWNotice(
+        liveRegion: true,
+        title: 'Open jobs and earnings in your browser',
+        message: "This device's web view can't connect to the wallet safely.",
+        actions: [
+          GWButton(
+            variant: GWButtonVariant.gradient,
+            expand: true,
+            label: 'Open in browser',
+            onPressed: () => unawaited(
+              _openInBrowser(context, () async => start, widget.launcher),
+            ),
+          ),
+          GWButton(
+            variant: GWButtonVariant.secondary,
+            expand: true,
+            label: 'Close',
+            onPressed: _close,
+          ),
+        ],
+      );
+    } else if (_failed) {
+      body = GWNotice(
+        liveRegion: true,
+        title: "Jobs and earnings didn't load",
+        message: 'Check your connection, then try again.',
+        actions: [
+          GWButton(
+            variant: GWButtonVariant.gradient,
+            expand: true,
+            label: 'Try again',
+            onPressed: _restart,
+          ),
+          GWButton(
+            variant: GWButtonVariant.secondary,
+            expand: true,
+            label: 'Close',
+            onPressed: _close,
+          ),
+        ],
+      );
+    } else if (start == null) {
+      body = const Center(child: Loading());
+    } else {
+      body = KeyedSubtree(
+        key: ValueKey(_hostKey),
+        child: widget.hostBuilder(
+          context,
+          start,
+          onLoaded: _onLoaded,
+          onFailed: _onFailed,
+          onNoBridge: _onNoBridge,
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: gw.surfaceBase,
       body: SafeArea(
         child: Column(
           children: [
             _DashboardHeader(host: start?.host, onClose: _close),
-            Expanded(
-              child: start == null
-                  ? const Center(child: Loading())
-                  : widget.hostBuilder(context, start),
-            ),
+            if (!_loaded && !_failed && !_noBridge) const _LoadingBar(),
+            Expanded(child: body),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadingBar extends StatelessWidget {
+  const _LoadingBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: 'Loading jobs and earnings',
+      child: ExcludeSemantics(
+        child: LinearProgressIndicator(
+          minHeight: 3,
+          color: gw.brandPrimaryOnSurface,
+          backgroundColor: gw.borderSubtle,
         ),
       ),
     );
