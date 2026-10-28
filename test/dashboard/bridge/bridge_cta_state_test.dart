@@ -137,6 +137,35 @@ void main() {
     );
   });
 
+  group('resolveBridgeCtaState — bridgeUnavailable rung', () {
+    test('a failed estimate on a chain with no bridge names the reason', () {
+      final state = resolveBridgeCtaState(
+        amount: '1',
+        balance: 10,
+        isEstimating: false,
+        hasEstimate: false,
+        isError: true,
+        bridgeUnavailable: true,
+        isSubmitting: false,
+      );
+      expect(state, BridgeCtaState.bridgeUnavailable);
+      expect(bridgeCtaEnabled(state), isFalse);
+      expect(bridgeCtaLabel(state), 'Not available on this network');
+    });
+
+    test('without the flag a failed estimate is still gasError', () {
+      final state = resolveBridgeCtaState(
+        amount: '1',
+        balance: 10,
+        isEstimating: false,
+        hasEstimate: false,
+        isError: true,
+        isSubmitting: false,
+      );
+      expect(state, BridgeCtaState.gasError);
+    });
+  });
+
   group('resolveBridgeCtaState — ready rung', () {
     test(
       'amount valid, transactionCost present, no error -> ready, ENABLED, label Bridge',

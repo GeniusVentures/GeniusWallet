@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart'
+    show bridgeUnavailableMessage;
 import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
@@ -46,6 +48,7 @@ class BridgeScreenState extends State<BridgeScreen> {
   Timer? _debounce;
   bool _isApiCallInProgress = false; // Track ongoing API calls
   bool isError = false;
+  bool isBridgeUnavailable = false;
   // Task 3: added state for the CTA ladder only -- true while the debounce
   // body's getBrigeOutGasCost call is in flight / while bridgeOut's submit
   // closure is awaiting. Neither call nor its arguments are touched by
@@ -450,6 +453,7 @@ class BridgeScreenState extends State<BridgeScreen> {
           toAmountController.clear();
           transactionCost = null;
           isError = false;
+          isBridgeUnavailable = false;
         });
       }
       // On FAILURE the entered amount is left in place so the user can
@@ -542,6 +546,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                   transactionCost = null;
                                   toAmountController.text = '';
                                   isError = true;
+                                  isBridgeUnavailable = false;
                                 });
                                 return;
                               }
@@ -551,6 +556,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 transactionCost = null;
                                 toAmountController.text = '';
                                 isError = true;
+                                isBridgeUnavailable = false;
                               });
                               return;
                             }
@@ -581,6 +587,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 toAmountController.text = value;
                                 transactionCost = gasCostResponse.data;
                                 isError = false;
+                                isBridgeUnavailable = false;
                                 isEstimating = false;
                               });
                             } else {
@@ -588,6 +595,9 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 transactionCost = null;
                                 toAmountController.text = '';
                                 isError = true;
+                                isBridgeUnavailable =
+                                    gasCostResponse.errorMessage ==
+                                    bridgeUnavailableMessage;
                                 isEstimating = false;
                               });
                             }
@@ -807,6 +817,7 @@ class BridgeScreenState extends State<BridgeScreen> {
       isEstimating: isEstimating,
       hasEstimate: transactionCost != null,
       isError: isError,
+      bridgeUnavailable: isBridgeUnavailable,
       isSubmitting: isSubmitting,
     );
     final label = bridgeCtaLabel(ctaState, symbol: fromToken?.symbol);
@@ -827,7 +838,8 @@ class BridgeScreenState extends State<BridgeScreen> {
 
     final isErrorTone =
         ctaState == BridgeCtaState.insufficientBalance ||
-        ctaState == BridgeCtaState.gasError;
+        ctaState == BridgeCtaState.gasError ||
+        ctaState == BridgeCtaState.bridgeUnavailable;
     final background = isErrorTone
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
