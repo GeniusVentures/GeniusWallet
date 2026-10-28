@@ -144,10 +144,7 @@ class GnusRpcHandler {
 
   /// The newest record of every burn this handler made, by
   /// `origin|idempotencyKey`. A same-key retry answers from here before the
-  /// store, so a failed or stale write can never let it burn twice.
-  // ponytail: memory only. If every write fails and the app restarts, the key
-  // is forgotten and a same-key retry burns again. Upgrade: a second store
-  // that is written before the burn.
+  /// store; after a restart the intent written before the burn stops it.
   final Map<String, GnusJob> _burned = {};
 
   final StreamController<GnusEvent> _events = StreamController.broadcast();
@@ -268,27 +265,33 @@ class GnusRpcHandler {
     }
   }
 
-  /// Keeps [job] as [slot]'s answer, then writes it. Never throws: the burn has
-  /// happened, so the reply must not depend on the write. A failed write is
-  /// retried in the background until a newer record for [slot] replaces it.
-  Future<void> _record(String slot, GnusJob job) {
+  /// Keeps [job] as [slot]'s answer, then writes it and the burn hash onto
+  /// [intent]. Never throws: the burn has happened, so the reply must not
+  /// depend on the write. A failed write is retried until a newer record wins.
+  Future<void> _record(String slot, GnusJob job, GnusSubmitIntent intent) {
     _burned[slot] = job;
-    return _write(slot, job, 1);
+    return _write(slot, job, intent.withBurn(job.burnTxHash), 1);
   }
 
-  Future<void> _write(String slot, GnusJob job, int attempt) async {
+  Future<void> _write(
+    String slot,
+    GnusJob job,
+    GnusSubmitIntent intent,
+    int attempt,
+  ) async {
     if (_disposed || !identical(_burned[slot], job)) {
       return;
     }
     try {
       await _putAnnouncing(job);
+      await _store.putIntent(intent);
     } catch (e) {
       debugPrint('gnus_rpc record write failed ${e.runtimeType} $attempt');
       if (attempt < _recordWriteAttempts) {
         unawaited(
           Future<void>.delayed(
             _recordRetryDelay * attempt,
-            () => _write(slot, job, attempt + 1),
+            () => _write(slot, job, intent, attempt + 1),
           ),
         );
       }
@@ -762,6 +765,31 @@ class GnusRpcHandler {
     data: {'reason': GnusRpcReason.submitInFlight},
   );
 
+  static const _keyReused = GnusRpcError(
+    GnusRpcCode.invalidParams,
+    'Idempotency key reused',
+    data: {'reason': GnusRpcReason.idempotencyKeyReused},
+  );
+
+  /// A submit for [idempotencyKey] began and its result was never recorded:
+  /// it may have burned. [intent] is null when its record is unreadable.
+  GnusRpcError _outcomeUnknown(
+    String idempotencyKey,
+    GnusSubmitIntent? intent,
+  ) => GnusRpcError(
+    GnusRpcCode.internal,
+    'Submission outcome unknown',
+    data: {
+      'reason': GnusRpcReason.submissionOutcomeUnknown,
+      'idempotencyKey': idempotencyKey,
+      'burnTxHash': intent?.burnTxHash,
+      'sdkAddress': intent?.sdkAddress,
+      'payer': intent?.payer,
+      'cost': intent?.cost,
+      'createdAt': intent?.createdAt.toIso8601String(),
+    },
+  );
+
   Future<Object?> _submitJob(String origin, Map<String, Object?> args) async {
     final job = _jobParam(args['job']);
     final idempotencyKey = _idempotencyKeyParam(args['idempotencyKey']);
@@ -779,13 +807,10 @@ class GnusRpcHandler {
         remembered != null && !remembered.submittedAt.isBefore(notBefore)
         ? remembered
         : _store.byIdempotencyKey(origin, idempotencyKey, notBefore: notBefore);
+    final bodyHash = gnusJobBodyHash(job);
     if (first != null) {
-      if (first.bodyHash != gnusJobBodyHash(job)) {
-        throw const GnusRpcError(
-          GnusRpcCode.invalidParams,
-          'Idempotency key reused',
-          data: {'reason': GnusRpcReason.idempotencyKeyReused},
-        );
+      if (first.bodyHash != bodyHash) {
+        throw _keyReused;
       }
       return _submitReply(
         first.burnTxHash,
@@ -793,6 +818,21 @@ class GnusRpcHandler {
         first.status,
         jobId: first.jobId,
       );
+    }
+    // An intent with no job record: the app died, or every write failed,
+    // after the intent was written. Whether it burned is unknown, so it must
+    // never burn again.
+    final GnusSubmitIntent? pending;
+    try {
+      pending = _store.intentFor(origin, idempotencyKey, notBefore: notBefore);
+    } on FormatException {
+      throw _outcomeUnknown(idempotencyKey, null);
+    }
+    if (pending != null) {
+      if (pending.bodyHash != bodyHash) {
+        throw _keyReused;
+      }
+      throw _outcomeUnknown(idempotencyKey, pending);
     }
     if (_inFlightSlot != null) {
       throw _submitInFlight();
@@ -932,6 +972,23 @@ class GnusRpcHandler {
 
     final submittedAt = _now().toUtc();
     final bodyHash = gnusJobBodyHash(job);
+    final intent = GnusSubmitIntent(
+      origin: origin,
+      idempotencyKey: idempotencyKey,
+      bodyHash: bodyHash,
+      payer: payer,
+      sdkAddress: nodeAccount,
+      cost: cost,
+      createdAt: submittedAt,
+    );
+    // Fails closed: with no durable intent, a restart would forget this key
+    // and a same-key retry could burn twice.
+    try {
+      await _store.putIntent(intent);
+    } catch (e) {
+      debugPrint('gnus_rpc intent write failed ${e.runtimeType}');
+      throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
+    }
     GnusJob record(String burnTxHash, GnusJobStatus status) => GnusJob(
       jobId: null,
       burnTxHash: burnTxHash,
@@ -951,18 +1008,22 @@ class GnusRpcHandler {
       facts,
       jobCost: minions,
       jobJson: job,
-      onBurned: (burnHash) =>
-          _record(slot, record(burnHash, GnusJobStatus.bridgedNotProcessed)),
+      onBurned: (burnHash) => _record(
+        slot,
+        record(burnHash, GnusJobStatus.bridgedNotProcessed),
+        intent,
+      ),
       expectedNode: nodeAccount,
     );
     switch (result) {
       case JobDone(:final txHash):
-        await _record(slot, record(txHash, GnusJobStatus.submitted));
+        await _record(slot, record(txHash, GnusJobStatus.submitted), intent);
         return _submitReply(txHash, nodeAccount, GnusJobStatus.submitted);
       case JobBridgedNotProcessed(:final bridgeHash):
         await _record(
           slot,
           record(bridgeHash, GnusJobStatus.bridgedNotProcessed),
+          intent,
         );
         return _submitReply(
           bridgeHash,
@@ -970,15 +1031,28 @@ class GnusRpcHandler {
           GnusJobStatus.bridgedNotProcessed,
         );
       case JobBridgeFailed():
+        await _dropIntent(origin, idempotencyKey);
         throw const GnusRpcError(GnusRpcCode.bridgeFailed, 'Bridge failed');
       case JobBusy():
+        await _dropIntent(origin, idempotencyKey);
         throw _submitInFlight();
       case JobMissingData():
+        await _dropIntent(origin, idempotencyKey);
         throw const GnusRpcError(
           GnusRpcCode.internal,
           'Wallet not ready',
           data: {'reason': GnusRpcReason.missingData},
         );
+    }
+  }
+
+  /// Nothing burned, so the key may be retried. A failed delete leaves the
+  /// intent, and a retry is then refused rather than risking a second burn.
+  Future<void> _dropIntent(String origin, String idempotencyKey) async {
+    try {
+      await _store.deleteIntent(origin, idempotencyKey);
+    } catch (e) {
+      debugPrint('gnus_rpc intent delete failed ${e.runtimeType}');
     }
   }
 

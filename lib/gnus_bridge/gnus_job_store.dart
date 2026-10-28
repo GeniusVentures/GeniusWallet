@@ -114,6 +114,99 @@ class GnusJob {
   }
 }
 
+/// A submit the wallet is about to burn for, written before the burn so a
+/// restart can never forget the key. [burnTxHash] is set once the burn lands.
+/// Like [GnusJob], it holds no job body, key or mnemonic.
+class GnusSubmitIntent {
+  const GnusSubmitIntent({
+    required this.origin,
+    required this.idempotencyKey,
+    required this.bodyHash,
+    required this.payer,
+    required this.sdkAddress,
+    required this.cost,
+    required this.createdAt,
+    this.burnTxHash,
+  });
+
+  final String origin;
+  final String idempotencyKey;
+  final String bodyHash;
+  final String payer;
+  final String sdkAddress;
+  final String cost;
+  final DateTime createdAt;
+  final String? burnTxHash;
+
+  GnusSubmitIntent withBurn(String burnTxHash) => GnusSubmitIntent(
+    origin: origin,
+    idempotencyKey: idempotencyKey,
+    bodyHash: bodyHash,
+    payer: payer,
+    sdkAddress: sdkAddress,
+    cost: cost,
+    createdAt: createdAt,
+    burnTxHash: burnTxHash,
+  );
+
+  String encode() => jsonEncode({
+    'v': 1,
+    'origin': origin,
+    'idempotencyKey': idempotencyKey,
+    'bodyHash': bodyHash,
+    'payer': payer,
+    'sdkAddress': sdkAddress,
+    'cost': cost,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'burnTxHash': burnTxHash,
+    'status': 'pending',
+  });
+
+  /// Null on any malformed value; never throws.
+  static GnusSubmitIntent? decode(String raw) {
+    try {
+      final map = jsonDecode(raw);
+      if (map is! Map) {
+        return null;
+      }
+      final origin = map['origin'];
+      final idempotencyKey = map['idempotencyKey'];
+      final bodyHash = map['bodyHash'];
+      final payer = map['payer'];
+      final sdkAddress = map['sdkAddress'];
+      final cost = map['cost'];
+      final createdAt = map['createdAt'];
+      final burnTxHash = map['burnTxHash'];
+      if (origin is! String ||
+          idempotencyKey is! String ||
+          bodyHash is! String ||
+          payer is! String ||
+          sdkAddress is! String ||
+          cost is! String ||
+          createdAt is! String ||
+          (burnTxHash != null && burnTxHash is! String)) {
+        return null;
+      }
+      final at = DateTime.tryParse(createdAt);
+      if (at == null) {
+        return null;
+      }
+      return GnusSubmitIntent(
+        origin: origin,
+        idempotencyKey: idempotencyKey,
+        bodyHash: bodyHash,
+        payer: payer,
+        sdkAddress: sdkAddress,
+        cost: cost,
+        createdAt: at.toUtc(),
+        burnTxHash: burnTxHash as String?,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 /// sha256 of the job encoded with its keys sorted at every depth, so the same
 /// job hashes the same whatever order its keys arrived in.
 String gnusJobBodyHash(Map<String, dynamic> job) =>
@@ -131,7 +224,8 @@ Object? _canonical(Object? value) {
 }
 
 /// The wallet's own record of jobs submitted over gnus: one JSON string per
-/// burn, keyed by the lowercased burn hash. Reads and writes records only.
+/// burn, keyed by the lowercased burn hash, plus one submit intent per origin
+/// and idempotency key under [_intentPrefix]. Reads and writes records only.
 class GnusJobStore {
   GnusJobStore(this._box);
 
@@ -141,8 +235,44 @@ class GnusJobStore {
 
   final Box<String> _box;
 
+  static const _intentPrefix = 'intent:';
+
   Future<void> put(GnusJob job) =>
       _box.put(job.burnTxHash.toLowerCase(), job.encode());
+
+  // Hashed: an origin plus a 128-character key can pass Hive's 255-byte key cap.
+  static String _intentKey(String origin, String key) =>
+      '$_intentPrefix${sha256.convert(utf8.encode('$origin|$key'))}';
+
+  Future<void> putIntent(GnusSubmitIntent intent) => _box.put(
+    _intentKey(intent.origin, intent.idempotencyKey),
+    intent.encode(),
+  );
+
+  Future<void> deleteIntent(String origin, String key) =>
+      _box.delete(_intentKey(origin, key));
+
+  /// The intent [origin] wrote for [key], not older than [notBefore] when
+  /// given. Throws [FormatException] for one it cannot read, so a damaged
+  /// record can never pass for no record.
+  GnusSubmitIntent? intentFor(
+    String origin,
+    String key, {
+    DateTime? notBefore,
+  }) {
+    final raw = _box.get(_intentKey(origin, key));
+    if (raw == null) {
+      return null;
+    }
+    final intent = GnusSubmitIntent.decode(raw);
+    if (intent == null) {
+      throw const FormatException('unreadable submit intent');
+    }
+    if (notBefore != null && intent.createdAt.isBefore(notBefore)) {
+      return null;
+    }
+    return intent;
+  }
 
   GnusJob? byBurnHash(String burnTxHash) {
     final raw = _box.get(burnTxHash.toLowerCase());
@@ -206,8 +336,12 @@ class GnusJobStore {
   List<GnusJob> _records() {
     final jobs = <GnusJob>[];
     var skipped = 0;
-    for (final raw in _box.values) {
-      final job = GnusJob.decode(raw);
+    for (final key in _box.keys) {
+      if (key is String && key.startsWith(_intentPrefix)) {
+        continue;
+      }
+      final raw = _box.get(key);
+      final job = raw == null ? null : GnusJob.decode(raw);
       if (job == null) {
         skipped++;
       } else {

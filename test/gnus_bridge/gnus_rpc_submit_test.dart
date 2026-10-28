@@ -374,7 +374,7 @@ void main() {
         'same-key retry does not burn again', () async {
       final h = await harness();
       final handler = h.build();
-      h.store.failWrites = true;
+      h.api.onBurn = () => h.store.failWrites = true;
 
       final first = await viaDirect(handler, _origin, _submit, _params());
       final second = await viaJson(handler, _origin, _submit, _params());
@@ -410,6 +410,54 @@ void main() {
         expect(h.api.count('burn'), 1);
       },
     );
+
+    test(
+      'an intent that cannot be written is -32603 and nothing burns',
+      () async {
+        final h = await harness();
+        h.store.failWrites = true;
+
+        final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+        expect(_error(reply)['code'], GnusRpcCode.internal);
+        expect(_error(reply)['data'], isNull);
+        expect(h.api.count('burn'), 0);
+      },
+    );
+
+    test('writes failing after the burn, then a restart: the same key is '
+        'outcome unknown and never burns again', () async {
+      final h = await harness();
+      final first = h.build();
+      h.api.onBurn = () => h.store.failWrites = true;
+      await viaDirect(first, _origin, _submit, _params());
+      await first.dispose();
+      h.store.failWrites = false;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.internal);
+      expect(_error(reply)['data'], {
+        'reason': GnusRpcReason.submissionOutcomeUnknown,
+        'idempotencyKey': 'key-1',
+        'burnTxHash': null,
+        'sdkAddress': gnusTestNode.toLowerCase(),
+        'payer': gnusTestWalletAddress.toLowerCase(),
+        'cost': '1234000000000000000000',
+        'createdAt': h.clock.toIso8601String(),
+      });
+      expect(h.api.count('burn'), 1);
+    });
+
+    test('a replay after a restart still answers the first result', () async {
+      final h = await harness();
+      final first = await viaDirect(h.build(), _origin, _submit, _params());
+
+      final again = await viaDirect(h.build(), _origin, _submit, _params());
+
+      expect(again, equals(first));
+      expect(h.api.count('burn'), 1);
+    });
 
     test('the same key after 24 hours runs again', () async {
       final h = await harness();

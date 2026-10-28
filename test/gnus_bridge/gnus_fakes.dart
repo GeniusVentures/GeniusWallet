@@ -65,6 +65,9 @@ class FakeGnusApi implements GeniusApi {
   /// Runs when the process call starts, before it answers.
   Future<void> Function()? onProcess;
 
+  /// Runs when the burn lands, before it answers.
+  void Function()? onBurn;
+
   /// Ordered: `cost`, `gas`, `burn`, `process`.
   final List<String> calls = [];
 
@@ -125,6 +128,7 @@ class FakeGnusApi implements GeniusApi {
     bool shouldMintTokens = false,
   }) async {
     calls.add('burn');
+    onBurn?.call();
     return burnResponse;
   }
 
@@ -214,6 +218,14 @@ class FlakyGnusJobStore extends GnusJobStore {
       throw const FileSystemException('disk full');
     }
     await super.put(job);
+  }
+
+  @override
+  Future<void> putIntent(GnusSubmitIntent intent) async {
+    if (failWrites) {
+      throw const FileSystemException('disk full');
+    }
+    await super.putIntent(intent);
   }
 }
 
