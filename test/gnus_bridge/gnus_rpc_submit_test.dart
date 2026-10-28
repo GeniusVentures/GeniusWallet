@@ -124,6 +124,78 @@ void main() {
     expect(next['result'], isNotNull);
   });
 
+  group('a caller with a deadline', () {
+    Map<String, Object?>? reply;
+
+    Future<void> call(GnusRpcHandler handler, Duration replyWithin) async {
+      try {
+        reply = {
+          'result': await handler.handle(
+            _origin,
+            _submit,
+            _params(),
+            replyWithin: replyWithin,
+          ),
+        };
+      } on GnusRpcError catch (e) {
+        reply = {'error': e.toJson()};
+      }
+    }
+
+    setUp(() => reply = null);
+
+    test('a confirm answered too late to burn is 4001 and spends '
+        'nothing', () async {
+      final h = await harness();
+      final handler = h.build(
+        confirm:
+            ({
+              required origin,
+              required cost,
+              required gas,
+              required payer,
+              required nodeAccount,
+              required network,
+            }) async {
+              h.clock = h.clock.add(const Duration(minutes: 13));
+              return true;
+            },
+      );
+
+      await call(handler, const Duration(minutes: 15));
+
+      expect(_error(reply!)['code'], GnusRpcCode.userRejected);
+      expect(_error(reply!)['data'], {'reason': GnusRpcReason.requestExpired});
+      expect(h.api.count('burn'), 0);
+      expect(h.store.unresolvedIntent(_origin.value, 'key-1'), isNull);
+    });
+
+    test('a connect prompt that used the budget shows no confirm', () async {
+      final h = await harness();
+      final handler = h.build(
+        connect: ({required origin}) async {
+          h.clock = h.clock.add(const Duration(minutes: 13));
+          return true;
+        },
+      );
+
+      await call(handler, const Duration(minutes: 15));
+
+      expect(_error(reply!)['data'], {'reason': GnusRpcReason.requestExpired});
+      expect(h.confirms, isEmpty);
+      expect(h.api.count('burn'), 0);
+    });
+
+    test('a confirm with time to spare burns', () async {
+      final h = await harness();
+
+      await call(h.build(), const Duration(minutes: 15));
+
+      expect(reply!['result'], isNotNull);
+      expect(h.api.count('burn'), 1);
+    });
+  });
+
   test('the default confirm rejects and nothing burns', () async {
     final h = await harness();
 

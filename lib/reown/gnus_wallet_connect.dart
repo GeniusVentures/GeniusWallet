@@ -11,6 +11,13 @@ import 'package:reown_walletkit/reown_walletkit.dart';
 const String kGnusWalletConnectChain = 'eip155:80002';
 const int kGnusWalletConnectChainId = 80002;
 
+/// How long a `gnus_*` request stays answerable: the contract's page expiry
+/// for the calls that wait on a person.
+const Duration kGnusWalletConnectLifetime = Duration(seconds: 900);
+
+// What reown_sign gives a pending request when its expiry cannot be raised.
+const Duration _reownPendingLifetime = Duration(minutes: 5);
+
 const Set<String> _gnusEvents = {
   GnusRpcEventName.accountsChanged,
   GnusRpcEventName.networkChanged,
@@ -213,12 +220,18 @@ void Function() handleGnusRequests({
   Future<JsonRpcResponse<Object>> answer(
     SessionRequestEvent event,
     GnusOrigin origin,
+    Duration lifetime,
   ) async {
     final name = GnusRpcMethod.all.contains(event.method)
         ? event.method
         : 'unsupported';
     try {
-      final result = await handler.handle(origin, event.method, event.params);
+      final result = await handler.handle(
+        origin,
+        event.method,
+        event.params,
+        replyWithin: lifetime,
+      );
       // A null result cannot be sent: the Dart client reads it as "no result".
       return JsonRpcResponse<Object>(
         id: event.id,
@@ -245,14 +258,16 @@ void Function() handleGnusRequests({
     }
     try {
       // ponytail: reown_sign fixes a wallet-side pending request at 5
-      // minutes, whatever the page asked. Raise it past the prompt timeout;
-      // drop this once Reown honours the request's own expiry.
+      // minutes, whatever the page asked. Raise it to the page's own expiry;
+      // drop this once Reown honours the request's expiry.
+      var lifetime = kGnusWalletConnectLifetime;
       try {
         await walletKit.core.expirer.set(
           event.id.toString(),
-          ReownCoreUtils.calculateExpiry(kGnusConfirmTimeout.inSeconds + 60),
+          ReownCoreUtils.calculateExpiry(lifetime.inSeconds),
         );
       } catch (e) {
+        lifetime = _reownPendingLifetime;
         debugPrint('gnus_wc expiry not raised ${e.runtimeType}');
       }
       final session = walletKit.getActiveSessions()[event.topic];
@@ -261,7 +276,7 @@ void Function() handleGnusRequests({
           : gnusSessionOrigin(session, devBuild: devBuild);
       final response = origin == null
           ? _errorResponse(event.id, _unauthorized)
-          : await answer(event, origin);
+          : await answer(event, origin, lifetime);
       await reply(event.topic, response);
     } finally {
       inFlight.remove(key);

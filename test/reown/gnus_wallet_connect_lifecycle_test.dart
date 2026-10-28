@@ -63,8 +63,12 @@ class _OrderedKit extends FakeWalletKit {
 /// A handler that fails in a way the contract never does.
 class _ThrowingHandler implements GnusRpcHandler {
   @override
-  Future<Object?> handle(GnusOrigin origin, String method, Object? params) =>
-      Future.error(StateError('boom'));
+  Future<Object?> handle(
+    GnusOrigin origin,
+    String method,
+    Object? params, {
+    Duration? replyWithin,
+  }) => Future.error(StateError('boom'));
 
   @override
   Stream<GnusEvent> eventsFor(GnusOrigin origin) => const Stream.empty();
@@ -324,8 +328,8 @@ void main() {
   });
 
   group('a slow prompt stays answerable', () {
-    test('every gnus request gets an expiry past the prompt timeout, before '
-        'the handler runs', () async {
+    test('every gnus request gets the page expiry, before the handler '
+        'runs', () async {
       final seen = <bool>[];
       attach(
         connect: ({required GnusOrigin origin}) async {
@@ -339,7 +343,7 @@ void main() {
       await pumpEventQueue();
 
       final soonest = ReownCoreUtils.calculateExpiry(
-        kGnusConfirmTimeout.inSeconds + 55,
+        kGnusWalletConnectLifetime.inSeconds - 5,
       );
       expect(seen, [true]);
       expect(kit.core.expirer.expiries['7'], greaterThan(soonest));

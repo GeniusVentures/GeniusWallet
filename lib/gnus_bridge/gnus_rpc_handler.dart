@@ -34,6 +34,10 @@ const Duration _promptWindow = Duration(minutes: 1);
 /// completes cannot hold the wallet's one burn slot.
 const Duration kGnusConfirmTimeout = Duration(minutes: 10);
 
+/// The time a burn needs after its confirm: sign, send, settle the receipt
+/// and answer. A caller with less time left is refused before anything spends.
+const Duration kGnusBurnReserve = Duration(minutes: 3);
+
 /// The seam that decides whether a submit may spend. [cost] and [gas] are the
 /// contract values, [payer] and [nodeAccount] lowercased addresses, [network]
 /// the name of the chain the burn is sent on. After
@@ -100,6 +104,11 @@ class GnusEvent {
 /// What one call has done so far. Per call, never shared: concurrent calls
 /// each hold their own.
 class _CallScope {
+  _CallScope(this.deadline);
+
+  /// When the caller stops waiting for the answer; null waits as long as it
+  /// takes.
+  final DateTime? deadline;
   bool connected = false;
 }
 
@@ -355,14 +364,18 @@ class GnusRpcHandler {
   );
 
   /// Answers one call. [origin] comes from [GnusOrigin.parse], so a transport
-  /// cannot pass one that is not canonical.
+  /// cannot pass one that is not canonical. [replyWithin] is how long the
+  /// caller waits; a submit that could not answer inside it never burns.
   Future<Object?> handle(
     GnusOrigin origin,
     String method,
-    Object? params,
-  ) async {
+    Object? params, {
+    Duration? replyWithin,
+  }) async {
     final name = GnusRpcMethod.all.contains(method) ? method : 'unsupported';
-    final scope = _CallScope();
+    final scope = _CallScope(
+      replyWithin == null ? null : _now().add(replyWithin),
+    );
     try {
       final result = await _dispatch(origin, method, params, scope);
       _requireStillConnected(origin, scope);
@@ -1064,6 +1077,7 @@ class GnusRpcHandler {
     try {
       return await _burnAndRecord(
         origin,
+        scope,
         job,
         idempotencyKey,
         nodeAccount,
@@ -1076,6 +1090,7 @@ class GnusRpcHandler {
 
   Future<Object?> _burnAndRecord(
     GnusOrigin origin,
+    _CallScope scope,
     Map<String, dynamic> job,
     String idempotencyKey,
     String nodeAccount,
@@ -1169,6 +1184,9 @@ class GnusRpcHandler {
     }
     final gas = gasPrice.gas;
 
+    // The connect prompt and the confirm share the caller's one deadline, so
+    // a spend that could no longer be answered is not even asked for.
+    _requireTimeToBurn(scope);
     final confirmed = await _prompt(
       origin,
       () => _confirm(
@@ -1194,6 +1212,7 @@ class GnusRpcHandler {
       chainId: facts.chainId,
       pricedByFixture: priced.fixtureBalance != null,
     );
+    _requireTimeToBurn(scope);
 
     final submittedAt = _now().toUtc();
     final bodyHash = gnusJobBodyHash(job);
@@ -1297,6 +1316,19 @@ class GnusRpcHandler {
           'Wallet not ready',
           data: {'reason': GnusRpcReason.missingData},
         );
+    }
+  }
+
+  /// Refuses, before anything is spent, a burn whose answer would reach a
+  /// caller that has stopped waiting. Like an unanswered prompt, it is 4001.
+  void _requireTimeToBurn(_CallScope scope) {
+    final deadline = scope.deadline;
+    if (deadline != null && deadline.difference(_now()) < kGnusBurnReserve) {
+      throw const GnusRpcError(
+        GnusRpcCode.userRejected,
+        'Request expired',
+        data: {'reason': GnusRpcReason.requestExpired},
+      );
     }
   }
 
