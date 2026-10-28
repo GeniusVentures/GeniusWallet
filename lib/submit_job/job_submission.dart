@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart'
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/web3/bridge_out_abi.dart'
-    show bridgeUnavailableMessage;
+    show bridgeCreditFailedMessage, bridgeUnavailableMessage;
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
@@ -269,6 +269,13 @@ class JobSubmission {
     final txHash = resp.data;
     if (resp.reverted) {
       return const JobBridgeFailed(reverted: true);
+    }
+    // Burned, but the wallet's own mint did not credit the account.
+    if (txHash != null && resp.errorMessage == bridgeCreditFailedMessage) {
+      return JobBridgedNotProcessed(
+        txHash,
+        GeniusNodeReturnValue.GENIUS_NODE_ERROR_MINT,
+      );
     }
     if (!resp.isSuccess && txHash != null) {
       return JobBurnUnconfirmed(txHash);

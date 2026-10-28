@@ -378,7 +378,6 @@ class BridgeScreenState extends State<BridgeScreen> {
         address: state.selectedWallet?.address ?? "",
         amountToBurn: fromAmountController.text,
         destinationChainId: toNetwork?.chainId ?? 0,
-        shouldMintTokens: true,
       );
 
       if (!context.mounted) {

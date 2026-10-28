@@ -19,6 +19,17 @@ const bridgeAccountNotReadyMessage =
     'Your Genius account is not ready. Try again in a moment.';
 const bridgeLookupFailedMessage =
     "Could not check this network's bridge. Try again.";
+const bridgeCreditFailedMessage =
+    'The GNUS left this network but was not credited to your Genius account.';
+
+/// Whether the wallet itself must credit a confirmed burn on SuperGenius. The
+/// relayer mints from the 5-arg event to `sgnsDestination`; nothing picks up
+/// the 3-arg `BridgeSourceBurned`, so there the wallet mints.
+// ponytail: relies on the relayer ignoring 3-arg events, and SuperGenius
+// cross-node mint dedup is unconfirmed (wallet and relayer key a mint on
+// different chain ids). If the relayer starts handling 3-arg burns, this
+// must return false for both forms or the burn is credited twice.
+bool walletCreditsBurn(BridgeOutForm form) => form == BridgeOutForm.threeArg;
 
 final _fiveArgAbi = ContractAbi.fromJson('''
   [
@@ -127,6 +138,7 @@ Future<BridgeOutForm?> bridgeOutForm(
 }
 
 typedef BridgeOutCall = ({
+  BridgeOutForm form,
   DeployedContract contract,
   ContractFunction function,
   List<Object> params,
@@ -157,6 +169,7 @@ Future<ApiResponse<BridgeOutCall>> resolveBridgeOutCall({
       return ApiResponse.error(bridgeUnavailableMessage);
     case BridgeOutForm.threeArg:
       return ApiResponse.success((
+        form: BridgeOutForm.threeArg,
         contract: DeployedContract(_threeArgAbi, contract),
         function: bridgeOutThreeArgFunction,
         params: head,
@@ -167,6 +180,7 @@ Future<ApiResponse<BridgeOutCall>> resolveBridgeOutCall({
         return ApiResponse.error(bridgeAccountNotReadyMessage);
       }
       return ApiResponse.success((
+        form: BridgeOutForm.fiveArg,
         contract: DeployedContract(_fiveArgAbi, contract),
         function: bridgeOutFiveArgFunction,
         params: [...head, dest.x, dest.yOdd],

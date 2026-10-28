@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart'
+    show bridgeCreditFailedMessage;
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 import 'package:genius_wallet/submit_job/job_submission.dart';
@@ -85,7 +87,6 @@ class _FakeGeniusApi implements GeniusApi {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
-    bool shouldMintTokens = false,
     String? sgnsAccount,
     Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
@@ -262,6 +263,25 @@ void main() {
 
       expect(result, isA<JobBurnUnconfirmed>());
       expect((result as JobBurnUnconfirmed).bridgeHash, '0xHASH');
+      expect(api.processed, isEmpty);
+    });
+
+    test('a burn the wallet could not credit keeps the hash and does not '
+        'process', () async {
+      api.bridgeOutResponse = ApiResponse.unconfirmed(
+        '0xHASH',
+        bridgeCreditFailedMessage,
+      );
+
+      final result = await owner.submit(_facts, jobCost: 10, jobJson: _job);
+
+      expect(result, isA<JobBridgedNotProcessed>());
+      final bridged = result as JobBridgedNotProcessed;
+      expect(bridged.bridgeHash, '0xHASH');
+      expect(
+        bridged.processResult,
+        GeniusNodeReturnValue.GENIUS_NODE_ERROR_MINT,
+      );
       expect(api.processed, isEmpty);
     });
 

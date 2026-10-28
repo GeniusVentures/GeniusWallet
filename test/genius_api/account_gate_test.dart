@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 
 final _recorded = '0x${'a' * 128}';
@@ -44,7 +46,32 @@ class _GateApi extends GeniusApi {
     events.add('process done');
     return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
+
+  GeniusNodeReturnValue mintResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+
+  @override
+  GeniusNodeReturnValue mintTokens(
+    int amount,
+    String transactionHash,
+    String chainId,
+    String tokenId,
+  ) {
+    events.add('mint $amount $transactionHash on $chainId as $account');
+    return mintResult;
+  }
 }
+
+Future<ApiResponse<String>> _credit(
+  _GateApi api,
+  BridgeOutForm form, {
+  ApiResponse<String>? burn,
+}) => api.creditBurn(
+  burn ?? ApiResponse.success('0xBURN'),
+  form: form,
+  minions: 5000000,
+  account: _recorded,
+  chainId: 7,
+);
 
 void main() {
   test('a switch requested after the check waits until Process ends', () async {
@@ -91,5 +118,66 @@ void main() {
 
     expect(result, isNull);
     expect(api.events, ['switch']);
+  });
+
+  group('crediting a burn', () {
+    test(
+      'a 5-arg burn is left to the relayer: the wallet never mints',
+      () async {
+        final api = _GateApi();
+
+        final result = await _credit(api, BridgeOutForm.fiveArg);
+
+        expect(result.isSuccess, isTrue);
+        expect(result.data, '0xBURN');
+        expect(api.events, isEmpty);
+      },
+    );
+
+    test('a 3-arg burn is minted once, as the confirmed account', () async {
+      final api = _GateApi();
+
+      final result = await _credit(api, BridgeOutForm.threeArg);
+
+      expect(result.isSuccess, isTrue);
+      expect(result.data, '0xBURN');
+      expect(api.events, ['mint 5000000 0xBURN on 7 as $_recorded']);
+    });
+
+    test('a switch queued ahead of the mint leaves the burn recoverable, '
+        'never minted for the other account', () async {
+      final api = _GateApi();
+
+      final switching = api.selectGeniusAccountAsync(_other);
+      final result = await _credit(api, BridgeOutForm.threeArg);
+      await switching;
+
+      expect(api.events, ['switch']);
+      expect(result.isSuccess, isFalse);
+      expect(result.reverted, isFalse);
+      expect(result.data, '0xBURN');
+      expect(result.errorMessage, bridgeCreditFailedMessage);
+    });
+
+    test('a failed mint keeps the hash as a recoverable outcome', () async {
+      final api = _GateApi()
+        ..mintResult = GeniusNodeReturnValue.GENIUS_NODE_ERROR_MINT;
+
+      final result = await _credit(api, BridgeOutForm.threeArg);
+
+      expect(result.isSuccess, isFalse);
+      expect(result.data, '0xBURN');
+      expect(result.errorMessage, bridgeCreditFailedMessage);
+    });
+
+    test('an unconfirmed 3-arg burn is not minted', () async {
+      final api = _GateApi();
+      final burn = ApiResponse.unconfirmed('0xBURN', 'reset');
+
+      final result = await _credit(api, BridgeOutForm.threeArg, burn: burn);
+
+      expect(result, same(burn));
+      expect(api.events, isEmpty);
+    });
   });
 }

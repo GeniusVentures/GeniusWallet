@@ -27,6 +27,7 @@ import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart';
 import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -1092,9 +1093,13 @@ class GeniusApi {
     final tokenIdData = calloc<GeniusTokenID>();
 
     // Parse hex string token_id and fill the data array
-    String cleanTokenId = tokenId.startsWith('0x')
-        ? tokenId.substring(2)
-        : tokenId;
+    // Padded to the full 32 bytes: a short id such as '0' would otherwise
+    // read past its end.
+    String cleanTokenId =
+        (tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId).padLeft(
+          64,
+          '0',
+        );
 
     for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
       String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
@@ -1185,13 +1190,21 @@ class GeniusApi {
   Future<GeniusNodeReturnValue?> requestGeniusSDKProcessAsAccount({
     required String jobJson,
     required String expectedAccount,
-  }) => _accountGate.run(() async {
-    if (getSelectedAccountAddress()?.toLowerCase() !=
-        expectedAccount.toLowerCase()) {
-      return null;
-    }
-    return requestGeniusSDKProcessAsync(jobJson: jobJson);
-  });
+  }) => _asAccount(
+    expectedAccount,
+    () => requestGeniusSDKProcessAsync(jobJson: jobJson),
+  );
+
+  /// Runs [op] under the account gate only if the SDK runs as
+  /// [expectedAccount]; null when it does not.
+  Future<T?> _asAccount<T>(String expectedAccount, Future<T> Function() op) =>
+      _accountGate.run(() async {
+        if (getSelectedAccountAddress()?.toLowerCase() !=
+            expectedAccount.toLowerCase()) {
+          return null;
+        }
+        return op();
+      });
 
   /// Resolves once an in-flight process call has finished, or after [timeout],
   /// so a burned job does not meet a shut-down node. The window-close path
@@ -2048,9 +2061,9 @@ class GeniusApi {
     }
   }
 
-  /// Burns [amountToBurn], crediting [sgnsAccount] (default: the selected
-  /// account). [beforeBroadcast] gets the signed hash before the send and a
-  /// throw cancels it. A failure that carries data may be on chain.
+  /// Burns [amountToBurn] and credits [sgnsAccount] (default: the account
+  /// selected at the call). [beforeBroadcast] gets the signed hash before the
+  /// send and a throw cancels it. A failure that carries data may be on chain.
   Future<ApiResponse<String>> bridgeOut({
     required String contractAddress,
     required String rpcUrl,
@@ -2058,13 +2071,16 @@ class GeniusApi {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
-    bool shouldMintTokens = false,
     String? sgnsAccount,
     Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
-    final mintMinions = gnusToMinions(amountToBurn);
-    if (shouldMintTokens && mintMinions == null) {
+    final account = sgnsAccount ?? getSelectedAccountAddress();
+    final minions = gnusToMinions(amountToBurn);
+    if (minions == null) {
       return ApiResponse.error("Error: Invalid amount");
+    }
+    if (account == null) {
+      return ApiResponse.error(bridgeAccountNotReadyMessage);
     }
 
     final wallet = await _secureStorage.getWallet(address);
@@ -2073,29 +2089,58 @@ class GeniusApi {
       return ApiResponse.error("Error: Could not find Wallet");
     }
 
-    final resp = await Web3(geniusApi: this).executeBridgeOutTransaction(
-      contractAddress: contractAddress,
-      rpcUrl: rpcUrl,
-      amountToBurn: amountToBurn,
-      sourceChainId: sourceChainId,
-      destinationChainId: destinationChainId,
-      sgnsAccount: sgnsAccount ?? getSelectedAccountAddress(),
-      wallet: wallet,
-      beforeBroadcast: beforeBroadcast,
+    final (:burn, :form) = await Web3(geniusApi: this)
+        .executeBridgeOutTransaction(
+          contractAddress: contractAddress,
+          rpcUrl: rpcUrl,
+          amountToBurn: amountToBurn,
+          sourceChainId: sourceChainId,
+          destinationChainId: destinationChainId,
+          sgnsAccount: account,
+          wallet: wallet,
+          beforeBroadcast: beforeBroadcast,
+        );
+
+    return creditBurn(
+      burn,
+      form: form,
+      minions: minions,
+      account: account,
+      chainId: destinationChainId,
     );
+  }
 
-    if (shouldMintTokens && resp.isSuccess && resp.data != null) {
-      final hardCodedTokenIdForNow = 0;
-
-      mintTokens(
-        mintMinions!,
-        resp.data!,
-        destinationChainId.toString(),
-        '$hardCodedTokenIdForNow',
-      );
+  /// Mints a confirmed [burn] as [account] where [walletCreditsBurn] says the
+  /// wallet must. A mint that fails or finds another account selected keeps
+  /// the hash as a recoverable [bridgeCreditFailedMessage], never a success.
+  @visibleForTesting
+  Future<ApiResponse<String>> creditBurn(
+    ApiResponse<String> burn, {
+    required BridgeOutForm? form,
+    required int minions,
+    required String account,
+    required int chainId,
+  }) async {
+    final hash = burn.data;
+    if (!burn.isSuccess || hash == null || form == null) {
+      return burn;
     }
-
-    return resp;
+    if (!walletCreditsBurn(form)) {
+      return burn;
+    }
+    GeniusNodeReturnValue? minted;
+    try {
+      minted = await _asAccount(
+        account,
+        () async => mintTokens(minions, hash, '$chainId', '0'),
+      );
+    } catch (e) {
+      debugPrint('GeniusSDKMint failed after burn: ${e.runtimeType}');
+    }
+    if (minted != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+      return ApiResponse.unconfirmed(hash, bridgeCreditFailedMessage);
+    }
+    return burn;
   }
 
   Future<ApiResponse<String>> getBrigeOutGasCost({

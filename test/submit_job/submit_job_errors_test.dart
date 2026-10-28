@@ -63,7 +63,6 @@ class _FakeGeniusApi implements GeniusApi {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
-    bool shouldMintTokens = false,
     String? sgnsAccount,
     Future<void> Function(String txHash)? beforeBroadcast,
   }) async {

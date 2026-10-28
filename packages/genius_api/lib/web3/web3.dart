@@ -427,7 +427,8 @@ class Web3 {
 
   /// Builds the burn for the `bridgeOut` form [contractAddress] has on
   /// [sourceChainId]. Refuses before the key is read where it has none.
-  Future<ApiResponse<Transaction>> createBridgeOutTransaction({
+  Future<ApiResponse<({Transaction tx, BridgeOutForm form})>>
+  createBridgeOutTransaction({
     required String contractAddress,
     required String rpcUrl,
     required StoredKeyWallet wallet,
@@ -503,7 +504,7 @@ class Web3 {
         maxGas: gasLimit.toInt(),
       );
 
-      return ApiResponse.success(transaction);
+      return ApiResponse.success((tx: transaction, form: call.form));
     } catch (e) {
       return ApiResponse.error(e.toString());
     } finally {
@@ -511,7 +512,10 @@ class Web3 {
     }
   }
 
-  Future<ApiResponse<String>> executeBridgeOutTransaction({
+  /// Signs and sends the burn. [form] is set once the chain's form is known,
+  /// so the caller can apply the crediting rule.
+  Future<({ApiResponse<String> burn, BridgeOutForm? form})>
+  executeBridgeOutTransaction({
     required String contractAddress,
     required String rpcUrl,
     required StoredKeyWallet wallet,
@@ -535,23 +539,28 @@ class Web3 {
         sgnsAccount: sgnsAccount,
       );
 
-      if (!transactionResponse.isSuccess || transactionResponse.data == null) {
-        return ApiResponse.error(
-          transactionResponse.errorMessage ??
-              'Not enough balance to pay for gas fees',
+      final built = transactionResponse.data;
+      if (!transactionResponse.isSuccess || built == null) {
+        return (
+          burn: ApiResponse<String>.error(
+            transactionResponse.errorMessage ??
+                'Not enough balance to pay for gas fees',
+          ),
+          form: null,
         );
       }
 
-      // Get Private Key
-
       final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
 
-      return await broadcastSigned(
-        client,
-        credentials,
-        transactionResponse.data!,
-        chainId: sourceChainId,
-        beforeBroadcast: beforeBroadcast,
+      return (
+        burn: await broadcastSigned(
+          client,
+          credentials,
+          built.tx,
+          chainId: sourceChainId,
+          beforeBroadcast: beforeBroadcast,
+        ),
+        form: built.form,
       );
     } catch (e) {
       ApiResponse.error(e.toString());
@@ -559,7 +568,10 @@ class Web3 {
       client.dispose();
     }
 
-    return ApiResponse.error('Failed to bridge: unknown');
+    return (
+      burn: ApiResponse<String>.error('Failed to bridge: unknown'),
+      form: null,
+    );
   }
 
   /// Signs [transaction], hands its hash to [beforeBroadcast] (a throw there
@@ -694,7 +706,7 @@ class Web3 {
       );
     }
 
-    return ApiResponse.success(transactionResponse.data?.gasPrice);
+    return ApiResponse.success(transactionResponse.data?.tx.gasPrice);
   }
 
   double? getGasPriceInGwei(EtherAmount? gas) {
