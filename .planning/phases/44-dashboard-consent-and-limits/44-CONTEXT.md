@@ -22,6 +22,7 @@ no WalletConnect transport (phases 45-47). Prompts and the list are driven from 
 - **D-03:** A connection is per origin (exact scheme+host+port), not per origin and wallet. A connected origin sees wallet switches through `gnus_accountsChanged` without a new prompt.
 - **D-09 (D):** Revoking forgets the origin, so its next call prompts again (roadmap success criterion 1). `4100` means an origin outside the allowlist, or a call that was in flight when the user revoked. The contract's "revoked returns 4100 until it connects again" is reworded to match; the dashboard's 4100 row ("Allow this site in GeniusWallet", action connect) already fits.
 - **D-10 (D):** Every method needs the connection first, `gnus_getAccounts` included. The handler checks it after param validation and before readiness, so an unconnected page learns nothing, not even `4900`.
+- **D-13 (coordinator, 2026-10-28):** Events are filtered in the handler, not left to transports. Transports subscribe with `eventsFor(origin)`, which delivers `gnus_accountsChanged`, `gnus_networkChanged` and `gnus_jobUpdated` only while the origin is connected, stops at revoke, and sends `gnus_jobUpdated` only for that origin's own jobs.
 
 ### Spend confirm
 - **D-04:** The confirm reuses `ApproveTransactionDrawer` (`lib/reown/approve_transaction_drawer.dart`) with job-specific content: origin, cost, bridge gas, paying wallet, node account. Amounts are shown formatted from the base-unit strings with `unit.decimals`; addresses in full or with a copy affordance, never only truncated.
