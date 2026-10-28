@@ -150,16 +150,26 @@ void main() {
       expect(find.byType(GWSpinner), findsNothing);
     });
 
-    testWidgets('closing it pairs with the created link once', (tester) async {
+    testWidgets('closing it pairs nothing and reports no failure later', (
+      tester,
+    ) async {
       final kit = await _pump(tester, width: _phone);
 
       await tester.tap(find.byTooltip('Connect'));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Show QR Code'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
+      // Reopening within the old 15 s window used to show a stray failure.
+      await tester.tap(find.byTooltip('Connect'));
+      await tester.pumpAndSettle();
       await _drainTimeout(tester);
-      expect(kit.pairs, [Uri.parse(FakePairing.uri)]);
+      await tester.pumpAndSettle();
+
+      expect(kit.pairs, isEmpty);
+      expect(find.textContaining('connection failed'), findsNothing);
     });
 
     testWidgets('a failed create leaves paste working and pairs nothing', (

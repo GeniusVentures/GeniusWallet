@@ -30,9 +30,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   SessionData? _session;
   bool _isConnecting = false;
   bool _isDisconnecting = false;
-  bool _didManualPair = false;
   bool _hasError = false;
-  bool _timedOut = false;
   late final WalletConnectHost _host;
   bool _listenersAttached = false;
   late final void Function(SessionConnect?) _sessionConnectHandler;
@@ -90,7 +88,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         _session = event.session;
         _isConnecting = false;
         _hasError = false;
-        _timedOut = false;
       });
       debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
     };
@@ -106,8 +103,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     setState(() {
       _isConnecting = true;
       _hasError = false;
-      _timedOut = false;
-      _didManualPair = false;
     });
 
     final started = await _host.start();
@@ -149,13 +144,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         context: context,
         wcUri: wcUri,
         startWithPaste: true,
-        onPair: (uri) async {
-          final paired = await _tryPair(uri);
-          if (paired) {
-            _didManualPair = true;
-          }
-          return paired;
-        },
+        onPair: _tryPair,
       );
 
       if (!mounted) {
@@ -166,31 +155,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         setState(() {
           _isConnecting = false;
         });
-      }
-
-      Future.delayed(const Duration(seconds: 15), () {
-        if (_isConnecting && _session == null && mounted) {
-          setState(() {
-            _isConnecting = false;
-            _hasError = true;
-            _timedOut = true;
-          });
-          debugPrint('⏱ Timeout hit – no session received.');
-          if (context.mounted) {
-            showToast(
-              context,
-              "Wallet connection failed. Please try again.",
-              type: ToastType.error,
-            );
-          }
-        }
-      });
-
-      // Pairs with the wallet's own pairing, which exists only if the QR view
-      // was opened.
-      final ownUri = await wcUri;
-      if (!_didManualPair && ownUri != null) {
-        await _tryPair(Uri.parse(ownUri));
       }
     } catch (e) {
       setState(() {
@@ -308,10 +272,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       icon = Icons.sync;
       stateColor = context.gw.statusWarningText;
       text = 'Connecting';
-    } else if (_timedOut) {
-      icon = Icons.timer_off;
-      stateColor = context.gw.statusWarningText;
-      text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
       stateColor = context.gw.statusErrorText;
@@ -337,8 +297,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     // a status a brand gradient cannot express. That keeps the brand accent in
     // the bar without adding a surface to a side we just cleared of its CTA.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final bool isIdle =
-        !isConnected && !_isConnecting && !_timedOut && !_hasError;
+    final bool isIdle = !isConnected && !_isConnecting && !_hasError;
     final textColor = stateColor;
 
     void onPressed() {
