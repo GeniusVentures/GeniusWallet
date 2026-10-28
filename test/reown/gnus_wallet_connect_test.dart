@@ -333,6 +333,9 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.text('https://dash.example'), findsOneWidget);
+        // The page's own name is not shown: only the origin was verified.
+        expect(find.text('dash.example'), findsOneWidget);
+        expect(find.text('Dashboard'), findsNothing);
         await tester.tap(find.text('Allow'));
         await tester.pumpAndSettle();
 

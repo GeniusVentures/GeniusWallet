@@ -267,6 +267,8 @@ class WalletConnectHost {
     final metadata = event.params.proposer.metadata;
     final gnusMethods = requestedGnusMethods(event.params);
     var dappUrl = metadata.url;
+    var dappName = metadata.name;
+    String? iconUrl = metadata.icons.isNotEmpty ? metadata.icons.first : null;
     if (gnusMethods.isNotEmpty) {
       final check = gnusProposalOrigin(
         event.verifyContext,
@@ -294,7 +296,11 @@ class WalletConnectHost {
         );
         return;
       }
+      // Only the origin was verified: a page's own name and icon could pose
+      // as another site.
       dappUrl = origin.value;
+      dappName = Uri.parse(origin.value).host;
+      iconUrl = null;
     }
 
     final chainIds = signableChainIds().toList();
@@ -310,10 +316,10 @@ class WalletConnectHost {
     try {
       final approved = await ApproveDappConnectionDrawer.show(
         context: navigatorKey.currentContext!,
-        dappName: metadata.name,
+        dappName: dappName,
         dappUrl: dappUrl,
         dappDescription: metadata.description,
-        iconUrl: metadata.icons.isNotEmpty ? metadata.icons.first : null,
+        iconUrl: iconUrl,
       );
       if (approved != true) {
         _toast('DApp connection was rejected.', ToastType.error);
