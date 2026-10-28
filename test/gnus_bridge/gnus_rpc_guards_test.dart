@@ -52,22 +52,17 @@ void main() {
       expect(_argumentList('Foo(a: (', 'Foo('), isNull);
     });
 
-    test(
-      'the app wires the connect prompt, the real stores and no confirm',
-      () {
-        final source = _withoutComments(
-          File('lib/main.dart').readAsStringSync(),
-        );
+    test('the app wires both prompts and the real stores', () {
+      final source = _withoutComments(File('lib/main.dart').readAsStringSync());
 
-        final arguments = _argumentList(source, 'GnusRpcHandler(');
+      final arguments = _argumentList(source, 'GnusRpcHandler(');
 
-        expect(arguments, isNotNull);
-        expect(arguments, isNot(contains('confirm')));
-        expect(arguments, contains('GnusJobStore.app()'));
-        expect(arguments, contains('connect: showGnusConnectPrompt'));
-        expect(arguments, contains('connections:'));
-      },
-    );
+      expect(arguments, isNotNull);
+      expect(arguments, contains('confirm: showGnusSpendConfirm'));
+      expect(arguments, contains('GnusJobStore.app()'));
+      expect(arguments, contains('connect: showGnusConnectPrompt'));
+      expect(arguments, contains('connections:'));
+    });
 
     test('startup opens the gnusJobs box as a string box', () {
       final source = _withoutComments(

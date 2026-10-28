@@ -550,6 +550,7 @@ class MyApp extends StatelessWidget {
               store: GnusJobStore.app(),
               connections: context.read<GnusConnectionStore>(),
               connect: showGnusConnectPrompt,
+              confirm: showGnusSpendConfirm,
               readRegistrations: context
                   .read<ChildOperationsCubit>()
                   .ownRegistrations,

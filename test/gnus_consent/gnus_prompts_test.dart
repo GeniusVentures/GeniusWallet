@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/gnus_consent/gnus_prompts.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 
+import '../gnus_bridge/gnus_fakes.dart';
 import '../theme/theme_contrast_test.dart' show themeFor;
 
 final _origin = 'https://${'a' * 105}.example';
@@ -207,6 +209,56 @@ void main() {
       navigatorKey.currentState!.pop();
       await tester.pumpAndSettle();
       await above;
+    });
+  });
+
+  group('through the handler', () {
+    const origin = 'https://dash.example';
+    final params = {
+      'job': {
+        'inputs': ['a'],
+      },
+      'idempotencyKey': 'key-1',
+    };
+
+    testWidgets('Reject answers 4001 with no burn and no intent', (
+      tester,
+    ) async {
+      final h = (await tester.runAsync(GnusHarness.create))!;
+      final handler = h.build(confirm: showGnusSpendConfirm);
+      await _pumpApp(tester);
+
+      final call = viaJson(handler, origin, GnusRpcMethod.submitJob, params);
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+
+      expect(find.text(origin), findsWidgets);
+      expect(find.text('1234 GNUS'), findsOneWidget);
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+      final reply = (await tester.runAsync(() => call))!;
+
+      expect((reply['error']! as Map)['code'], GnusRpcCode.userRejected);
+      expect(h.api.count('burn'), 0);
+      expect(h.store.intentFor(origin, 'key-1'), isNull);
+      await tester.runAsync(h.dispose);
+    });
+
+    testWidgets('Approve submits once', (tester) async {
+      final h = (await tester.runAsync(GnusHarness.create))!;
+      final handler = h.build(confirm: showGnusSpendConfirm);
+      await _pumpApp(tester);
+
+      final call = viaJson(handler, origin, GnusRpcMethod.submitJob, params);
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+      final reply = (await tester.runAsync(() => call))!;
+
+      expect((reply['result']! as Map)['status'], 'submitted');
+      expect(h.api.count('burn'), 1);
+      await tester.runAsync(h.dispose);
     });
   });
 
