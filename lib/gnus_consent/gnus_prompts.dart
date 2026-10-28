@@ -69,12 +69,14 @@ Future<bool> showGnusConnectPrompt({required GnusOrigin origin}) async {
   // No icon: nothing a page supplies is drawn on a consent prompt.
   final answer = await ApproveTransactionDrawer.show(
     context: context,
-    title: origin.value,
+    // A fixed title: the title bar cuts text to one line, and a look-alike
+    // origin must be read whole, so the origin is the wrapping headline.
+    title: 'Connect a site',
     dappName: origin.value,
     dappUrl: origin.value,
     content: _ClosesWithHandler(
       child: DappCallDetails(
-        headline: 'Connect this site?',
+        headline: origin.value,
         warning: _connectWarning,
         rows: [DappCallRow(label: 'Through', value: origin.transport.label)],
       ),

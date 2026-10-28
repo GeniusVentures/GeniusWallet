@@ -30,7 +30,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(_origin.value), findsWidgets);
-    expect(find.text('Connect this site?'), findsOneWidget);
+    expect(find.text('Connect a site'), findsOneWidget);
     expect(h.connections.isConnected(_origin), isFalse);
 
     await tester.tap(find.text('Approve'));
@@ -42,7 +42,7 @@ void main() {
 
     final second = viaJson(handler, _origin, GnusRpcMethod.getAccounts, null);
     await tester.pumpAndSettle();
-    expect(find.text('Connect this site?'), findsNothing);
+    expect(find.text('Connect a site'), findsNothing);
     expect((await tester.runAsync(() => second))!['result'], isA<Map>());
 
     await tester.runAsync(h.dispose);
@@ -75,12 +75,14 @@ void main() {
     final call = viaJson(handler, long, GnusRpcMethod.getAccounts, null);
     await tester.pumpAndSettle();
 
-    // The title may shorten it; the site line under it must not.
+    // The title bar cuts to one line, so the origin is never the title.
     final shown = tester.widgetList<Text>(find.text(long.value));
+    expect(shown, isNotEmpty);
     expect(
-      shown.where((t) => t.maxLines == null && t.overflow == null),
-      isNotEmpty,
+      shown.every((t) => t.maxLines == null && t.overflow == null),
+      isTrue,
     );
+    expect(find.text('Connect a site'), findsOneWidget);
     await tester.tap(find.text('Reject'));
     await tester.pumpAndSettle();
     await tester.runAsync(() => call);
