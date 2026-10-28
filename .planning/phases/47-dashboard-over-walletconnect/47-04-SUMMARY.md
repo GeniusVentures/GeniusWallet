@@ -7,9 +7,7 @@ requires: [47-01 handleGnusRequests, 47-02 wire encoding]
 provides: [per-session gnus event forwarding, ordered per-topic sends, lifecycle tests]
 status: complete
 actuals: {tokens: 7200, tasks: 2, commits: 2}
-key-files:
-  created: [test/reown/gnus_wallet_connect_lifecycle_test.dart]
-  modified: [lib/reown/gnus_wallet_connect.dart]
+key-files: {created: [test/reown/gnus_wallet_connect_lifecycle_test.dart], modified: [lib/reown/gnus_wallet_connect.dart]}
 key-decisions: [replies and events share one future chain per topic, a failed emit is dropped]
 ---
 
@@ -33,10 +31,5 @@ A connected page now hears the wallet's account, network and own-job changes as 
 - A prompt held 6 minutes on a fake clock and then approved answers once (the fake does not enforce Reown's
   5 minute rule; the test pins the raised expiry value and the single answer).
 
-## Deviations
-None.
-
-## Known stubs
-None.
-
-## Self-Check: PASSED
+Deviations: none.
+Known stubs: none. Self-Check: PASSED

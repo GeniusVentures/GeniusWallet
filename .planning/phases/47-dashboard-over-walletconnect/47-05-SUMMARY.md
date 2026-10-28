@@ -7,8 +7,7 @@ requires: [47-03, 47-04]
 provides: [phase gate numbers]
 status: partial
 actuals: {tokens: 600, tasks: 1, commits: 1}
-key-files:
-  modified: [test/components/desktop_top_bar_text_scale_test.dart]
+key-files: {modified: [test/components/desktop_top_bar_text_scale_test.dart]}
 key-decisions: [the Linux walk is run once, combined, on the slave box]
 ---
 
@@ -34,10 +33,6 @@ combined walk on the slave box, so it was not attempted here. The phase stays op
   stub host that never starts. Fixed in its own commit; the run after it is the numbers above.
 
 ## Not run
-- Windows build from the short-path copy: not part of this plan's gate.
-- Walk steps 1-8 (pairing, all methods, switches, 6 minute confirm, SDK down, 800 px, disconnect, watch-only).
+- Windows build from the short-path copy, and walk steps 1-8.
 
-## Known stubs
-None.
-
-## Self-Check: PASSED
+Known stubs: none. Self-Check: PASSED
