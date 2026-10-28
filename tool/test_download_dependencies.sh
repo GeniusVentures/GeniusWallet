@@ -9,6 +9,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 cat > "$tmp/check.cmake" <<CMAKE
+cmake_minimum_required(VERSION 3.18)
 set(CMAKE_SYSTEM_NAME iOS)
 set(CMAKE_BUILD_TYPE Release)
 include("$repo/cmake/DownloadDependencies.cmake")
