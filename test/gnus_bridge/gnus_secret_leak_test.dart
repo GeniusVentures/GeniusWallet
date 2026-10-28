@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,6 +11,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'gnus_fakes.dart';
 
@@ -279,6 +281,33 @@ Future<_Collected> _sweep() async {
   return c;
 }
 
+/// Nothing leaves the machine: events are dropped before this is reached.
+class _DropTransport implements Transport {
+  @override
+  Future<SentryId?> send(SentryEnvelope envelope) async =>
+      const SentryId.empty();
+}
+
+/// Runs [body] in a zone that reports uncaught errors to Sentry, as the app's
+/// runner does.
+Future<T> _guarded<T>(Future<T> Function() body, List<Object> uncaught) {
+  final done = Completer<T>();
+  runZonedGuarded(
+    () async {
+      try {
+        done.complete(await body());
+      } catch (e, s) {
+        done.completeError(e, s);
+      }
+    },
+    (error, stack) {
+      uncaught.add(error);
+      Sentry.captureException(error, stackTrace: stack);
+    },
+  );
+  return done.future;
+}
+
 void main() {
   late DebugPrintCallback original;
   late List<String> lines;
@@ -362,5 +391,57 @@ void main() {
     for (final line in logs) {
       expect(_leaks(line), isFalse, reason: line);
     }
+  });
+
+  group('Sentry', () {
+    late List<SentryEvent> captured;
+
+    setUp(() async {
+      captured = [];
+      await Sentry.init((options) {
+        options.dsn = 'https://public@sentry.invalid/1';
+        options.transport = _DropTransport();
+        options.beforeSend = (event, hint) {
+          captured.add(event);
+          return null;
+        };
+      });
+    });
+
+    tearDown(Sentry.close);
+
+    test(
+      'the capture path is live and the detector reads its events',
+      () async {
+        await Sentry.captureException(StateError('control $_keyHex'));
+        final direct = [...captured];
+        captured.clear();
+        final uncaught = <Object>[];
+        await _guarded(() async {
+          unawaited(Future<void>(() => throw StateError('control $_phrase')));
+          await pumpEventQueue();
+        }, uncaught);
+        await pumpEventQueue();
+
+        expect(direct, hasLength(1));
+        expect(_leaksJson(direct.single.toJson()), isTrue);
+        expect(uncaught, hasLength(1));
+        expect(captured, hasLength(1));
+        expect(_leaksJson(captured.single.toJson()), isTrue);
+      },
+    );
+
+    test('no event from the sweep carries a key or phrase', () async {
+      final uncaught = <Object>[];
+
+      final c = await _guarded(_sweep, uncaught);
+      await pumpEventQueue();
+
+      expect(c.replies, isNotEmpty);
+      expect(uncaught, isEmpty);
+      for (final event in captured) {
+        expect(_leaksJson(event.toJson()), isFalse);
+      }
+    });
   });
 }
