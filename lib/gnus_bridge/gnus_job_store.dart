@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:hive_ce/hive.dart';
 
-/// `.name` is the contract string. The contract's live states arrive with
-/// SDK-STATUS; a stored value that matches none decodes to [unknown].
+/// `.name` is the contract string. The contract's live states wait on the SDK
+/// reporting them; a stored value that matches none decodes to [unknown].
 enum GnusJobStatus { submitted, bridgedNotProcessed, unknown }
 
 /// One job submitted through the gnus handler. Holds no job body, params, key
@@ -309,7 +309,7 @@ class GnusJobStore {
     return raw == null ? null : GnusJob.decode(raw);
   }
 
-  /// Exact match on a set `jobId`; every record has none until SDK-JOBID.
+  /// Exact match on a set `jobId`; no record has one until the SDK returns it.
   GnusJob? byJobId(String jobId) {
     for (final job in _records()) {
       if (job.jobId != null && job.jobId == jobId) {

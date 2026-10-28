@@ -54,10 +54,9 @@ enum DevJobScenario {
   bridgedNotProcessed,
 }
 
-/// The submit-job flow's dev fixture. See the file-level DEV-ONLY comment
-/// above for what it replaces. Never used outside a `kDebugMode &&
-/// kShowDevTools` call site - see `JobSubmission.devScenario` and
-/// `dev_tools_bubble.dart`'s JOB section.
+/// The submit-job flow's dev fixture; see the file-level comment above. Only
+/// used behind a `kDebugMode && kShowDevTools` check, via
+/// `JobSubmission.devScenario`.
 class DevMockJob {
   DevMockJob._() {
     assert(

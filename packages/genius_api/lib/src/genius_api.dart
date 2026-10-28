@@ -1137,7 +1137,7 @@ class GeniusApi {
   // ponytail: the SDK holds one global mutex for the whole cost call (it makes
   // a live price request) and the whole process call. Main-isolate SDK polls
   // such as the processing-status tick and balance reads wait behind it and can
-  // still hitch the UI. Upgrade path: SDK-ASYNC.
+  // still hitch the UI. Upgrade path: an SDK that does not hold the mutex.
   Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
     if (jobJson.isEmpty || !_isSdkInitialized) {
       return 0;
@@ -1194,14 +1194,12 @@ class GeniusApi {
     return requestGeniusSDKProcessAsync(jobJson: jobJson);
   });
 
-  /// Resolves once an in-flight process call has finished, or after [timeout].
-  /// A burned job must not meet a shut-down node, so the window-close path
-  /// awaits this before [shutdownSDK].
-  ///
-  /// ponytail: only the window-close path waits. The `detached` lifecycle
-  /// shutdown is synchronous and does not, and a close during the bridge burn
-  /// itself (before the process call starts) is not covered either. Upgrade
-  /// path: SDK-ASYNC, or one job-call queue that shutdown drains.
+  /// Resolves once an in-flight process call has finished, or after [timeout],
+  /// so a burned job does not meet a shut-down node. The window-close path
+  /// awaits it before [shutdownSDK].
+  // ponytail: only window close waits; the `detached` shutdown is synchronous
+  // and a close mid-burn is uncovered. Upgrade: one job-call queue that
+  // shutdown drains.
   Future<void> waitForJobCall({
     Duration timeout = const Duration(seconds: 10),
   }) async {

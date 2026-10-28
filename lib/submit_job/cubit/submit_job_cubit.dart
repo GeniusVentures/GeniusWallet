@@ -224,16 +224,12 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
     switch (costResult) {
       case JobCostFailed(:final reason):
-        // 1a (2026-07-31): a pricing failure keeps the picked file and sets
-        // costError, rather than returning early and discarding it:
-        // uploadedFileName/uploadedJson/jobCost are only written by the emit
-        // in the caller, so returning early meant the file vanished with no
-        // visible trace. That silence mattered beyond this method -
-        // job_steps.dart's auto-advance listener and its step 0 footer both
+        // A pricing failure keeps the picked file and sets costError instead
+        // of returning early: the auto-advance listener and the step 0 footer
         // gate on uploadedJson being non-empty, and costError only renders in
-        // step 2, so a discarded file also made step 2 unreachable. The dev
-        // fixture's pricing-failure scenario lands on exactly this state, and
-        // carries its own balance so the walk shows the fixture's number.
+        // step 2, so a discarded file would make step 2 unreachable. The dev
+        // fixture's pricing-failure scenario lands here and carries its own
+        // balance.
         if (!isClosed) {
           emit(
             state.copyWith(
@@ -244,14 +240,11 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         }
       case JobCostOk(:final fixtureBalance):
         if (fixtureBalance != null) {
-          // DEV-ONLY (Task 2, 2026-07-31): the owner answered from the
-          // fixture; skip the isGasFetchable gate so the whole flow runs with
-          // no native SDK. Balance is emitted in the SAME emit as the gas
-          // string, not a separate call - this is still the one detail that
-          // makes the panel usable mid-walk. It also runs from
-          // `_repriceForDevScenario`, so a scenario armed (or cleared) after
-          // a pick re-prices through the listener registered in the
-          // constructor.
+          // DEV-ONLY: the owner answered from the fixture; skip the
+          // isGasFetchable gate so the whole flow runs with no native SDK.
+          // Balance is emitted in the same emit as the gas string. This also
+          // runs from `_repriceForDevScenario`, so a scenario armed or cleared
+          // after a pick re-prices through the constructor's listener.
           final gasResult = await jobSubmission.estimateGas(
             _jobFacts(),
             jobCost,

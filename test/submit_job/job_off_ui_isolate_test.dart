@@ -1,11 +1,10 @@
-// Proof for phase 42 plan 02: the SDK cost and process calls are awaited, not
-// made inline, and nothing else in the job flow can reach the SDK.
+// The SDK cost and process calls are awaited, not made inline, and nothing
+// else in the job flow can reach the SDK.
 //
-// Honest limit: under `flutter test` a synchronous fake would not block
-// anything either, so the two widget tests prove that the flow awaits the call
-// and the UI stays live around it. Proof that the real FFI runs on a worker
-// comes from the deleted sync API, the genius_api source guard below, and the
-// phase 48 device walk.
+// Limit: under `flutter test` a synchronous fake would not block anything
+// either, so the two widget tests prove only that the flow awaits the call and
+// the UI stays live around it. That the real FFI runs on a worker rests on the
+// deleted sync API, the genius_api source guard below, and a device run.
 //
 // ignore_for_file: implementation_imports
 import 'dart:async';
@@ -36,11 +35,9 @@ import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-/// Overrides exactly the four members the job flow may reach: the two async
-/// SDK calls, the gas estimate and the burn. Everything else, including any
-/// synchronous member, throws through `noSuchMethod`. [served] records the
-/// order the flow used them in. The two SDK calls hold on a gate when one is
-/// set, so a test can keep a call pending.
+/// Overrides only the four members the job flow may reach: the two async SDK
+/// calls, the gas estimate and the burn. Anything else throws. [served] records
+/// the order used; a set gate keeps an SDK call pending.
 class _AsyncOnlyGeniusApi implements GeniusApi {
   final List<String> served = [];
 

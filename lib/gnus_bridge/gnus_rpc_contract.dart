@@ -1,9 +1,8 @@
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 
 /// The `gnus_*` RPC contract in Dart: error type, codes, method and event
-/// names, reasons, and the gate-state mapping. Mirrors sections 3-5 of
-/// `.planning/research/v4.0-gnus-rpc-contract.md`; this file is the one place
-/// the wallet names them.
+/// names, reasons, and the gate-state mapping. The one place the wallet names
+/// them.
 const String kGnusRpcVersion = '1';
 
 /// A typed JSON-RPC error. Messages are fixed strings and never interpolate
@@ -39,7 +38,7 @@ abstract final class GnusRpcCode {
   static const int bridgeFailed = -32013;
 
   /// Defined for the contract; submit returns status `bridgedNotProcessed` as
-  /// a result instead (D-06).
+  /// a result instead.
   static const int bridgedNotProcessed = -32014;
   static const int accountSwitching = -32015;
 }
@@ -52,7 +51,7 @@ abstract final class GnusRpcMethod {
   static const String getJob = 'gnus_getJob';
   static const String getEarnings = 'gnus_getEarnings';
 
-  /// `gnus_getAddress` is retired and deliberately absent (D-03).
+  /// `gnus_getAddress` is retired and deliberately absent.
   static const Set<String> all = {
     getAccounts,
     estimate,
@@ -106,9 +105,8 @@ GnusRpcError _notReadyError(String reason) => GnusRpcError(
 );
 
 /// The refusal for a [BridgeGateState], or null when the gate is open. Every
-/// state but `enabled` refuses, `checking` included: it also stands for
-/// unreadable child registrations, and letting it through would let a child
-/// wallet submit. No default branch, so a new gate state must be mapped here.
+/// state but `enabled` refuses, `checking` included (it also stands for
+/// unreadable registrations). No default branch: map any new state here.
 GnusRpcError? gnusErrorForGate(BridgeGateState state) {
   switch (state) {
     case BridgeGateState.enabled:

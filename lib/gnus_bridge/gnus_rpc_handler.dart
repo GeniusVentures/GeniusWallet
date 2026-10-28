@@ -30,10 +30,9 @@ const Duration _recordRetryDelay = Duration(seconds: 2);
 /// completes cannot hold the wallet's one burn slot.
 const Duration kGnusConfirmTimeout = Duration(minutes: 10);
 
-/// The seam that decides whether a submit may spend. [cost] is the contract
-/// base-unit string, [gas] the contract gas map or null, [payer] the lowercased
-/// EVM address and [nodeAccount] the lowercased SDK address. It must complete:
-/// after [kGnusConfirmTimeout] the handler rejects and ignores a late answer.
+/// The seam that decides whether a submit may spend. [cost] and [gas] are the
+/// contract values, [payer] and [nodeAccount] lowercased addresses. After
+/// [kGnusConfirmTimeout] the handler rejects and ignores a late answer.
 typedef GnusConfirm =
     Future<bool> Function({
       required String origin,
@@ -191,10 +190,9 @@ class GnusRpcHandler {
     });
   }
 
-  /// Everything an accounts payload depends on that an app or wallet emission
-  /// can change, cheap enough to compare on every emission. The processing
-  /// feed ticks AppState about once a second; a key that ignores it keeps those
-  /// ticks from reading registrations.
+  /// Everything an accounts payload depends on that an emission can change,
+  /// cheap to compare. It leaves out the processing feed, which ticks AppState
+  /// about once a second, so those ticks never read registrations.
   String _stateKey() {
     final app = _readAppState();
     final details = _walletDetails.state;
