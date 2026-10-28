@@ -16,6 +16,13 @@ class HistoryChanged {
   const HistoryChanged(this.canGoBack, this.canGoForward);
 }
 
+/// A web message and the origin WebView2 names as its sender.
+class WebMessageFromSource {
+  final dynamic message;
+  final String source;
+  const WebMessageFromSource(this.message, this.source);
+}
+
 typedef PermissionRequestedDelegate
     = FutureOr<WebviewPermissionDecision> Function(
         String url, WebviewPermissionKind permissionKind, bool isUserInitiated);
@@ -151,6 +158,28 @@ class WebviewController extends ValueNotifier<WebviewValue> {
 
   Stream<dynamic> get webMessage => _webMessageStreamController.stream;
 
+  final StreamController<WebMessageFromSource>
+      _webMessageWithSourceStreamController =
+      StreamController<WebMessageFromSource>.broadcast();
+
+  /// Web messages together with the origin WebView2 names as their sender.
+  Stream<WebMessageFromSource> get webMessageWithSource =>
+      _webMessageWithSourceStreamController.stream;
+
+  final StreamController<String> _navigationBlockedStreamController =
+      StreamController<String>.broadcast();
+
+  /// URIs of top-level navigations cancelled by [setTopLevelAllowlist].
+  Stream<String> get navigationBlocked =>
+      _navigationBlockedStreamController.stream;
+
+  final StreamController<String> _newWindowRequestedStreamController =
+      StreamController<String>.broadcast();
+
+  /// URIs of popups suppressed under [WebviewPopupWindowPolicy.deny].
+  Stream<String> get newWindowRequested =>
+      _newWindowRequestedStreamController.stream;
+
   final StreamController<bool>
       _containsFullScreenElementChangedStreamController =
       StreamController<bool>.broadcast();
@@ -210,6 +239,22 @@ class WebviewController extends ValueNotifier<WebviewValue> {
             } catch (ex) {
               _webMessageStreamController.addError(ex);
             }
+            break;
+          case 'webMessageReceivedWithSource':
+            try {
+              final value = map['value'] as Map<dynamic, dynamic>;
+              _webMessageWithSourceStreamController.add(WebMessageFromSource(
+                  json.decode(value['message'] as String),
+                  value['source'] as String));
+            } catch (ex) {
+              _webMessageWithSourceStreamController.addError(ex);
+            }
+            break;
+          case 'navigationBlocked':
+            _navigationBlockedStreamController.add(map['value']);
+            break;
+          case 'newWindowRequested':
+            _newWindowRequestedStreamController.add(map['value']);
             break;
           case 'containsFullScreenElementChanged':
             _containsFullScreenElementChangedStreamController.add(map['value']);
@@ -386,6 +431,26 @@ class WebviewController extends ValueNotifier<WebviewValue> {
     }
     assert(value.isInitialized);
     return _methodChannel.invokeMethod('setUserAgent', userAgent);
+  }
+
+  /// Reads the user agent in use.
+  Future<String?> getUserAgent() async {
+    if (_isDisposed) {
+      return null;
+    }
+    assert(value.isInitialized);
+    return _methodChannel.invokeMethod<String>('getUserAgent');
+  }
+
+  /// Limits top-level navigation to [origins] such as `https://host`. A
+  /// navigation elsewhere is cancelled and reported on [navigationBlocked].
+  /// An empty list turns the limit off.
+  Future<void> setTopLevelAllowlist(List<String> origins) async {
+    if (_isDisposed) {
+      return;
+    }
+    assert(value.isInitialized);
+    return _methodChannel.invokeMethod('setTopLevelAllowlist', origins);
   }
 
   /// Clears browser cookies.

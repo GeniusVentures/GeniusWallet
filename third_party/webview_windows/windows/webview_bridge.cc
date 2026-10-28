@@ -32,6 +32,8 @@ constexpr auto kMethodSetPointerUpdate = "setPointerUpdate";
 constexpr auto kMethodSetPointerButton = "setPointerButton";
 constexpr auto kMethodSetScrollDelta = "setScrollDelta";
 constexpr auto kMethodSetUserAgent = "setUserAgent";
+constexpr auto kMethodGetUserAgent = "getUserAgent";
+constexpr auto kMethodSetTopLevelAllowlist = "setTopLevelAllowlist";
 constexpr auto kMethodSetBackgroundColor = "setBackgroundColor";
 constexpr auto kMethodSetZoomFactor = "setZoomFactor";
 constexpr auto kMethodOpenDevTools = "openDevTools";
@@ -296,6 +298,36 @@ void WebviewBridge::RegisterEventHandlers() {
         flutter::EncodableMap{{flutter::EncodableValue(kEventType),
                                flutter::EncodableValue("webMessageReceived")},
                               {flutter::EncodableValue(kEventValue), message}});
+    EmitEvent(event);
+  });
+
+  webview_->OnWebMessageReceivedWithSource(
+      [this](const std::string& message, const std::string& source) {
+        const auto event = flutter::EncodableValue(flutter::EncodableMap{
+            {flutter::EncodableValue(kEventType),
+             flutter::EncodableValue("webMessageReceivedWithSource")},
+            {flutter::EncodableValue(kEventValue),
+             flutter::EncodableValue(flutter::EncodableMap{
+                 {flutter::EncodableValue("message"),
+                  flutter::EncodableValue(message)},
+                 {flutter::EncodableValue("source"),
+                  flutter::EncodableValue(source)}})}});
+        EmitEvent(event);
+      });
+
+  webview_->OnNavigationBlocked([this](const std::string& uri) {
+    const auto event = flutter::EncodableValue(
+        flutter::EncodableMap{{flutter::EncodableValue(kEventType),
+                               flutter::EncodableValue("navigationBlocked")},
+                              {flutter::EncodableValue(kEventValue), uri}});
+    EmitEvent(event);
+  });
+
+  webview_->OnNewWindowRequested([this](const std::string& uri) {
+    const auto event = flutter::EncodableValue(
+        flutter::EncodableMap{{flutter::EncodableValue(kEventType),
+                               flutter::EncodableValue("newWindowRequested")},
+                              {flutter::EncodableValue(kEventValue), uri}});
     EmitEvent(event);
   });
 
@@ -598,6 +630,32 @@ void WebviewBridge::HandleMethodCall(
       }
       return result->Error(kErrorNotSupported,
                            "Setting the user agent failed.");
+    }
+    return result->Error(kErrorInvalidArgs);
+  }
+
+  // getUserAgent: returns the string
+  if (method_name.compare(kMethodGetUserAgent) == 0) {
+    if (const auto user_agent = webview_->GetUserAgent()) {
+      return result->Success(flutter::EncodableValue(*user_agent));
+    }
+    return result->Error(kErrorNotSupported, "Reading the user agent failed.");
+  }
+
+  // setTopLevelAllowlist: list of strings
+  if (method_name.compare(kMethodSetTopLevelAllowlist) == 0) {
+    if (const auto list =
+            std::get_if<flutter::EncodableList>(method_call.arguments())) {
+      std::vector<std::string> origins;
+      for (const auto& item : *list) {
+        const auto origin = std::get_if<std::string>(&item);
+        if (!origin) {
+          return result->Error(kErrorInvalidArgs);
+        }
+        origins.push_back(*origin);
+      }
+      webview_->SetTopLevelAllowlist(std::move(origins));
+      return result->Success();
     }
     return result->Error(kErrorInvalidArgs);
   }

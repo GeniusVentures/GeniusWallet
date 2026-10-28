@@ -293,10 +293,21 @@ void Webview::RegisterEventHandlers() {
           [this](ICoreWebView2* sender,
                  ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
             wil::unique_cotaskmem_string wmessage;
-            if (web_message_received_callback_ &&
+            if ((web_message_received_callback_ ||
+                 web_message_with_source_callback_) &&
                 args->get_WebMessageAsJson(&wmessage) == S_OK) {
               const std::string message = util::Utf8FromUtf16(wmessage.get());
-              web_message_received_callback_(message);
+              if (web_message_received_callback_) {
+                web_message_received_callback_(message);
+              }
+              if (web_message_with_source_callback_) {
+                // The sender WebView2 names, never a field of the message.
+                wil::unique_cotaskmem_string wsource;
+                if (args->get_Source(&wsource) == S_OK) {
+                  web_message_with_source_callback_(
+                      message, util::Utf8FromUtf16(wsource.get()));
+                }
+              }
             }
 
             return S_OK;
@@ -340,6 +351,45 @@ void Webview::RegisterEventHandlers() {
           .Get(),
       &event_registrations_.permission_requested_token_);
 
+  webview_->add_NavigationStarting(
+      Callback<ICoreWebView2NavigationStartingEventHandler>(
+          [this](ICoreWebView2* sender,
+                 ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+            if (top_level_allowlist_.empty()) {
+              return S_OK;
+            }
+
+            wil::unique_cotaskmem_string wuri;
+            if (args->get_Uri(&wuri) != S_OK) {
+              args->put_Cancel(TRUE);
+              return S_OK;
+            }
+
+            // WebView2 hands over Chromium-canonical URIs, so an origin
+            // matches when it is the whole URI or is followed by a slash.
+            // A bare prefix test would let https://host.evil through.
+            const std::string uri = util::Utf8FromUtf16(wuri.get());
+            bool allowed = false;
+            for (const auto& origin : top_level_allowlist_) {
+              if (uri == origin ||
+                  (uri.size() > origin.size() &&
+                   uri.compare(0, origin.size(), origin) == 0 &&
+                   uri[origin.size()] == '/')) {
+                allowed = true;
+                break;
+              }
+            }
+            if (!allowed) {
+              args->put_Cancel(TRUE);
+              if (navigation_blocked_callback_) {
+                navigation_blocked_callback_(uri);
+              }
+            }
+            return S_OK;
+          })
+          .Get(),
+      &event_registrations_.navigation_starting_token_);
+
   webview_->add_NewWindowRequested(
       Callback<ICoreWebView2NewWindowRequestedEventHandler>(
           [this](ICoreWebView2* sender,
@@ -347,6 +397,13 @@ void Webview::RegisterEventHandlers() {
             switch (popup_window_policy_) {
               case WebviewPopupWindowPolicy::Deny:
                 args->put_Handled(TRUE);
+                if (new_window_requested_callback_) {
+                  wil::unique_cotaskmem_string wuri;
+                  if (args->get_Uri(&wuri) == S_OK) {
+                    new_window_requested_callback_(
+                        util::Utf8FromUtf16(wuri.get()));
+                  }
+                }
                 break;
               case WebviewPopupWindowPolicy::ShowInSameWindow:
                 args->put_NewWindow(webview_.get());
@@ -445,6 +502,20 @@ bool Webview::SetUserAgent(const std::string& user_agent) {
            S_OK;
   }
   return false;
+}
+
+std::optional<std::string> Webview::GetUserAgent() {
+  if (settings2_) {
+    wil::unique_cotaskmem_string user_agent;
+    if (settings2_->get_UserAgent(&user_agent) == S_OK) {
+      return util::Utf8FromUtf16(user_agent.get());
+    }
+  }
+  return std::nullopt;
+}
+
+void Webview::SetTopLevelAllowlist(std::vector<std::string> origins) {
+  top_level_allowlist_ = std::move(origins);
 }
 
 bool Webview::SetBackgroundColor(int32_t color) {

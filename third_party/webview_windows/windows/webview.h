@@ -7,6 +7,9 @@
 #include <winrt/base.h>
 
 #include <functional>
+#include <optional>
+#include <string>
+#include <vector>
 
 class WebviewHost;
 
@@ -86,6 +89,7 @@ struct EventRegistrations {
   EventRegistrationToken permission_requested_token_{};
   EventRegistrationToken devtools_protocol_event_token_{};
   EventRegistrationToken new_windows_requested_token_{};
+  EventRegistrationToken navigation_starting_token_{};
   EventRegistrationToken contains_fullscreen_element_changed_token_{};
 };
 
@@ -108,6 +112,10 @@ class Webview {
       AddScriptToExecuteOnDocumentCreatedCallback;
   typedef std::function<void(bool, const std::string&)> ScriptExecutedCallback;
   typedef std::function<void(const std::string&)> WebMessageReceivedCallback;
+  typedef std::function<void(const std::string& message,
+                             const std::string& source)>
+      WebMessageWithSourceCallback;
+  typedef std::function<void(const std::string& uri)> UriCallback;
   typedef std::function<void(WebviewPermissionState state)>
       WebviewPermissionRequestedCompleter;
   typedef std::function<void(const std::string& url, WebviewPermissionKind kind,
@@ -149,6 +157,9 @@ class Webview {
   bool SetCacheDisabled(bool disabled);
   void SetPopupWindowPolicy(WebviewPopupWindowPolicy policy);
   bool SetUserAgent(const std::string& user_agent);
+  std::optional<std::string> GetUserAgent();
+  // Origins a top-level navigation may reach. Empty turns the check off.
+  void SetTopLevelAllowlist(std::vector<std::string> origins);
   bool OpenDevTools();
   bool SetBackgroundColor(int32_t color);
   bool SetZoomFactor(double factor);
@@ -196,6 +207,19 @@ class Webview {
     web_message_received_callback_ = std::move(callback);
   }
 
+  void OnWebMessageReceivedWithSource(
+      WebMessageWithSourceCallback callback) {
+    web_message_with_source_callback_ = std::move(callback);
+  }
+
+  void OnNavigationBlocked(UriCallback callback) {
+    navigation_blocked_callback_ = std::move(callback);
+  }
+
+  void OnNewWindowRequested(UriCallback callback) {
+    new_window_requested_callback_ = std::move(callback);
+  }
+
   void OnPermissionRequested(PermissionRequestedCallback callback) {
     permission_requested_callback_ = std::move(callback);
   }
@@ -224,6 +248,7 @@ class Webview {
   VirtualKeyState virtual_keys_;
   WebviewPopupWindowPolicy popup_window_policy_ =
       WebviewPopupWindowPolicy::Allow;
+  std::vector<std::string> top_level_allowlist_;
 
   winrt::com_ptr<ABI::Windows::UI::Composition::IVisual> surface_;
   winrt::com_ptr<ABI::Windows::UI::Composition::Desktop::IDesktopWindowTarget>
@@ -241,6 +266,9 @@ class Webview {
   CursorChangedCallback cursor_changed_callback_;
   FocusChangedCallback focus_changed_callback_;
   WebMessageReceivedCallback web_message_received_callback_;
+  WebMessageWithSourceCallback web_message_with_source_callback_;
+  UriCallback navigation_blocked_callback_;
+  UriCallback new_window_requested_callback_;
   PermissionRequestedCallback permission_requested_callback_;
   DevtoolsProtocolEventCallback devtools_protocol_event_callback_;
   ContainsFullScreenElementChangedCallback
