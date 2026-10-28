@@ -65,6 +65,7 @@
   X(webkit_policy_decision_ignore)                                             \
   X(webkit_policy_decision_use)                                                \
   X(webkit_policy_decision_use_with_policies)                                  \
+  X(webkit_policy_error_quark)                                                 \
   X(webkit_script_dialog_close)                                                \
   X(webkit_script_dialog_confirm_set_confirmed)                                \
   X(webkit_script_dialog_get_dialog_type)                                      \
@@ -263,6 +264,7 @@ gboolean webkit_runtime_load();
 #define webkit_policy_decision_use (gw_webkit.webkit_policy_decision_use)
 #define webkit_policy_decision_use_with_policies                               \
   (gw_webkit.webkit_policy_decision_use_with_policies)
+#define webkit_policy_error_quark (gw_webkit.webkit_policy_error_quark)
 #define webkit_script_dialog_close (gw_webkit.webkit_script_dialog_close)
 #define webkit_script_dialog_confirm_set_confirmed                             \
   (gw_webkit.webkit_script_dialog_confirm_set_confirmed)
