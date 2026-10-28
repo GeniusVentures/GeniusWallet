@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart' show SgnsNet;
 import 'package:genius_wallet/gnus_bridge/gnus_dashboard_origins.dart';
@@ -11,6 +12,26 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+
+/// The file extensions an input's `accept` list names (`.json`), lowercased and
+/// without the dot. Null when it names none, which means any file.
+List<String>? gnusPickerExtensions(List<String> accept) {
+  final extensions = {
+    for (final entry in accept)
+      if (entry.trim().startsWith('.') && entry.trim().length > 1)
+        entry.trim().substring(1).toLowerCase(),
+  };
+  return extensions.isEmpty ? null : extensions.toList();
+}
+
+/// Whether the page at [topUrl] may open the file picker: only an allowlisted
+/// origin, never a blank or unknown page.
+bool gnusPickerAllowed(String? topUrl, Set<GnusOrigin> allowed) {
+  final origin = topUrl == null
+      ? null
+      : GnusOrigin.tryParse(GnusTransport.webview, topUrl);
+  return origin != null && allowed.contains(origin);
+}
 
 /// The bridge on Android, iOS and macOS. It skips webview_flutter's JavaScript
 /// channel, which any frame can reach, and uses the native installer instead.
@@ -54,6 +75,7 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
   bool _ready = false;
   bool _installed = false;
   bool _canGoBack = false;
+  String? _topUrl;
 
   @override
   void initState() {
@@ -89,10 +111,16 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
     await _controller.setNavigationDelegate(
       NavigationDelegate(
         onNavigationRequest: _onNavigationRequest,
-        onPageStarted: _bridge.pageStarted,
+        onPageStarted: (url) {
+          _topUrl = url;
+          _bridge.pageStarted(url);
+        },
         // In-page links are same-document navigations, so the history is
         // read again on every URL change, not only on page loads.
-        onUrlChange: (_) => unawaited(_syncCanGoBack()),
+        onUrlChange: (change) {
+          _topUrl = change.url;
+          unawaited(_syncCanGoBack());
+        },
         onPageFinished: (_) {
           unawaited(_syncCanGoBack());
           widget.onLoaded?.call();
@@ -107,6 +135,10 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
     final agent = await _controller.getUserAgent();
     if (agent != null) {
       await _controller.setUserAgent('$agent$gnusUserAgentSuffix');
+    }
+    final platform = _controller.platform;
+    if (platform is AndroidWebViewController) {
+      await platform.setOnShowFileSelector(_pickFiles);
     }
     _viewId = _identifier();
     final id = _viewId;
@@ -125,6 +157,26 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
     if (mounted) {
       setState(() => _ready = true);
     }
+  }
+
+  // A job definition is not sensitive, so the picked files are not cleaned up.
+  Future<List<String>> _pickFiles(FileSelectorParams params) async {
+    if (!gnusPickerAllowed(_topUrl, _allowed)) {
+      return const [];
+    }
+    final extensions = gnusPickerExtensions(params.acceptTypes);
+    final result = await FilePicker.pickFiles(
+      type: extensions == null ? FileType.any : FileType.custom,
+      allowedExtensions: extensions,
+      allowMultiple: params.mode == FileSelectorMode.openMultiple,
+    );
+    if (result == null) {
+      return const [];
+    }
+    return [
+      for (final file in result.files)
+        if (file.path != null) Uri.file(file.path!).toString(),
+    ];
   }
 
   Future<void> _syncCanGoBack() async {
