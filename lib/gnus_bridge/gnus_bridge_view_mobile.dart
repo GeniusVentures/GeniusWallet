@@ -53,6 +53,7 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
   int? _viewId;
   bool _ready = false;
   bool _installed = false;
+  bool _canGoBack = false;
 
   @override
   void initState() {
@@ -89,7 +90,13 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
       NavigationDelegate(
         onNavigationRequest: _onNavigationRequest,
         onPageStarted: _bridge.pageStarted,
-        onPageFinished: (_) => widget.onLoaded?.call(),
+        // In-page links are same-document navigations, so the history is
+        // read again on every URL change, not only on page loads.
+        onUrlChange: (_) => unawaited(_syncCanGoBack()),
+        onPageFinished: (_) {
+          unawaited(_syncCanGoBack());
+          widget.onLoaded?.call();
+        },
         onWebResourceError: (error) {
           if (error.isForMainFrame ?? false) {
             widget.onFailed?.call();
@@ -117,6 +124,13 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
     }
     if (mounted) {
       setState(() => _ready = true);
+    }
+  }
+
+  Future<void> _syncCanGoBack() async {
+    final can = await _controller.canGoBack();
+    if (mounted && can != _canGoBack) {
+      setState(() => _canGoBack = can);
     }
   }
 
@@ -162,6 +176,16 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
         child: Text('This device cannot run the bridge safely.'),
       );
     }
-    return WebViewWidget(controller: _controller);
+    // System back steps through the page's own history first, and leaves the
+    // screen only when there is none.
+    return PopScope(
+      canPop: !_canGoBack,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          unawaited(_controller.goBack());
+        }
+      },
+      child: WebViewWidget(controller: _controller),
+    );
   }
 }
