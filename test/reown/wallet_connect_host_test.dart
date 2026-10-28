@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -131,6 +132,146 @@ void main() {
       expect(kit.rejections, hasLength(1));
       host.dispose();
       await tester.runAsync(h.dispose);
+    });
+  });
+
+  group('sessions follow the selected wallet and network', () {
+    const base = Network(
+      name: 'Base',
+      symbol: 'base',
+      nativeSymbol: 'eth',
+      chainId: 8453,
+      rpcUrl: 'https://base.invalid',
+    );
+    final oldAddress = gnusTestWallet.address;
+
+    late GnusHarness h;
+    late FakeWalletKit kit;
+    late WalletConnectHost host;
+
+    setUp(() async {
+      h = await GnusHarness.create();
+      kit = FakeWalletKit()
+        ..activeSessions['t1'] = sessionData(
+          topic: 't1',
+          chains: const ['eip155:1', 'eip155:80002'],
+          methods: const ['eth_sendTransaction', 'gnus_getAccounts'],
+          events: const ['chainChanged', 'accountsChanged'],
+          address: oldAddress,
+        )
+        ..activeSessions['t2'] = sessionData(
+          topic: 't2',
+          chains: const ['eip155:8453'],
+          methods: const ['eth_sendTransaction'],
+          events: const ['chainChanged', 'accountsChanged'],
+          address: oldAddress,
+        );
+      host = _host(h, kit);
+      await host.start();
+    });
+
+    tearDown(() async {
+      host.dispose();
+      await h.dispose();
+    });
+
+    Future<void> push(Wallet? wallet, {Network network = gnusTestAmoy}) async {
+      h.walletDetails.push(
+        WalletDetailsState(selectedWallet: wallet, selectedNetwork: network),
+      );
+      await pumpEventQueue();
+    }
+
+    test('a switch to a wallet that can sign updates each session on its own '
+        'chains, then says so', () async {
+      final other = gnusTestWallet.copyWith(address: _otherAddress);
+
+      await push(other);
+
+      expect(kit.updates.map((u) => u.topic), ['t1', 't2']);
+      final first = kit.updates[0].namespaces['eip155']!;
+      expect(first.accounts, [
+        'eip155:1:$_otherAddress',
+        'eip155:80002:$_otherAddress',
+      ]);
+      expect(first.methods, ['eth_sendTransaction', 'gnus_getAccounts']);
+      expect(first.events, ['chainChanged', 'accountsChanged']);
+      expect(kit.updates[1].namespaces['eip155']!.accounts, [
+        'eip155:8453:$_otherAddress',
+      ]);
+      expect(
+        [for (final e in kit.emits) (e.topic, e.chainId, e.event.name)],
+        [
+          ('t1', 'eip155:1', 'accountsChanged'),
+          ('t2', 'eip155:8453', 'accountsChanged'),
+        ],
+      );
+      expect(kit.emits.first.event.data, [_otherAddress]);
+    });
+
+    test('a switch to a wallet that cannot sign leaves the account and sends '
+        'none', () async {
+      await push(gnusTestWallet.copyWith(walletType: WalletType.tracking));
+
+      expect(kit.updates, isEmpty);
+      expect(kit.emits.map((e) => e.event.data), [<String>[], <String>[]]);
+      expect(kit.emits.map((e) => e.event.name).toSet(), {'accountsChanged'});
+    });
+
+    test(
+      'a network switch tells only the session that approved the chain',
+      () async {
+        await push(gnusTestWallet, network: base);
+
+        expect(
+          [for (final e in kit.emits) (e.topic, e.chainId, e.event.name)],
+          [('t2', 'eip155:8453', 'chainChanged')],
+        );
+        expect(kit.emits.single.event.data, 8453);
+        expect(kit.updates, isEmpty);
+      },
+    );
+
+    test('a change to neither account nor chain sends nothing', () async {
+      h.walletDetails.push(
+        const WalletDetailsState(
+          selectedWallet: gnusTestWallet,
+          selectedNetwork: gnusTestAmoy,
+          selectedWalletBalance: '5',
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(kit.updates, isEmpty);
+      expect(kit.emits, isEmpty);
+    });
+
+    test(
+      'one session that cannot be updated does not stop the other',
+      () async {
+        kit.failUpdateTopics.add('t1');
+
+        await push(gnusTestWallet.copyWith(address: _otherAddress));
+
+        expect(kit.updates.map((u) => u.topic), ['t2']);
+        expect(kit.emits.map((e) => e.topic), ['t2']);
+      },
+    );
+
+    test('two quick switches reach the page in order', () async {
+      h.walletDetails.push(
+        WalletDetailsState(
+          selectedWallet: gnusTestWallet.copyWith(address: _otherAddress),
+          selectedNetwork: gnusTestAmoy,
+        ),
+      );
+      await push(gnusTestWallet);
+
+      final addresses = [
+        for (final e in kit.emits)
+          if (e.topic == 't1') (e.event.data as List).single,
+      ];
+      expect(addresses, [_otherAddress, oldAddress]);
     });
   });
 }

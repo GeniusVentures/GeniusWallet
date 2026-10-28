@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
@@ -47,6 +48,13 @@ class WalletConnectHost {
   ReownWalletKit get walletKit => _walletKit ?? WalletKitInstance().walletKit;
 
   Future<bool>? _pending;
+  StreamSubscription<WalletDetailsState>? _walletChanges;
+  ({String? address, WalletType? type, int? chainId}) _watched = (
+    address: null,
+    type: null,
+    chainId: null,
+  );
+  Future<void> _synced = Future<void>.value();
   bool _attached = false;
   bool _disposed = false;
   void Function()? _stopDappRequests;
@@ -83,6 +91,8 @@ class WalletConnectHost {
       handler: handler,
       devBuild: devBuild,
     );
+    _watched = _watch(walletDetails.state);
+    _walletChanges = walletDetails.stream.listen(_onWalletDetails);
     _attached = true;
     return true;
   }
@@ -93,6 +103,7 @@ class WalletConnectHost {
       return;
     }
     walletKit.onSessionProposal.unsubscribe(_onProposal);
+    unawaited(_walletChanges?.cancel());
     _stopDappRequests?.call();
     _stopGnusRequests?.call();
     _attached = false;
@@ -110,6 +121,111 @@ class WalletConnectHost {
     final context = navigatorKey.currentContext;
     if (context != null) {
       showToast(context, message, type: type);
+    }
+  }
+
+  static ({String? address, WalletType? type, int? chainId}) _watch(
+    WalletDetailsState state,
+  ) => (
+    address: state.selectedWallet?.address.toLowerCase(),
+    type: state.selectedWallet?.walletType,
+    chainId: state.selectedNetwork?.chainId,
+  );
+
+  // One pass at a time, so two quick switches reach a page in order.
+  void _onWalletDetails(WalletDetailsState state) {
+    final previous = _watched;
+    final next = _watch(state);
+    if (next == previous) {
+      return;
+    }
+    _watched = next;
+    _synced = _synced.then((_) async {
+      try {
+        if (next.address != previous.address || next.type != previous.type) {
+          await _syncAccounts(state.selectedWallet);
+        }
+        final chainId = next.chainId;
+        if (chainId != previous.chainId && chainId != null) {
+          await _syncChain(chainId);
+        }
+      } catch (e) {
+        debugPrint('WalletConnect sync failed ${e.runtimeType}');
+      }
+    });
+  }
+
+  static List<String> _chainsOf(Namespace namespace) =>
+      namespace.chains ??
+      [for (final a in namespace.accounts) a.substring(0, a.lastIndexOf(':'))];
+
+  // Every session follows the selected wallet. One that cannot sign leaves the
+  // session's account alone and tells the page there is none.
+  Future<void> _syncAccounts(Wallet? wallet) async {
+    final signer = wallet != null && walletCanSign(wallet) ? wallet : null;
+    for (final session in walletKit.getActiveSessions().values) {
+      final eip155 = session.namespaces['eip155'];
+      if (eip155 == null) {
+        continue;
+      }
+      if (signer != null) {
+        try {
+          await walletKit.updateSession(
+            topic: session.topic,
+            namespaces: {
+              ...session.namespaces,
+              'eip155': Namespace(
+                chains: eip155.chains,
+                accounts: [
+                  for (final chain in _chainsOf(eip155))
+                    '$chain:${signer.address}',
+                ],
+                methods: eip155.methods,
+                events: eip155.events,
+              ),
+            },
+          );
+        } catch (e) {
+          debugPrint('WalletConnect session update failed ${e.runtimeType}');
+          continue;
+        }
+      }
+      final chains = _chainsOf(eip155);
+      if (chains.isNotEmpty) {
+        await _emit(session, 'accountsChanged', [
+          ?signer?.address,
+        ], chains.first);
+      }
+    }
+  }
+
+  Future<void> _syncChain(int chainId) async {
+    final chain = 'eip155:$chainId';
+    for (final session in walletKit.getActiveSessions().values) {
+      final eip155 = session.namespaces['eip155'];
+      if (eip155 != null && _chainsOf(eip155).contains(chain)) {
+        await _emit(session, 'chainChanged', chainId, chain);
+      }
+    }
+  }
+
+  Future<void> _emit(
+    SessionData session,
+    String name,
+    Object data,
+    String chain,
+  ) async {
+    if (!session.namespaces['eip155']!.events.contains(name)) {
+      return;
+    }
+    try {
+      await walletKit.emitSessionEvent(
+        topic: session.topic,
+        chainId: chain,
+        event: SessionEventParams(name: name, data: data),
+      );
+    } catch (e) {
+      debugPrint('WalletConnect $name not sent ${e.runtimeType}');
     }
   }
 
@@ -177,8 +293,7 @@ class WalletConnectHost {
 
     final chainIds = signableChainIds().toList();
 
-    final context = navigatorKey.currentContext;
-    if (context == null) {
+    if (navigatorKey.currentContext == null) {
       await _reject(
         event.id,
         Errors.getSdkError(Errors.USER_REJECTED).toSignError(),
@@ -188,7 +303,7 @@ class WalletConnectHost {
 
     try {
       final approved = await ApproveDappConnectionDrawer.show(
-        context: context,
+        context: navigatorKey.currentContext!,
         dappName: metadata.name,
         dappUrl: dappUrl,
         dappDescription: metadata.description,
