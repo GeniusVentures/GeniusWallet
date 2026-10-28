@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/settings/connected_sites_section.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
@@ -21,6 +23,15 @@ final _newer = webOrigin('https://${'n' * 90}.example');
 class _SettingsApi extends FakeGnusApi {
   @override
   Future<String> get jsonFilePath async => 'no-such-dir/';
+}
+
+class _RefusingStore extends GnusConnectionStore {
+  _RefusingStore(super.box);
+
+  @override
+  Future<void> revoke(GnusOrigin origin) async {
+    throw StateError('box closed');
+  }
 }
 
 Widget _host(GnusConnectionStore store, GWAppearanceMode mode) =>
@@ -86,6 +97,28 @@ void main() {
     expect(find.text(_older.value), findsOneWidget);
     expect(store.isConnected(_newer), isFalse);
     expect(store.isConnected(_older), isTrue);
+    await shutdown(tester);
+  });
+
+  testWidgets('a revoke the store refuses says so and keeps the row', (
+    tester,
+  ) async {
+    await boot(tester);
+    await seed(tester);
+    store = _RefusingStore(h.connectionBox);
+    await tester.pumpWidget(_host(store, GWAppearanceMode.dark));
+
+    await tester.tap(find.widgetWithText(GWButton, 'Revoke').first);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+
+    expect(
+      find.text('Could not revoke this site. It is still connected.'),
+      findsOneWidget,
+    );
+    expect(find.text(_newer.value), findsOneWidget);
+    expect(store.isConnected(_newer), isTrue);
+    ToastManager.instance.disposeAll();
     await shutdown(tester);
   });
 

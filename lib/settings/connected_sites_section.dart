@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/settings/connected_sites_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -85,8 +86,19 @@ class _ConnectedSiteRow extends StatelessWidget {
           variant: GWButtonVariant.tertiary,
           size: GWButtonSize.sm,
           semanticLabel: 'Revoke ${site.origin.value}',
-          onPressed: () =>
-              context.read<ConnectedSitesCubit>().revoke(site.origin),
+          onPressed: () async {
+            final revoked = await context.read<ConnectedSitesCubit>().revoke(
+              site.origin,
+            );
+            if (revoked || !context.mounted) {
+              return;
+            }
+            showToast(
+              context,
+              'Could not revoke this site. It is still connected.',
+              type: ToastType.error,
+            );
+          },
         ),
       ],
     );
