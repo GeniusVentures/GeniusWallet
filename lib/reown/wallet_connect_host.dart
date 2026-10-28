@@ -113,8 +113,33 @@ class WalletConnectHost {
     }
   }
 
+  /// The selected wallet when it can sign. Otherwise the proposal is
+  /// rejected, the user is told why, and the result is null.
+  Future<Wallet?> _signerOrReject(int proposalId) async {
+    final wallet = walletDetails.state.selectedWallet;
+    if (wallet != null && walletCanSign(wallet)) {
+      return wallet;
+    }
+    await _reject(
+      proposalId,
+      ReownSignError(
+        code: Errors.getSdkError(Errors.UNSUPPORTED_ACCOUNTS).code,
+        message: 'The selected wallet cannot sign',
+      ),
+    );
+    _toast(
+      'The selected wallet cannot sign. Switch to a wallet that can sign, '
+      'then connect again.',
+      ToastType.error,
+    );
+    return null;
+  }
+
   Future<void> _onProposal(SessionProposalEvent? event) async {
     if (event == null) {
+      return;
+    }
+    if (await _signerOrReject(event.id) == null) {
       return;
     }
     final metadata = event.params.proposer.metadata;
@@ -150,10 +175,7 @@ class WalletConnectHost {
       dappUrl = origin.value;
     }
 
-    // Read before the drawer awaits: the wallet and chains the user sees are
-    // the ones the session is approved with.
     final chainIds = signableChainIds().toList();
-    final address = walletDetails.state.selectedWallet?.address ?? '';
 
     final context = navigatorKey.currentContext;
     if (context == null) {
@@ -180,6 +202,11 @@ class WalletConnectHost {
         );
         return;
       }
+      // The user may have switched wallets while the drawer was open.
+      final signer = await _signerOrReject(event.id);
+      if (signer == null) {
+        return;
+      }
       final chains = <int>{
         ...(chainIds.isEmpty ? const [1] : chainIds),
         if (gnusMethods.isNotEmpty) kGnusWalletConnectChainId,
@@ -189,7 +216,7 @@ class WalletConnectHost {
         namespaces: {
           'eip155': eip155Namespace(
             chainIds: chains,
-            address: address,
+            address: signer.address,
             methods: [...supportedMethods, ...gnusMethods],
             events: [...eip155Events, ...requestedGnusEvents(event.params)],
           ),
