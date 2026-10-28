@@ -93,6 +93,12 @@ class GnusEvent {
   final Map<String, Object?> payload;
 }
 
+/// What one call has done so far. Per call, never shared: concurrent calls
+/// each hold their own.
+class _CallScope {
+  bool connected = false;
+}
+
 final RegExp _evmAddress = RegExp(r'^0x[0-9a-f]{40}$');
 
 /// Answers the `gnus_*` contract for any transport. Takes `(origin, method,
@@ -330,20 +336,47 @@ class GnusRpcHandler {
 
   Future<Object?> handle(String origin, String method, Object? params) async {
     final name = GnusRpcMethod.all.contains(method) ? method : 'unsupported';
+    final scope = _CallScope();
     try {
-      final result = await _dispatch(origin, method, params);
+      final result = await _dispatch(origin, method, params, scope);
+      _requireStillConnected(origin, scope);
       debugPrint('gnus_rpc $name $origin ok');
       return result;
     } on GnusRpcError catch (e) {
-      debugPrint('gnus_rpc $name $origin ${e.code}');
-      rethrow;
+      // A call that was connected when it began and is not now was in flight
+      // at a revoke, whatever it found on the way.
+      final error = _revoked(origin, scope) ? _unauthorized : e;
+      debugPrint('gnus_rpc $name $origin ${error.code}');
+      if (identical(error, e)) {
+        rethrow;
+      }
+      throw error;
     } catch (e) {
       debugPrint('gnus_rpc $name $origin internal ${e.runtimeType}');
       throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
     }
   }
 
-  Future<Object?> _dispatch(String origin, String method, Object? params) {
+  static const _unauthorized = GnusRpcError(
+    GnusRpcCode.unauthorized,
+    'Unauthorized',
+  );
+
+  bool _revoked(String origin, _CallScope scope) =>
+      scope.connected && !_connections.isConnected(origin);
+
+  void _requireStillConnected(String origin, _CallScope scope) {
+    if (_revoked(origin, scope)) {
+      throw _unauthorized;
+    }
+  }
+
+  Future<Object?> _dispatch(
+    String origin,
+    String method,
+    Object? params,
+    _CallScope scope,
+  ) {
     if (!GnusRpcMethod.all.contains(method)) {
       throw const GnusRpcError(
         GnusRpcCode.unsupportedMethod,
@@ -353,17 +386,17 @@ class GnusRpcHandler {
     final args = _paramsMap(params);
     switch (method) {
       case GnusRpcMethod.estimate:
-        return _estimate(origin, args);
+        return _estimate(origin, scope, args);
       case GnusRpcMethod.submitJob:
-        return _submitJob(origin, args);
+        return _submitJob(origin, scope, args);
       case GnusRpcMethod.listJobs:
-        return _listJobs(origin, args);
+        return _listJobs(origin, scope, args);
       case GnusRpcMethod.getJob:
-        return _getJob(origin, args);
+        return _getJob(origin, scope, args);
       case GnusRpcMethod.getAccounts:
-        return _getAccounts(origin);
+        return _getAccounts(origin, scope);
       case GnusRpcMethod.getEarnings:
-        return _getEarnings(origin, args);
+        return _getEarnings(origin, scope, args);
       default:
         throw const GnusRpcError(
           GnusRpcCode.unsupportedMethod,
@@ -483,8 +516,9 @@ class GnusRpcHandler {
 
   /// Returns once [origin] is connected, asking the user the first time. A
   /// decline, a timeout or a throw from the seam is a rejection.
-  Future<void> _requireConnected(String origin) async {
+  Future<void> _requireConnected(String origin, _CallScope scope) async {
     if (_connections.isConnected(origin)) {
+      scope.connected = true;
       return;
     }
     final approved = await _prompt(origin, () => _connect(origin: origin));
@@ -500,6 +534,7 @@ class GnusRpcHandler {
       debugPrint('gnus_rpc connection write failed ${e.runtimeType}');
       throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
     }
+    scope.connected = true;
   }
 
   /// Runs [show] as [origin]'s one open prompt. A second prompt while one is
@@ -561,10 +596,14 @@ class GnusRpcHandler {
     return node.toLowerCase();
   }
 
-  Future<Object?> _listJobs(String origin, Map<String, Object?> args) async {
+  Future<Object?> _listJobs(
+    String origin,
+    _CallScope scope,
+    Map<String, Object?> args,
+  ) async {
     final limit = _limitParam(args['limit']);
     final cursor = _cursorParam(args['cursor']);
-    await _requireConnected(origin);
+    await _requireConnected(origin, scope);
     final node = _requireReadyNode();
     try {
       final page = _store.page(sdkAddress: node, limit: limit, cursor: cursor);
@@ -579,9 +618,13 @@ class GnusRpcHandler {
 
   /// The record plus `result: null`, or null when nothing matches. A record of
   /// another node account counts as not found.
-  Future<Object?> _getJob(String origin, Map<String, Object?> args) async {
+  Future<Object?> _getJob(
+    String origin,
+    _CallScope scope,
+    Map<String, Object?> args,
+  ) async {
     final (name, value) = _jobSelectorParam(args);
-    await _requireConnected(origin);
+    await _requireConnected(origin, scope);
     final node = _requireReadyNode();
     final job = switch (name) {
       'jobId' => _store.byJobId(value),
@@ -709,9 +752,13 @@ class GnusRpcHandler {
   /// A read: it prices the job and reports what the payer holds, ignores the
   /// gate, and never prompts or burns. A balance it cannot read stays null
   /// rather than failing the call; a submit fails closed on the same value.
-  Future<Object?> _estimate(String origin, Map<String, Object?> args) async {
+  Future<Object?> _estimate(
+    String origin,
+    _CallScope scope,
+    Map<String, Object?> args,
+  ) async {
     final job = _jobParam(args['job']);
-    await _requireConnected(origin);
+    await _requireConnected(origin, scope);
     _requireReadyNode();
 
     final details = _walletDetails.state;
@@ -742,13 +789,17 @@ class GnusRpcHandler {
     };
   }
 
-  /// Stops the burn if anything the user approved has moved since the confirm
-  /// opened. The prompt can stay open for minutes.
+  /// Stops the burn if the origin was revoked or anything the user approved
+  /// has moved since the confirm opened. The prompt can stay open for minutes.
   void _recheckAfterConfirm({
+    required String origin,
     required String nodeAccount,
     required String payer,
     required int? chainId,
   }) {
+    if (!_connections.isConnected(origin)) {
+      throw _unauthorized;
+    }
     final app = _readAppState();
     if (app.switchingSDKAccount != null) {
       throw const GnusRpcError(
@@ -837,8 +888,8 @@ class GnusRpcHandler {
     };
   }
 
-  Future<Object?> _getAccounts(String origin) async {
-    await _requireConnected(origin);
+  Future<Object?> _getAccounts(String origin, _CallScope scope) async {
+    await _requireConnected(origin, scope);
     final payload = await _accountsPayload();
     if (payload == null) {
       throw const GnusRpcError(GnusRpcCode.disconnected, 'Wallet not ready');
@@ -852,12 +903,16 @@ class GnusRpcHandler {
   // ponytail: isProcessing is false both when idle and while the processing
   // feed has never ticked or is unavailable. Upgrade path: expose
   // processingFeedStatus as a field once the contract has a place for it.
-  Future<Object?> _getEarnings(String origin, Map<String, Object?> args) async {
+  Future<Object?> _getEarnings(
+    String origin,
+    _CallScope scope,
+    Map<String, Object?> args,
+  ) async {
     final includeChildren = args['includeChildren'];
     if (includeChildren != null && includeChildren is! bool) {
       throw _invalidParams('includeChildren');
     }
-    await _requireConnected(origin);
+    await _requireConnected(origin, scope);
     final node = _requireReadyNode();
     final balance = sgnusBalanceBaseUnits(_geniusApi.getSGNUSBalance());
     if (balance == null) {
@@ -909,10 +964,14 @@ class GnusRpcHandler {
     },
   );
 
-  Future<Object?> _submitJob(String origin, Map<String, Object?> args) async {
+  Future<Object?> _submitJob(
+    String origin,
+    _CallScope scope,
+    Map<String, Object?> args,
+  ) async {
     final job = _jobParam(args['job']);
     final idempotencyKey = _idempotencyKeyParam(args['idempotencyKey']);
-    await _requireConnected(origin);
+    await _requireConnected(origin, scope);
     final nodeAccount = _requireReadyNode();
 
     // A retry of the call still in flight is busy, not a replay: nothing is
@@ -1086,6 +1145,7 @@ class GnusRpcHandler {
     }
 
     _recheckAfterConfirm(
+      origin: origin,
       nodeAccount: nodeAccount,
       payer: payer,
       chainId: facts.chainId,

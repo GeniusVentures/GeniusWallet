@@ -190,4 +190,89 @@ void main() {
       expect(asked, 3);
     });
   });
+
+  group('a revoke lands on calls in flight', () {
+    test('a read that finishes after the revoke is 4100', () async {
+      await h.connections.connect(_origin, h.clock);
+      final release = Completer<void>();
+      h.api.onNet = () => release.future;
+      final handler = h.build();
+
+      final read = viaJson(handler, _origin, _accounts, null);
+      await pumpEventQueue();
+      await h.connections.revoke(_origin);
+      release.complete();
+      final reply = await read;
+
+      expect(_error(reply)['code'], GnusRpcCode.unauthorized);
+      expect(reply['result'], isNull);
+    });
+
+    test('a revoke and a reconnect during the call still answers', () async {
+      await h.connections.connect(_origin, h.clock);
+      final release = Completer<void>();
+      h.api.onNet = () => release.future;
+      final handler = h.build();
+
+      final read = viaJson(handler, _origin, _accounts, null);
+      await pumpEventQueue();
+      await h.connections.revoke(_origin);
+      await h.connections.connect(_origin, h.clock);
+      release.complete();
+
+      expect((await read)['result'], isNotNull);
+    });
+
+    test('a submit revoked during its confirm burns nothing', () async {
+      await h.connections.connect(_origin, h.clock);
+      final held = Completer<bool>();
+      final handler = h.build(
+        confirm:
+            ({
+              required String origin,
+              required String cost,
+              required Map<String, String>? gas,
+              required String payer,
+              required String nodeAccount,
+            }) => held.future,
+      );
+
+      final submit = viaJson(handler, _origin, _submit, _params('k1'));
+      await pumpEventQueue();
+      await h.connections.revoke(_origin);
+      held.complete(true);
+      final reply = await submit;
+
+      expect(_error(reply)['code'], GnusRpcCode.unauthorized);
+      expect(h.api.count('burn'), 0);
+      expect(h.store.intentFor(_origin, 'k1'), isNull);
+    });
+
+    test('a call that failed before the check keeps its own code', () async {
+      final handler = h.build();
+
+      final neverConnected = await viaJson(handler, _origin, _accounts, [1]);
+      final unknown = await viaJson(handler, _origin, 'gnus_nope', null);
+      await h.connections.connect(_origin, h.clock);
+      await h.connections.revoke(_origin);
+      final revoked = await viaJson(handler, _origin, _accounts, [1]);
+
+      expect(_error(neverConnected)['code'], GnusRpcCode.invalidParams);
+      expect(_error(unknown)['code'], GnusRpcCode.unsupportedMethod);
+      expect(_error(revoked)['code'], GnusRpcCode.invalidParams);
+    });
+
+    test(
+      'a declined connect keeps 4001 for an origin never connected',
+      () async {
+        final handler = h.build(
+          connect: ({required String origin}) async => false,
+        );
+
+        final reply = await viaJson(handler, _origin, _accounts, null);
+
+        expect(_error(reply)['code'], GnusRpcCode.userRejected);
+      },
+    );
+  });
 }

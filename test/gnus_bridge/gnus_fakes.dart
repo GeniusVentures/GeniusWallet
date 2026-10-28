@@ -92,8 +92,12 @@ class FakeGnusApi implements GeniusApi {
 
   bool netThrows = false;
 
+  /// Runs when the SDK net read starts, before it answers.
+  Future<void> Function()? onNet;
+
   @override
   Future<SgnsNet> sgnsNet() async {
+    await onNet?.call();
     if (netThrows) {
       throw const FileSystemException('override unreadable');
     }
