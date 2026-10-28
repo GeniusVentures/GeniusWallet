@@ -32,7 +32,9 @@ class _Home extends StatelessWidget {
           onUnitChanged: (_) {},
           onLinkTap: (_) {},
           onNewJob: () {},
-          onOpenDashboard: listed ? () => openGnusDashboard(context) : null,
+          onOpenDashboard: listed
+              ? () => openGnusDashboard(context, inApp: true)
+              : null,
         ),
       ),
     );
