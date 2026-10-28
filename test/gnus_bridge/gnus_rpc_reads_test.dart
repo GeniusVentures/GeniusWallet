@@ -9,7 +9,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 
 final _node = gnusTestNode.toLowerCase();
 final _mainNode = '0x${'b' * 128}';

@@ -6,7 +6,7 @@ import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 
 /// A list holding a list, [depth] levels deep.
 Object? _nested(int depth) => depth == 0 ? 1 : [_nested(depth - 1)];

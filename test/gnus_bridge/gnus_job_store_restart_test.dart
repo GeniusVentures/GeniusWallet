@@ -58,7 +58,7 @@ void main() {
   });
 
   test('a connection survives Hive.close and a reopen with its time', () async {
-    const origin = 'https://dash.example';
+    final origin = webOrigin('https://dash.example');
     final at = DateTime.utc(2026, 10, 27, 12, 30, 15, 123);
     final a = GnusConnectionStore(
       await Hive.openBox<String>(gnusConnectionsBoxName),
@@ -76,7 +76,7 @@ void main() {
   });
 
   test('a handler over the reopened box lists, finds and replays', () async {
-    const origin = 'https://dash.example';
+    final origin = webOrigin('https://dash.example');
     final params = {
       'job': {
         'inputs': ['a'],

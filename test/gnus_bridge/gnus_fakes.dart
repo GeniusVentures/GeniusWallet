@@ -16,12 +16,17 @@ import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce/hive.dart';
+
+/// [raw] as a WebView page's origin.
+GnusOrigin webOrigin(String raw) =>
+    GnusOrigin.parse(GnusTransport.webview, raw);
 
 final gnusTestNode = '0xAA${'a' * 126}';
 const gnusTestWalletAddress = '0xAbCd567890123456789012345678901234567890';
@@ -219,7 +224,7 @@ class RecordedConfirm {
     required this.nodeAccount,
   });
 
-  final String origin;
+  final GnusOrigin origin;
   final String cost;
   final Map<String, String>? gas;
   final String payer;
@@ -313,9 +318,9 @@ class GnusHarness {
   final List<RecordedConfirm> confirms = [];
 
   /// The origins the default connect was asked about, in order.
-  final List<String> connects = [];
+  final List<GnusOrigin> connects = [];
 
-  Future<bool> _approveConnect({required String origin}) async {
+  Future<bool> _approveConnect({required GnusOrigin origin}) async {
     connects.add(origin);
     return true;
   }
@@ -353,7 +358,7 @@ class GnusHarness {
         confirm:
             confirm ??
             ({
-              required String origin,
+              required GnusOrigin origin,
               required String cost,
               required Map<String, String>? gas,
               required String payer,
@@ -435,7 +440,7 @@ class GnusHarness {
 /// A transport that hands the handler's maps over untouched.
 Future<Map<String, Object?>> viaDirect(
   GnusRpcHandler handler,
-  String origin,
+  GnusOrigin origin,
   String method,
   Object? params,
 ) async {
@@ -450,7 +455,7 @@ Future<Map<String, Object?>> viaDirect(
 /// WalletConnect does.
 Future<Map<String, Object?>> viaJson(
   GnusRpcHandler handler,
-  String origin,
+  GnusOrigin origin,
   String method,
   Object? params,
 ) async {

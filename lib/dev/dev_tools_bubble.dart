@@ -955,7 +955,8 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             ),
                           ),
                           tooltip:
-                              'gnus_getAccounts from a second origin. Press '
+                              'gnus_getAccounts from a second origin, over '
+                              'WalletConnect. Press '
                               'again while its drawer is open for '
                               'confirm_open; decline it three times in a '
                               'minute for rate_limited.',

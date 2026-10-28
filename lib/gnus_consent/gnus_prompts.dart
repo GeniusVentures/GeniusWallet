@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
@@ -60,7 +61,7 @@ class _ClosesWithHandlerState extends State<_ClosesWithHandler> {
 /// Asks whether [origin] may use the bridge, in a drawer on the root
 /// navigator. Only Approve answers true; a dismissal, or no navigator, is a
 /// decline.
-Future<bool> showGnusConnectPrompt({required String origin}) async {
+Future<bool> showGnusConnectPrompt({required GnusOrigin origin}) async {
   final context = navigatorKey.currentContext;
   if (context == null) {
     return false;
@@ -68,14 +69,14 @@ Future<bool> showGnusConnectPrompt({required String origin}) async {
   // No icon: nothing a page supplies is drawn on a consent prompt.
   final answer = await ApproveTransactionDrawer.show(
     context: context,
-    title: origin,
-    dappName: origin,
-    dappUrl: origin,
-    content: const _ClosesWithHandler(
+    title: origin.value,
+    dappName: origin.value,
+    dappUrl: origin.value,
+    content: _ClosesWithHandler(
       child: DappCallDetails(
         headline: 'Connect this site?',
         warning: _connectWarning,
-        rows: [],
+        rows: [DappCallRow(label: 'Through', value: origin.transport.label)],
       ),
     ),
   );
@@ -85,7 +86,7 @@ Future<bool> showGnusConnectPrompt({required String origin}) async {
 /// The [GnusConfirm] seam: shows what a submit costs and who pays, and
 /// answers true only on Approve. A cost that does not parse is a decline.
 Future<bool> showGnusSpendConfirm({
-  required String origin,
+  required GnusOrigin origin,
   required String cost,
   required Map<String, String>? gas,
   required String payer,
@@ -102,14 +103,15 @@ Future<bool> showGnusSpendConfirm({
   final answer = await ApproveTransactionDrawer.show(
     context: context,
     title: 'Pay for a processing job',
-    dappName: origin,
-    dappUrl: origin,
+    dappName: origin.value,
+    dappUrl: origin.value,
     content: _ClosesWithHandler(
       child: DappCallDetails(
         headline: '${formatTokenAmount(amount, kGnusDecimals)} GNUS',
         warning: _spendWarning,
         rows: [
           DappCallRow(label: 'Bridge gas', value: gasPrice),
+          DappCallRow(label: 'Through', value: origin.transport.label),
           DappCallRow(label: 'Paying wallet', value: payer, copyable: true),
           DappCallRow(
             label: 'Earning account',

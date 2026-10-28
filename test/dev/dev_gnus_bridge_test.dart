@@ -72,8 +72,8 @@ void main() {
   });
 
   test('the dev origins cannot resolve and the account is 130 characters', () {
-    expect(kDevGnusOrigin, endsWith('.invalid'));
-    expect(kDevGnusOtherOrigin, endsWith('.invalid'));
+    expect(kDevGnusOrigin.value, endsWith('.invalid'));
+    expect(kDevGnusOtherOrigin.value, endsWith('.invalid'));
     expect(kDevGnusOrigin, isNot(kDevGnusOtherOrigin));
     expect(kDevGnusEarningAccount, hasLength(130));
   });

@@ -1,5 +1,6 @@
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/gnus_consent/gnus_prompts.dart';
@@ -7,8 +8,14 @@ import 'package:genius_wallet/submit_job/job_submission.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Fake origins for the dev bubble; `.invalid` can never resolve.
-const String kDevGnusOrigin = 'https://dashboard.dev.invalid';
-const String kDevGnusOtherOrigin = 'https://other.dev.invalid';
+final GnusOrigin kDevGnusOrigin = GnusOrigin.parse(
+  GnusTransport.webview,
+  'https://dashboard.dev.invalid',
+);
+final GnusOrigin kDevGnusOtherOrigin = GnusOrigin.parse(
+  GnusTransport.walletconnect,
+  'https://other.dev.invalid',
+);
 
 const String kDevGnusNeedsFixture = 'Arm a JOB fixture first';
 

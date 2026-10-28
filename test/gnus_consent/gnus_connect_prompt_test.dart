@@ -8,7 +8,7 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import '../gnus_bridge/gnus_fakes.dart';
 import '../theme/theme_contrast_test.dart' show themeFor;
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 
 Future<void> _pumpApp(WidgetTester tester) => tester.pumpWidget(
   MaterialApp(
@@ -29,7 +29,7 @@ void main() {
     final first = viaJson(handler, _origin, GnusRpcMethod.getAccounts, null);
     await tester.pumpAndSettle();
 
-    expect(find.text(_origin), findsWidgets);
+    expect(find.text(_origin.value), findsWidgets);
     expect(find.text('Connect this site?'), findsOneWidget);
     expect(h.connections.isConnected(_origin), isFalse);
 
@@ -67,7 +67,7 @@ void main() {
   });
 
   testWidgets('a long origin is shown whole', (tester) async {
-    final long = 'https://${'a' * 100}.example';
+    final long = webOrigin('https://${'a' * 100}.example');
     final h = (await tester.runAsync(GnusHarness.create))!;
     final handler = h.build(connect: showGnusConnectPrompt);
     await _pumpApp(tester);
@@ -76,7 +76,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // The title may shorten it; the site line under it must not.
-    final shown = tester.widgetList<Text>(find.text(long));
+    final shown = tester.widgetList<Text>(find.text(long.value));
     expect(
       shown.where((t) => t.maxLines == null && t.overflow == null),
       isNotEmpty,

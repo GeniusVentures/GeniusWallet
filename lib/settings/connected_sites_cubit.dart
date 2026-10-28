@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 
 /// The sites connected to the bridge, newest first, kept in step with the
 /// store. Revoking forgets the site, so its next call asks again.
@@ -19,7 +20,7 @@ class ConnectedSitesCubit extends Cubit<List<GnusConnection>> {
     }
   }
 
-  Future<void> revoke(String origin) async {
+  Future<void> revoke(GnusOrigin origin) async {
     await _store.revoke(origin);
     _reload();
   }

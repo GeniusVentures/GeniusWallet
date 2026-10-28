@@ -7,7 +7,7 @@ import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 
 String _withoutComments(String source) => source
     .split('\n')
@@ -189,7 +189,7 @@ void main() {
           expect(line, isNot(contains('SENTINEL')));
           expect(line, isNot(contains(gnusTestBurnHash)));
         }
-        expect(gnus, contains('gnus_rpc unsupported $_origin 4200'));
+        expect(gnus, contains('gnus_rpc unsupported ${_origin.value} 4200'));
       },
     );
   });

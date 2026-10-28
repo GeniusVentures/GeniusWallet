@@ -65,13 +65,13 @@ class _ConnectedSiteRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                site.origin,
+                site.origin.value,
                 style: GeniusWalletTypography.bodyMd.copyWith(
                   color: gw.textPrimary,
                 ),
               ),
               Text(
-                'Connected $when',
+                '${site.origin.transport.label}, connected $when',
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: gw.textSecondary,
                 ),
@@ -84,7 +84,7 @@ class _ConnectedSiteRow extends StatelessWidget {
           label: 'Revoke',
           variant: GWButtonVariant.tertiary,
           size: GWButtonSize.sm,
-          semanticLabel: 'Revoke ${site.origin}',
+          semanticLabel: 'Revoke ${site.origin.value}',
           onPressed: () =>
               context.read<ConnectedSitesCubit>().revoke(site.origin),
         ),

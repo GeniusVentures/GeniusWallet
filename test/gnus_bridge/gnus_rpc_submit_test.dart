@@ -9,6 +9,7 @@ import 'package:genius_api/web3/bridge_out_abi.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/submit_job/job_submission.dart';
@@ -16,7 +17,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 const _submit = GnusRpcMethod.submitJob;
 
 typedef _Transport =
@@ -70,7 +71,7 @@ void main() {
       expect(h.api.calls, ['cost', 'gas', 'burn', 'process']);
       final record = h.store.byBurnHash(gnusTestBurnHash);
       expect(record, isNotNull);
-      expect(record!.origin, _origin);
+      expect(record!.origin, _origin.value);
       expect(record.idempotencyKey, 'key-1');
       expect(record.cost, '1234000000000000000000');
       expect(record.status, GnusJobStatus.submitted);
@@ -510,7 +511,7 @@ void main() {
       final data = _error(reply)['data']! as Map<String, Object?>;
       expect(data['reason'], GnusRpcReason.submissionOutcomeUnknown);
       expect(data['burnTxHash'], gnusTestBurnHash);
-      expect(h.store.intentFor(_origin, 'key-1'), isNotNull);
+      expect(h.store.intentFor(_origin.value, 'key-1'), isNotNull);
     });
 
     test('a hash that cannot be written cancels the send', () async {
@@ -522,7 +523,7 @@ void main() {
       expect(_error(reply)['code'], GnusRpcCode.internal);
       expect(_error(reply)['data'], isNull);
       expect(h.api.broadcasts, 0);
-      expect(h.store.intentFor(_origin, 'key-1'), isNotNull);
+      expect(h.store.intentFor(_origin.value, 'key-1'), isNotNull);
     });
 
     test('an unanswered intent blocks its key after 24 hours too, and getJob '
@@ -584,7 +585,7 @@ void main() {
 
       final reply = await viaDirect(
         handler,
-        'https://other.example',
+        webOrigin('https://other.example'),
         _submit,
         _params(),
       );
@@ -634,7 +635,7 @@ void main() {
       );
     });
 
-    Future<Map<String, Object?>> inFlightCall(String origin, String key) =>
+    Future<Map<String, Object?>> inFlightCall(GnusOrigin origin, String key) =>
         viaJson(handler, origin, _submit, _params(key: key));
 
     test(
@@ -655,7 +656,7 @@ void main() {
           GnusRpcReason.confirmOpen,
         );
         expectBusy(
-          await inFlightCall('https://other.example', 'key-3'),
+          await inFlightCall(webOrigin('https://other.example'), 'key-3'),
           GnusRpcReason.submitInFlight,
         );
         expectBusy(

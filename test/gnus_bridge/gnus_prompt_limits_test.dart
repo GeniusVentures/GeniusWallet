@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
-const _other = 'https://other.example';
+final _origin = webOrigin('https://dash.example');
+final _other = webOrigin('https://other.example');
 const _accounts = GnusRpcMethod.getAccounts;
 const _submit = GnusRpcMethod.submitJob;
 
@@ -36,7 +37,7 @@ void main() {
   tearDown(() => h.dispose());
 
   Future<bool> approveConfirm({
-    required String origin,
+    required GnusOrigin origin,
     required String cost,
     required Map<String, String>? gas,
     required String payer,
@@ -46,9 +47,9 @@ void main() {
   group('one open prompt per origin', () {
     test('a second call during a connect gets confirm_open at once', () async {
       final held = Completer<bool>();
-      final asked = <String>[];
+      final asked = <GnusOrigin>[];
       final handler = h.build(
-        connect: ({required String origin}) {
+        connect: ({required GnusOrigin origin}) {
           asked.add(origin);
           return origin == _origin ? held.future : Future.value(true);
         },
@@ -77,7 +78,7 @@ void main() {
         final handler = h.build(
           confirm:
               ({
-                required String origin,
+                required GnusOrigin origin,
                 required String cost,
                 required Map<String, String>? gas,
                 required String payer,
@@ -117,7 +118,7 @@ void main() {
     test('the fourth is rate_limited with no prompt, then it clears', () async {
       var asked = 0;
       final handler = h.build(
-        connect: ({required String origin}) async {
+        connect: ({required GnusOrigin origin}) async {
           asked++;
           return false;
         },
@@ -167,7 +168,7 @@ void main() {
     test('a prompt that timed out counts toward the three', () {
       var asked = 0;
       final handler = h.build(
-        connect: ({required String origin}) {
+        connect: ({required GnusOrigin origin}) {
           asked++;
           return Completer<bool>().future;
         },
@@ -229,7 +230,7 @@ void main() {
       final handler = h.build(
         confirm:
             ({
-              required String origin,
+              required GnusOrigin origin,
               required String cost,
               required Map<String, String>? gas,
               required String payer,
@@ -245,7 +246,7 @@ void main() {
 
       expect(_error(reply)['code'], GnusRpcCode.unauthorized);
       expect(h.api.count('burn'), 0);
-      expect(h.store.intentFor(_origin, 'k1'), isNull);
+      expect(h.store.intentFor(_origin.value, 'k1'), isNull);
     });
 
     test('a call that failed before the check keeps its own code', () async {
@@ -266,7 +267,7 @@ void main() {
       'a declined connect keeps 4001 for an origin never connected',
       () async {
         final handler = h.build(
-          connect: ({required String origin}) async => false,
+          connect: ({required GnusOrigin origin}) async => false,
         );
 
         final reply = await viaJson(handler, _origin, _accounts, null);

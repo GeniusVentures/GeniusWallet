@@ -5,14 +5,15 @@ import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+const _originValue = 'https://dash.example';
+final _origin = webOrigin(_originValue);
 const _list = GnusRpcMethod.listJobs;
 const _get = GnusRpcMethod.getJob;
 
 GnusJob _job(
   String hash, {
   String? node,
-  String origin = _origin,
+  String origin = _originValue,
   String key = 'k',
   int minute = 0,
   String? jobId,
@@ -67,7 +68,7 @@ void main() {
           'jobId': null,
           'burnTxHash': '0x2',
           'sdkAddress': gnusTestNode.toLowerCase(),
-          'origin': _origin,
+          'origin': _origin.value,
           'idempotencyKey': 'k',
           'submittedAt': '2026-10-27T12:02:00.000Z',
           'cost': '1000000000000000000',
@@ -165,7 +166,7 @@ void main() {
 
       final other = await viaDirect(
         h.build(),
-        'https://elsewhere.example',
+        webOrigin('https://elsewhere.example'),
         _get,
         {'idempotencyKey': 'key-1'},
       );
@@ -193,7 +194,7 @@ void main() {
 
     test('an unfinished submit is found by its key as pending', () async {
       final intent = GnusSubmitIntent(
-        origin: _origin,
+        origin: _origin.value,
         idempotencyKey: 'open',
         bodyHash: 'h',
         payer: gnusTestWalletAddress.toLowerCase(),
@@ -208,7 +209,7 @@ void main() {
         'jobId': null,
         'burnTxHash': null,
         'sdkAddress': gnusTestNode.toLowerCase(),
-        'origin': _origin,
+        'origin': _origin.value,
         'idempotencyKey': 'open',
         'submittedAt': '2026-10-27T12:05:00.000Z',
         'cost': '1000000000000000000',
@@ -224,7 +225,7 @@ void main() {
     test('a recorded job wins over its intent', () async {
       await h.store.putIntent(
         GnusSubmitIntent(
-          origin: _origin,
+          origin: _origin.value,
           idempotencyKey: 'key-1',
           bodyHash: 'h',
           payer: gnusTestWalletAddress.toLowerCase(),

@@ -11,6 +11,7 @@ import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/services/coins_service.dart';
@@ -38,7 +39,7 @@ const Duration kGnusConfirmTimeout = Duration(minutes: 10);
 /// [kGnusConfirmTimeout] the handler rejects and ignores a late answer.
 typedef GnusConfirm =
     Future<bool> Function({
-      required String origin,
+      required GnusOrigin origin,
       required String cost,
       required Map<String, String>? gas,
       required String payer,
@@ -47,14 +48,14 @@ typedef GnusConfirm =
 
 /// The seam that asks the user whether [origin] may use the bridge at all.
 /// Like the confirm, it is a rejection after [kGnusConfirmTimeout].
-typedef GnusConnect = Future<bool> Function({required String origin});
+typedef GnusConnect = Future<bool> Function({required GnusOrigin origin});
 
 /// The default connect: nothing connects until a real prompt replaces it.
-Future<bool> rejectGnusConnect({required String origin}) async => false;
+Future<bool> rejectGnusConnect({required GnusOrigin origin}) async => false;
 
 /// The default confirm: nothing spends until a real prompt replaces it.
 Future<bool> rejectGnusConfirm({
-  required String origin,
+  required GnusOrigin origin,
   required String cost,
   required Map<String, String>? gas,
   required String payer,
@@ -170,8 +171,8 @@ class GnusRpcHandler {
 
   /// Origins with a prompt on screen, and when each origin's recent prompts
   /// were opened. In memory only; an origin's entry goes when it empties.
-  final Set<String> _promptOpen = {};
-  final Map<String, List<DateTime>> _promptTimes = {};
+  final Set<GnusOrigin> _promptOpen = {};
+  final Map<GnusOrigin, List<DateTime>> _promptTimes = {};
 
   final StreamController<GnusEvent> _events = StreamController.broadcast();
   late final List<StreamSubscription<Object?>> _subscriptions;
@@ -190,11 +191,11 @@ class GnusRpcHandler {
   /// [origin], while it is connected, and `gnus_jobUpdated` only for its own
   /// jobs. Checked per event, so a revoke stops delivery and a later connect
   /// resumes it without resubscribing. Transports forward only this stream.
-  Stream<GnusEvent> eventsFor(String origin) => _events.stream.where(
+  Stream<GnusEvent> eventsFor(GnusOrigin origin) => _events.stream.where(
     (event) =>
         _connections.isConnected(origin) &&
         (event.name != GnusRpcEventName.jobUpdated ||
-            event.payload['origin'] == origin),
+            event.payload['origin'] == origin.value),
   );
 
   /// Stops listening and closes [events]. Safe to call twice.
@@ -347,25 +348,31 @@ class GnusRpcHandler {
         Error.throwWithStackTrace(e, stack);
       });
 
-  Future<Object?> handle(String origin, String method, Object? params) async {
+  /// Answers one call. [origin] comes from [GnusOrigin.parse], so a transport
+  /// cannot pass one that is not canonical.
+  Future<Object?> handle(
+    GnusOrigin origin,
+    String method,
+    Object? params,
+  ) async {
     final name = GnusRpcMethod.all.contains(method) ? method : 'unsupported';
     final scope = _CallScope();
     try {
       final result = await _dispatch(origin, method, params, scope);
       _requireStillConnected(origin, scope);
-      debugPrint('gnus_rpc $name $origin ok');
+      debugPrint('gnus_rpc $name ${origin.value} ok');
       return result;
     } on GnusRpcError catch (e) {
       // A call that was connected when it began and is not now was in flight
       // at a revoke, whatever it found on the way.
       final error = _revoked(origin, scope) ? _unauthorized : e;
-      debugPrint('gnus_rpc $name $origin ${error.code}');
+      debugPrint('gnus_rpc $name ${origin.value} ${error.code}');
       if (identical(error, e)) {
         rethrow;
       }
       throw error;
     } catch (e) {
-      debugPrint('gnus_rpc $name $origin internal ${e.runtimeType}');
+      debugPrint('gnus_rpc $name ${origin.value} internal ${e.runtimeType}');
       throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
     }
   }
@@ -375,17 +382,17 @@ class GnusRpcHandler {
     'Unauthorized',
   );
 
-  bool _revoked(String origin, _CallScope scope) =>
+  bool _revoked(GnusOrigin origin, _CallScope scope) =>
       scope.connected && !_connections.isConnected(origin);
 
-  void _requireStillConnected(String origin, _CallScope scope) {
+  void _requireStillConnected(GnusOrigin origin, _CallScope scope) {
     if (_revoked(origin, scope)) {
       throw _unauthorized;
     }
   }
 
   Future<Object?> _dispatch(
-    String origin,
+    GnusOrigin origin,
     String method,
     Object? params,
     _CallScope scope,
@@ -529,7 +536,7 @@ class GnusRpcHandler {
 
   /// Returns once [origin] is connected, asking the user the first time. A
   /// decline, a timeout or a throw from the seam is a rejection.
-  Future<void> _requireConnected(String origin, _CallScope scope) async {
+  Future<void> _requireConnected(GnusOrigin origin, _CallScope scope) async {
     if (_connections.isConnected(origin)) {
       scope.connected = true;
       return;
@@ -553,7 +560,7 @@ class GnusRpcHandler {
   /// Runs [show] as [origin]'s one open prompt. A second prompt while one is
   /// open, or a fourth inside the window, is -32005 and shows nothing. A
   /// decline, a timeout and a throw all answer false.
-  Future<bool> _prompt(String origin, Future<bool> Function() show) async {
+  Future<bool> _prompt(GnusOrigin origin, Future<bool> Function() show) async {
     if (_promptOpen.contains(origin)) {
       throw _confirmOpen();
     }
@@ -610,7 +617,7 @@ class GnusRpcHandler {
   }
 
   Future<Object?> _listJobs(
-    String origin,
+    GnusOrigin origin,
     _CallScope scope,
     Map<String, Object?> args,
   ) async {
@@ -632,7 +639,7 @@ class GnusRpcHandler {
   /// The record plus `result: null`, or null when nothing matches. A record of
   /// another node account counts as not found.
   Future<Object?> _getJob(
-    String origin,
+    GnusOrigin origin,
     _CallScope scope,
     Map<String, Object?> args,
   ) async {
@@ -642,10 +649,10 @@ class GnusRpcHandler {
     final job = switch (name) {
       'jobId' => _store.byJobId(value),
       'burnTxHash' => _store.byBurnHash(value),
-      _ => _store.byIdempotencyKey(origin, value),
+      _ => _store.byIdempotencyKey(origin.value, value),
     };
     if (name == 'idempotencyKey') {
-      final pending = _pendingJob(origin, value, node, job?.submittedAt);
+      final pending = _pendingJob(origin.value, value, node, job?.submittedAt);
       if (pending != null) {
         return pending;
       }
@@ -766,7 +773,7 @@ class GnusRpcHandler {
   /// gate, and never prompts or burns. A balance it cannot read stays null
   /// rather than failing the call; a submit fails closed on the same value.
   Future<Object?> _estimate(
-    String origin,
+    GnusOrigin origin,
     _CallScope scope,
     Map<String, Object?> args,
   ) async {
@@ -805,7 +812,7 @@ class GnusRpcHandler {
   /// Stops the burn if the origin was revoked or anything the user approved
   /// has moved since the confirm opened. The prompt can stay open for minutes.
   void _recheckAfterConfirm({
-    required String origin,
+    required GnusOrigin origin,
     required String nodeAccount,
     required String payer,
     required int? chainId,
@@ -901,7 +908,7 @@ class GnusRpcHandler {
     };
   }
 
-  Future<Object?> _getAccounts(String origin, _CallScope scope) async {
+  Future<Object?> _getAccounts(GnusOrigin origin, _CallScope scope) async {
     await _requireConnected(origin, scope);
     final payload = await _accountsPayload();
     if (payload == null) {
@@ -917,7 +924,7 @@ class GnusRpcHandler {
   // feed has never ticked or is unavailable. Upgrade path: expose
   // processingFeedStatus as a field once the contract has a place for it.
   Future<Object?> _getEarnings(
-    String origin,
+    GnusOrigin origin,
     _CallScope scope,
     Map<String, Object?> args,
   ) async {
@@ -978,7 +985,7 @@ class GnusRpcHandler {
   );
 
   Future<Object?> _submitJob(
-    String origin,
+    GnusOrigin origin,
     _CallScope scope,
     Map<String, Object?> args,
   ) async {
@@ -988,8 +995,9 @@ class GnusRpcHandler {
     final nodeAccount = _requireReadyNode();
 
     // A retry of the call still in flight is busy, not a replay: nothing is
-    // recorded for it yet.
-    final slot = '$origin|$idempotencyKey';
+    // recorded for it yet. Records carry the contract's origin string, so a
+    // key is scoped to the origin, not to the transport.
+    final slot = '${origin.value}|$idempotencyKey';
     if (_inFlightSlot == slot) {
       throw _submitInFlight();
     }
@@ -998,7 +1006,11 @@ class GnusRpcHandler {
     final first =
         remembered != null && !remembered.submittedAt.isBefore(notBefore)
         ? remembered
-        : _store.byIdempotencyKey(origin, idempotencyKey, notBefore: notBefore);
+        : _store.byIdempotencyKey(
+            origin.value,
+            idempotencyKey,
+            notBefore: notBefore,
+          );
     final bodyHash = gnusJobBodyHash(job);
     if (first != null) {
       if (first.bodyHash != bodyHash) {
@@ -1016,7 +1028,7 @@ class GnusRpcHandler {
     // never burn again, however old it is.
     final GnusSubmitIntent? pending;
     try {
-      pending = _store.unresolvedIntent(origin, idempotencyKey);
+      pending = _store.unresolvedIntent(origin.value, idempotencyKey);
     } on FormatException {
       throw _outcomeUnknown(idempotencyKey, null);
     }
@@ -1047,7 +1059,7 @@ class GnusRpcHandler {
   }
 
   Future<Object?> _burnAndRecord(
-    String origin,
+    GnusOrigin origin,
     Map<String, dynamic> job,
     String idempotencyKey,
     String nodeAccount,
@@ -1167,7 +1179,7 @@ class GnusRpcHandler {
     final submittedAt = _now().toUtc();
     final bodyHash = gnusJobBodyHash(job);
     final intent = GnusSubmitIntent(
-      origin: origin,
+      origin: origin.value,
       idempotencyKey: idempotencyKey,
       bodyHash: bodyHash,
       payer: payer,
@@ -1187,7 +1199,7 @@ class GnusRpcHandler {
       jobId: null,
       burnTxHash: burnTxHash,
       sdkAddress: nodeAccount,
-      origin: origin,
+      origin: origin.value,
       idempotencyKey: idempotencyKey,
       submittedAt: submittedAt,
       cost: cost,
@@ -1237,7 +1249,7 @@ class GnusRpcHandler {
         final signed = signedHash;
         // A reverted burn is settled on chain, so the key may be retried.
         if (signed == null || reverted) {
-          await _dropIntent(origin, idempotencyKey);
+          await _dropIntent(origin.value, idempotencyKey);
           throw const GnusRpcError(GnusRpcCode.bridgeFailed, 'Bridge failed');
         }
         if (!hashWritten) {
@@ -1252,10 +1264,10 @@ class GnusRpcHandler {
         );
         return _submitReply(bridgeHash, nodeAccount, GnusJobStatus.unconfirmed);
       case JobBusy():
-        await _dropIntent(origin, idempotencyKey);
+        await _dropIntent(origin.value, idempotencyKey);
         throw _submitInFlight();
       case JobMissingData():
-        await _dropIntent(origin, idempotencyKey);
+        await _dropIntent(origin.value, idempotencyKey);
         throw const GnusRpcError(
           GnusRpcCode.internal,
           'Wallet not ready',

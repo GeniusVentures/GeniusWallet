@@ -10,7 +10,7 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import '../gnus_bridge/gnus_fakes.dart';
 import '../theme/theme_contrast_test.dart' show themeFor;
 
-final _origin = 'https://${'a' * 105}.example';
+final _origin = webOrigin('https://${'a' * 105}.example');
 const _cost = '1234000000000000000000';
 final _payer = '0x${'1' * 40}';
 final _node = '0xAA${'b' * 126}';
@@ -69,7 +69,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Pay for a processing job'), findsOneWidget);
-      expect(find.text(_origin), findsWidgets);
+      expect(find.text(_origin.value), findsWidgets);
       expect(find.text('1234 GNUS'), findsOneWidget);
       expect(find.text('1.00 Gwei (POL)'), findsOneWidget);
       expect(find.text('Paying wallet'), findsOneWidget);
@@ -213,7 +213,7 @@ void main() {
   });
 
   group('through the handler', () {
-    const origin = 'https://dash.example';
+    final origin = webOrigin('https://dash.example');
     final params = {
       'job': {
         'inputs': ['a'],
@@ -232,7 +232,7 @@ void main() {
       await tester.runAsync(() => Future<void>.delayed(Duration.zero));
       await tester.pumpAndSettle();
 
-      expect(find.text(origin), findsWidgets);
+      expect(find.text(origin.value), findsWidgets);
       expect(find.text('1234 GNUS'), findsOneWidget);
       await tester.tap(find.text('Reject'));
       await tester.pumpAndSettle();
@@ -240,7 +240,7 @@ void main() {
 
       expect((reply['error']! as Map)['code'], GnusRpcCode.userRejected);
       expect(h.api.count('burn'), 0);
-      expect(h.store.intentFor(origin, 'key-1'), isNull);
+      expect(h.store.intentFor(origin.value, 'key-1'), isNull);
       await tester.runAsync(h.dispose);
     });
 

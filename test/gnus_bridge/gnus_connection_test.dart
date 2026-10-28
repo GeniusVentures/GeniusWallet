@@ -3,18 +3,19 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 
 class _FailingConnectionStore extends GnusConnectionStore {
   _FailingConnectionStore(super.box);
 
   @override
-  Future<void> connect(String origin, DateTime at) async {
+  Future<void> connect(GnusOrigin origin, DateTime at) async {
     throw const FileSystemException('disk full');
   }
 }
@@ -82,7 +83,9 @@ void main() {
 
   test('a declined connect answers 4001 and connects nothing', () async {
     h.api.sdkInitialized = false;
-    final handler = h.build(connect: ({required String origin}) async => false);
+    final handler = h.build(
+      connect: ({required GnusOrigin origin}) async => false,
+    );
 
     for (final entry in _valid.entries) {
       h.clock = h.clock.add(const Duration(seconds: 61));
@@ -95,7 +98,7 @@ void main() {
 
   test('a connect that throws is a rejection', () async {
     final handler = h.build(
-      connect: ({required String origin}) async => throw StateError('boom'),
+      connect: ({required GnusOrigin origin}) async => throw StateError('boom'),
     );
 
     final reply = await viaJson(
@@ -168,12 +171,26 @@ void main() {
     await viaJson(handler, _origin, GnusRpcMethod.getAccounts, null);
 
     for (final other in [
-      'http://dash.example',
-      'https://dash.example:8443',
-      'https://dash.example.evil.invalid',
-      'https://Dash.example',
+      webOrigin('http://dash.example'),
+      webOrigin('https://dash.example:8443'),
+      webOrigin('https://dash.example.evil.invalid'),
+      GnusOrigin.parse(GnusTransport.walletconnect, 'https://dash.example'),
     ]) {
-      expect(h.connections.isConnected(other), isFalse, reason: other);
+      expect(h.connections.isConnected(other), isFalse, reason: '$other');
+    }
+  });
+
+  test('spellings of one origin share its connection', () async {
+    final handler = h.build();
+    await viaJson(handler, _origin, GnusRpcMethod.getAccounts, null);
+
+    for (final same in [
+      'HTTPS://DASH.EXAMPLE',
+      'https://dash.example:443',
+      'https://dash.example/',
+      'https://dash.example/path?q=1#frag',
+    ]) {
+      expect(h.connections.isConnected(webOrigin(same)), isTrue, reason: same);
     }
   });
 }

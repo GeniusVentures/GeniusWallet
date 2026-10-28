@@ -6,7 +6,7 @@ import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 const _estimate = GnusRpcMethod.estimate;
 
 Map<String, Object?> _params() => {

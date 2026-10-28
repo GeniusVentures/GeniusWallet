@@ -8,6 +8,7 @@ import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -15,7 +16,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 
 // Test constants that never held funds.
 final Uint8List _keyBytes = Uint8List.fromList(List.generate(32, (i) => i + 1));
@@ -149,20 +150,20 @@ Future<void> _scenario(
     await h.connections.connect(_origin, h.clock);
   }
   final handler = h.build(
-    connect: ({required String origin}) async {
-      collected.prompts.add({'origin': origin});
+    connect: ({required GnusOrigin origin}) async {
+      collected.prompts.add({'origin': origin.value});
       return approveConnect;
     },
     confirm:
         ({
-          required String origin,
+          required GnusOrigin origin,
           required String cost,
           required Map<String, String>? gas,
           required String payer,
           required String nodeAccount,
         }) async {
           collected.prompts.add({
-            'origin': origin,
+            'origin': origin.value,
             'cost': cost,
             'gas': gas,
             'payer': payer,

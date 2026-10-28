@@ -8,7 +8,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 import 'gnus_fakes.dart';
 
-const _origin = 'https://dash.example';
+final _origin = webOrigin('https://dash.example');
 
 final _node = gnusTestNode.toLowerCase();
 final _otherNode = '0x${'d' * 128}';
@@ -265,8 +265,8 @@ void main() {
   });
 
   group('eventsFor', () {
-    const stranger = 'https://stranger.example';
-    const neighbour = 'https://neighbour.example';
+    final stranger = webOrigin('https://stranger.example');
+    final neighbour = webOrigin('https://neighbour.example');
 
     Future<void> change(GnusHarness h) async {
       h.pushApp(AppState(selectedSDKAccount: _otherNode));

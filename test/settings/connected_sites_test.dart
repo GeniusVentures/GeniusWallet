@@ -14,8 +14,8 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import '../gnus_bridge/gnus_fakes.dart';
 import '../theme/theme_contrast_test.dart' show themeFor;
 
-const _older = 'https://older.example';
-final _newer = 'https://${'n' * 90}.example';
+final _older = webOrigin('https://older.example');
+final _newer = webOrigin('https://${'n' * 90}.example');
 
 /// The config files the screen reads at start are not there.
 class _SettingsApi extends FakeGnusApi {
@@ -63,12 +63,12 @@ void main() {
 
     await tester.pumpWidget(_host(store, GWAppearanceMode.dark));
 
-    expect(find.text(_newer), findsOneWidget);
-    expect(find.text(_older), findsOneWidget);
-    expect(find.textContaining('Connected '), findsNWidgets(2));
+    expect(find.text(_newer.value), findsOneWidget);
+    expect(find.text(_older.value), findsOneWidget);
+    expect(find.textContaining('In-app browser, connected '), findsNWidgets(2));
     expect(
-      tester.getTopLeft(find.text(_newer)).dy,
-      lessThan(tester.getTopLeft(find.text(_older)).dy),
+      tester.getTopLeft(find.text(_newer.value)).dy,
+      lessThan(tester.getTopLeft(find.text(_older.value)).dy),
     );
     await shutdown(tester);
   });
@@ -82,8 +82,8 @@ void main() {
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pump();
 
-    expect(find.text(_newer), findsNothing);
-    expect(find.text(_older), findsOneWidget);
+    expect(find.text(_newer.value), findsNothing);
+    expect(find.text(_older.value), findsOneWidget);
     expect(store.isConnected(_newer), isFalse);
     expect(store.isConnected(_older), isTrue);
     await shutdown(tester);
@@ -106,7 +106,7 @@ void main() {
   ) async {
     await boot(tester);
     await tester.pumpWidget(_host(store, GWAppearanceMode.dark));
-    expect(find.text(_older), findsNothing);
+    expect(find.text(_older.value), findsNothing);
 
     await tester.runAsync(() async {
       await store.connect(_older, DateTime.utc(2026, 10, 1, 9));
@@ -114,7 +114,7 @@ void main() {
     });
     await tester.pump();
 
-    expect(find.text(_older), findsOneWidget);
+    expect(find.text(_older.value), findsOneWidget);
     expect(find.text('No sites connected'), findsNothing);
     await shutdown(tester);
   });
@@ -129,13 +129,13 @@ void main() {
     );
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pump();
-    expect(find.text(_older), findsOneWidget);
+    expect(find.text(_older.value), findsOneWidget);
     expect(h.connects, [_older]);
 
     await tester.tap(find.widgetWithText(GWButton, 'Revoke'));
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pump();
-    expect(find.text(_older), findsNothing);
+    expect(find.text(_older.value), findsNothing);
 
     await tester.runAsync(
       () => viaJson(handler, _older, GnusRpcMethod.getAccounts, null),
@@ -174,7 +174,7 @@ void main() {
     );
 
     expect(find.text('Connected sites'), findsOneWidget);
-    expect(find.text(_older), findsOneWidget);
+    expect(find.text(_older.value), findsOneWidget);
     expect(find.text('SDK Network'), findsNothing);
     await shutdown(tester);
   });
@@ -192,7 +192,7 @@ void main() {
       await expectLater(tester, meetsGuideline(textContrastGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
       expect(
-        find.bySemanticsLabel(RegExp('Revoke ${RegExp.escape(_older)}')),
+        find.bySemanticsLabel(RegExp('Revoke ${RegExp.escape(_older.value)}')),
         findsOneWidget,
       );
       semantics.dispose();
