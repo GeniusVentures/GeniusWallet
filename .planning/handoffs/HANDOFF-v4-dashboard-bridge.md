@@ -1,6 +1,6 @@
 # Handoff: v4.0 processing dashboard bridge (wallet side), 2026-10-28
 
-Branch `claude/gsd-dashboard-bridge-milestone-b6a5e7`, draft PR #294, based on develop `7b0d7a1a`.
+Branch `claude/gsd-dashboard-bridge-milestone-b6a5e7`, PR #294 (open), based on develop `7b0d7a1a`.
 Phases 42-47 and 44.1 are executed. Phase 48 (device walks) is unplanned and needs hardware and hosting.
 All commits are authored braianwegmann@gmail.com with no Claude attribution.
 
