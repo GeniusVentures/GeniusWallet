@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
@@ -181,8 +181,21 @@ class GnusRpcHandler {
   int? _lastChainId;
   bool _disposed = false;
 
-  /// `gnus_accountsChanged`, `gnus_networkChanged` and `gnus_jobUpdated`.
+  /// Every event, for every origin. Transports must not forward this: use
+  /// [eventsFor].
+  @visibleForTesting
   Stream<GnusEvent> get events => _events.stream;
+
+  /// `gnus_accountsChanged`, `gnus_networkChanged` and `gnus_jobUpdated` for
+  /// [origin], while it is connected, and `gnus_jobUpdated` only for its own
+  /// jobs. Checked per event, so a revoke stops delivery and a later connect
+  /// resumes it without resubscribing. Transports forward only this stream.
+  Stream<GnusEvent> eventsFor(String origin) => _events.stream.where(
+    (event) =>
+        _connections.isConnected(origin) &&
+        (event.name != GnusRpcEventName.jobUpdated ||
+            event.payload['origin'] == origin),
+  );
 
   /// Stops listening and closes [events]. Safe to call twice.
   Future<void> dispose() async {

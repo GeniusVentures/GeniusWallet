@@ -263,4 +263,96 @@ void main() {
 
     expect(events, isEmpty);
   });
+
+  group('eventsFor', () {
+    const stranger = 'https://stranger.example';
+    const neighbour = 'https://neighbour.example';
+
+    Future<void> change(GnusHarness h) async {
+      h.pushApp(AppState(selectedSDKAccount: _otherNode));
+      h.walletDetails.push(
+        const WalletDetailsState(
+          selectedWallet: gnusTestWallet,
+          selectedNetwork: Network(
+            name: 'Other',
+            symbol: 'eth',
+            nativeSymbol: 'ETH',
+            chainId: 1,
+            rpcUrl: 'https://rpc.invalid',
+          ),
+        ),
+      );
+      await pumpEventQueue();
+    }
+
+    test(
+      'an unconnected origin gets nothing, a connected one gets all',
+      () async {
+        final h = await harness();
+        await h.connections.connect(_origin, h.clock);
+        final handler = h.build();
+        final connected = <GnusEvent>[];
+        final unconnected = <GnusEvent>[];
+        handler.eventsFor(_origin).listen(connected.add);
+        handler.eventsFor(stranger).listen(unconnected.add);
+        await pumpEventQueue();
+
+        await change(h);
+        h.pushApp(AppState(selectedSDKAccount: gnusTestNode));
+        await handler.handle(_origin, GnusRpcMethod.submitJob, _submitParams());
+        await pumpEventQueue();
+
+        expect(
+          connected.map((e) => e.name).toSet(),
+          containsAll([
+            GnusRpcEventName.accountsChanged,
+            GnusRpcEventName.networkChanged,
+            GnusRpcEventName.jobUpdated,
+          ]),
+        );
+        expect(unconnected, isEmpty);
+      },
+    );
+
+    test('a job update reaches only the origin that submitted it', () async {
+      final h = await harness();
+      await h.connections.connect(_origin, h.clock);
+      await h.connections.connect(neighbour, h.clock);
+      final handler = h.build();
+      final own = <GnusEvent>[];
+      final other = <GnusEvent>[];
+      handler.eventsFor(_origin).listen(own.add);
+      handler.eventsFor(neighbour).listen(other.add);
+      await pumpEventQueue();
+
+      await handler.handle(_origin, GnusRpcMethod.submitJob, _submitParams());
+      await pumpEventQueue();
+
+      expect(named(own, GnusRpcEventName.jobUpdated), hasLength(1));
+      expect(named(other, GnusRpcEventName.jobUpdated), isEmpty);
+    });
+
+    test('a revoke stops delivery and a reconnect resumes it', () async {
+      final h = await harness();
+      await h.connections.connect(_origin, h.clock);
+      final handler = h.build();
+      final events = <GnusEvent>[];
+      handler.eventsFor(_origin).listen(events.add);
+      await pumpEventQueue();
+
+      h.pushApp(AppState(selectedSDKAccount: _otherNode));
+      await pumpEventQueue();
+      expect(events, hasLength(1));
+
+      await h.connections.revoke(_origin);
+      h.pushApp(AppState(selectedSDKAccount: _mainNode));
+      await pumpEventQueue();
+      expect(events, hasLength(1));
+
+      await h.connections.connect(_origin, h.clock);
+      h.pushApp(AppState(selectedSDKAccount: gnusTestNode));
+      await pumpEventQueue();
+      expect(events, hasLength(2));
+    });
+  });
 }
