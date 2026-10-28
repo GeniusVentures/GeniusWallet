@@ -282,14 +282,9 @@ class GnusJobStore {
   Future<void> deleteIntent(String origin, String key) =>
       _box.delete(_intentKey(origin, key));
 
-  /// The intent [origin] wrote for [key], not older than [notBefore] when
-  /// given. Throws [FormatException] for one it cannot read, so a damaged
-  /// record can never pass for no record.
-  GnusSubmitIntent? intentFor(
-    String origin,
-    String key, {
-    DateTime? notBefore,
-  }) {
+  /// The intent [origin] wrote for [key]. Throws [FormatException] for one it
+  /// cannot read, so a damaged record can never pass for no record.
+  GnusSubmitIntent? intentFor(String origin, String key) {
     final raw = _box.get(_intentKey(origin, key));
     if (raw == null) {
       return null;
@@ -298,7 +293,16 @@ class GnusJobStore {
     if (intent == null) {
       throw const FormatException('unreadable submit intent');
     }
-    if (notBefore != null && intent.createdAt.isBefore(notBefore)) {
+    return intent;
+  }
+
+  /// [intentFor], unless a job record written for it answers it. Its age does
+  /// not matter: an unanswered intent may have burned, so its key stays
+  /// blocked. Throws [FormatException] like [intentFor].
+  GnusSubmitIntent? unresolvedIntent(String origin, String key) {
+    final intent = intentFor(origin, key);
+    if (intent == null ||
+        byIdempotencyKey(origin, key, notBefore: intent.createdAt) != null) {
       return null;
     }
     return intent;

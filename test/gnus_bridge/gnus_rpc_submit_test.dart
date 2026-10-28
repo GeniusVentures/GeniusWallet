@@ -496,6 +496,31 @@ void main() {
       expect(h.store.intentFor(_origin, 'key-1'), isNotNull);
     });
 
+    test('an unanswered intent blocks its key after 24 hours too, and getJob '
+        'agrees', () async {
+      final h = await harness();
+      final first = h.build();
+      h.api.onBurn = () => h.store.failWrites = true;
+      await viaDirect(first, _origin, _submit, _params());
+      await first.dispose();
+      h.store.failWrites = false;
+      h.clock = h.clock.add(const Duration(days: 3));
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+      final found = await viaJson(h.build(), _origin, GnusRpcMethod.getJob, {
+        'idempotencyKey': 'key-1',
+      });
+
+      expect(
+        (_error(reply)['data']! as Map)['reason'],
+        GnusRpcReason.submissionOutcomeUnknown,
+      );
+      expect(h.api.count('burn'), 1);
+      final job = found['result']! as Map<String, Object?>;
+      expect(job['status'], 'pending');
+      expect(job['burnTxHash'], gnusTestBurnHash);
+    });
+
     test('a replay after a restart still answers the first result', () async {
       final h = await harness();
       final first = await viaDirect(h.build(), _origin, _submit, _params());

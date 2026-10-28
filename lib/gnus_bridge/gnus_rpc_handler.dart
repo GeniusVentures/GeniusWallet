@@ -497,26 +497,29 @@ class GnusRpcHandler {
   Future<Object?> _getJob(String origin, Map<String, Object?> args) async {
     final (name, value) = _jobSelectorParam(args);
     final node = _requireReadyNode();
+    if (name == 'idempotencyKey') {
+      final pending = _pendingJob(origin, value, node);
+      if (pending != null) {
+        return pending;
+      }
+    }
     final job = switch (name) {
       'jobId' => _store.byJobId(value),
       'burnTxHash' => _store.byBurnHash(value),
       _ => _store.byIdempotencyKey(origin, value),
     };
-    if (job == null && name == 'idempotencyKey') {
-      return _pendingJob(origin, value, node);
-    }
     if (job == null || job.sdkAddress.toLowerCase() != node) {
       return null;
     }
     return {...job.toContract(), 'result': null};
   }
 
-  /// A submit recorded before its burn and never finished, so a page that
-  /// lost the reply can still find it. An unreadable intent still answers.
+  /// A submit recorded before its burn and never answered, the same one that
+  /// blocks a same-key submit, so a page that lost the reply can find it.
   Map<String, Object?>? _pendingJob(String origin, String key, String node) {
     final GnusSubmitIntent? intent;
     try {
-      intent = _store.intentFor(origin, key);
+      intent = _store.unresolvedIntent(origin, key);
     } on FormatException {
       return {
         ...GnusSubmitIntent.unreadableContract(origin, key),
@@ -840,10 +843,10 @@ class GnusRpcHandler {
     }
     // An intent with no job record: the app died, or every write failed,
     // after the intent was written. Whether it burned is unknown, so it must
-    // never burn again.
+    // never burn again, however old it is.
     final GnusSubmitIntent? pending;
     try {
-      pending = _store.intentFor(origin, idempotencyKey, notBefore: notBefore);
+      pending = _store.unresolvedIntent(origin, idempotencyKey);
     } on FormatException {
       throw _outcomeUnknown(idempotencyKey, null);
     }
