@@ -19,12 +19,24 @@ class GnusBridgeViewWindows extends StatefulWidget {
     required this.handler,
     required this.readNet,
     required this.dev,
+    this.onLoaded,
+    this.onFailed,
+    this.onNoBridge,
   });
 
   final String url;
   final GnusRpcHandler handler;
   final Future<SgnsNet> Function() readNet;
   final bool dev;
+
+  /// The top document finished loading.
+  final VoidCallback? onLoaded;
+
+  /// A load failed. A redirect that cancels the load it replaces is not one.
+  final VoidCallback? onFailed;
+
+  /// WebView2 could not start. Without this the error is rethrown.
+  final VoidCallback? onNoBridge;
 
   @override
   State<GnusBridgeViewWindows> createState() => _GnusBridgeViewWindowsState();
@@ -49,7 +61,16 @@ class _GnusBridgeViewWindowsState extends State<GnusBridgeViewWindows> {
       dev: widget.dev,
     );
     WindowsWebViewShutdown.instance.register(_disposeController);
-    unawaited(_init());
+    unawaited(
+      _init().catchError((Object e, StackTrace stack) {
+        final report = widget.onNoBridge;
+        if (report == null) {
+          Error.throwWithStackTrace(e, stack);
+        }
+        debugPrint('Bridge web view unavailable: ${e.runtimeType}');
+        report();
+      }),
+    );
   }
 
   Future<void> _init() async {
@@ -78,6 +99,15 @@ class _GnusBridgeViewWindowsState extends State<GnusBridgeViewWindows> {
         _controller.loadingState.listen((state) {
           if (state == win.LoadingState.loading) {
             _bridge.pageStarted(_topUrl);
+          } else if (state == win.LoadingState.navigationCompleted) {
+            widget.onLoaded?.call();
+          }
+        }),
+      )
+      ..add(
+        _controller.onLoadError.listen((status) {
+          if (status != win.WebErrorStatus.WebErrorStatusOperationCanceled) {
+            widget.onFailed?.call();
           }
         }),
       )

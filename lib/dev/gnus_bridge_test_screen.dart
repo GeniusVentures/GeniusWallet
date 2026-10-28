@@ -10,6 +10,8 @@ import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_linux.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_mobile.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_windows.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_dashboard_origins.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_dashboard_screen.dart'
+    show GnusBridgeHostKind, gnusBridgeHostKind;
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -74,7 +76,11 @@ class _BridgeBody extends StatelessWidget {
   Widget build(BuildContext context) {
     const dev = kDebugMode && kShowDevTools;
     final handler = context.read<GnusRpcHandler>();
-    if (dev && Platform.isWindows) {
+    final kind = gnusBridgeHostKind(
+      Platform.operatingSystem,
+      linuxWebKit: linuxInAppWeb,
+    );
+    if (dev && kind == GnusBridgeHostKind.windows) {
       return GnusBridgeViewWindows(
         url: url,
         handler: handler,
@@ -82,7 +88,7 @@ class _BridgeBody extends StatelessWidget {
         dev: dev,
       );
     }
-    if (dev && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+    if (dev && kind == GnusBridgeHostKind.webview) {
       return GnusBridgeViewMobile(
         url: url,
         handler: handler,
@@ -90,7 +96,7 @@ class _BridgeBody extends StatelessWidget {
         dev: dev,
       );
     }
-    if (dev && Platform.isLinux && linuxInAppWeb) {
+    if (dev && kind == GnusBridgeHostKind.linux) {
       return GnusBridgeViewLinux(
         url: url,
         handler: handler,

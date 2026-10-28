@@ -76,12 +76,18 @@ Widget defaultGnusDashboardHost(
       handler: handler,
       readNet: handler.readSgnsNet,
       dev: dev,
+      onLoaded: onLoaded,
+      onFailed: onFailed,
+      onNoBridge: onNoBridge,
     ),
     GnusBridgeHostKind.webview => GnusBridgeViewMobile(
       url: url,
       handler: handler,
       readNet: handler.readSgnsNet,
       dev: dev,
+      onLoaded: onLoaded,
+      onFailed: onFailed,
+      onNoBridge: onNoBridge,
     ),
     GnusBridgeHostKind.browser => const SizedBox.shrink(),
   };

@@ -22,12 +22,25 @@ class GnusBridgeViewMobile extends StatefulWidget {
     required this.handler,
     required this.readNet,
     required this.dev,
+    this.onLoaded,
+    this.onFailed,
+    this.onNoBridge,
   });
 
   final String url;
   final GnusRpcHandler handler;
   final Future<SgnsNet> Function() readNet;
   final bool dev;
+
+  /// A main-frame page finished loading.
+  final VoidCallback? onLoaded;
+
+  /// A main-frame load failed.
+  final VoidCallback? onFailed;
+
+  /// The native bridge did not install, so no page was loaded. Without this
+  /// the view shows its own message.
+  final VoidCallback? onNoBridge;
 
   @override
   State<GnusBridgeViewMobile> createState() => _GnusBridgeViewMobileState();
@@ -76,6 +89,12 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
       NavigationDelegate(
         onNavigationRequest: _onNavigationRequest,
         onPageStarted: _bridge.pageStarted,
+        onPageFinished: (_) => widget.onLoaded?.call(),
+        onWebResourceError: (error) {
+          if (error.isForMainFrame ?? false) {
+            widget.onFailed?.call();
+          }
+        },
       ),
     );
     final agent = await _controller.getUserAgent();
@@ -93,6 +112,8 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
     }
     if (_installed) {
       await _controller.loadRequest(Uri.parse(widget.url));
+    } else {
+      widget.onNoBridge?.call();
     }
     if (mounted) {
       setState(() => _ready = true);
