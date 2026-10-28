@@ -82,7 +82,7 @@ class _BridgeBody extends StatelessWidget {
         dev: dev,
       );
     }
-    if (dev && Platform.isAndroid) {
+    if (dev && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       return GnusBridgeViewMobile(
         url: url,
         handler: handler,
