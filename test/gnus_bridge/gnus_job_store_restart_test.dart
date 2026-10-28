@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
@@ -20,6 +21,7 @@ void main() {
 
   tearDown(() async {
     await Hive.deleteBoxFromDisk(gnusJobsBoxName);
+    await Hive.deleteBoxFromDisk(gnusConnectionsBoxName);
     await Hive.close();
     await dir.delete(recursive: true);
   });
@@ -53,6 +55,24 @@ void main() {
       expect(found.bodyHash, job.bodyHash);
       expect(found.submittedAt, job.submittedAt);
     }
+  });
+
+  test('a connection survives Hive.close and a reopen with its time', () async {
+    const origin = 'https://dash.example';
+    final at = DateTime.utc(2026, 10, 27, 12, 30, 15, 123);
+    final a = GnusConnectionStore(
+      await Hive.openBox<String>(gnusConnectionsBoxName),
+    );
+    await a.connect(origin, at);
+
+    await Hive.close();
+    Hive.init(dir.path);
+    final b = GnusConnectionStore(
+      await Hive.openBox<String>(gnusConnectionsBoxName),
+    );
+
+    expect(b.isConnected(origin), isTrue);
+    expect(b.all().single.connectedAt, at);
   });
 
   test('a handler over the reopened box lists, finds and replays', () async {

@@ -22,6 +22,9 @@ const String selectedNetworkKeyRpcUrl = 'selected_network_rpc_url';
 // gnus bridge job record
 const String gnusJobsBoxName = 'gnusJobs';
 
+// gnus bridge connected sites
+const String gnusConnectionsBoxName = 'gnusConnections';
+
 // preferences
 const String preferencesBoxName = 'preferences';
 const String appearanceModeKey = 'appearance_mode';

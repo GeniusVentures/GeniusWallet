@@ -24,8 +24,10 @@ import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_tools_host.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
+import 'package:genius_wallet/gnus_consent/gnus_prompts.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/network/connectivity_fallback.dart';
@@ -533,9 +535,10 @@ class MyApp extends StatelessWidget {
               childOperations: context.read<ChildOperationsCubit>(),
             ),
           ),
-          // Nothing reads this until the dashboard transports land. The confirm
-          // is left at its rejecting default until the consent prompt supplies
-          // one, so no call can spend.
+          RepositoryProvider<GnusConnectionStore>(
+            create: (context) => GnusConnectionStore.app(),
+          ),
+          // Nothing reads this until the dashboard transports land.
           RepositoryProvider<GnusRpcHandler>(
             create: (context) => GnusRpcHandler(
               geniusApi: context.read<GeniusApi>(),
@@ -545,6 +548,8 @@ class MyApp extends StatelessWidget {
               coinService: CoinService(),
               resolveGate: context.read<BridgeGateCubit>().resolveNow,
               store: GnusJobStore.app(),
+              connections: context.read<GnusConnectionStore>(),
+              connect: showGnusConnectPrompt,
               readRegistrations: context
                   .read<ChildOperationsCubit>()
                   .ownRegistrations,

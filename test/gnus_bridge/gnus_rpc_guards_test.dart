@@ -52,15 +52,22 @@ void main() {
       expect(_argumentList('Foo(a: (', 'Foo('), isNull);
     });
 
-    test('the app builds the handler with no confirm and the real box', () {
-      final source = _withoutComments(File('lib/main.dart').readAsStringSync());
+    test(
+      'the app wires the connect prompt, the real stores and no confirm',
+      () {
+        final source = _withoutComments(
+          File('lib/main.dart').readAsStringSync(),
+        );
 
-      final arguments = _argumentList(source, 'GnusRpcHandler(');
+        final arguments = _argumentList(source, 'GnusRpcHandler(');
 
-      expect(arguments, isNotNull);
-      expect(arguments, isNot(contains('confirm')));
-      expect(arguments, contains('GnusJobStore.app()'));
-    });
+        expect(arguments, isNotNull);
+        expect(arguments, isNot(contains('confirm')));
+        expect(arguments, contains('GnusJobStore.app()'));
+        expect(arguments, contains('connect: showGnusConnectPrompt'));
+        expect(arguments, contains('connections:'));
+      },
+    );
 
     test('startup opens the gnusJobs box as a string box', () {
       final source = _withoutComments(
@@ -68,6 +75,7 @@ void main() {
       );
 
       expect(source, contains('Hive.openBox<String>(gnusJobsBoxName)'));
+      expect(source, contains('Hive.openBox<String>(gnusConnectionsBoxName)'));
     });
   });
 
@@ -99,7 +107,7 @@ void main() {
     test('only the store names Hive', () {
       final offenders = [
         for (final file in _bridgeFiles())
-          if (!file.path.endsWith('gnus_job_store.dart') &&
+          if (!file.path.endsWith('_store.dart') &&
               RegExp(
                 r'\bHive\b',
               ).hasMatch(_withoutComments(file.readAsStringSync())))

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:hive_ce/hive.dart';
 
 /// One origin the user let use the bridge, and when.
@@ -16,6 +17,10 @@ class GnusConnection {
 /// lasts until [revoke]. Reads and writes records only.
 class GnusConnectionStore {
   GnusConnectionStore(this._box);
+
+  /// The app's box, opened by `initHive`.
+  factory GnusConnectionStore.app() =>
+      GnusConnectionStore(Hive.box<String>(gnusConnectionsBoxName));
 
   final Box<String> _box;
 
