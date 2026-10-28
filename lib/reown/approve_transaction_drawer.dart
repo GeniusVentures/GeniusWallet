@@ -93,11 +93,7 @@ class ApproveTransactionDrawer {
             ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Expanded(
-              child: GWButton(
-                label: "Approve",
-                variant: GWButtonVariant.gradient,
-                size: GWButtonSize.sm,
-                expand: true,
+              child: _ArmedApproveButton(
                 onPressed: () => ResponsiveDrawer.close(drawerContext, true),
               ),
             ),
@@ -106,4 +102,69 @@ class ApproveTransactionDrawer {
       ),
     );
   }
+}
+
+const Duration _armDelay = Duration(milliseconds: 500);
+
+/// Approve stays disabled until its drawer has finished opening, plus
+/// [_armDelay]. The page that asked decides when the drawer appears, so a
+/// click it baited could otherwise land on Approve as the drawer slides in.
+class _ArmedApproveButton extends StatefulWidget {
+  const _ArmedApproveButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  State<_ArmedApproveButton> createState() => _ArmedApproveButtonState();
+}
+
+class _ArmedApproveButtonState extends State<_ArmedApproveButton>
+    with SingleTickerProviderStateMixin {
+  // A ticker rather than a Timer, so tests that settle the drawer also arm it.
+  late final AnimationController _arming =
+      AnimationController(vsync: this, duration: _armDelay)
+        ..addStatusListener((status) {
+          if (status == AnimationStatus.completed) {
+            setState(() {});
+          }
+        });
+  Animation<double>? _entrance;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final entrance = ModalRoute.of(context)?.animation;
+    if (entrance == _entrance) {
+      return;
+    }
+    _entrance?.removeStatusListener(_onEntrance);
+    _entrance = entrance;
+    if (entrance == null || entrance.isCompleted) {
+      _arming.forward();
+    } else {
+      entrance.addStatusListener(_onEntrance);
+    }
+  }
+
+  void _onEntrance(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _arming.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _entrance?.removeStatusListener(_onEntrance);
+    _arming.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => GWButton(
+    label: "Approve",
+    variant: GWButtonVariant.gradient,
+    size: GWButtonSize.sm,
+    expand: true,
+    onPressed: _arming.isCompleted ? widget.onPressed : null,
+  );
 }

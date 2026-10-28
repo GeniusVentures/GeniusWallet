@@ -187,6 +187,26 @@ void main() {
     });
   });
 
+  group('Approve arms late', () {
+    testWidgets('a tap as the drawer opens does nothing', (tester) async {
+      await _pumpApp(tester);
+      final answer = _spend();
+      var settled = false;
+      unawaited(answer.then((_) => settled = true));
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(find.text('Approve'), warnIfMissed: false);
+      await tester.pump();
+      expect(settled, isFalse);
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+      expect(await answer, isTrue);
+    });
+  });
+
   group('no navigator', () {
     testWidgets('both prompts decline without throwing', (tester) async {
       expect(await _spend(), isFalse);
