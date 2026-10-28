@@ -457,6 +457,18 @@ GeniusNodeReturnValue _mapNodeReturnValue(int value) {
   }
 }
 
+/// Runs one operation at a time, in call order. A failed operation does not
+/// block the next one.
+class _SerialQueue {
+  Future<void> _tail = Future.value();
+
+  Future<T> run<T>(Future<T> Function() op) {
+    final result = _tail.then((_) => op());
+    _tail = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+}
+
 class GeniusApi {
   static const MethodChannel _platformChannel = MethodChannel(
     'ai.gnus.genius_wallet/platform',
@@ -1164,6 +1176,24 @@ class GeniusApi {
 
   Future<void>? _processInFlight;
 
+  /// Process credits whichever account the SDK runs as. Static because that
+  /// account is process-wide native state.
+  static final _accountGate = _SerialQueue();
+
+  /// Runs Process only if the SDK runs as [expectedAccount], and returns null
+  /// when it does not. The check and the run hold the account gate, so an
+  /// account switch requested meanwhile waits until Process has finished.
+  Future<GeniusNodeReturnValue?> requestGeniusSDKProcessAsAccount({
+    required String jobJson,
+    required String expectedAccount,
+  }) => _accountGate.run(() async {
+    if (getSelectedAccountAddress()?.toLowerCase() !=
+        expectedAccount.toLowerCase()) {
+      return null;
+    }
+    return requestGeniusSDKProcessAsync(jobJson: jobJson);
+  });
+
   /// Resolves once an in-flight process call has finished, or after [timeout].
   /// A burned job must not meet a shut-down node, so the window-close path
   /// awaits this before [shutdownSDK].
@@ -1582,29 +1612,12 @@ class GeniusApi {
         .toList();
   }
 
-  /// Selects the active Genius account for subsequent SDK operations.
-  /// This is a synchronous FFI call — no isolate is used because FFI objects
-  /// (DynamicLibrary, NativeLibrary, and Pointer) are not sendable across
-  /// isolate boundaries.
-  GeniusNodeReturnValue selectGeniusAccount(String publicAddress) {
-    if (getStartAccountAddress() == null) {
-      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
-    }
-    final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKSelectGeniusAccount(
-      addressPtr,
-    );
-    malloc.free(addressPtr);
-    return _mapNodeReturnValue(result);
-  }
-
-  /// Async version of [selectGeniusAccount] that runs the FFI call in a
-  /// short-lived isolate so the UI thread stays responsive.
-  ///
-  /// Prefer this over the synchronous version in UI-driven code paths.
+  /// Selects the active Genius account on a short-lived isolate. It is the
+  /// only native account switch, and it waits behind the account gate so it
+  /// never lands inside [requestGeniusSDKProcessAsAccount].
   Future<GeniusNodeReturnValue> selectGeniusAccountAsync(
     String publicAddress,
-  ) async {
+  ) => _accountGate.run(() async {
     if (getStartAccountAddress() == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
@@ -1616,7 +1629,7 @@ class GeniusApi {
     final result = await receivePort.first as int;
     receivePort.close();
     return _mapNodeReturnValue(result);
-  }
+  });
 
   /// Whether [mnemonic] is a valid BIP-39 phrase, by Trust Wallet core's rule.
   bool isValidMnemonic(String mnemonic) => MnemonicImpl.isValid(mnemonic);

@@ -73,12 +73,16 @@ void main() {
 
   group('boundary', () {
     final ownerCall = RegExp(
-      r'\b(bridgeOut|getBrigeOutGasCost|requestGeniusSDKCostAsync|requestGeniusSDKProcessAsync)\(',
+      r'\b(bridgeOut|getBrigeOutGasCost|requestGeniusSDKCostAsync|requestGeniusSDKProcessAsync|requestGeniusSDKProcessAsAccount)\(',
     );
 
     test('the matcher sees a direct owner call', () {
       expect(ownerCall.hasMatch('api.bridgeOut('), isTrue);
       expect(ownerCall.hasMatch('api.requestGeniusSDKProcessAsync('), isTrue);
+      expect(
+        ownerCall.hasMatch('api.requestGeniusSDKProcessAsAccount('),
+        isTrue,
+      );
       expect(ownerCall.hasMatch('_jobs.submit('), isFalse);
     });
 

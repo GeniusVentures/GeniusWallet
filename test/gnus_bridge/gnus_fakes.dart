@@ -151,6 +151,17 @@ class FakeGnusApi implements GeniusApi {
   }
 
   @override
+  Future<GeniusNodeReturnValue?> requestGeniusSDKProcessAsAccount({
+    required String jobJson,
+    required String expectedAccount,
+  }) async {
+    if (sdkAccount?.toLowerCase() != expectedAccount.toLowerCase()) {
+      return null;
+    }
+    return requestGeniusSDKProcessAsync(jobJson: jobJson);
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

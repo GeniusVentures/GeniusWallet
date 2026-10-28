@@ -179,8 +179,8 @@ class JobSubmission {
   }
 
   /// Burns and processes one job, or answers [JobBusy] at once while another
-  /// submit from any instance is running. With [expectedNode], Process is
-  /// skipped unless the SDK still runs as that account when the burn lands.
+  /// submit from any instance is running. With [expectedNode], Process runs
+  /// only as that account, checked under the SDK's account gate.
   Future<JobSubmitResult> submit(
     JobFacts facts, {
     required int jobCost,
@@ -257,26 +257,27 @@ class JobSubmission {
       }
     }
 
-    // Process credits whichever account the SDK runs as now. A switch during
-    // the burn would credit the wrong one, so the job waits, recoverable.
-    if (expectedNode != null &&
-        geniusApi.getSelectedAccountAddress()?.toLowerCase() !=
-            expectedNode.toLowerCase()) {
+    // A throw from the worker isolate must not lose the burn hash, so it
+    // becomes the bridged-not-processed outcome. With [expectedNode], a switch
+    // during the burn leaves the job waiting, recoverable, never misattributed.
+    final GeniusNodeReturnValue? processResult;
+    try {
+      processResult = expectedNode == null
+          ? await geniusApi.requestGeniusSDKProcessAsync(
+              jobJson: jsonEncode(jobJson),
+            )
+          : await geniusApi.requestGeniusSDKProcessAsAccount(
+              jobJson: jsonEncode(jobJson),
+              expectedAccount: expectedNode,
+            );
+    } catch (e) {
+      debugPrint('GeniusSDKProcess failed after burn: ${e.runtimeType}');
       return JobBridgedNotProcessed(
         txHash,
         GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
       );
     }
-
-    // A throw from the worker isolate must not lose the burn hash, so it
-    // becomes the bridged-not-processed outcome.
-    final GeniusNodeReturnValue processResult;
-    try {
-      processResult = await geniusApi.requestGeniusSDKProcessAsync(
-        jobJson: jsonEncode(jobJson),
-      );
-    } catch (e) {
-      debugPrint('GeniusSDKProcess failed after burn: ${e.runtimeType}');
+    if (processResult == null) {
       return JobBridgedNotProcessed(
         txHash,
         GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
