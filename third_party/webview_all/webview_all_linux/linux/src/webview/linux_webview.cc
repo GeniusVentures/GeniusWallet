@@ -35,6 +35,8 @@ constexpr guint kPendingRequestTimeoutSeconds = 30;
 
 // Holds the URI of a window.open() that was turned into a load in place, so
 // the navigation decision for that load can say it came from a new window.
+// ponytail: matched by URI, so another load of the same URI that is decided
+// first is also flagged. WebKitGTK offers no better link between the two.
 constexpr char kNewWindowUriKey[] = "webview-all-new-window-uri";
 
 static void destroy_pending_tls_error(gpointer data) {
