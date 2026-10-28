@@ -10,6 +10,7 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/calldata_decoder.dart';
 import 'package:genius_wallet/reown/dapp_call_details.dart';
+import 'package:genius_wallet/reown/gnus_wallet_connect.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/reown/utilities.dart';
@@ -25,7 +26,7 @@ void Function() handleDappRequests({
   final Set<int> pendingRequestIds = {};
 
   Future<void> onSessionRequest(SessionRequestEvent? event) async {
-    if (event == null) {
+    if (event == null || isGnusMethod(event.method)) {
       return;
     }
 

@@ -2,16 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
-import 'package:genius_wallet/navigation/router.dart';
-import 'package:genius_wallet/providers/network_provider.dart';
-import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
-import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/pair_dapp_drawer.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
-import 'package:genius_wallet/reown/utilities.dart';
+import 'package:genius_wallet/reown/wallet_connect_host.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -19,28 +13,11 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:provider/provider.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
-final List<String> supportedMethods = [
-  'eth_sendTransaction', // For sending, approvals, swaps
-  'personal_sign', // For signing messages (login, etc.)
-  'eth_signTypedData', // For EIP-712 signatures (used in advanced DApps)
-];
-
 class ReownConnectButton extends StatefulWidget {
-  final String walletAddress;
-  final GeniusApi geniusApi;
-  final WalletDetailsCubit walletDetailsCubit;
-  final TransactionsCubit transactionsCubit;
-  const ReownConnectButton({
-    super.key,
-    required this.walletAddress,
-    required this.geniusApi,
-    required this.walletDetailsCubit,
-    required this.transactionsCubit,
-  });
+  const ReownConnectButton({super.key});
 
   @override
   State<ReownConnectButton> createState() => _ReownConnectButtonState();
@@ -54,12 +31,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   bool _didManualPair = false;
   bool _hasError = false;
   bool _timedOut = false;
-  bool _isInitialized = false;
-  Completer<void>? _initCompleter;
+  late final WalletConnectHost _host;
   bool _listenersAttached = false;
-  void Function()? _sessionRequestDisposer;
   late final void Function(SessionConnect?) _sessionConnectHandler;
-  late final void Function(SessionProposalEvent?) _sessionProposalHandler;
 
   bool get _isDesktopOrIot {
     try {
@@ -72,6 +46,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   @override
   void initState() {
     super.initState();
+    _host = context.read<WalletConnectHost>();
     _initializeWalletKit();
   }
 
@@ -79,15 +54,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   void dispose() {
     if (_listenersAttached) {
       walletKit.onSessionConnect.unsubscribe(_sessionConnectHandler);
-      walletKit.onSessionProposal.unsubscribe(_sessionProposalHandler);
-      _sessionRequestDisposer?.call();
       _listenersAttached = false;
     }
     super.dispose();
   }
 
   Future<void> _initializeWalletKit() async {
-    await maybeInitWalletKit();
+    if (!await _host.start()) {
+      return;
+    }
 
     try {
       final sessions = walletKit.getActiveSessions();
@@ -112,13 +87,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       return;
     }
 
-    _sessionRequestDisposer = handleDappRequests(
-      walletKit: walletKit,
-      geniusApi: widget.geniusApi,
-      walletDetailsCubit: widget.walletDetailsCubit,
-      transactionsCubit: widget.transactionsCubit,
-    );
-
     _sessionConnectHandler = (event) {
       if (!mounted || event == null) {
         return;
@@ -133,99 +101,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
     };
     walletKit.onSessionConnect.subscribe(_sessionConnectHandler);
-
-    _sessionProposalHandler = (event) async {
-      if (event == null) {
-        return;
-      }
-
-      final metadata = event.params.proposer.metadata;
-      final dappName = metadata.name;
-      final dappDescription = metadata.description;
-      final dappUrl = metadata.url;
-      final dappIcon = metadata.icons.isNotEmpty ? metadata.icons.first : null;
-
-      if (!mounted) {
-        return;
-      }
-      // Read before the drawer awaits: every chain the wallet can sign on,
-      // not just mainnet, because a session approved for one chain can never
-      // carry a request for another. A catalogue entry with no RPC is one
-      // the wallet cannot act on, so it is not claimed.
-      final chainIds = Provider.of<NetworkProvider>(
-        context,
-        listen: false,
-      ).networks.where(canSignOn).map((network) => network.chainId!).toList();
-
-      setState(() {});
-
-      debugPrint("🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
-
-      try {
-        final bool? approved = await ApproveDappConnectionDrawer.show(
-          context: navigatorKey.currentContext!,
-          dappName: dappName,
-          dappUrl: dappUrl,
-          dappDescription: dappDescription,
-          iconUrl: dappIcon,
-        );
-
-        if (approved == null || !approved) {
-          debugPrint("❌ Connection request rejected by user");
-          if (mounted) {
-            showToast(
-              context,
-              "DApp connection was rejected.",
-              type: ToastType.error,
-            );
-          }
-
-          await walletKit.rejectSession(
-            id: event.id,
-            reason: Errors.getSdkError(Errors.USER_REJECTED).toSignError(),
-          );
-          return;
-        }
-
-        await walletKit.approveSession(
-          id: event.id,
-          namespaces: {
-            'eip155': eip155Namespace(
-              chainIds: chainIds.isEmpty ? const [1] : chainIds,
-              address: widget.walletAddress,
-              methods: supportedMethods,
-            ),
-          },
-        );
-      } catch (e) {
-        debugPrint('❌ Session proposal handling failed: $e');
-      }
-    };
-    walletKit.onSessionProposal.subscribe(_sessionProposalHandler);
     _listenersAttached = true;
-  }
-
-  Future<void> maybeInitWalletKit() async {
-    if (_isInitialized) {
-      return;
-    }
-    if (_initCompleter != null) {
-      await _initCompleter!.future;
-      return;
-    }
-    final completer = Completer<void>();
-    _initCompleter = completer;
-    try {
-      await WalletKitInstance().initOnce();
-      _isInitialized = true;
-      debugPrint("✅ WalletKit initialized");
-    } catch (e) {
-      debugPrint("❌ WalletKit initialization failed: $e");
-      // Forget this attempt so the next Connect press retries init.
-      _initCompleter = null;
-    } finally {
-      completer.complete();
-    }
   }
 
   Future<void> _connect() async {
@@ -240,9 +116,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       _didManualPair = false;
     });
 
-    await maybeInitWalletKit();
+    final started = await _host.start();
 
-    if (!_isInitialized) {
+    if (!started) {
       if (!mounted) {
         return;
       }
