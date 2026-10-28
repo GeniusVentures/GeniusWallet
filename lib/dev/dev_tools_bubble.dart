@@ -1473,13 +1473,8 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     showToast(context, message, title: 'GNUS bridge');
   }
 
-  /// Compact panel-section action button. Wraps the app's branded [GWButton]
-  /// (tertiary variant: `surfaceElevated` fill + `borderSubtle` border +
-  /// `gw.textPrimary` label) instead of a hand-rolled `TextButton`, so every
-  /// action button is appearance-aware and reads correctly in both light and
-  /// dark — this is what the light-mode walk feedback asked for. [tooltip],
-  /// when given, carries the full description for labels shortened to avoid
-  /// GWButtonSize.sm's one-line ellipsis truncation in the ~260px panel.
+  /// A [GWButton], so it reads in both appearance modes. [tooltip] carries
+  /// the full text of a label shortened to fit the narrow panel.
   Widget _devButton(String label, VoidCallback onTap, {String? tooltip}) {
     return GWButton(
       label: label,
