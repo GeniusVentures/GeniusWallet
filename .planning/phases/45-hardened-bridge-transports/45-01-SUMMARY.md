@@ -3,21 +3,14 @@ phase: 45-hardened-bridge-transports
 plan: 01
 subsystem: gnus-bridge
 tags: [webview, window.gnus, allowlist, linux]
-requires:
-  - phase: 44-dashboard-consent-and-limits
-    provides: GnusRpcHandler, GnusOrigin
-provides:
-  - GnusWebBridge session shared by every web view platform
-  - gnusAllowedOrigins and the pinned dashboard origin per SgnsNet
-  - Linux bridge view and the dev route /dev/gnus-bridge
+requires: [phase 44 GnusRpcHandler and GnusOrigin]
+provides: [GnusWebBridge session, gnusAllowedOrigins, Linux bridge view, dev route /dev/gnus-bridge]
 status: complete
 actuals: {tokens: 9600, tasks: 3, commits: 3}
 key-files:
   created: [lib/gnus_bridge/gnus_web_bridge.dart, lib/gnus_bridge/gnus_dashboard_origins.dart, lib/gnus_bridge/gnus_bridge_view_linux.dart, lib/dev/gnus_bridge_test_screen.dart]
   modified: [lib/navigation/router.dart, lib/dev/dev_tools_bubble.dart, lib/gnus_bridge/gnus_rpc_handler.dart]
-key-decisions:
-  - Allowed origin from the message source only; a missing source answers 4100 into the page tracked from page starts
-  - GnusRpcHandler.readSgnsNet made public so widgets reach the net through the handler
+key-decisions: [origin from the message source only, GnusRpcHandler.readSgnsNet made public for widgets]
 ---
 
 # Phase 45 Plan 01: Linux tracer and the shared session
@@ -41,5 +34,4 @@ One session per web view: shim with per-view secret and per-document request ids
 - [Rule 2] The shim installs `on` and `removeListener` in task 1 instead of stubs; the session also gained `allowedOrigins()` and `dispose()`.
 - My first edits wrote CRLF into three LF files. Rewrote the three local commits to LF before moving on.
 
-## Pending
-Linux live walk is deferred with plan 45-03.
+Linux live walk: deferred with plan 45-03.

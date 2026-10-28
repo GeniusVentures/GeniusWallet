@@ -3,21 +3,14 @@ phase: 45-hardened-bridge-transports
 plan: 02
 subsystem: gnus-bridge
 tags: [navigation-lock, popups, user-agent, test-page, linux]
-requires:
-  - phase: 45-hardened-bridge-transports
-    provides: GnusWebBridge, gnusAllowedOrigins (plan 01)
-provides:
-  - gnusNavigation (allow, block, external by frame kind), used by every platform view
-  - isNewWindow on the vendored Linux NavigationRequest
-  - gnusUserAgentSuffix applied to the Linux view
-  - tool/gnus_bridge_test_page (index.html, frame.html)
+requires: [45-01 GnusWebBridge and gnusAllowedOrigins]
+provides: [gnusNavigation, isNewWindow on the vendored Linux NavigationRequest, gnusUserAgentSuffix, tool/gnus_bridge_test_page]
 status: complete
 actuals: {tokens: 4600, tasks: 3, commits: 3}
 key-files:
   created: [tool/gnus_bridge_test_page/index.html, tool/gnus_bridge_test_page/frame.html]
   modified: [lib/gnus_bridge/gnus_dashboard_origins.dart, lib/gnus_bridge/gnus_bridge_view_linux.dart, third_party/webview_all/webview_all_linux/linux/src/webview/linux_webview.cc, third_party/webview_all/webview_all_linux/lib/src/linux_webview_events.dart, third_party/webview_all/webview_platform_interface/lib/src/types/navigation_request.dart]
-key-decisions:
-  - A window.open() load is flagged by the URI the create signal saw, kept as GObject data on the web view, so no struct or header changes
+key-decisions: [a window.open() load is flagged by the URI the create signal saw, kept as GObject data, so no struct change]
 ---
 
 # Phase 45 Plan 02: Navigation lock, popups, user agent, test page

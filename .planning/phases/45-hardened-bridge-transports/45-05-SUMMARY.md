@@ -3,20 +3,14 @@ phase: 45-hardened-bridge-transports
 plan: 05
 subsystem: gnus-bridge
 tags: [android, webview, androidx-webkit, method-channel]
-requires:
-  - phase: 45-hardened-bridge-transports
-    provides: GnusWebBridge, gnusNavigation (plans 01, 02)
-provides:
-  - GnusWebBridge.kt (listener and document-start script on webview_flutter's WebView)
-  - GnusNativeBridgeChannel (Dart client shared with iOS and macOS)
-  - GnusBridgeViewMobile (webview_flutter view, Android now, Darwin in plan 06)
+requires: [45-01 GnusWebBridge, 45-02 gnusNavigation]
+provides: [GnusWebBridge.kt, GnusNativeBridgeChannel shared with iOS and macOS, GnusBridgeViewMobile]
 status: complete
 actuals: {tokens: 9500, tasks: 2, commits: 2}
 key-files:
   created: [android/app/src/main/kotlin/ai/gnus/genius_wallet/GnusWebBridge.kt, lib/gnus_bridge/gnus_native_bridge_channel.dart, lib/gnus_bridge/gnus_bridge_view_mobile.dart, test/gnus_bridge/gnus_native_bridge_channel_test.dart]
   modified: [android/app/src/main/kotlin/ai/gnus/genius_wallet/MainActivity.kt, android/app/build.gradle, lib/dev/gnus_bridge_test_screen.dart]
-key-decisions:
-  - The view does not load the page when install returns false, so a device without the WebView features shows a line of text and no web content
+key-decisions: [no page is loaded when install returns false]
 ---
 
 # Phase 45 Plan 05: Android transport

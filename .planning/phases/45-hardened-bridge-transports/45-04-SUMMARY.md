@@ -3,19 +3,14 @@ phase: 45-hardened-bridge-transports
 plan: 04
 subsystem: gnus-bridge
 tags: [windows, webview2, vendored-plugin]
-requires:
-  - phase: 45-hardened-bridge-transports
-    provides: GnusWebBridge, gnusNavigation (plans 01, 02)
-provides:
-  - third_party/webview_windows (0.4.0, unchanged copy then additive patches)
-  - GnusBridgeViewWindows, shown by the dev screen on Windows
+requires: [45-01 GnusWebBridge, 45-02 gnusNavigation]
+provides: [third_party/webview_windows with additive patches, GnusBridgeViewWindows]
 status: complete
 actuals: {tokens: 14000, tasks: 3, commits: 4}
 key-files:
   created: [third_party/webview_windows/, lib/gnus_bridge/gnus_bridge_view_windows.dart]
   modified: [pubspec.yaml, pubspec.lock, lib/dev/gnus_bridge_test_screen.dart]
-key-decisions:
-  - A page start is the plugin's Loading state; the reply and event scripts also check location.origin in the page, which covers the gap before it
+key-decisions: [a page start is the plugin's Loading state; the in-page origin check covers the gap before it]
 ---
 
 # Phase 45 Plan 04: Windows transport
