@@ -14,6 +14,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
@@ -253,8 +254,9 @@ class FlakyGnusJobStore extends GnusJobStore {
 /// One wallet, one network, one node account, an in-memory job box and a fixed
 /// clock: everything a handler test needs, with nothing real behind it.
 class GnusHarness {
-  GnusHarness._(this.api, this.walletDetails, this.box) {
+  GnusHarness._(this.api, this.walletDetails, this.box, this.connectionBox) {
     store = FlakyGnusJobStore(box);
+    connections = GnusConnectionStore(connectionBox);
   }
 
   static Future<GnusHarness> create({Box<String>? box}) async {
@@ -273,14 +275,20 @@ class GnusHarness {
           'gnusTest${_boxCounter++}',
           bytes: Uint8List(0),
         );
-    return GnusHarness._(api, walletDetails, opened);
+    final connectionBox = await Hive.openBox<String>(
+      'gnusConnTest${_boxCounter++}',
+      bytes: Uint8List(0),
+    );
+    return GnusHarness._(api, walletDetails, opened, connectionBox);
   }
 
   final FakeGnusApi api;
   final PushableWalletDetails walletDetails;
   final SeededCoinService coins = SeededCoinService();
   final Box<String> box;
+  final Box<String> connectionBox;
   late final FlakyGnusJobStore store;
+  late final GnusConnectionStore connections;
 
   AppState app = AppState(selectedSDKAccount: gnusTestNode);
   final StreamController<AppState> appStates = StreamController.broadcast();
@@ -297,6 +305,14 @@ class GnusHarness {
   BridgeGate gate = const BridgeGate(BridgeGateState.enabled);
   DateTime clock = DateTime.utc(2026, 10, 27, 12);
   final List<RecordedConfirm> confirms = [];
+
+  /// The origins the default connect was asked about, in order.
+  final List<String> connects = [];
+
+  Future<bool> _approveConnect({required String origin}) async {
+    connects.add(origin);
+    return true;
+  }
 
   /// Main address to the children it lists, or null when the read fails.
   Map<String, List<String>>? registrations = {};
@@ -323,40 +339,44 @@ class GnusHarness {
     };
   }
 
-  /// A handler that confirms every submit and records what it was shown.
-  GnusRpcHandler build({GnusConfirm? confirm}) => _handler(
-    confirm:
-        confirm ??
-        ({
-          required String origin,
-          required String cost,
-          required Map<String, String>? gas,
-          required String payer,
-          required String nodeAccount,
-        }) async {
-          confirms.add(
-            RecordedConfirm(
-              origin: origin,
-              cost: cost,
-              gas: gas,
-              payer: payer,
-              nodeAccount: nodeAccount,
-            ),
-          );
-          return true;
-        },
-  );
+  /// A handler that connects every origin and confirms every submit, and
+  /// records what it was shown.
+  GnusRpcHandler build({GnusConfirm? confirm, GnusConnect? connect}) =>
+      _handler(
+        connect: connect ?? _approveConnect,
+        confirm:
+            confirm ??
+            ({
+              required String origin,
+              required String cost,
+              required Map<String, String>? gas,
+              required String payer,
+              required String nodeAccount,
+            }) async {
+              confirms.add(
+                RecordedConfirm(
+                  origin: origin,
+                  cost: cost,
+                  gas: gas,
+                  payer: payer,
+                  nodeAccount: nodeAccount,
+                ),
+              );
+              return true;
+            },
+      );
 
-  /// A handler built with no confirm argument, as the app wires it today.
-  GnusRpcHandler buildDefaultConfirm() => _handler();
+  /// A handler built with no confirm argument, as the app wires it today. It
+  /// connects every origin, so only the confirm is under test.
+  GnusRpcHandler buildDefaultConfirm() => _handler(connect: _approveConnect);
 
-  GnusRpcHandler _handler({GnusConfirm? confirm}) {
-    final handler = _create(confirm: confirm);
+  GnusRpcHandler _handler({GnusConfirm? confirm, GnusConnect? connect}) {
+    final handler = _create(confirm: confirm, connect: connect);
     _handlers.add(handler);
     return handler;
   }
 
-  GnusRpcHandler _create({GnusConfirm? confirm}) {
+  GnusRpcHandler _create({GnusConfirm? confirm, GnusConnect? connect}) {
     BridgeGate resolve({bool fresh = false}) => gate;
     DateTime now() => clock;
     if (confirm == null) {
@@ -367,9 +387,11 @@ class GnusHarness {
         coinService: coins,
         resolveGate: resolve,
         store: store,
+        connections: connections,
         appStates: appStates.stream,
         registrationChanges: registrationChanges.stream,
         readRegistrations: hasRegistrationReader ? _readRegistrations : null,
+        connect: connect ?? rejectGnusConnect,
         now: now,
       );
     }
@@ -380,9 +402,11 @@ class GnusHarness {
       coinService: coins,
       resolveGate: resolve,
       store: store,
+      connections: connections,
       appStates: appStates.stream,
       registrationChanges: registrationChanges.stream,
       confirm: confirm,
+      connect: connect ?? rejectGnusConnect,
       readRegistrations: hasRegistrationReader ? _readRegistrations : null,
       now: now,
     );
@@ -395,6 +419,7 @@ class GnusHarness {
     await appStates.close();
     await registrationChanges.close();
     await walletDetails.close();
+    await connectionBox.close();
     if (closeBox) {
       await box.close();
     }

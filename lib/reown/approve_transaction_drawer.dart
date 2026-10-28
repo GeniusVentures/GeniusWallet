@@ -12,11 +12,12 @@ class ApproveTransactionDrawer {
     required String dappName,
     required String dappUrl,
     String? iconUrl,
+    String title = "Transaction Request",
   }) async {
     final gw = context.gw;
     return ResponsiveDrawer.show<bool>(
       context: context,
-      title: "Transaction Request",
+      title: title,
       child: ListView(
         children: [
           // `Flexible(child: content)` below needs a Flex ancestor -- a bare
@@ -30,34 +31,37 @@ class ApproveTransactionDrawer {
               // hairline under it, no pill, no box. The bordered Container
               // this used to sit in is gone.
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      GeniusWalletConsts.radiusPill,
+                  if (iconUrl != null) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusPill,
+                      ),
+                      // The errorBuilder collapsing to nothing is a mitigation
+                      // (T-21-12), not decoration: it stops a hostile dApp
+                      // placing a broken-image glyph or an oversized
+                      // failed-load box on a signing prompt.
+                      child: Image.network(
+                        iconUrl,
+                        height: 24,
+                        width: 24,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const SizedBox.shrink();
+                        },
+                      ),
                     ),
-                    // The errorBuilder collapsing to nothing is a mitigation
-                    // (T-21-12), not decoration: it stops a hostile dApp
-                    // placing a broken-image glyph or an oversized
-                    // failed-load box on a signing prompt.
-                    child: Image.network(
-                      iconUrl ?? "",
-                      height: 24,
-                      width: 24,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: GeniusWalletConsts.space6),
+                    const SizedBox(width: GeniusWalletConsts.space6),
+                  ],
+                  // Wraps rather than ellipsizes: a look-alike origin must be
+                  // readable whole on a prompt that asks for consent.
                   Flexible(
                     child: Text(
                       dappUrl,
                       style: GeniusWalletTypography.bodyMd.copyWith(
                         color: gw.textSecondary,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

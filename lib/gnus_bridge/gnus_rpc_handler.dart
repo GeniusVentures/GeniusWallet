@@ -9,6 +9,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/reown/utilities.dart';
@@ -41,6 +42,13 @@ typedef GnusConfirm =
       required String payer,
       required String nodeAccount,
     });
+
+/// The seam that asks the user whether [origin] may use the bridge at all.
+/// Like the confirm, it is a rejection after [kGnusConfirmTimeout].
+typedef GnusConnect = Future<bool> Function({required String origin});
+
+/// The default connect: nothing connects until a real prompt replaces it.
+Future<bool> rejectGnusConnect({required String origin}) async => false;
 
 /// The default confirm: nothing spends until a real prompt replaces it.
 Future<bool> rejectGnusConfirm({
@@ -96,10 +104,12 @@ class GnusRpcHandler {
     required CoinService coinService,
     required BridgeGate Function({bool fresh}) resolveGate,
     required GnusJobStore store,
+    required GnusConnectionStore connections,
     required Stream<AppState> appStates,
     Map<String, List<ChildWallet>>? Function()? readRegistrations,
     Stream<Object?>? registrationChanges,
     GnusConfirm confirm = rejectGnusConfirm,
+    GnusConnect connect = rejectGnusConnect,
     DateTime Function()? now,
   }) : _geniusApi = geniusApi,
        _jobs = JobSubmission(geniusApi: geniusApi),
@@ -108,8 +118,10 @@ class GnusRpcHandler {
        _coins = coinService,
        _resolveGate = resolveGate,
        _store = store,
+       _connections = connections,
        _readRegistrations = readRegistrations,
        _confirm = confirm,
+       _connect = connect,
        _now = now ?? DateTime.now {
     _lastKey = _stateKey();
     _lastChainId = _walletDetails.state.selectedNetwork?.chainId;
@@ -132,8 +144,10 @@ class GnusRpcHandler {
   final CoinService _coins;
   final BridgeGate Function({bool fresh}) _resolveGate;
   final GnusJobStore _store;
+  final GnusConnectionStore _connections;
   final Map<String, List<ChildWallet>>? Function()? _readRegistrations;
   final GnusConfirm _confirm;
+  final GnusConnect _connect;
   final DateTime Function() _now;
 
   /// `origin|idempotencyKey` of the submit holding the wallet's one burn slot,
@@ -340,7 +354,7 @@ class GnusRpcHandler {
       case GnusRpcMethod.getJob:
         return _getJob(origin, args);
       case GnusRpcMethod.getAccounts:
-        return _getAccounts();
+        return _getAccounts(origin);
       case GnusRpcMethod.getEarnings:
         return _getEarnings(args);
       default:
@@ -458,6 +472,40 @@ class GnusRpcHandler {
       throw _invalidParams(given.single);
     }
     return (given.single, value);
+  }
+
+  /// Returns once [origin] is connected, asking the user the first time. A
+  /// decline, a timeout or a throw from the seam is a rejection.
+  Future<void> _requireConnected(String origin) async {
+    if (_connections.isConnected(origin)) {
+      return;
+    }
+    final bool approved;
+    try {
+      // Re-typed first, as the confirm is: a seam written `async => throw`
+      // returns a Future<Never>, whose timeout cannot answer false.
+      approved = await _connect(origin: origin)
+          .then<bool>((answer) => answer)
+          .timeout(kGnusConfirmTimeout, onTimeout: () => false);
+    } catch (e) {
+      debugPrint('gnus_rpc connect failed ${e.runtimeType}');
+      throw const GnusRpcError(
+        GnusRpcCode.userRejected,
+        'User rejected the request',
+      );
+    }
+    if (!approved) {
+      throw const GnusRpcError(
+        GnusRpcCode.userRejected,
+        'User rejected the request',
+      );
+    }
+    try {
+      await _connections.connect(origin, _now().toUtc());
+    } catch (e) {
+      debugPrint('gnus_rpc connection write failed ${e.runtimeType}');
+      throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
+    }
   }
 
   /// Switching and not-ready refusals shared by every method that needs the
@@ -750,7 +798,8 @@ class GnusRpcHandler {
     };
   }
 
-  Future<Object?> _getAccounts() async {
+  Future<Object?> _getAccounts(String origin) async {
+    await _requireConnected(origin);
     final payload = await _accountsPayload();
     if (payload == null) {
       throw const GnusRpcError(GnusRpcCode.disconnected, 'Wallet not ready');
