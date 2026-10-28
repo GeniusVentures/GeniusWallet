@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/gnus_consent/gnus_prompts.dart';
@@ -146,6 +149,41 @@ void main() {
         expect(answer, isFalse, reason: bad);
         expect(find.text('Approve'), findsNothing);
       }
+    });
+  });
+
+  group('each drawer answers for itself', () {
+    testWidgets('Approve under a newer route resolves neither of them', (
+      tester,
+    ) async {
+      await _pumpApp(tester);
+      final answer = _spend();
+      var settled = false;
+      unawaited(answer.then((_) => settled = true));
+      await tester.pumpAndSettle();
+      final above = navigatorKey.currentState!.push(
+        MaterialPageRoute<bool>(builder: (_) => const Text('above')),
+      );
+      await tester.pumpAndSettle();
+
+      // Flutter cancels a held finger on push, so this calls the covered
+      // button directly, as any other activation reaching it would.
+      tester
+          .widget<GWButton>(
+            find.widgetWithText(GWButton, 'Approve', skipOffstage: false),
+          )
+          .onPressed!();
+      await tester.pumpAndSettle();
+
+      expect(find.text('above'), findsOneWidget);
+      expect(settled, isFalse);
+
+      navigatorKey.currentState!.pop(false);
+      await tester.pumpAndSettle();
+      expect(await above, isFalse);
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+      expect(await answer, isFalse);
     });
   });
 

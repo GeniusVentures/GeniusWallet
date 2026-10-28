@@ -644,8 +644,8 @@ void main() {
         final first = viaDirect(handler, _origin, _submit, _params());
         await pumpEventQueue();
 
-        // Its own origin has the confirm open, so it learns that; anyone
-        // else, and a retry of the call in flight, learn the wallet is busy.
+        // A confirm is open, so any new submit learns that; a retry of the
+        // call in flight learns the wallet is busy with it.
         void expectBusy(Map<String, Object?> reply, String reason) {
           expect(_error(reply)['code'], GnusRpcCode.busy);
           expect(_error(reply)['data'], {'reason': reason});
@@ -657,7 +657,7 @@ void main() {
         );
         expectBusy(
           await inFlightCall(webOrigin('https://other.example'), 'key-3'),
-          GnusRpcReason.submitInFlight,
+          GnusRpcReason.confirmOpen,
         );
         expectBusy(
           await inFlightCall(_origin, 'key-1'),

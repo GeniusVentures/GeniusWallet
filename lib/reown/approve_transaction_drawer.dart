@@ -77,28 +77,32 @@ class ApproveTransactionDrawer {
           ),
         ],
       ),
-      footer: Row(
-        children: [
-          Expanded(
-            child: GWButton(
-              label: "Reject",
-              variant: GWButtonVariant.gradientOutline,
-              size: GWButtonSize.sm,
-              expand: true,
-              onPressed: () => Navigator.of(context).pop(false),
+      // The drawer's own context, not the caller's: each button answers for
+      // this route only, never for whatever sits on top of it.
+      footer: Builder(
+        builder: (drawerContext) => Row(
+          children: [
+            Expanded(
+              child: GWButton(
+                label: "Reject",
+                variant: GWButtonVariant.gradientOutline,
+                size: GWButtonSize.sm,
+                expand: true,
+                onPressed: () => ResponsiveDrawer.close(drawerContext, false),
+              ),
             ),
-          ),
-          const SizedBox(width: GeniusWalletConsts.space6),
-          Expanded(
-            child: GWButton(
-              label: "Approve",
-              variant: GWButtonVariant.gradient,
-              size: GWButtonSize.sm,
-              expand: true,
-              onPressed: () => Navigator.of(context).pop(true),
+            const SizedBox(width: GeniusWalletConsts.space6),
+            Expanded(
+              child: GWButton(
+                label: "Approve",
+                variant: GWButtonVariant.gradient,
+                size: GWButtonSize.sm,
+                expand: true,
+                onPressed: () => ResponsiveDrawer.close(drawerContext, true),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -44,8 +44,9 @@ void main() {
     required String nodeAccount,
   }) async => true;
 
-  group('one open prompt per origin', () {
-    test('a second call during a connect gets confirm_open at once', () async {
+  group('one open prompt in the wallet', () {
+    test('any call that needs a prompt during a connect gets confirm_open, '
+        'whatever its origin', () async {
       final held = Completer<bool>();
       final asked = <GnusOrigin>[];
       final handler = h.build(
@@ -60,13 +61,52 @@ void main() {
       final second = await viaJson(handler, _origin, _accounts, null);
       final otherOrigin = await viaJson(handler, _other, _accounts, null);
 
-      expect(_error(second)['code'], GnusRpcCode.busy);
       expect(_reason(second), GnusRpcReason.confirmOpen);
-      expect(otherOrigin['result'], isNotNull);
-      expect(asked, [_origin, _other]);
+      expect(_error(otherOrigin)['code'], GnusRpcCode.busy);
+      expect(_reason(otherOrigin), GnusRpcReason.confirmOpen);
+      expect(asked, [_origin]);
 
       held.complete(true);
       expect((await first)['result'], isNotNull);
+      final afterwards = await viaJson(handler, _other, _accounts, null);
+      expect(afterwards['result'], isNotNull);
+      expect(asked, [_origin, _other]);
+    });
+
+    test('two origins racing: one prompt, the other confirm_open', () async {
+      await h.connections.connect(_other, h.clock);
+      final held = Completer<bool>();
+      final shown = <String>[];
+      final handler = h.build(
+        connect: ({required GnusOrigin origin}) {
+          shown.add('connect ${origin.value}');
+          return held.future;
+        },
+        confirm:
+            ({
+              required GnusOrigin origin,
+              required String cost,
+              required Map<String, String>? gas,
+              required String payer,
+              required String nodeAccount,
+            }) {
+              shown.add('confirm ${origin.value}');
+              return held.future;
+            },
+      );
+
+      // Started together, nothing awaited between them.
+      final connect = viaJson(handler, _origin, _accounts, null);
+      final submit = viaJson(handler, _other, _submit, _params('k1'));
+      final submitReply = await submit;
+
+      expect(shown, ['connect ${_origin.value}']);
+      expect(_reason(submitReply), GnusRpcReason.confirmOpen);
+      expect(h.api.count('burn'), 0);
+
+      held.complete(true);
+      expect((await connect)['result'], isNotNull);
+      expect(h.api.count('burn'), 0);
     });
 
     test(

@@ -178,6 +178,15 @@ class ResponsiveDrawer {
       builder: (_) => content,
     );
   }
+
+  /// Closes the drawer that [context] sits in, and only that one: a tap that
+  /// lands just as another route is pushed on top does nothing.
+  static void close<T>(BuildContext context, [T? result]) {
+    final route = ModalRoute.of(context);
+    if (route != null && route.isCurrent) {
+      Navigator.of(context).pop<T>(result);
+    }
+  }
 }
 
 class _ResponsiveDrawerScaffold extends StatelessWidget {
@@ -294,7 +303,7 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
                     tooltip: MaterialLocalizations.of(
                       context,
                     ).closeButtonTooltip,
-                    onPressed: Navigator.of(context).pop,
+                    onPressed: () => ResponsiveDrawer.close<void>(context),
                   ),
                 ),
               ],

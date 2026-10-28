@@ -169,9 +169,12 @@ class GnusRpcHandler {
   /// store; after a restart the intent written before the burn stops it.
   final Map<String, GnusJob> _burned = {};
 
-  /// Origins with a prompt on screen, and when each origin's recent prompts
-  /// were opened. In memory only; an origin's entry goes when it empties.
-  final Set<GnusOrigin> _promptOpen = {};
+  /// Whether the wallet has a gnus prompt on screen, for any origin. One at a
+  /// time: two would share the root navigator and blur whose drawer is whose.
+  bool _promptOpen = false;
+
+  /// When each origin's prompts inside the window were opened. In memory only,
+  /// and pruned on every prompt, so an origin that stops asking drops out.
   final Map<GnusOrigin, List<DateTime>> _promptTimes = {};
 
   final StreamController<GnusEvent> _events = StreamController.broadcast();
@@ -557,28 +560,28 @@ class GnusRpcHandler {
     scope.connected = true;
   }
 
-  /// Runs [show] as [origin]'s one open prompt. A second prompt while one is
-  /// open, or a fourth inside the window, is -32005 and shows nothing. A
-  /// decline, a timeout and a throw all answer false.
+  /// Runs [show] as the wallet's one open prompt. Any prompt while one is
+  /// open, from any origin, or a fourth for [origin] inside the window, is
+  /// -32005 and shows nothing. A decline, a timeout and a throw answer false.
   Future<bool> _prompt(GnusOrigin origin, Future<bool> Function() show) async {
-    if (_promptOpen.contains(origin)) {
+    if (_promptOpen) {
       throw _confirmOpen();
     }
     final now = _now();
-    final recent = [
-      for (final at in _promptTimes[origin] ?? const <DateTime>[])
-        if (now.difference(at) < _promptWindow) at,
-    ];
+    for (final times in _promptTimes.values) {
+      times.removeWhere((at) => now.difference(at) >= _promptWindow);
+    }
+    _promptTimes.removeWhere((_, times) => times.isEmpty);
+    final recent = _promptTimes.putIfAbsent(origin, () => []);
     if (recent.length >= _maxPromptsPerWindow) {
-      _promptTimes[origin] = recent;
       throw const GnusRpcError(
         GnusRpcCode.busy,
         'Busy',
         data: {'reason': GnusRpcReason.rateLimited},
       );
     }
-    _promptTimes[origin] = [...recent, now];
-    _promptOpen.add(origin);
+    recent.add(now);
+    _promptOpen = true;
     try {
       // Re-typed first: a seam written `async => throw` returns a
       // Future<Never>, whose timeout cannot answer false.
@@ -589,7 +592,7 @@ class GnusRpcHandler {
       debugPrint('gnus_rpc prompt failed ${e.runtimeType}');
       return false;
     } finally {
-      _promptOpen.remove(origin);
+      _promptOpen = false;
     }
   }
 
@@ -1038,7 +1041,7 @@ class GnusRpcHandler {
       }
       throw _outcomeUnknown(idempotencyKey, pending);
     }
-    if (_promptOpen.contains(origin)) {
+    if (_promptOpen) {
       throw _confirmOpen();
     }
     if (_inFlightSlot != null) {
