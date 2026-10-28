@@ -13,7 +13,10 @@ class MainActivity: FlutterActivity() {
 	companion object {
 		private const val CHANNEL = "ai.gnus.genius_wallet/platform"
 		private const val TAG = "GeniusWallet"
+		private const val GNUS_BRIDGE_CHANNEL = "ai.gnus.genius_wallet/gnus_bridge"
 	}
+
+	private var gnusWebBridge: GnusWebBridge? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -24,6 +27,11 @@ class MainActivity: FlutterActivity() {
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 		super.configureFlutterEngine(flutterEngine)
+
+		gnusWebBridge = GnusWebBridge(
+			flutterEngine,
+			MethodChannel(flutterEngine.dartExecutor.binaryMessenger, GNUS_BRIDGE_CHANNEL),
+		)
 
 		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
 			.setMethodCallHandler { call: MethodCall, result: MethodChannel.Result ->
