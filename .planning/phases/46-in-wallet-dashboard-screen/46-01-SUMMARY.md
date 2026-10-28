@@ -35,7 +35,6 @@ the network and build mode and hands it to the platform's bridge view. The route
   the label shortens; `GWSectionTitle` is untouched.
 - `wallet_overview` gates the entry on `gnusDashboardListed` in the first commit, not the second, so no commit lists a
   release entry that can only fail. `openGnusDashboard` returns a `Future` (the browser path awaits the network).
-- The unlisted-entry check covers `ComputePanel` with a null callback; the `wallet_overview` conditional is not driven by a test.
+- The unlisted check covers `ComputePanel` with a null callback; the `wallet_overview` conditional has no test.
 
-## Known stubs
-None. Release builds list no entry while the pinned origin is the `.invalid` placeholder (by design, D-05).
+Known stubs: none. A release build lists no entry while the pinned origin is `.invalid` (D-05).
