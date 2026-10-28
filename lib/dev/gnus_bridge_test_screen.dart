@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_linux.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_mobile.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_windows.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_dashboard_origins.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
@@ -75,6 +76,14 @@ class _BridgeBody extends StatelessWidget {
     final handler = context.read<GnusRpcHandler>();
     if (dev && Platform.isWindows) {
       return GnusBridgeViewWindows(
+        url: url,
+        handler: handler,
+        readNet: handler.readSgnsNet,
+        dev: dev,
+      );
+    }
+    if (dev && Platform.isAndroid) {
+      return GnusBridgeViewMobile(
         url: url,
         handler: handler,
         readNet: handler.readSgnsNet,
