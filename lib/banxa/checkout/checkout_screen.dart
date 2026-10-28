@@ -18,7 +18,7 @@ import 'package:genius_wallet/banxa/checkout/checkout_webview_windows.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/gw_notice.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/overlays/gw_menu_item.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -248,7 +248,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final Widget body;
         var showingResult = false;
         if (!trusted) {
-          body = _CheckoutNotice(
+          body = GWNotice(
             title: "This checkout link isn't from Banxa",
             message: 'Nothing was loaded. Close this screen and start again.',
             actions: [
@@ -266,13 +266,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           showingResult = true;
           body = CheckoutResult(order: order, onCompletePayment: _restartHost);
         } else if (_returned && !_readDone) {
-          body = const _CheckoutNotice(
+          body = const GWNotice(
             busy: true,
             title: 'Checking your order',
             message: 'Banxa sent you back. Asking for the latest status.',
           );
         } else if (_loadFailed) {
-          body = _CheckoutNotice(
+          body = GWNotice(
             title: "Checkout didn't load",
             message:
                 'Your order is created. Check your connection and try again.',
@@ -654,61 +654,6 @@ class _ProgressStep extends StatelessWidget {
   }
 }
 
-class _CheckoutNotice extends StatelessWidget {
-  const _CheckoutNotice({
-    required this.title,
-    required this.message,
-    this.busy = false,
-    this.actions = const [],
-  });
-
-  final String title;
-  final String message;
-  final bool busy;
-  final List<Widget> actions;
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(GeniusWalletConsts.space12),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (busy) ...[
-                const Loading(),
-                const SizedBox(height: GeniusWalletConsts.space8),
-              ],
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: GeniusWalletTypography.titleLg.copyWith(
-                  color: gw.textPrimary,
-                ),
-              ),
-              const SizedBox(height: GeniusWalletConsts.space4),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: GeniusWalletTypography.bodyMd.copyWith(
-                  color: gw.textSecondary,
-                ),
-              ),
-              for (final action in actions) ...[
-                const SizedBox(height: GeniusWalletConsts.space6),
-                action,
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Waits in the system browser where an in-app page is not available; the
 /// screen moves on by itself once the polled order shows payment.
 class CheckoutExternal extends StatefulWidget {
@@ -733,7 +678,7 @@ class _CheckoutExternalState extends State<CheckoutExternal> {
 
   @override
   Widget build(BuildContext context) {
-    return _CheckoutNotice(
+    return GWNotice(
       title: 'Finish paying in your browser',
       message: 'This screen updates when Banxa has your payment.',
       actions: [
