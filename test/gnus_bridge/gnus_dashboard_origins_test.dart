@@ -52,4 +52,71 @@ void main() {
       expect(gnusDashboardOrigin(SgnsNet.staging), endsWith('.invalid'));
     });
   });
+
+  group('gnusNavigation', () {
+    final allowed = gnusAllowedOrigins(SgnsNet.staging, dev: true);
+    const dash = 'http://localhost:3000';
+
+    // frame, url, expected
+    final table = <(GnusFrame, String?, GnusNavigation)>[
+      (GnusFrame.main, '$dash/page', GnusNavigation.allow),
+      (GnusFrame.main, 'HTTP://LocalHost:3000/x', GnusNavigation.allow),
+      (GnusFrame.main, 'http://localhost:3001/', GnusNavigation.external),
+      (GnusFrame.main, 'https://evil.example/a', GnusNavigation.external),
+      (GnusFrame.main, 'https://localhost:3000', GnusNavigation.external),
+      (GnusFrame.main, 'about:blank', GnusNavigation.block),
+      (GnusFrame.main, 'javascript:alert(1)', GnusNavigation.block),
+      (GnusFrame.main, 'file:///etc/passwd', GnusNavigation.block),
+      (GnusFrame.main, 'data:text/html,<b>x</b>', GnusNavigation.block),
+      (GnusFrame.main, 'intent://x#Intent;end', GnusNavigation.block),
+      (GnusFrame.main, null, GnusNavigation.block),
+      (GnusFrame.unknown, '$dash/', GnusNavigation.allow),
+      (GnusFrame.unknown, 'about:blank', GnusNavigation.allow),
+      (GnusFrame.unknown, 'about:srcdoc', GnusNavigation.allow),
+      (GnusFrame.unknown, 'about:config', GnusNavigation.block),
+      (GnusFrame.unknown, 'http://127.0.0.1:3001/', GnusNavigation.block),
+      (GnusFrame.unknown, 'https://evil.example/', GnusNavigation.block),
+      (GnusFrame.unknown, 'javascript:1', GnusNavigation.block),
+      (GnusFrame.sub, 'https://evil.example/', GnusNavigation.allow),
+      (GnusFrame.newWindow, '$dash/', GnusNavigation.external),
+      (GnusFrame.newWindow, 'https://evil.example/', GnusNavigation.external),
+      (GnusFrame.newWindow, 'javascript:alert(1)', GnusNavigation.block),
+      (GnusFrame.newWindow, 'about:blank', GnusNavigation.block),
+      (GnusFrame.newWindow, null, GnusNavigation.block),
+    ];
+
+    for (final (frame, url, expected) in table) {
+      test('$frame $url is $expected', () {
+        expect(
+          gnusNavigation(
+            url: url == null ? null : Uri.tryParse(url),
+            frame: frame,
+            allowed: allowed,
+          ),
+          expected,
+        );
+      });
+    }
+
+    test('a non-http URL is never allowed or opened outside the app', () {
+      for (final frame in [
+        GnusFrame.main,
+        GnusFrame.unknown,
+        GnusFrame.newWindow,
+      ]) {
+        for (final url in [
+          'javascript:1',
+          'file:///x',
+          'data:,x',
+          'ftp://a/',
+        ]) {
+          expect(
+            gnusNavigation(url: Uri.parse(url), frame: frame, allowed: allowed),
+            GnusNavigation.block,
+            reason: '$frame $url',
+          );
+        }
+      }
+    });
+  });
 }

@@ -37,3 +37,39 @@ GnusOrigin? _localhostOrigin(String raw) {
   final uri = Uri.parse(origin.value);
   return uri.scheme == 'http' && uri.host == 'localhost' ? origin : null;
 }
+
+/// Where a navigation happens. Linux names no frame, so it is [unknown].
+enum GnusFrame { main, sub, unknown, newWindow }
+
+enum GnusNavigation { allow, block, external }
+
+/// What a bridge view does with a navigation to [url]: load it, drop it, or
+/// hand it to the system browser. Only http(s) ever leaves the app.
+GnusNavigation gnusNavigation({
+  required Uri? url,
+  required GnusFrame frame,
+  required Set<GnusOrigin> allowed,
+}) {
+  if (url == null) {
+    return GnusNavigation.block;
+  }
+  final web =
+      (url.scheme == 'http' || url.scheme == 'https') && url.host.isNotEmpty;
+  final onList =
+      web &&
+      allowed.contains(GnusOrigin.tryParse(GnusTransport.webview, '$url'));
+  final outside = web ? GnusNavigation.external : GnusNavigation.block;
+  return switch (frame) {
+    // The frame cannot reach the bridge, so it needs no lock.
+    GnusFrame.sub => GnusNavigation.allow,
+    GnusFrame.main => onList ? GnusNavigation.allow : outside,
+    GnusFrame.newWindow => outside,
+    // A frame-blind platform: an off-list load is blocked wherever it is, and
+    // nothing opens externally because it may be a subframe.
+    GnusFrame.unknown =>
+      onList || _isBlankPage(url) ? GnusNavigation.allow : GnusNavigation.block,
+  };
+}
+
+bool _isBlankPage(Uri url) =>
+    url.scheme == 'about' && (url.path == 'blank' || url.path == 'srcdoc');
