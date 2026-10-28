@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -10,6 +11,9 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/compute/compute_panel.dart';
 import 'package:genius_wallet/dashboard/compute/compute_state.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
+import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
+import 'package:genius_wallet/gnus_bridge/gnus_dashboard_origins.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_dashboard_screen.dart';
 import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/job_drawer.dart';
@@ -264,6 +268,12 @@ class WalletsOverviewState extends State<WalletsOverview> {
                           onNewJob: () => unawaited(
                             JobDrawer.show(context, cubit: _submitJobCubit),
                           ),
+                          onOpenDashboard:
+                              gnusDashboardListed(
+                                dev: kDebugMode && kShowDevTools,
+                              )
+                              ? () => openGnusDashboard(context)
+                              : null,
                         );
                       },
                     );

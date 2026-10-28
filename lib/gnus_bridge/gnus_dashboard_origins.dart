@@ -29,6 +29,28 @@ Set<GnusOrigin> gnusAllowedOrigins(
   return {?pinned, ?local};
 }
 
+/// Where the in-wallet dashboard starts: the origin root. A dev build opens
+/// the dev origin unless [hosted] asks for the pinned one.
+Uri gnusDashboardStart(
+  SgnsNet net, {
+  required bool dev,
+  bool hosted = false,
+  String devOrigin = kGnusDashboardDevOrigin,
+}) {
+  final local = dev && !hosted ? _localhostOrigin(devOrigin) : null;
+  return Uri.parse(local?.value ?? gnusDashboardOrigin(net)).replace(path: '/');
+}
+
+/// Whether the wallet offers the dashboard entry. A release build waits for a
+/// real pinned origin.
+// ponytail: one network today, so one placeholder hides the entry everywhere;
+// list per network once a second SgnsNet exists.
+bool gnusDashboardListed({required bool dev}) =>
+    dev ||
+    SgnsNet.values.every(
+      (net) => !Uri.parse(gnusDashboardOrigin(net)).host.endsWith('.invalid'),
+    );
+
 GnusOrigin? _localhostOrigin(String raw) {
   final origin = GnusOrigin.tryParse(GnusTransport.webview, raw);
   if (origin == null) {

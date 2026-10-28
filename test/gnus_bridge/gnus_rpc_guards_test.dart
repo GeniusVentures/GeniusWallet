@@ -112,18 +112,22 @@ void main() {
       expect(offenders, isEmpty);
     });
 
-    test('nothing under lib/gnus_bridge but the platform views is UI', () {
-      final offenders = [
-        for (final file in _bridgeFiles())
-          if (!file.uri.pathSegments.last.startsWith('gnus_bridge_view_') &&
-              RegExp(
-                r"package:flutter/(material|widgets)\.dart",
-              ).hasMatch(_withoutComments(file.readAsStringSync())))
-            file.path,
-      ];
+    test(
+      'nothing under lib/gnus_bridge but the views and the screen is UI',
+      () {
+        final offenders = [
+          for (final file in _bridgeFiles())
+            if (!file.uri.pathSegments.last.startsWith('gnus_bridge_view_') &&
+                file.uri.pathSegments.last != 'gnus_dashboard_screen.dart' &&
+                RegExp(
+                  r"package:flutter/(material|widgets)\.dart",
+                ).hasMatch(_withoutComments(file.readAsStringSync())))
+              file.path,
+        ];
 
-      expect(offenders, isEmpty);
-    });
+        expect(offenders, isEmpty);
+      },
+    );
   });
 
   group('logging', () {
