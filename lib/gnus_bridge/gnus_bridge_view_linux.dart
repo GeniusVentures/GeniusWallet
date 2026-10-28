@@ -14,7 +14,7 @@ import 'package:webview_all_linux/webview_all_linux.dart';
 const String _channel = 'gnusBridge';
 
 /// The bridge on WebKitGTK. It names no sender for a message, so the caller's
-/// origin is the top-level URL tracked from page events.
+/// origin is the URL of the last committed top-level document.
 class GnusBridgeViewLinux extends StatefulWidget {
   const GnusBridgeViewLinux({
     super.key,
@@ -45,7 +45,8 @@ class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
   final WebViewController _controller = WebViewController();
   late final GnusWebBridge _bridge;
   Set<GnusOrigin> _allowed = const {};
-  String? _topUrl;
+  String? _committedUrl;
+  bool _leaving = false;
   bool _ready = false;
 
   @override
@@ -64,10 +65,13 @@ class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
     await _controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     await _controller.addJavaScriptChannel(
       _channel,
-      // Read synchronously: the page events that move the URL arrive on the
-      // same ordered channel as this message.
-      onMessageReceived: (message) =>
-          _bridge.onMessage(message.message, source: _topUrl),
+      // Read synchronously: the page events arrive on the same ordered
+      // channel as this message. Between a navigation's start and its commit
+      // the old page may be leaving, so it speaks for nobody.
+      onMessageReceived: (message) => _bridge.onMessage(
+        message.message,
+        source: _leaving ? null : _committedUrl,
+      ),
     );
     await _controller.addUserScript(
       WebViewUserScript(source: _bridge.shimSource),
@@ -78,22 +82,30 @@ class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
       // With no allowlist every load is refused, which is the safe failure.
       debugPrint('Bridge allowlist unavailable: ${e.runtimeType}');
     }
-    await _controller.setNavigationDelegate(
-      NavigationDelegate(
-        onNavigationRequest: _onNavigationRequest,
-        onPageStarted: (url) {
-          _topUrl = url;
-          _bridge.pageStarted(url);
-        },
-        onUrlChange: (change) => _topUrl = change.url,
-        onPageFinished: (_) => widget.onPageFinished?.call(),
-        onWebResourceError: (error) {
-          if (error.isForMainFrame == true) {
-            widget.onLoadFailed?.call();
-          }
-        },
-      ),
+    final delegate = NavigationDelegate(
+      onNavigationRequest: _onNavigationRequest,
+      onPageStarted: (_) => _leaving = true,
+      // Also ends a navigation that never commits (a download, a 204, a
+      // blocked redirect): the page that started it is still the one shown.
+      onPageFinished: (_) {
+        _leaving = false;
+        widget.onPageFinished?.call();
+      },
+      onWebResourceError: (error) {
+        if (error.isForMainFrame == true) {
+          widget.onLoadFailed?.call();
+        }
+      },
     );
+    final platform = delegate.platform;
+    if (platform is LinuxNavigationDelegate) {
+      await platform.setOnPageCommitted((url) {
+        _committedUrl = url;
+        _leaving = false;
+        _bridge.pageCommitted(url);
+      });
+    }
+    await _controller.setNavigationDelegate(delegate);
     final agent = await _controller.getUserAgent();
     if (agent != null) {
       await _controller.setUserAgent('$agent$gnusUserAgentSuffix');

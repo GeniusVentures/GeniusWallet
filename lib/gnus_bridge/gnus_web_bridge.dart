@@ -18,7 +18,7 @@ const String gnusUserAgentSuffix =
 const int _maxRequestIdLength = 64;
 
 /// One web view's side of the bridge, the same on every platform. The view
-/// injects [shimSource], forwards page starts and `(message, source)` pairs,
+/// injects [shimSource], forwards page commits and `(message, source)` pairs,
 /// and runs the scripts handed to `deliver`.
 class GnusWebBridge {
   GnusWebBridge({
@@ -48,8 +48,10 @@ class GnusWebBridge {
 
   GnusOrigin? _topOrigin;
 
-  // Bumped by every main-frame page start. A request holds the number it
-  // began under, and its answer is dropped if the page has moved on.
+  // Bumped when a new main-frame document commits, not when a navigation
+  // starts: a download or a blocked redirect starts one and leaves the page.
+  // A request holds the number it began under; its answer is dropped if the
+  // page has moved on.
   int _generation = 0;
 
   static String _newSecret(Random random) {
@@ -64,9 +66,9 @@ class GnusWebBridge {
   Future<Set<GnusOrigin>> allowedOrigins() async =>
       gnusAllowedOrigins(await _readNet(), dev: _dev);
 
-  /// A main-frame navigation began at [url]. Events for the previous page
-  /// stop, and an allowlisted page gets the events of its own origin.
-  void pageStarted(String? url) {
+  /// A new main-frame document committed at [url]. Events for the previous
+  /// page stop, and an allowlisted page gets the events of its own origin.
+  void pageCommitted(String? url) {
     if (_disposed) {
       return;
     }
@@ -116,9 +118,13 @@ class GnusWebBridge {
   }
 
   /// One message from the page. [source] is the origin the platform names as
-  /// the sender, or the top-level URL on a platform that names none. The
-  /// payload is never trusted for who is calling.
+  /// the sender, or the committed top-level URL on a platform that names none.
+  /// A null [source] is a page nobody can vouch for, and is dropped unanswered.
+  /// The payload is never trusted for who is calling.
   Future<void> onMessage(String raw, {required String? source}) async {
+    if (source == null) {
+      return;
+    }
     final generation = _generation;
     final prefix = '$_secret:';
     if (!raw.startsWith(prefix)) {
@@ -128,9 +134,7 @@ class GnusWebBridge {
     if (request == null) {
       return;
     }
-    final origin = source == null
-        ? null
-        : GnusOrigin.tryParse(GnusTransport.webview, source);
+    final origin = GnusOrigin.tryParse(GnusTransport.webview, source);
     final guard = origin ?? _topOrigin;
     if (guard == null) {
       return;

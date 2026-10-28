@@ -342,6 +342,15 @@ static void load_changed_cb(WebKitWebView *widget, WebKitLoadEvent load_event,
     send_event(webview, event);
     break;
   }
+  // The new document replaced the old one here; until then the old one is
+  // still live and can still post messages.
+  case WEBKIT_LOAD_COMMITTED: {
+    FlValue *event = make_event("pageCommitted");
+    fl_value_set_string_take(event, "url",
+                             fl_value_new_string(uri != nullptr ? uri : ""));
+    send_event(webview, event);
+    break;
+  }
   case WEBKIT_LOAD_FINISHED: {
     FlValue *event = make_event("pageFinished");
     fl_value_set_string_take(event, "url",

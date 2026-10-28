@@ -94,7 +94,7 @@ void main() {
     'a message from an allowed, connectable source gets the answer',
     () async {
       await client.install(7, session, allowed);
-      session.pageStarted('$_dev/');
+      session.pageCommitted('$_dev/');
 
       await native({
         'webViewId': 7,

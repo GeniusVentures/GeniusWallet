@@ -27,6 +27,9 @@ extension LinuxWebViewControllerEventHandling on LinuxWebViewController {
         _title = null;
         _navigationDelegate?.handlePageStarted(url);
         break;
+      case 'pageCommitted':
+        _navigationDelegate?.handlePageCommitted('${event['url'] ?? ''}');
+        break;
       case 'pageFinished':
         final String url = '${event['url'] ?? ''}';
         _currentUrl = url;

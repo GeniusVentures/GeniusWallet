@@ -111,9 +111,13 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
     await _controller.setNavigationDelegate(
       NavigationDelegate(
         onNavigationRequest: _onNavigationRequest,
+        // ponytail: Android raises this when the navigation commits, but
+        // WKWebView at its provisional start, so there a navigation that never
+        // commits (a download) still drops replies. Upgrade: a didCommit
+        // signal from the native installer.
         onPageStarted: (url) {
           _topUrl = url;
-          _bridge.pageStarted(url);
+          _bridge.pageCommitted(url);
         },
         // In-page links are same-document navigations, so the history is
         // read again on every URL change, not only on page loads.

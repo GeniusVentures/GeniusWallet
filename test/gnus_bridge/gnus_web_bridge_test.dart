@@ -117,7 +117,7 @@ void main() {
           secret,
           '',
         ];
-        rig.bridge.pageStarted('$_dev/');
+        rig.bridge.pageCommitted('$_dev/');
 
         for (final raw in inputs) {
           await rig.bridge.onMessage(raw, source: _dev);
@@ -145,36 +145,37 @@ void main() {
   });
 
   group('who is calling', () {
-    test(
-      'a source that is missing or not an origin gets 4100 and no prompt',
-      () async {
-        rig.bridge.pageStarted('$_dev/page');
+    test('a source that is not an origin gets 4100 and no prompt', () async {
+      rig.bridge.pageCommitted('$_dev/page');
 
-        for (final source in [null, '', 'null', 'about:blank', 'file:///x']) {
-          await rig.bridge.onMessage(
-            rig.message(GnusRpcMethod.getAccounts),
-            source: source,
-          );
-        }
+      for (final source in ['', 'null', 'about:blank', 'file:///x']) {
+        await rig.bridge.onMessage(
+          rig.message(GnusRpcMethod.getAccounts),
+          source: source,
+        );
+      }
 
-        expect(rig.errorCodes, List.filled(5, GnusRpcCode.unauthorized));
-        expect(h.connects, isEmpty);
-      },
-    );
+      expect(rig.errorCodes, List.filled(4, GnusRpcCode.unauthorized));
+      expect(h.connects, isEmpty);
+    });
 
-    test('with no page and no source there is nobody to answer', () async {
+    test('a page nobody can vouch for, such as one leaving before the next '
+        'commits, is dropped unanswered', () async {
+      rig.bridge.pageCommitted('$_dev/page');
+
       await rig.bridge.onMessage(
         rig.message(GnusRpcMethod.getAccounts),
         source: null,
       );
 
       expect(rig.delivered, isEmpty);
+      expect(h.connects, isEmpty);
     });
 
     test(
       'an off-list source gets 4100 and the handler is not called',
       () async {
-        rig.bridge.pageStarted('$_dev/');
+        rig.bridge.pageCommitted('$_dev/');
 
         await rig.bridge.onMessage(
           rig.message(GnusRpcMethod.getAccounts),
@@ -228,20 +229,20 @@ void main() {
   });
 
   group('a page that moved on', () {
-    test('a page start while the prompt is open drops the reply', () async {
+    test('a new document while the prompt is open drops the reply', () async {
       final answer = Completer<bool>();
       final held = _Rig(
         h,
         connect: ({required GnusOrigin origin}) => answer.future,
       );
-      held.bridge.pageStarted('$_dev/');
+      held.bridge.pageCommitted('$_dev/');
 
       final call = held.bridge.onMessage(
         held.message(GnusRpcMethod.getAccounts),
         source: _dev,
       );
       await pumpEventQueue();
-      held.bridge.pageStarted('$_dev/next');
+      held.bridge.pageCommitted('$_dev/next');
       answer.complete(true);
       await call;
 
@@ -249,7 +250,7 @@ void main() {
     });
 
     test(
-      'a page start before the net read returns never reaches the handler',
+      'a new document before the net read returns never reaches the handler',
       () async {
         final net = Completer<SgnsNet>();
         final held = _Rig(h, readNet: () => net.future);
@@ -259,7 +260,7 @@ void main() {
           source: _dev,
         );
         await pumpEventQueue();
-        held.bridge.pageStarted('$_dev/next');
+        held.bridge.pageCommitted('$_dev/next');
         net.complete(SgnsNet.staging);
         await call;
 
@@ -269,7 +270,7 @@ void main() {
     );
 
     test('a reply for a page that has not moved is delivered', () async {
-      rig.bridge.pageStarted('$_dev/');
+      rig.bridge.pageCommitted('$_dev/');
 
       await rig.bridge.onMessage(
         rig.message(GnusRpcMethod.getAccounts),
@@ -285,7 +286,7 @@ void main() {
 
     /// Connects the dev origin and starts its page, as a real load does.
     Future<void> connectedPage(_Rig r) async {
-      r.bridge.pageStarted('$_dev/');
+      r.bridge.pageCommitted('$_dev/');
       await r.bridge.onMessage(
         r.message(GnusRpcMethod.getAccounts),
         source: _dev,
@@ -319,7 +320,7 @@ void main() {
     );
 
     test('a page that is not connected gets nothing', () async {
-      rig.bridge.pageStarted('$_dev/');
+      rig.bridge.pageCommitted('$_dev/');
       await pumpEventQueue();
 
       h.pushApp(other);
@@ -338,10 +339,10 @@ void main() {
       expect(events(rig), isEmpty);
     });
 
-    test('the next page start ends the earlier subscription', () async {
+    test('the next document ends the earlier subscription', () async {
       await connectedPage(rig);
 
-      rig.bridge.pageStarted('https://evil.example/');
+      rig.bridge.pageCommitted('https://evil.example/');
       await pumpEventQueue();
       h.pushApp(other);
       await pumpEventQueue();
@@ -352,7 +353,7 @@ void main() {
     test('a reload of the same page keeps exactly one subscription', () async {
       await connectedPage(rig);
 
-      rig.bridge.pageStarted('$_dev/again');
+      rig.bridge.pageCommitted('$_dev/again');
       await pumpEventQueue();
       h.pushApp(other);
       await pumpEventQueue();
@@ -360,11 +361,11 @@ void main() {
       expect(events(rig), hasLength(1));
     });
 
-    test('dispose ends delivery, and later page starts stay quiet', () async {
+    test('dispose ends delivery, and later documents stay quiet', () async {
       await connectedPage(rig);
 
       await rig.bridge.dispose();
-      rig.bridge.pageStarted('$_dev/');
+      rig.bridge.pageCommitted('$_dev/');
       await pumpEventQueue();
       h.pushApp(other);
       await pumpEventQueue();

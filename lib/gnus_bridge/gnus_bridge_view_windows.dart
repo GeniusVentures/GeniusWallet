@@ -92,13 +92,13 @@ class _GnusBridgeViewWindowsState extends State<GnusBridgeViewWindows> {
     }
     _subs
       ..add(_controller.url.listen((url) => _topUrl = url))
-      // ContentLoading is the earliest main-frame signal the plugin raises
-      // after the URL moves; the reply and event scripts also check the origin
-      // inside the page, which covers the gap before it.
+      // ContentLoading is raised once the new document has committed; the
+      // reply and event scripts also check the origin inside the page, which
+      // covers the gap before it.
       ..add(
         _controller.loadingState.listen((state) {
           if (state == win.LoadingState.loading) {
-            _bridge.pageStarted(_topUrl);
+            _bridge.pageCommitted(_topUrl);
           } else if (state == win.LoadingState.navigationCompleted) {
             widget.onLoaded?.call();
           }
