@@ -737,6 +737,42 @@ void main() {
       },
     );
 
+    testWidgets('burnUnconfirmed: shows the hash and offers no retry', (
+      tester,
+    ) async {
+      final harness = _build(
+        bridgeOutResponse: ApiResponse.unconfirmed('0xMAYBE', 'reset'),
+        processResponse: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+        seedJobCost: 10,
+        seedUploadedJson: const {'job': 'spec'},
+      );
+      addTearDown(harness.dispose);
+      await harness.cubit.bridgeTokens();
+
+      final manualIndex = ValueNotifier<int>(1);
+      addTearDown(manualIndex.dispose);
+      await tester.pumpWidget(
+        _host(
+          BlocProvider<SubmitJobCubit>.value(
+            value: harness.cubit,
+            child: Column(
+              children: [
+                JobFlowBody(manualIndex: manualIndex),
+                JobFlowFooter(manualIndex: manualIndex),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Not confirmed yet'), findsOneWidget);
+      expect(find.text('0xMAYBE'), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
+      expect(find.text('Close'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
     testWidgets(
       'a user holding exactly the job cost can buy - Continue is enabled at '
       'the boundary',

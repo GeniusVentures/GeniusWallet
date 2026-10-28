@@ -449,26 +449,54 @@ void main() {
       expect(h.api.count('burn'), 1);
     });
 
-    test('a send with no answer keeps the intent with its hash and never '
-        'burns again', () async {
+    test('a burn left unconfirmed is a recorded result, and blocks its key '
+        'after 24 hours', () async {
       final h = await harness();
       h.api.burnResponse = ApiResponse.unconfirmed(
         gnusTestBurnHash,
         'connection reset',
       );
-      final handler = h.build();
 
-      final reply = await viaJson(handler, _origin, _submit, _params());
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
       final again = await viaJson(h.build(), _origin, _submit, _params());
+      final listed = await viaJson(
+        h.build(),
+        _origin,
+        GnusRpcMethod.listJobs,
+        null,
+      );
+      final found = await viaJson(h.build(), _origin, GnusRpcMethod.getJob, {
+        'idempotencyKey': 'key-1',
+      });
+      h.clock = h.clock.add(const Duration(days: 2));
+      final later = await viaJson(h.build(), _origin, _submit, _params());
 
-      expect(_error(reply)['code'], GnusRpcCode.internal);
-      final data = _error(reply)['data']! as Map<String, Object?>;
-      expect(data['reason'], GnusRpcReason.submissionOutcomeUnknown);
-      expect(data['burnTxHash'], gnusTestBurnHash);
+      final result = reply['result']! as Map<String, Object?>;
+      expect(result['status'], 'unconfirmed');
+      expect(result['burnTxHash'], gnusTestBurnHash);
       expect(again, equals(reply));
-      expect(h.store.intentFor(_origin, 'key-1')?.burnTxHash, gnusTestBurnHash);
-      expect(h.api.broadcasts, 1);
+      final jobs = (listed['result']! as Map)['jobs'] as List;
+      expect((jobs.single as Map)['status'], 'unconfirmed');
+      expect((found['result']! as Map)['status'], 'unconfirmed');
+      expect(
+        (_error(later)['data']! as Map)['reason'],
+        GnusRpcReason.submissionOutcomeUnknown,
+      );
+      expect(h.api.count('burn'), 1);
       expect(h.api.count('process'), 0);
+    });
+
+    test('a reverted burn is -32013 and the key may be retried', () async {
+      final h = await harness();
+      h.api.burnResponse = ApiResponse.reverted(gnusTestBurnHash, 'reverted');
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+      h.api.burnResponse = ApiResponse.success('0xsecond');
+      final retry = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.bridgeFailed);
+      expect((retry['result']! as Map)['burnTxHash'], '0xsecond');
+      expect(h.api.count('burn'), 2);
     });
 
     test('a send refused after signing still keeps the intent', () async {

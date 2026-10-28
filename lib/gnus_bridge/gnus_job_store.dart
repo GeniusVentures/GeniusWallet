@@ -7,7 +7,7 @@ import 'package:hive_ce/hive.dart';
 
 /// `.name` is the contract string. The contract's live states wait on the SDK
 /// reporting them; a stored value that matches none decodes to [unknown].
-enum GnusJobStatus { submitted, bridgedNotProcessed, unknown }
+enum GnusJobStatus { submitted, bridgedNotProcessed, unconfirmed, unknown }
 
 /// One job submitted through the gnus handler. Holds no job body, params, key
 /// or mnemonic: [bodyHash] is enough to tell a reused idempotency key apart.
@@ -296,16 +296,22 @@ class GnusJobStore {
     return intent;
   }
 
-  /// [intentFor], unless a job record written for it answers it. Its age does
-  /// not matter: an unanswered intent may have burned, so its key stays
-  /// blocked. Throws [FormatException] like [intentFor].
+  /// [intentFor], unless a settled job record written for it answers it. Its
+  /// age does not matter: an intent that may have burned, unconfirmed
+  /// included, keeps its key blocked. Throws [FormatException] like [intentFor].
   GnusSubmitIntent? unresolvedIntent(String origin, String key) {
     final intent = intentFor(origin, key);
-    if (intent == null ||
-        byIdempotencyKey(origin, key, notBefore: intent.createdAt) != null) {
+    if (intent == null) {
       return null;
     }
-    return intent;
+    final settled = _records().any(
+      (job) =>
+          job.origin == origin &&
+          job.idempotencyKey == key &&
+          job.status != GnusJobStatus.unconfirmed &&
+          !job.submittedAt.isBefore(intent.createdAt),
+    );
+    return settled ? null : intent;
   }
 
   GnusJob? byBurnHash(String burnTxHash) {

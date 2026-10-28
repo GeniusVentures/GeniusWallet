@@ -230,6 +230,26 @@ void main() {
       },
     );
 
+    test('an unconfirmed burn returns its hash and does not process', () async {
+      api.bridgeOutResponse = ApiResponse.unconfirmed('0xHASH', 'reset');
+
+      final result = await owner.submit(_facts, jobCost: 10, jobJson: _job);
+
+      expect(result, isA<JobBurnUnconfirmed>());
+      expect((result as JobBurnUnconfirmed).bridgeHash, '0xHASH');
+      expect(api.processed, isEmpty);
+    });
+
+    test('a reverted burn is a settled failure and does not process', () async {
+      api.bridgeOutResponse = ApiResponse.reverted('0xHASH', 'reverted');
+
+      final result = await owner.submit(_facts, jobCost: 10, jobJson: _job);
+
+      expect(result, isA<JobBridgeFailed>());
+      expect((result as JobBridgeFailed).reverted, isTrue);
+      expect(api.processed, isEmpty);
+    });
+
     test('a burn that succeeds but fails to process keeps the hash', () async {
       api.processResponse =
           GeniusNodeReturnValue.GENIUS_NODE_ERROR_PROCESS_IMAGE;

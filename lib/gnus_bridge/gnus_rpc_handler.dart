@@ -497,26 +497,32 @@ class GnusRpcHandler {
   Future<Object?> _getJob(String origin, Map<String, Object?> args) async {
     final (name, value) = _jobSelectorParam(args);
     final node = _requireReadyNode();
-    if (name == 'idempotencyKey') {
-      final pending = _pendingJob(origin, value, node);
-      if (pending != null) {
-        return pending;
-      }
-    }
     final job = switch (name) {
       'jobId' => _store.byJobId(value),
       'burnTxHash' => _store.byBurnHash(value),
       _ => _store.byIdempotencyKey(origin, value),
     };
+    if (name == 'idempotencyKey') {
+      final pending = _pendingJob(origin, value, node, job?.submittedAt);
+      if (pending != null) {
+        return pending;
+      }
+    }
     if (job == null || job.sdkAddress.toLowerCase() != node) {
       return null;
     }
     return {...job.toContract(), 'result': null};
   }
 
-  /// A submit recorded before its burn and never answered, the same one that
-  /// blocks a same-key submit, so a page that lost the reply can find it.
-  Map<String, Object?>? _pendingJob(String origin, String key, String node) {
+  /// The intent that blocks a same-key submit, so a page that lost the reply
+  /// can find it, unless a record written at or after it ([recordedAt]) says
+  /// more. An unreadable intent still answers.
+  Map<String, Object?>? _pendingJob(
+    String origin,
+    String key,
+    String node,
+    DateTime? recordedAt,
+  ) {
     final GnusSubmitIntent? intent;
     try {
       intent = _store.unresolvedIntent(origin, key);
@@ -526,7 +532,9 @@ class GnusRpcHandler {
         'result': null,
       };
     }
-    if (intent == null || intent.sdkAddress.toLowerCase() != node) {
+    if (intent == null ||
+        intent.sdkAddress.toLowerCase() != node ||
+        (recordedAt != null && !recordedAt.isBefore(intent.createdAt))) {
       return null;
     }
     return {...intent.toContract(), 'result': null};
@@ -1061,9 +1069,10 @@ class GnusRpcHandler {
           nodeAccount,
           GnusJobStatus.bridgedNotProcessed,
         );
-      case JobBridgeFailed():
+      case JobBridgeFailed(:final reverted):
         final signed = signedHash;
-        if (signed == null) {
+        // A reverted burn is settled on chain, so the key may be retried.
+        if (signed == null || reverted) {
           await _dropIntent(origin, idempotencyKey);
           throw const GnusRpcError(GnusRpcCode.bridgeFailed, 'Bridge failed');
         }
@@ -1071,6 +1080,13 @@ class GnusRpcHandler {
           throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
         }
         throw _outcomeUnknown(idempotencyKey, intent.withBurn(signed));
+      case JobBurnUnconfirmed(:final bridgeHash):
+        await _record(
+          slot,
+          record(bridgeHash, GnusJobStatus.unconfirmed),
+          intent,
+        );
+        return _submitReply(bridgeHash, nodeAccount, GnusJobStatus.unconfirmed);
       case JobBusy():
         await _dropIntent(origin, idempotencyKey);
         throw _submitInFlight();

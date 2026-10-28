@@ -513,8 +513,8 @@ class _InFlightRow extends StatelessWidget {
   }
 }
 
-/// Step 5's body - the three terminals, mapped one to one onto
-/// `SubmitJobCubit.bridgeTokens()`'s three branches via [SubmitOutcome]
+/// Step 5's body - the terminals, mapped one to one onto
+/// `SubmitJobCubit.bridgeTokens()`'s branches via [SubmitOutcome]
 /// (`14-UI-SPEC.md:713-737`). The outcome is read from state, never inferred
 /// from whether a hash string happens to be non-empty.
 ///
@@ -599,6 +599,33 @@ class JobResultBody extends StatelessWidget {
               style: GeniusWalletTypography.bodySm.copyWith(
                 color: gw.textSecondary,
               ),
+            ),
+          ],
+        );
+
+      case SubmitOutcome.burnUnconfirmed:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GWStatusDot(
+              color: gw.statusWarningText,
+              label: 'Not confirmed yet',
+            ),
+            const SizedBox(height: GeniusWalletConsts.space6),
+            Text(
+              'The network has not confirmed the bridge transaction. Your '
+              'GNUS may already be spent and the job has not started. '
+              'Check the transaction below before you pay again.',
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textSecondary,
+              ),
+            ),
+            const SizedBox(height: GeniusWalletConsts.space6),
+            GWDetailGrid(
+              rows: [
+                GWCopyRow(label: 'Bridge transaction', value: state.bridgeHash),
+              ],
             ),
           ],
         );
@@ -811,6 +838,11 @@ class _ResultFooter extends StatelessWidget {
             Expanded(child: closeButton),
           ],
         );
+
+      case SubmitOutcome.burnUnconfirmed:
+        // No retry: the burn may still land, and paying again could spend
+        // twice.
+        return closeButton;
 
       case SubmitOutcome.bridgeFailed:
         // Nothing was spent, so retrying is free - `14-UI-SPEC.md:719`.

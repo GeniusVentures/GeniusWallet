@@ -85,8 +85,20 @@ final class JobBridgedNotProcessed extends JobSubmitResult {
   final GeniusNodeReturnValue processResult;
 }
 
+/// Nothing was burned. [reverted] when the burn was mined and reverted, so
+/// it can never land later.
 final class JobBridgeFailed extends JobSubmitResult {
-  const JobBridgeFailed();
+  const JobBridgeFailed({this.reverted = false});
+
+  final bool reverted;
+}
+
+/// The burn was sent but the network neither confirmed nor reverted it in
+/// time: the GNUS may be spent. The job did not start.
+final class JobBurnUnconfirmed extends JobSubmitResult {
+  const JobBurnUnconfirmed(this.bridgeHash);
+
+  final String bridgeHash;
 }
 
 final class JobMissingData extends JobSubmitResult {
@@ -247,6 +259,12 @@ class JobSubmission {
     );
 
     final txHash = resp.data;
+    if (resp.reverted) {
+      return const JobBridgeFailed(reverted: true);
+    }
+    if (!resp.isSuccess && txHash != null) {
+      return JobBurnUnconfirmed(txHash);
+    }
     if (!resp.isSuccess || txHash == null) {
       return const JobBridgeFailed();
     }
@@ -307,6 +325,8 @@ class JobSubmission {
           DevMockJob.bridgeHash,
           DevMockJob.processFailure,
         );
+      case SubmitOutcome.burnUnconfirmed:
+        return const JobBurnUnconfirmed(DevMockJob.bridgeHash);
       case SubmitOutcome.notSubmitted:
         throw StateError('DevMockJob.outcome never returns notSubmitted');
     }

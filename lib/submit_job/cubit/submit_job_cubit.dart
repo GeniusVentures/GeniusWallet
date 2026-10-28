@@ -366,6 +366,20 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
             ),
           );
         }
+      case JobBurnUnconfirmed(:final bridgeHash):
+        // Not a failure: the burn may have landed, so no retry is offered.
+        if (!isDev) {
+          unawaited(fetchGnusBalanceWithDelay());
+        }
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              isBridgingTokens: false,
+              outcome: SubmitOutcome.burnUnconfirmed,
+              bridgeHash: bridgeHash,
+            ),
+          );
+        }
       case JobBridgedNotProcessed(:final bridgeHash, :final processResult):
         // The bridge succeeded - tokens are already burned - but the job
         // never started. Preserve the bridge hash as proof (deliberately NOT

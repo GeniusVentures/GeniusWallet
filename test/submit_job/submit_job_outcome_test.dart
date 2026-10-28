@@ -194,6 +194,21 @@ void main() {
     expect(harness.cubit.state.txHash, isEmpty);
   });
 
+  test('an unconfirmed burn -> burnUnconfirmed with its hash, never a '
+      'retryable failure', () async {
+    final harness = _build(
+      bridgeOutResponse: ApiResponse.unconfirmed('0xMAYBE', 'connection reset'),
+      processResponse: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    );
+    addTearDown(harness.dispose);
+
+    await harness.cubit.bridgeTokens();
+
+    expect(harness.cubit.state.outcome, SubmitOutcome.burnUnconfirmed);
+    expect(harness.cubit.state.bridgeHash, '0xMAYBE');
+    expect(harness.cubit.state.txHash, isEmpty);
+  });
+
   test('bridge and job both succeed -> outcome done, tx hash set', () async {
     final harness = _build(
       bridgeOutResponse: ApiResponse.success('0xDONEHASH'),
