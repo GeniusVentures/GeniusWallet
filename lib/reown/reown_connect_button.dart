@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart'
     show kHeaderControlSize;
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/reown/pair_dapp_drawer.dart';
-import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/reown/wallet_connect_host.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -25,7 +26,7 @@ class ReownConnectButton extends StatefulWidget {
 }
 
 class _ReownConnectButtonState extends State<ReownConnectButton> {
-  ReownWalletKit get walletKit => WalletKitInstance().walletKit;
+  ReownWalletKit get walletKit => _host.walletKit;
   SessionData? _session;
   bool _isConnecting = false;
   bool _isDisconnecting = false;
@@ -136,10 +137,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     _attachWalletKitListeners();
 
     try {
-      final CreateResponse pairingInfo = await walletKit.core.pairing.create();
-      // The pairing URI carries a symKey — it goes to the QR and the manual
-      // copy field, never to the console.
-      final wcUri = pairingInfo.uri.toString();
+      // Started, not awaited: the sheet opens at once and the QR view waits
+      // for it. The URI carries a symKey, so it never reaches the console.
+      final wcUri = _createPairingUri();
 
       if (!mounted) {
         return;
@@ -186,9 +186,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         }
       });
 
-      // Call pairing to start the process
-      if (!_didManualPair) {
-        await _tryPair(Uri.parse(wcUri));
+      // Pairs with the wallet's own pairing, which exists only if the QR view
+      // was opened.
+      final ownUri = await wcUri;
+      if (!_didManualPair && ownUri != null) {
+        await _tryPair(Uri.parse(ownUri));
       }
     } catch (e) {
       setState(() {
@@ -198,6 +200,17 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       // walletKit.pair and Uri.parse can quote the link in their exception,
       // and the link carries a symKey -- log the type only.
       debugPrint('❌ Connection failed: ${e.runtimeType}');
+    }
+  }
+
+  /// Null when the relay round trip fails; the failure is logged by type only.
+  Future<String?> _createPairingUri() async {
+    try {
+      final CreateResponse pairingInfo = await walletKit.core.pairing.create();
+      return pairingInfo.uri.toString();
+    } catch (e) {
+      debugPrint('❌ Pairing create failed: ${e.runtimeType}');
+      return null;
     }
   }
 
@@ -240,6 +253,35 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     } finally {
       _isDisconnecting = false;
     }
+  }
+
+  Future<void> _confirmDisconnect() async {
+    final name = _peerName;
+    final confirmed = await GWDialog.show<bool>(
+      context: context,
+      title: name == null ? 'Disconnect?' : 'Disconnect $name?',
+      message: 'It will need to be connected again to use this wallet.',
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
+        ),
+        GWDialogAction(
+          label: 'Disconnect',
+          variant: GWButtonVariant.destructive,
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+        ),
+      ],
+    );
+    if (confirmed == true) {
+      await _disconnect();
+    }
+  }
+
+  String? get _peerName {
+    final name = _session?.peer.metadata.name.trim();
+    return name == null || name.isEmpty ? null : name;
   }
 
   @override
@@ -305,14 +347,19 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       }
 
       if (isConnected) {
-        _disconnect();
+        if (isMobile) {
+          _confirmDisconnect();
+        } else {
+          _disconnect();
+        }
       } else {
         _connect();
       }
     }
 
-    // Phones: the state's own glyph in a header-sized box. The tooltip is
-    // also the control's semantic label.
+    // Phones: the state's own glyph in a header-sized box; connected is a
+    // success-coloured link, not the desktop's red disconnect action. The
+    // tooltip is also the control's semantic label.
     if (isMobile) {
       return IconButton(
         padding: EdgeInsets.zero,
@@ -323,9 +370,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         style: IconButton.styleFrom(
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        icon: Icon(icon, size: 24),
-        color: stateColor,
-        tooltip: text,
+        icon: Icon(isConnected ? Icons.link : icon, size: 24),
+        color: isConnected ? context.gw.statusSuccessText : stateColor,
+        tooltip: isConnected
+            ? (_peerName == null ? 'Connected' : 'Connected to $_peerName')
+            : text,
         onPressed: onPressed,
       );
     }

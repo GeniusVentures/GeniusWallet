@@ -53,7 +53,7 @@ void main() {
           themeFor(mode),
           (context) => PairDappDrawer.show(
             context: context,
-            wcUri: _wcUri,
+            wcUri: Future.value(_wcUri),
             startWithPaste: true,
             onPair: (_) async => true,
           ),
@@ -88,7 +88,7 @@ void main() {
           themeFor(mode),
           (context) => PairDappDrawer.show(
             context: context,
-            wcUri: _wcUri,
+            wcUri: Future.value(_wcUri),
             startWithPaste: false,
             onPair: (_) async => true,
           ),
@@ -110,7 +110,7 @@ void main() {
           themeFor(mode),
           (context) => PairDappDrawer.show(
             context: context,
-            wcUri: _wcUri,
+            wcUri: Future.value(_wcUri),
             startWithPaste: true,
             onPair: (_) async => true,
           ),
@@ -140,7 +140,7 @@ void main() {
             themeFor(mode),
             (context) => PairDappDrawer.show(
               context: context,
-              wcUri: _wcUri,
+              wcUri: Future.value(_wcUri),
               startWithPaste: true,
               onPair: (_) async {
                 called = true;
@@ -173,7 +173,7 @@ void main() {
             themeFor(mode),
             (context) => PairDappDrawer.show(
               context: context,
-              wcUri: _wcUri,
+              wcUri: Future.value(_wcUri),
               startWithPaste: true,
               onPair: (_) async => false,
             ),
@@ -205,7 +205,7 @@ void main() {
           themeFor(mode),
           (context) => PairDappDrawer.show(
             context: context,
-            wcUri: _wcUri,
+            wcUri: Future.value(_wcUri),
             startWithPaste: true,
             onPair: (_) async => throw Exception('boom'),
           ),
@@ -234,7 +234,7 @@ void main() {
             themeFor(mode),
             (context) => PairDappDrawer.show(
               context: context,
-              wcUri: _wcUri,
+              wcUri: Future.value(_wcUri),
               startWithPaste: true,
               onPair: (_) async {
                 called = true;
@@ -264,7 +264,7 @@ void main() {
           themeFor(mode),
           (context) => PairDappDrawer.show(
             context: context,
-            wcUri: _wcUri,
+            wcUri: Future.value(_wcUri),
             startWithPaste: true,
             onPair: (_) async {
               called = true;
@@ -291,7 +291,7 @@ void main() {
             themeFor(mode),
             (context) => PairDappDrawer.show(
               context: context,
-              wcUri: _wcUri,
+              wcUri: Future.value(_wcUri),
               startWithPaste: true,
               canScan: canScan,
               onPair: (_) async => true,
@@ -317,7 +317,7 @@ void main() {
           themeFor(mode),
           (context) => PairDappDrawer.show(
             context: context,
-            wcUri: _wcUri,
+            wcUri: Future.value(_wcUri),
             startWithPaste: true,
             canScan: true,
             scan: (_) async => ' $_wcUri ',
@@ -344,7 +344,7 @@ void main() {
             themeFor(mode),
             (context) => PairDappDrawer.show(
               context: context,
-              wcUri: _wcUri,
+              wcUri: Future.value(_wcUri),
               startWithPaste: true,
               canScan: true,
               scan: (_) async => 'https://example.com',
@@ -378,7 +378,7 @@ void main() {
           themeFor(mode),
           (context) => PairDappDrawer.show(
             context: context,
-            wcUri: _wcUri,
+            wcUri: Future.value(_wcUri),
             startWithPaste: true,
             canScan: true,
             scan: (_) async => null,

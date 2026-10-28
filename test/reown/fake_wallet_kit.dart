@@ -5,6 +5,8 @@ import 'package:genius_wallet/reown/wallet_connect_host.dart';
 // IExpirer is not re-exported by reown_walletkit.
 // ignore: depend_on_referenced_packages
 import 'package:reown_core/pairing/i_expirer.dart';
+// ignore: depend_on_referenced_packages
+import 'package:reown_core/pairing/i_pairing.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
 /// Records the expiry the wallet sets on each request id.
@@ -20,9 +22,46 @@ class FakeExpirer implements IExpirer {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// `create` answers with [uri] once [hold] (when set) completes, or fails.
+class FakePairing implements IPairing {
+  static const uri = 'wc:own123@2?relay-protocol=irn&symKey=cafebabe';
+
+  Completer<void>? hold;
+  bool fail = false;
+  int creates = 0;
+
+  @override
+  Future<CreateResponse> create({
+    List<List<String>>? methods,
+    TransportType transportType = TransportType.relay,
+  }) async {
+    creates++;
+    await hold?.future;
+    if (fail) {
+      throw StateError('relay disconnected');
+    }
+    return CreateResponse(
+      topic: 'own123',
+      uri: Uri.parse(uri),
+      pairingInfo: PairingInfo(
+        topic: 'own123',
+        expiry: 0,
+        relay: Relay('irn'),
+        active: false,
+      ),
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class FakeCore implements IReownCore {
   @override
   final FakeExpirer expirer = FakeExpirer();
+
+  @override
+  IPairing pairing = FakePairing();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -33,6 +72,20 @@ class FakeCore implements IReownCore {
 class UnstartedWalletConnectHost implements WalletConnectHost {
   @override
   Future<bool> start() async => false;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A host whose SDK is up and answers with [walletKit].
+class StartedWalletConnectHost implements WalletConnectHost {
+  StartedWalletConnectHost(this.walletKit);
+
+  @override
+  final ReownWalletKit walletKit;
+
+  @override
+  Future<bool> start() async => true;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -50,6 +103,9 @@ class FakeWalletKit implements ReownWalletKit {
 
   /// The sessions `getActiveSessions` reports, by topic.
   final Map<String, SessionData> activeSessions = {};
+
+  final List<String> disconnects = [];
+  final List<Uri> pairs = [];
 
   final List<({int id, Map<String, Namespace> namespaces})> approvals = [];
   final List<({int id, ReownSignError reason})> rejections = [];
@@ -71,6 +127,8 @@ class FakeWalletKit implements ReownWalletKit {
   @override
   final FakeCore core = FakeCore();
 
+  FakePairing get pairing => core.pairing as FakePairing;
+
   @override
   Event<SessionProposalEvent> get onSessionProposal => proposal;
 
@@ -88,6 +146,28 @@ class FakeWalletKit implements ReownWalletKit {
 
   @override
   Map<String, SessionData> getActiveSessions() => Map.of(activeSessions);
+
+  @override
+  Future<void> disconnectSession({
+    required String topic,
+    required ReownSignError reason,
+  }) async {
+    disconnects.add(topic);
+  }
+
+  @override
+  Future<PairingInfo> pair({
+    required Uri uri,
+    bool activatePairing = false,
+  }) async {
+    pairs.add(uri);
+    return PairingInfo(
+      topic: 'own123',
+      expiry: 0,
+      relay: Relay('irn'),
+      active: false,
+    );
+  }
 
   @override
   Future<ApproveResponse> approveSession({
