@@ -34,6 +34,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 // web3dart comes through reown wholesale and brings its own Wallet with it.
 import 'package:reown_walletkit/reown_walletkit.dart' hide Wallet;
 
+import '../gnus_bridge/gnus_fakes.dart' show PushableWalletDetails;
 import 'fake_wallet_kit.dart' show sessionData;
 
 const _signMethods = [
@@ -264,7 +265,7 @@ class _Harness {
   _Harness(this.walletKit, this.cubit, this.transactions, this.dispose);
 
   final _FakeWalletKit walletKit;
-  final WalletDetailsCubit cubit;
+  final PushableWalletDetails cubit;
   final TransactionsCubit transactions;
   final void Function() dispose;
 
@@ -289,7 +290,7 @@ Future<_Harness> _start(
       home: const Scaffold(body: SizedBox.shrink()),
     ),
   );
-  final cubit = WalletDetailsCubit(
+  final cubit = PushableWalletDetails(
     initialState: WalletDetailsState(
       selectedNetwork: network,
       coins: coins,
@@ -1020,6 +1021,27 @@ void main() {
       await tester.pumpAndSettle();
 
       await expectRefused(tester, harness, api);
+    });
+
+    testWidgets('a wallet switched while the drawer is open is refused and '
+        'nothing is signed', (tester) async {
+      final api = _CountingGeniusApi();
+      final harness = await start(tester, api: api);
+
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+      harness.cubit.push(
+        WalletDetailsState(
+          selectedNetwork: _base,
+          selectedWallet: _wallet.copyWith(address: other),
+        ),
+      );
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.error?.code, 4100);
+      expect(api.signs, 0);
+      await _finish(tester, harness);
     });
 
     testWidgets('the same account in another letter case signs', (

@@ -235,9 +235,26 @@ void Function() handleDappRequests({
           return;
         }
 
+        // The drawer waited on a person, so the wallet, the network and the
+        // session's accounts are read again before anything is signed.
+        final signer = walletDetailsCubit.state.selectedWallet;
+        final accountsNow = walletKit
+            .getActiveSessions()[topic]
+            ?.namespaces['eip155']
+            ?.accounts;
+        if (!canTransactFrom(tx['from'], signer, accountsNow ?? const []) ||
+            walletDetailsCubit.state.selectedNetwork?.chainId !=
+                selectedChain) {
+          await respond(
+            error: const JsonRpcError(code: 4100, message: 'Unauthorized'),
+          );
+          debugPrint('Declined, the wallet or network changed during approval');
+          return;
+        }
+
         final chainId = network?.chainId;
         final rpcUrl = network?.rpcUrl;
-        final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
+        final walletAddress = signer?.address;
 
         if (chainId == null ||
             rpcUrl == null ||
