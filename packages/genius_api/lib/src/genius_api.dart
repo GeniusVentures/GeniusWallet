@@ -775,6 +775,9 @@ class GeniusApi {
     }
   }
 
+  // ponytail: read from the SDK source, not tested live: AddAccountWith* only
+  // derives and stores the account and never selects it, so this skips the
+  // account gate. If the SDK starts selecting on add, run it inside the gate.
   /// Adds [key]'s account to the running SDK, the same re-add step
   /// `_registerWallet` and the backfill pass both need, but returning the
   /// result so a caller can react to more than a clean single new address.
