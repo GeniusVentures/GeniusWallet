@@ -36,7 +36,4 @@ An origin's first `gnus_*` call opens a drawer titled with that origin; Approve 
 - The drawer's own app-bar title is the origin and may ellipsize; the full origin is on the wrapping site line under it, which the test asserts.
 - Harness `connections` is a non-final `late` field so a test can swap in a failing store.
 
-## Known Stubs
-None.
-
-## Self-Check: PASSED
+## Self-Check: PASSED (no known stubs)

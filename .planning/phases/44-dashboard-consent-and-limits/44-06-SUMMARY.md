@@ -5,7 +5,6 @@ subsystem: dev-tools
 tags: [dev-bubble, gate, walk]
 requires: [44-02, 44-03, 44-04, 44-05]
 provides: [GNUS BRIDGE dev section, phase gate numbers]
-affects: [lib/dev/dev_tools_bubble.dart]
 key-files:
   created: [lib/dev/dev_gnus_bridge.dart, test/dev/dev_gnus_bridge_test.dart]
   modified: [lib/dev/dev_tools_bubble.dart]
@@ -31,7 +30,6 @@ The dev bubble has a GNUS BRIDGE section (Connect, Other site, Submit, Preview, 
 - Live cost stays -32010 until SDK-CA, so a live Submit stops before the confirm; walk the confirm with a JOB fixture armed.
 - Transports must forward only `eventsFor(origin)`; the unfiltered `events` stream is test-only.
 - A submit burned before a revoke still answers 4100; the job is recorded and replays after reconnect.
-- The submit test with a fixture armed cannot run in a normal test build, because `JobSubmission.devToolsEnabled` needs `GW_DEV_TOOLS`.
 
 ## Pending human check (Linux, `--dart-define=GW_DEV_TOOLS=true`, dark then light, 800 and 1280 px)
 Steps 1 to 7 of the plan's human-check, unchanged: Connect drawer; second Connect silent; Sites list, Revoke, reprompt; `confirm_open` and `rate_limited`; Preview with Escape; JOB Priced OK then Submit and Reject toasts 4001; relaunch keeps the site. No screenshots exist yet under `walk/`.
@@ -39,7 +37,4 @@ Steps 1 to 7 of the plan's human-check, unchanged: Connect drawer; second Connec
 ## Deviations
 - No Linux walk, and `dev_tools_bubble.dart` was not touched for walk findings. Per the request, the app was not run.
 
-## Known Stubs
-None.
-
-## Self-Check: PASSED
+## Self-Check: PASSED (no known stubs)

@@ -30,10 +30,4 @@ Every `gnus_submitJob` that reaches the confirm opens a drawer naming the site, 
 - A cost that is negative or does not parse declines without showing a drawer.
 - Addresses use `GWCopyRow`: shown shortened, copied whole. The origin is whole on the wrapping site line.
 
-## Deviations
-None.
-
-## Known Stubs
-None.
-
-## Self-Check: PASSED
+## Self-Check: PASSED (no deviations, no known stubs)

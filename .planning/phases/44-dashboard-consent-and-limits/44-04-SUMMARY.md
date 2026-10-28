@@ -32,10 +32,4 @@ Every user sees a "Connected sites" card in Settings with one row per origin, th
 - No confirmation dialog and no revoke-all.
 - In tests, a handler that must share a runAsync zone with the store is built inside `tester.runAsync`; built outside, its first call deadlocked.
 
-## Deviations
-None.
-
-## Known Stubs
-None.
-
-## Self-Check: PASSED
+## Self-Check: PASSED (no deviations, no known stubs)

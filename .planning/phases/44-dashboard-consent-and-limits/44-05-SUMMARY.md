@@ -36,10 +36,4 @@ One test plants a fake key and a fake 12-word phrase in every text path the fake
 - The phrase and key are obvious fakes (`alpha bravo ...`, bytes 0x01..0x20), not a BIP39 vector.
 - `GnusHarness.create` takes an optional api so the test can plant fixtures.
 
-## Deviations
-None.
-
-## Known Stubs
-None.
-
-## Self-Check: PASSED
+## Self-Check: PASSED (no deviations, no known stubs)

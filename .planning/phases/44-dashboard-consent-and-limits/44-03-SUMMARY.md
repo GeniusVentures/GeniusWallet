@@ -36,10 +36,4 @@ Prompts can no longer stack or spam, a revoke lands on calls already running, an
 - A submit that already burned when the origin is revoked answers 4100 to the page. The job is recorded; a same-key retry after reconnect replays it.
 - Transports must forward only `eventsFor(origin)`.
 
-## Deviations
-None.
-
-## Known Stubs
-None.
-
-## Self-Check: PASSED
+## Self-Check: PASSED (no deviations, no known stubs)
