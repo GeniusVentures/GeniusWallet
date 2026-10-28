@@ -133,6 +133,7 @@ class FakeGnusApi implements GeniusApi {
     required int sourceChainId,
     required int destinationChainId,
     bool shouldMintTokens = false,
+    String? sgnsAccount,
     Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     calls.add('burn');

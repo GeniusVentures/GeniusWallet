@@ -255,6 +255,7 @@ class JobSubmission {
       address: walletAddress,
       amountToBurn: jobCost.toString(),
       destinationChainId: _bridgeDestinationChainId,
+      sgnsAccount: expectedNode,
       beforeBroadcast: beforeBroadcast,
     );
 

@@ -17,8 +17,10 @@ class _BurnCall {
     required this.amountToBurn,
     required this.sourceChainId,
     required this.destinationChainId,
+    this.sgnsAccount,
   });
 
+  final String? sgnsAccount;
   final String contractAddress;
   final String rpcUrl;
   final String address;
@@ -84,6 +86,7 @@ class _FakeGeniusApi implements GeniusApi {
     required int sourceChainId,
     required int destinationChainId,
     bool shouldMintTokens = false,
+    String? sgnsAccount,
     Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     order.add('burn');
@@ -96,6 +99,7 @@ class _FakeGeniusApi implements GeniusApi {
         amountToBurn: amountToBurn,
         sourceChainId: sourceChainId,
         destinationChainId: destinationChainId,
+        sgnsAccount: sgnsAccount,
       ),
     );
     return bridgeOutResponse;
@@ -155,6 +159,27 @@ void main() {
       expect(burn.address, '0xWALLET');
       expect(api.processed, ['{"job":"spec"}']);
     });
+
+    test('a confirmed node account is the burn destination', () async {
+      final node = '0x${'ab' * 64}';
+      await owner.submit(
+        _facts,
+        jobCost: 10,
+        jobJson: _job,
+        expectedNode: node,
+      );
+
+      expect(api.burns.single.sgnsAccount, node);
+    });
+
+    test(
+      'with no node account the burn leaves the destination to the API',
+      () async {
+        await owner.submit(_facts, jobCost: 10, jobJson: _job);
+
+        expect(api.burns.single.sgnsAccount, isNull);
+      },
+    );
 
     final missing =
         <String, ({JobFacts facts, int cost, Map<String, dynamic> job})>{

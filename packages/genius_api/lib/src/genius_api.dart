@@ -2048,9 +2048,9 @@ class GeniusApi {
     }
   }
 
-  /// Burns [amountToBurn]. [beforeBroadcast] gets the signed transaction's
-  /// hash before it is sent, and a throw from it cancels the send. A failure
-  /// that still carries data may be on chain under that hash.
+  /// Burns [amountToBurn], crediting [sgnsAccount] (default: the selected
+  /// account). [beforeBroadcast] gets the signed hash before the send and a
+  /// throw cancels it. A failure that carries data may be on chain.
   Future<ApiResponse<String>> bridgeOut({
     required String contractAddress,
     required String rpcUrl,
@@ -2059,6 +2059,7 @@ class GeniusApi {
     required int sourceChainId,
     required int destinationChainId,
     bool shouldMintTokens = false,
+    String? sgnsAccount,
     Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     final mintMinions = gnusToMinions(amountToBurn);
@@ -2078,7 +2079,7 @@ class GeniusApi {
       amountToBurn: amountToBurn,
       sourceChainId: sourceChainId,
       destinationChainId: destinationChainId,
-      sgnsAccount: getSelectedAccountAddress(),
+      sgnsAccount: sgnsAccount ?? getSelectedAccountAddress(),
       wallet: wallet,
       beforeBroadcast: beforeBroadcast,
     );
