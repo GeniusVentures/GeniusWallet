@@ -193,10 +193,9 @@ class GnusRpcHandler {
   @visibleForTesting
   Stream<GnusEvent> get events => _events.stream;
 
-  /// `gnus_accountsChanged`, `gnus_networkChanged` and `gnus_jobUpdated` for
-  /// [origin], while it is connected, and `gnus_jobUpdated` only for its own
-  /// jobs. Checked per event, so a revoke stops delivery and a later connect
-  /// resumes it without resubscribing. Transports forward only this stream.
+  /// The events for [origin] while it is connected, `gnus_jobUpdated` only for
+  /// its own jobs. Checked per event, so a revoke stops delivery and a later
+  /// connect resumes it. Transports forward only this stream.
   Stream<GnusEvent> eventsFor(GnusOrigin origin) => _events.stream.where(
     (event) =>
         _connections.isConnected(origin) &&

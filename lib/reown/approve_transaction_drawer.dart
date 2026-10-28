@@ -27,9 +27,8 @@ class ApproveTransactionDrawer {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 033-B1: the dApp identity is borderless -- favicon, url, a
-              // hairline under it, no pill, no box. The bordered Container
-              // this used to sit in is gone.
+              // The dApp identity is borderless: favicon, url, a hairline
+              // under it, no pill, no box.
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -38,10 +37,10 @@ class ApproveTransactionDrawer {
                       borderRadius: BorderRadius.circular(
                         GeniusWalletConsts.radiusPill,
                       ),
-                      // The errorBuilder collapsing to nothing is a mitigation
-                      // (T-21-12), not decoration: it stops a hostile dApp
-                      // placing a broken-image glyph or an oversized
-                      // failed-load box on a signing prompt.
+                      // The errorBuilder collapsing to nothing is a mitigation,
+                      // not decoration: it stops a hostile dApp placing a
+                      // broken-image glyph or an oversized failed-load box on
+                      // a signing prompt.
                       child: Image.network(
                         iconUrl,
                         height: 24,

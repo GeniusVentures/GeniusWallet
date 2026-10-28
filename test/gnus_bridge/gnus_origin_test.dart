@@ -37,6 +37,7 @@ void main() {
       'https://dásh.example',
       'https://dash.example:0',
       'https://${'a' * 2048}.example',
+      'https://${'a' * 250}.example',
     ]) {
       expect(_canonical(raw), isNull, reason: raw);
     }

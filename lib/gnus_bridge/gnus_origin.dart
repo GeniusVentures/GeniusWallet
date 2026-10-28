@@ -14,6 +14,7 @@ enum GnusTransport {
 // percent-encodes anything else in a host, so a '%' never gets through.
 final RegExp _canonicalHost = RegExp(r'^[a-z0-9.:\-]+$');
 const int _maxRawOriginLength = 2048;
+const int _maxHostLength = 253;
 
 /// A page's identity at the bridge: its transport plus its canonical origin.
 /// Built only by [tryParse], so every value is canonical. Two transports that
@@ -44,6 +45,7 @@ final class GnusOrigin {
     if ((scheme != 'http' && scheme != 'https') ||
         !uri.hasAuthority ||
         uri.userInfo.isNotEmpty ||
+        host.length > _maxHostLength ||
         !_canonicalHost.hasMatch(host) ||
         (uri.hasPort && (uri.port < 1 || uri.port > 65535))) {
       return null;
