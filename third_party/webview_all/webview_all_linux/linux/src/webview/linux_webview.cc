@@ -385,6 +385,13 @@ static gboolean load_failed_cb(WebKitWebView *widget,
       error->code == WEBKIT_NETWORK_ERROR_CANCELLED) {
     return FALSE;
   }
+  // Ignoring a navigation decision (a blocked redirect, say) interrupts the
+  // load it was for. That is the embedder's own choice, not a failed load.
+  if (error != nullptr && error->domain == webkit_policy_error_quark() &&
+      error->code ==
+          WEBKIT_POLICY_ERROR_FRAME_LOAD_INTERRUPTED_BY_POLICY_CHANGE) {
+    return FALSE;
+  }
   emit_load_error(static_cast<LinuxWebView *>(user_data), error, failing_url);
   return FALSE;
 }

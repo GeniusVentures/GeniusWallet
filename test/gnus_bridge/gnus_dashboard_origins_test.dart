@@ -120,6 +120,33 @@ void main() {
     });
   });
 
+  group('gnusLoadWasBlocked', () {
+    test('a refused navigation on Apple is a block, not a failure', () {
+      expect(
+        gnusLoadWasBlocked(domain: 'NSURLErrorDomain', code: -999),
+        isTrue,
+      );
+      expect(
+        gnusLoadWasBlocked(domain: 'WebKitErrorDomain', code: 102),
+        isTrue,
+      );
+    });
+
+    test('a real load failure is never a block', () {
+      expect(
+        gnusLoadWasBlocked(domain: 'NSURLErrorDomain', code: -1009),
+        isFalse,
+      );
+      expect(
+        gnusLoadWasBlocked(domain: 'WebKitErrorDomain', code: 101),
+        isFalse,
+      );
+      expect(gnusLoadWasBlocked(domain: 'OtherDomain', code: -999), isFalse);
+      expect(gnusLoadWasBlocked(domain: null, code: -999), isFalse);
+      expect(gnusLoadWasBlocked(domain: null, code: 102), isFalse);
+    });
+  });
+
   group('gnusDashboardStart', () {
     final pinned = Uri.parse('${gnusDashboardOrigin(SgnsNet.staging)}/');
     final dev = Uri.parse('http://localhost:3000/');

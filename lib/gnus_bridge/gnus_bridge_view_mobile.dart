@@ -126,7 +126,11 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
           widget.onLoaded?.call();
         },
         onWebResourceError: (error) {
-          if (error.isForMainFrame ?? false) {
+          final blocked = gnusLoadWasBlocked(
+            domain: error is WebKitWebResourceError ? error.domain : null,
+            code: error.errorCode,
+          );
+          if ((error.isForMainFrame ?? false) && !blocked) {
             widget.onFailed?.call();
           }
         },

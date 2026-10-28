@@ -93,5 +93,17 @@ GnusNavigation gnusNavigation({
   };
 }
 
+/// Whether a main-frame load error is only the web view reporting a load we
+/// stopped ourselves, such as a blocked redirect. [domain] is null where the
+/// platform names none, which is never a stopped load.
+bool gnusLoadWasBlocked({required String? domain, required int code}) =>
+    switch (domain) {
+      // NSURLErrorCancelled, and WebKit's "frame load interrupted by policy
+      // change" (102), the two ways WKWebView reports a refused navigation.
+      'NSURLErrorDomain' => code == -999,
+      'WebKitErrorDomain' => code == 102,
+      _ => false,
+    };
+
 bool _isBlankPage(Uri url) =>
     url.scheme == 'about' && (url.path == 'blank' || url.path == 'srcdoc');
