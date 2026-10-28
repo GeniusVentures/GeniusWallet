@@ -1731,6 +1731,7 @@ per git index, so a parallel phase needs its own worktree.
 - [x] **Phase 42: Shared job submission off the UI isolate** - The compute panel's job flow has one owner, and pricing or submitting a job no longer freezes the wallet
 - [x] **Phase 43: gnus RPC handler and job record** - One handler answers every `gnus_*` method in the contract; every bridge job is recorded and survives a restart
 - [ ] **Phase 44: Dashboard consent and limits** - Per-origin connect, a native confirm on every submit, prompt limits, and no secret in any bridge output
+- [ ] **Phase 44.1: Bridge burn per chain ABI** (INSERTED) - The GNUS burn uses whichever `bridgeOut` each chain has deployed, with the SDK account as destination where the new form needs it
 - [ ] **Phase 45: Hardened bridge transports** - On all five web views only the top frame reaches the bridge, and the caller's origin comes from the message itself
 - [ ] **Phase 46: In-wallet dashboard screen** - The user opens the dashboard inside the wallet on all five platforms, pinned to its origin, with wallet dialogs above the page
 - [ ] **Phase 47: Dashboard over WalletConnect** - The dashboard in a normal browser calls the same `gnus_*` methods over WalletConnect, with the session fixes that path needs
@@ -1795,6 +1796,21 @@ per git index, so a parallel phase needs its own worktree.
 **SDK dependencies**: SDK-CA for a live cost in the confirm; until then the confirm is walked with dev-mock costs, and a live submit stops at `-32010` before any confirm shows.
 **Plans**: TBD
 **UI hint**: yes
+
+### Phase 44.1: Bridge burn per chain ABI (INSERTED)
+
+**Goal**: The wallet's GNUS burn works on every chain where a `bridgeOut` is deployed, for both the job submit and the token bridge screen, and refuses clearly where none is. Raised in review of PR #294; evidence in `.planning/research/v4.0-bridge-abi.md`.
+**Depends on**: Phase 43 (shared burn path)
+**Requirements**: BRG-01
+**Success Criteria** (what must be TRUE):
+
+  1. On a chain whose diamond has the 5-argument `bridgeOut(uint256,uint256,uint256,bytes32,bool)`, the burn sends it with `sgnsDestination` and `destinationYOdd` taken from the selected SDK account's key, never zero.
+  2. On a chain that has only the 3-argument form, the burn still sends that form.
+  3. On a chain with neither, the burn is refused before signing with a clear message, and the bridge returns `-32013` without spending.
+  4. The ABI choice per chain has one owner in `genius_api`, and a test covers each of the three cases plus the destination derivation against a known key.
+  5. One real 5-argument burn on Sepolia is walked and its receipt and relayer pickup recorded, or the gap is stated.
+
+**Plans**: TBD
 
 ### Phase 45: Hardened bridge transports
 

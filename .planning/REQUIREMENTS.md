@@ -290,6 +290,10 @@ a normal browser.
 
 - [ ] **ISO-01**: Pricing or submitting a job, from the bridge or the compute panel, never freezes the wallet UI: the SDK cost and process calls run off the UI isolate and the screen keeps animating during them
 
+### Bridge burn (BRG)
+
+- [ ] **BRG-01**: The GNUS burn uses the `bridgeOut` form each chain has deployed (5-argument with the SDK account as destination, or the older 3-argument form) and refuses before signing on a chain with neither
+
 ### Device walks (WALK)
 
 - [ ] **WALK-01**: The dashboard bridge is walked end to end (open, connect origin, estimate, confirm and reject a submit, read jobs and earnings) on an Android device or emulator, on macOS, and on iOS; any platform that cannot be walked is recorded as a blocked gap with its reason, never silently skipped
@@ -496,6 +500,7 @@ lands. None is counted in this milestone's coverage.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| BRG-01 | Phase 44.1 — Bridge burn per chain ABI | Pending |
 | ISO-01 | Phase 42 — Shared job submission off the UI isolate | Complete (code; real-SDK animation walk in phase 48) |
 | RPC-01 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
 | RPC-02 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
