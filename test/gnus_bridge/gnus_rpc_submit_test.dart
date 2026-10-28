@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_gate.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
@@ -730,6 +731,25 @@ void main() {
     expect(_error(reply)['data'], isNull);
     expect(h.confirms, isEmpty);
     expect(h.api.count('burn'), 0);
+  });
+
+  test('a chain with no bridgeOut is -32013 before the confirm', () async {
+    final replies = <Map<String, Object?>>[];
+    for (final transport in _transports.values) {
+      final h = await harness();
+      h.api.gasResponse = ApiResponse.error(bridgeUnavailableMessage);
+
+      replies.add(await transport(h, _submit, _params()));
+
+      expect(h.confirms, isEmpty);
+      expect(h.api.count('burn'), 0);
+      expect(h.box.isEmpty, isTrue);
+    }
+    expect(replies[0], equals(replies[1]));
+    expect(_error(replies[0])['code'], GnusRpcCode.bridgeFailed);
+    expect(_error(replies[0])['data'], {
+      'reason': GnusRpcReason.bridgeUnavailable,
+    });
   });
 
   group('who can pay and what it costs, all before the burn', () {

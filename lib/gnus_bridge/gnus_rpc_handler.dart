@@ -959,9 +959,18 @@ class GnusRpcHandler {
         data: {'reason': GnusRpcReason.missingData},
       );
     }
+    // A chain with no bridgeOut is a refusal of its own, before any confirm.
+    final estimate = gasPrice.result;
+    if (estimate is GasEstimateFailed && estimate.bridgeUnavailable) {
+      throw const GnusRpcError(
+        GnusRpcCode.bridgeFailed,
+        'Bridge unavailable',
+        data: {'reason': GnusRpcReason.bridgeUnavailable},
+      );
+    }
     // The panel's rule: the estimate builds the burn's own transaction, so a
     // failed estimate (no gas funds, a reverting call) is a failed burn.
-    if (gasPrice.result is GasEstimateFailed) {
+    if (estimate is GasEstimateFailed) {
       throw const GnusRpcError(GnusRpcCode.costUnavailable, 'Cost unavailable');
     }
     final gas = gasPrice.gas;

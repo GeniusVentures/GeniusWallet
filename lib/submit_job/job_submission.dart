@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart'
     show debugPrint, kDebugMode, visibleForTesting;
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart'
+    show bridgeUnavailableMessage;
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
@@ -61,10 +63,12 @@ final class GasEstimateMissingData extends GasEstimateResult {
 }
 
 /// [reason] is the bridge response's own error message, passed through.
+/// [bridgeUnavailable] marks a chain with no `bridgeOut` at all.
 final class GasEstimateFailed extends GasEstimateResult {
-  const GasEstimateFailed(this.reason);
+  const GasEstimateFailed(this.reason, {this.bridgeUnavailable = false});
 
   final String? reason;
+  final bool bridgeUnavailable;
 }
 
 sealed class JobSubmitResult {
@@ -185,7 +189,10 @@ class JobSubmission {
 
     final gas = resp.data;
     if (!resp.isSuccess || gas == null) {
-      return GasEstimateFailed(resp.errorMessage);
+      return GasEstimateFailed(
+        resp.errorMessage,
+        bridgeUnavailable: resp.errorMessage == bridgeUnavailableMessage,
+      );
     }
     return GasEstimateOk(gas);
   }
