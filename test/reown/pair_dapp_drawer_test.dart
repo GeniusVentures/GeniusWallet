@@ -281,6 +281,123 @@ void main() {
         expect(settled, isTrue);
         expect(find.text('WalletConnect'), findsNothing);
       });
+
+      testWidgets('the Scan button shows only when scanning is available', (
+        tester,
+      ) async {
+        for (final canScan in [false, true]) {
+          await _openDrawer(
+            tester,
+            themeFor(mode),
+            (context) => PairDappDrawer.show(
+              context: context,
+              wcUri: _wcUri,
+              startWithPaste: true,
+              canScan: canScan,
+              onPair: (_) async => true,
+            ),
+          );
+
+          expect(
+            find.text('Scan QR code'),
+            canScan ? findsOneWidget : findsNothing,
+          );
+
+          await tester.tap(find.text('Cancel'));
+          await tester.pumpAndSettle();
+        }
+      });
+
+      testWidgets('a scanned wc: link is paired through onPair', (
+        tester,
+      ) async {
+        Uri? paired;
+        await _openDrawer(
+          tester,
+          themeFor(mode),
+          (context) => PairDappDrawer.show(
+            context: context,
+            wcUri: _wcUri,
+            startWithPaste: true,
+            canScan: true,
+            scan: (_) async => ' $_wcUri ',
+            onPair: (uri) async {
+              paired = uri;
+              return true;
+            },
+          ),
+        );
+
+        await tester.tap(find.text('Scan QR code'));
+        await tester.pumpAndSettle();
+
+        expect(paired, Uri.parse(_wcUri));
+        expect(find.text('WalletConnect'), findsNothing);
+      });
+
+      testWidgets(
+        'an invalid scan shows the invalid-link error and never calls onPair',
+        (tester) async {
+          var called = false;
+          await _openDrawer(
+            tester,
+            themeFor(mode),
+            (context) => PairDappDrawer.show(
+              context: context,
+              wcUri: _wcUri,
+              startWithPaste: true,
+              canScan: true,
+              scan: (_) async => 'https://example.com',
+              onPair: (_) async {
+                called = true;
+                return true;
+              },
+            ),
+          );
+
+          await tester.tap(find.text('Scan QR code'));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.text('That is not a WalletConnect link.'),
+            findsOneWidget,
+          );
+          expect(called, isFalse);
+
+          await tester.tap(find.text('Cancel'));
+          await tester.pumpAndSettle();
+        },
+      );
+
+      testWidgets('backing out of the camera leaves the sheet untouched', (
+        tester,
+      ) async {
+        var called = false;
+        await _openDrawer(
+          tester,
+          themeFor(mode),
+          (context) => PairDappDrawer.show(
+            context: context,
+            wcUri: _wcUri,
+            startWithPaste: true,
+            canScan: true,
+            scan: (_) async => null,
+            onPair: (_) async {
+              called = true;
+              return true;
+            },
+          ),
+        );
+
+        await tester.tap(find.text('Scan QR code'));
+        await tester.pumpAndSettle();
+
+        expect(called, isFalse);
+        expect(find.text('That is not a WalletConnect link.'), findsNothing);
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+      });
     });
   }
 }

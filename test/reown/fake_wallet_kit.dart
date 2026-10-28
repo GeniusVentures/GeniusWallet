@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:genius_wallet/reown/wallet_connect_host.dart';
+
 // IExpirer is not re-exported by reown_walletkit.
 // ignore: depend_on_referenced_packages
 import 'package:reown_core/pairing/i_expirer.dart';
@@ -21,6 +23,16 @@ class FakeExpirer implements IExpirer {
 class FakeCore implements IReownCore {
   @override
   final FakeExpirer expirer = FakeExpirer();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A host whose SDK never starts, so a mounted Connect control stays idle and
+/// touches nothing.
+class UnstartedWalletConnectHost implements WalletConnectHost {
+  @override
+  Future<bool> start() async => false;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

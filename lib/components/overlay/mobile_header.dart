@@ -5,6 +5,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/components/overlay/more_sheet.dart';
 import 'package:genius_wallet/network/network_icon.dart';
+import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -16,7 +17,8 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 /// deleted. 44 is Apple's minimum target and is on the 4-pt grid (4 x 11).
 const double kHeaderControlSize = 44;
 
-/// The phone header: the brand at top-left, and TWO controls at the right.
+/// The phone header: the brand at top-left, and the wallet, Connect and menu
+/// controls at the right (Connect was added after scheme F, as a third).
 ///
 /// Sketch 180 scheme B for the header itself, then sketch 183 scheme F for the
 /// right side, both picked by Jakub on 2026-08-07. What this header is for,
@@ -117,12 +119,13 @@ class MobileHeader extends StatelessWidget implements PreferredSizeWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 WalletPill(),
-                // EXACTLY ONE space6 inside the cluster. Sketch 183's "If F
-                // ships" table reads "space6 to its right", which looks like a
-                // second spacer; its own held-constant table pins the cluster
-                // at 100.00 (44 + 12 + 44) and the free space at 135.94, both
-                // of which require one gap. A trailing spacer would make it 112
-                // and contradict every number the sketch measures.
+                // One space6 between neighbours and none after the last. The
+                // cluster is 44 + 12 + 44 + 12 + 44 = 156, which leaves 11.86
+                // spare at 360pt under the title's 1.34x text-scale clamp.
+                SizedBox(width: GeniusWalletConsts.space6),
+                // Pairs this wallet with a dapp site (scan or paste its
+                // WalletConnect link); the desktop bar has the same control.
+                ReownConnectButton(),
                 SizedBox(width: GeniusWalletConsts.space6),
                 HeaderMenuButton(),
               ],

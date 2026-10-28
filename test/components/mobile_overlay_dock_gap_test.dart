@@ -9,11 +9,14 @@ import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/reown/wallet_connect_host.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
+import '../reown/fake_wallet_kit.dart' show UnstartedWalletConnectHost;
 
 class _FakeGeniusApi implements GeniusApi {
   @override
@@ -74,6 +77,9 @@ void main() {
       MultiProvider(
         providers: [
           RepositoryProvider<GeniusApi>.value(value: api),
+          RepositoryProvider<WalletConnectHost>.value(
+            value: UnstartedWalletConnectHost(),
+          ),
           BlocProvider<WalletDetailsCubit>.value(value: walletDetailsCubit),
           BlocProvider<TransactionsCubit>.value(value: transactionsCubit),
           BlocProvider<AppBloc>.value(value: appBloc),

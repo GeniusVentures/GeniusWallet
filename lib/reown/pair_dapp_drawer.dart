@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
+import 'package:genius_wallet/components/qr_scan_page.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -10,12 +11,17 @@ import 'package:qr_flutter/qr_flutter.dart';
 /// The QR / paste-a-link surface for starting a WalletConnect pairing --
 /// a [ResponsiveDrawer], replacing the old raw `AlertDialog` so the connect
 /// flow reads as one surface through to the approve drawer that follows it.
+///
+/// A scanned code takes the same check and [onPair] path as a pasted one.
+/// [canScan] and [scan] default to the platform camera; tests pass their own.
 class PairDappDrawer {
   static Future<void> show({
     required BuildContext context,
     required String wcUri,
     required bool startWithPaste,
     required Future<bool> Function(Uri uri) onPair,
+    bool? canScan,
+    Future<String?> Function(BuildContext context)? scan,
   }) {
     // Body and footer are siblings under ResponsiveDrawer -- these three
     // notifiers are the only state either side needs, and the one place
@@ -34,6 +40,8 @@ class PairDappDrawer {
         showPaste: showPaste,
         fieldError: fieldError,
         submit: submit,
+        canScan: canScan ?? defaultCanScanQr,
+        scan: scan ?? QrScanPage.scan,
       ),
       footer: _PairDappFooter(
         controller: controller,
@@ -58,6 +66,8 @@ class _PairDappBody extends StatelessWidget {
     required this.showPaste,
     required this.fieldError,
     required this.submit,
+    required this.canScan,
+    required this.scan,
   });
 
   final String wcUri;
@@ -65,6 +75,8 @@ class _PairDappBody extends StatelessWidget {
   final ValueNotifier<bool> showPaste;
   final ValueNotifier<String?> fieldError;
   final ValueNotifier<VoidCallback?> submit;
+  final bool canScan;
+  final Future<String?> Function(BuildContext context) scan;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +95,8 @@ class _PairDappBody extends StatelessWidget {
                       controller: controller,
                       fieldError: fieldError,
                       submit: submit,
+                      canScan: canScan,
+                      scan: scan,
                     )
                   : _QrView(key: const ValueKey('qr'), wcUri: wcUri),
             ),
@@ -104,11 +118,27 @@ class _PasteView extends StatelessWidget {
     required this.controller,
     required this.fieldError,
     required this.submit,
+    required this.canScan,
+    required this.scan,
   });
 
   final TextEditingController controller;
   final ValueNotifier<String?> fieldError;
   final ValueNotifier<VoidCallback?> submit;
+  final bool canScan;
+  final Future<String?> Function(BuildContext context) scan;
+
+  Future<void> _scan(BuildContext context) async {
+    final raw = await scan(context);
+    if (raw == null) {
+      return;
+    }
+    controller.text = raw.trim();
+    fieldError.value = null;
+    // The same check and onPair as a pasted link; the scanned text stays in
+    // the field so a rejected code shows the same error and can be edited.
+    submit.value?.call();
+  }
 
   Future<void> _paste() async {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -127,7 +157,7 @@ class _PasteView extends StatelessWidget {
       valueListenable: fieldError,
       builder: (context, errorText, _) {
         final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-        return GWTextField(
+        final field = GWTextField(
           controller: controller,
           hint: 'Paste a wc: link',
           textInputAction: TextInputAction.go,
@@ -149,6 +179,22 @@ class _PasteView extends StatelessWidget {
             tooltip: 'Paste from clipboard',
             onPressed: _paste,
           ),
+        );
+        if (!canScan) {
+          return field;
+        }
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: GeniusWalletConsts.space6,
+          children: [
+            field,
+            GWButton(
+              variant: GWButtonVariant.secondary,
+              label: 'Scan QR code',
+              onPressed: () => _scan(context),
+            ),
+          ],
         );
       },
     );

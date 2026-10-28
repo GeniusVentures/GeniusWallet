@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/overlay/mobile_header.dart'
+    show kHeaderControlSize;
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/reown/pair_dapp_drawer.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
@@ -34,14 +35,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   late final WalletConnectHost _host;
   bool _listenersAttached = false;
   late final void Function(SessionConnect?) _sessionConnectHandler;
-
-  bool get _isDesktopOrIot {
-    try {
-      return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-    } catch (_) {
-      return false;
-    }
-  }
 
   @override
   void initState() {
@@ -155,7 +148,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       await PairDappDrawer.show(
         context: context,
         wcUri: wcUri,
-        startWithPaste: _isDesktopOrIot,
+        startWithPaste: true,
         onPair: (uri) async {
           final paired = await _tryPair(uri);
           if (paired) {
@@ -271,11 +264,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
-      stateColor = context.gw.statusWarning;
+      stateColor = context.gw.statusWarningText;
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
-      stateColor = context.gw.statusWarning;
+      stateColor = context.gw.statusWarningText;
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
@@ -304,26 +297,46 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final bool isIdle =
         !isConnected && !_isConnecting && !_timedOut && !_hasError;
-    final iconColor = stateColor;
     final textColor = stateColor;
 
-    final btn = TextButton(
+    void onPressed() {
+      if (_isConnecting || _isDisconnecting) {
+        return;
+      }
+
+      if (isConnected) {
+        _disconnect();
+      } else {
+        _connect();
+      }
+    }
+
+    // Phones: the state's own glyph in a header-sized box. The tooltip is
+    // also the control's semantic label.
+    if (isMobile) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(
+          width: kHeaderControlSize,
+          height: kHeaderControlSize,
+        ),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        icon: Icon(icon, size: 24),
+        color: stateColor,
+        tooltip: text,
+        onPressed: onPressed,
+      );
+    }
+
+    return TextButton(
       style: navContextChipStyle(context).copyWith(
         overlayColor: WidgetStatePropertyAll(
           stateColor.withValues(alpha: 0.16),
         ),
       ),
-      onPressed: () {
-        if (_isConnecting || _isDisconnecting) {
-          return;
-        }
-
-        if (isConnected) {
-          _disconnect();
-        } else {
-          _connect();
-        }
-      },
+      onPressed: onPressed,
       child: Row(
         spacing: GeniusWalletConsts.space4,
         children: [
@@ -334,46 +347,43 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             AnimatedRotation(
               duration: const Duration(milliseconds: 600),
               turns: 1,
-              child: Icon(icon, color: iconColor, size: 16),
+              child: Icon(icon, color: stateColor, size: 16),
             )
           else
             _StateDot(color: isIdle ? null : stateColor, gw: gw),
-          if (!isMobile)
-            // Idle gets the gradient; the status branches get their flat
-            // colour. ShaderMask paints the child's alpha with the shader, so
-            // the Text colour below only has to be non-transparent.
-            if (isIdle)
-              ShaderMask(
-                shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
-                  gw.surfaceMenu,
-                ).createShader(bounds),
-                blendMode: BlendMode.srcIn,
-                // Fixed white regardless of appearance: BlendMode.srcIn
-                // recolors every opaque pixel with the shader above, using
-                // only this text's alpha channel -- the RGB value never
-                // reaches the screen (same pattern as GWButton's
-                // gradientOutline pre-mask placeholder).
-                child: Text(
-                  'Connect',
-                  style: GeniusWalletTypography.labelMd.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              )
-            else
-              Text(
-                text,
+          // Idle gets the gradient; the status branches get their flat
+          // colour. ShaderMask paints the child's alpha with the shader, so
+          // the Text colour below only has to be non-transparent.
+          if (isIdle)
+            ShaderMask(
+              shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
+                gw.surfaceMenu,
+              ).createShader(bounds),
+              blendMode: BlendMode.srcIn,
+              // Fixed white regardless of appearance: BlendMode.srcIn
+              // recolors every opaque pixel with the shader above, using
+              // only this text's alpha channel -- the RGB value never
+              // reaches the screen (same pattern as GWButton's
+              // gradientOutline pre-mask placeholder).
+              child: Text(
+                'Connect',
                 style: GeniusWalletTypography.labelMd.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
+            )
+          else
+            Text(
+              text,
+              style: GeniusWalletTypography.labelMd.copyWith(
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
         ],
       ),
     );
-
-    return isMobile ? Tooltip(message: text, child: btn) : btn;
   }
 }
 
