@@ -56,6 +56,35 @@ void main() {
     });
 
     test(
+      'a fixture disarmed while the confirm is open burns nothing',
+      () async {
+        DevMockJob.instance.arm(DevJobScenario.pricedOk);
+        final h = await GnusHarness.create();
+        addTearDown(h.dispose);
+        await h.connections.connect(kDevGnusOrigin, h.clock);
+        final handler = h.build(
+          confirm:
+              ({
+                required origin,
+                required cost,
+                required gas,
+                required payer,
+                required nodeAccount,
+              }) async {
+                DevMockJob.instance.clear();
+                return true;
+              },
+        );
+
+        final text = await devGnusSubmit(handler);
+
+        expect(text, '${GnusRpcCode.internal} ${GnusRpcReason.missingData}');
+        expect(h.api.count('burn'), 0);
+      },
+      skip: !JobSubmission.devToolsEnabled,
+    );
+
+    test(
       'an armed fixture is not enough outside a dev-tools build',
       () async {
         DevMockJob.instance.arm(DevJobScenario.pricedOk);

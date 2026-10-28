@@ -819,9 +819,19 @@ class GnusRpcHandler {
     required String nodeAccount,
     required String payer,
     required int? chainId,
+    required bool pricedByFixture,
   }) {
     if (!_connections.isConnected(origin)) {
       throw _unauthorized;
+    }
+    // A dev fixture that priced the job must also be what burns it: one
+    // disarmed while the confirm was open would burn real GNUS.
+    if (pricedByFixture != (_jobs.devScenario != null)) {
+      throw const GnusRpcError(
+        GnusRpcCode.internal,
+        'Wallet not ready',
+        data: {'reason': GnusRpcReason.missingData},
+      );
     }
     final app = _readAppState();
     if (app.switchingSDKAccount != null) {
@@ -1177,6 +1187,7 @@ class GnusRpcHandler {
       nodeAccount: nodeAccount,
       payer: payer,
       chainId: facts.chainId,
+      pricedByFixture: priced.fixtureBalance != null,
     );
 
     final submittedAt = _now().toUtc();
