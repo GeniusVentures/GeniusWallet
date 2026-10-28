@@ -75,6 +75,7 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
   bool _ready = false;
   bool _installed = false;
   bool _canGoBack = false;
+  bool _offList = false;
   String? _topUrl;
 
   @override
@@ -118,11 +119,13 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
         onPageStarted: (url) {
           _topUrl = url;
           _bridge.pageCommitted(url);
+          _hideIfOffList(url);
         },
         // In-page links are same-document navigations, so the history is
         // read again on every URL change, not only on page loads.
         onUrlChange: (change) {
           _topUrl = change.url;
+          _hideIfOffList(change.url);
           unawaited(_syncCanGoBack());
         },
         onPageFinished: (_) {
@@ -187,6 +190,21 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
     ];
   }
 
+  // Android never asks before a form POST, so such a load can still reach a
+  // page off the list. It leaves the screen as soon as its URL is known.
+  void _hideIfOffList(String? url) {
+    final uri = url == null ? null : Uri.tryParse(url);
+    final offList =
+        uri != null &&
+        gnusNavigation(url: uri, frame: GnusFrame.main, allowed: _allowed) ==
+            GnusNavigation.external;
+    if (!offList || _offList || !mounted) {
+      return;
+    }
+    setState(() => _offList = true);
+    widget.onFailed?.call();
+  }
+
   Future<void> _syncCanGoBack() async {
     final can = await _controller.canGoBack();
     if (mounted && can != _canGoBack) {
@@ -235,6 +253,9 @@ class _GnusBridgeViewMobileState extends State<GnusBridgeViewMobile> {
       return const Center(
         child: Text('This device cannot run the bridge safely.'),
       );
+    }
+    if (_offList) {
+      return const Center(child: Text('This page is not part of the wallet.'));
     }
     // System back steps through the page's own history first, and leaves the
     // screen only when there is none.
