@@ -18,6 +18,7 @@ import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/web/web_overlay_gate.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -137,12 +138,16 @@ class GnusDashboardScreen extends StatefulWidget {
     this.dev = kDebugMode && kShowDevTools,
     this.hostBuilder = defaultGnusDashboardHost,
     this.launcher = launchUrl,
+    this.hostKind,
   });
 
   final Future<SgnsNet> Function() readNet;
   final bool dev;
   final GnusDashboardHostBuilder hostBuilder;
   final GnusBrowserLauncher launcher;
+
+  /// Which kind of view the host builder makes; the device's own by default.
+  final GnusBridgeHostKind? hostKind;
 
   @override
   State<GnusDashboardScreen> createState() => _GnusDashboardScreenState();
@@ -264,8 +269,9 @@ class _GnusDashboardScreenState extends State<GnusDashboardScreen> {
     } else if (start == null) {
       body = const Center(child: Loading());
     } else {
-      body = KeyedSubtree(
-        key: ValueKey(_hostKey),
+      final host = Semantics(
+        container: true,
+        label: 'Jobs and earnings page, ${start.host}',
         child: widget.hostBuilder(
           context,
           start,
@@ -274,13 +280,30 @@ class _GnusDashboardScreenState extends State<GnusDashboardScreen> {
           onNoBridge: _onNoBridge,
         ),
       );
+      // The Linux page paints above Flutter, so it steps aside for any popup.
+      final kind =
+          widget.hostKind ??
+          gnusBridgeHostKind(
+            Platform.operatingSystem,
+            linuxWebKit: linuxInAppWeb,
+          );
+      body = KeyedSubtree(
+        key: ValueKey(_hostKey),
+        child: kind == GnusBridgeHostKind.linux
+            ? WebOverlayGate(child: host)
+            : host,
+      );
     }
     return Scaffold(
       backgroundColor: gw.surfaceBase,
       body: SafeArea(
         child: Column(
           children: [
-            _DashboardHeader(host: start?.host, onClose: _close),
+            _DashboardHeader(
+              host: start?.host,
+              onClose: _close,
+              onReload: _restart,
+            ),
             if (!_loaded && !_failed && !_noBridge) const _LoadingBar(),
             Expanded(child: body),
           ],
@@ -312,10 +335,15 @@ class _LoadingBar extends StatelessWidget {
 }
 
 class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader({required this.host, required this.onClose});
+  const _DashboardHeader({
+    required this.host,
+    required this.onClose,
+    required this.onReload,
+  });
 
   final String? host;
   final VoidCallback onClose;
+  final VoidCallback onReload;
 
   @override
   Widget build(BuildContext context) {
@@ -357,6 +385,12 @@ class _DashboardHeader extends StatelessWidget {
                   ),
               ],
             ),
+          ),
+          GWButton.icon(
+            icon: Icon(Icons.refresh, color: gw.textPrimary),
+            tooltip: 'Reload',
+            semanticLabel: 'Reload jobs and earnings',
+            onPressed: onReload,
           ),
         ],
       ),

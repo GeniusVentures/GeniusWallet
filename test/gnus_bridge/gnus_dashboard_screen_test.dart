@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show SgnsNet;
+import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/compute/compute_panel.dart';
 import 'package:genius_wallet/dashboard/compute/compute_state.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_dashboard_origins.dart';
@@ -92,34 +93,47 @@ Widget _app({
   bool autoLoad = true,
   GWAppearanceMode mode = GWAppearanceMode.dark,
   GnusBrowserLauncher launcher = launchUrl,
+  GnusBridgeHostKind hostKind = GnusBridgeHostKind.webview,
+  bool blockPop = false,
+  String initialLocation = '/',
 }) {
   final router = GoRouter(
+    initialLocation: initialLocation,
+    observers: [GlobalSwapFabHost.popupRoutes],
     routes: [
+      GoRoute(
+        path: '/dashboard',
+        builder: (_, _) => const Scaffold(body: Text('wallet home')),
+      ),
       GoRoute(
         path: '/',
         builder: (_, _) => _Home(listed: listed),
       ),
       GoRoute(
         path: '/gnus-dashboard',
-        builder: (_, _) => GnusDashboardScreen(
-          readNet: () async => SgnsNet.staging,
-          dev: dev,
-          launcher: launcher,
-          hostBuilder:
-              (
-                context,
-                start, {
-                required onLoaded,
-                required onFailed,
-                required onNoBridge,
-              }) => _FakeHost(
-                start: start,
-                created: hosted,
-                autoLoad: autoLoad,
-                onLoaded: onLoaded,
-                onFailed: onFailed,
-                onNoBridge: onNoBridge,
-              ),
+        builder: (_, _) => PopScope(
+          canPop: !blockPop,
+          child: GnusDashboardScreen(
+            readNet: () async => SgnsNet.staging,
+            dev: dev,
+            launcher: launcher,
+            hostKind: hostKind,
+            hostBuilder:
+                (
+                  context,
+                  start, {
+                  required onLoaded,
+                  required onFailed,
+                  required onNoBridge,
+                }) => _FakeHost(
+                  start: start,
+                  created: hosted,
+                  autoLoad: autoLoad,
+                  onLoaded: onLoaded,
+                  onFailed: onFailed,
+                  onNoBridge: onNoBridge,
+                ),
+          ),
         ),
       ),
     ],
@@ -436,6 +450,133 @@ void main() {
 
       expect(launched, [Uri.parse('https://gnus-dashboard-staging.invalid/')]);
     });
+  });
+
+  group('chrome', () {
+    testWidgets('Close leaves at once even when the route blocks popping', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(dev: true, hosted: [], blockPop: true));
+      await _openScreen(tester);
+
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('fake host'), findsNothing);
+      expect(find.text('Jobs and earnings'), findsOneWidget);
+    });
+
+    testWidgets('Close with nothing to pop goes to the wallet home', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(dev: true, hosted: [], initialLocation: '/gnus-dashboard'),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('wallet home'), findsOneWidget);
+    });
+
+    testWidgets('Reload builds a fresh host and shows the bar again', (
+      tester,
+    ) async {
+      final hosted = <Uri>[];
+      await tester.pumpWidget(_app(dev: true, hosted: hosted));
+      await _openScreen(tester);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+
+      await tester.tap(find.byTooltip('Reload'));
+      await tester.pump();
+
+      expect(hosted, hasLength(2));
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+
+    for (final (kind, hidden) in [
+      (GnusBridgeHostKind.linux, true),
+      (GnusBridgeHostKind.windows, false),
+      (GnusBridgeHostKind.webview, false),
+    ]) {
+      testWidgets('a root dialog hides the ${kind.name} page: $hidden', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_app(dev: true, hosted: [], hostKind: kind));
+        await _openScreen(tester);
+        final context = tester.element(find.byType(GnusDashboardScreen));
+
+        final closed = showDialog<void>(
+          context: context,
+          useRootNavigator: true,
+          builder: (_) => const AlertDialog(title: Text('Confirm')),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.text('Confirm'), findsOneWidget);
+        expect(find.text('fake host'), hidden ? findsNothing : findsOneWidget);
+
+        Navigator.of(context, rootNavigator: true).pop();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        await closed;
+
+        expect(find.text('fake host'), findsOneWidget);
+      });
+    }
+
+    testWidgets('has the screen-reader labels', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(_app(dev: true, hosted: []));
+      await _openScreen(tester);
+
+      expect(find.bySemanticsLabel('Close jobs and earnings'), findsOneWidget);
+      expect(find.bySemanticsLabel('Reload jobs and earnings'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp('Jobs and earnings page, localhost')),
+        findsOneWidget,
+      );
+      final title = find.descendant(
+        of: find.byType(GnusDashboardScreen),
+        matching: find.text('Jobs and earnings'),
+      );
+      expect(tester.getSemantics(title).flagsCollection.isHeader, isTrue);
+      semantics.dispose();
+    });
+
+    for (final mode in GWAppearanceMode.values) {
+      testWidgets(
+        'meets the guidelines while loading, loaded and failed in $mode',
+        (tester) async {
+          final semantics = tester.ensureSemantics();
+          await tester.pumpWidget(
+            _app(dev: true, hosted: [], autoLoad: false, mode: mode),
+          );
+          await _openScreen(tester);
+
+          Future<void> check() async {
+            await expectLater(tester, meetsGuideline(textContrastGuideline));
+            await expectLater(
+              tester,
+              meetsGuideline(labeledTapTargetGuideline),
+            );
+          }
+
+          await check();
+          await tester.tap(find.text('finish'));
+          await tester.pump();
+          await check();
+          await tester.tap(find.text('error'));
+          await tester.pump();
+          await check();
+          semantics.dispose();
+        },
+      );
+    }
   });
 
   group('the route', () {
