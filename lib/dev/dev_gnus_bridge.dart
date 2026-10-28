@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_amounts.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
@@ -16,6 +17,10 @@ final GnusOrigin kDevGnusOtherOrigin = GnusOrigin.parse(
   GnusTransport.walletconnect,
   'https://other.dev.invalid',
 );
+
+/// The bubble's Hosted switch: a dev build then opens the pinned dashboard
+/// origin instead of the dev one. A release build never reads it.
+final ValueNotifier<bool> kDevGnusHosted = ValueNotifier<bool>(false);
 
 const String kDevGnusNeedsFixture = 'Arm a JOB fixture first';
 

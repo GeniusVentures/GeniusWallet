@@ -10,6 +10,7 @@ import 'package:genius_wallet/components/gw_notice.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
+import 'package:genius_wallet/dev/dev_gnus_bridge.dart' show kDevGnusHosted;
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_linux.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_mobile.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_windows.dart';
@@ -124,7 +125,11 @@ Future<void> openGnusDashboard(
   final net = readNet ?? context.read<GnusRpcHandler>().readSgnsNet;
   await _openInBrowser(
     context,
-    () async => gnusDashboardStart(await net(), dev: dev),
+    () async => gnusDashboardStart(
+      await net(),
+      dev: dev,
+      hosted: dev && kDevGnusHosted.value,
+    ),
     launcher,
   );
 }
@@ -176,7 +181,13 @@ class _GnusDashboardScreenState extends State<GnusDashboardScreen> {
       return;
     }
     if (mounted) {
-      setState(() => _start = gnusDashboardStart(net, dev: widget.dev));
+      setState(
+        () => _start = gnusDashboardStart(
+          net,
+          dev: widget.dev,
+          hosted: widget.dev && kDevGnusHosted.value,
+        ),
+      );
     }
   }
 

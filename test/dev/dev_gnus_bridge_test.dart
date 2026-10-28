@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/dev/dev_gnus_bridge.dart';
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/dev/dev_tools_bubble.dart';
@@ -148,5 +149,48 @@ void main() {
       await tester.ensureVisible(find.text(label));
       expect(find.text(label), findsOneWidget, reason: label);
     }
+  });
+
+  testWidgets('the Hosted switch is off by default and flips the notifier', (
+    tester,
+  ) async {
+    final panel = DevToolsBubblePanelState.instance;
+    addTearDown(() {
+      panel.position = null;
+      panel.expanded = false;
+      panel.gnusBridgeExpanded = false;
+      kDevGnusHosted.value = false;
+    });
+    panel.gnusBridgeExpanded = true;
+    panel.expanded = true;
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
+        home: Scaffold(
+          body: Stack(children: [DevToolsBubble(router: router)]),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final hosted = find.widgetWithText(GWSwitch, 'Hosted');
+    await tester.ensureVisible(hosted);
+    expect(tester.widget<GWSwitch>(hosted).value, isFalse);
+    expect(kDevGnusHosted.value, isFalse);
+
+    await tester.tap(find.text('Hosted'));
+    await tester.pumpAndSettle();
+
+    expect(kDevGnusHosted.value, isTrue);
+    expect(tester.widget<GWSwitch>(hosted).value, isTrue);
   });
 }

@@ -6,6 +6,7 @@ import 'package:genius_api/genius_api.dart' show SgnsNet;
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/compute/compute_panel.dart';
 import 'package:genius_wallet/dashboard/compute/compute_state.dart';
+import 'package:genius_wallet/dev/dev_gnus_bridge.dart' show kDevGnusHosted;
 import 'package:genius_wallet/gnus_bridge/gnus_dashboard_origins.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_dashboard_screen.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -576,6 +577,29 @@ void main() {
           semantics.dispose();
         },
       );
+    }
+  });
+
+  group('the Hosted switch', () {
+    tearDown(() => kDevGnusHosted.value = false);
+
+    for (final (dev, hosted, expected) in [
+      (true, false, 'http://localhost:3000/'),
+      (true, true, 'https://gnus-dashboard-staging.invalid/'),
+      (false, true, 'https://gnus-dashboard-staging.invalid/'),
+      (false, false, 'https://gnus-dashboard-staging.invalid/'),
+    ]) {
+      testWidgets('dev: $dev switch: $hosted starts on $expected', (
+        tester,
+      ) async {
+        kDevGnusHosted.value = hosted;
+        final created = <Uri>[];
+        await tester.pumpWidget(_app(dev: dev, hosted: created));
+
+        await _openScreen(tester);
+
+        expect(created, [Uri.parse(expected)]);
+      });
     }
   });
 

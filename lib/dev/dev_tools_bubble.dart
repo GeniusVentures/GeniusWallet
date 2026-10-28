@@ -6,6 +6,7 @@ import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -921,6 +922,18 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                   ),
                   gw: gw,
                   children: [
+                    Tooltip(
+                      message:
+                          'Open the pinned origin instead of the dev origin.',
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: kDevGnusHosted,
+                        builder: (context, hosted, _) => GWSwitch(
+                          label: 'Hosted',
+                          value: hosted,
+                          onChanged: (value) => kDevGnusHosted.value = value,
+                        ),
+                      ),
+                    ),
                     Wrap(
                       spacing: GeniusWalletConsts.space2,
                       runSpacing: GeniusWalletConsts.space2,
