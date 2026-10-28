@@ -16,6 +16,10 @@ class _GateApi extends GeniusApi {
 
   String account = _recorded;
   final List<String> events = [];
+
+  /// Lets a select reach the real native worker, which cannot load the SDK
+  /// under test and dies.
+  bool reachWorker = false;
   Future<void> Function()? onProcess;
 
   @override
@@ -23,6 +27,9 @@ class _GateApi extends GeniusApi {
 
   @override
   String? getStartAccountAddress() {
+    if (reachWorker) {
+      return _recorded;
+    }
     account = _other;
     events.add('switch');
     return null;
@@ -56,6 +63,20 @@ void main() {
 
     expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
     expect(api.events, ['process as $_recorded', 'process done', 'switch']);
+  });
+
+  test('a select whose worker dies frees the gate', () async {
+    final api = _GateApi()..reachWorker = true;
+
+    await expectLater(api.selectGeniusAccountAsync(_other), throwsA(anything));
+    final result = await api
+        .requestGeniusSDKProcessAsAccount(
+          jobJson: '{}',
+          expectedAccount: _recorded,
+        )
+        .timeout(const Duration(seconds: 5));
+
+    expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
   });
 
   test('a switch queued first makes Process refuse to run', () async {

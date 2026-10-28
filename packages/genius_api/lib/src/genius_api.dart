@@ -61,29 +61,22 @@ final _sdkAddressPattern = RegExp(r'^0x[0-9a-fA-F]{128}$');
 String? sdkAddressOrNull(String raw) =>
     _sdkAddressPattern.hasMatch(raw) ? raw : null;
 
-/// Isolate entry point for [GeniusApi.selectGeniusAccountAsync].
-///
-/// Opens the native library independently (the OS shares code pages across
-/// isolates) and calls [GeniusSDKSelectGeniusAccount] off the main isolate
-/// so the UI thread stays responsive during account switching.
-void _selectGeniusAccountIsolate(List<Object> args) {
-  final sendPort = args[0] as SendPort;
-  final publicAddress = args[1] as String;
-
-  final dylib = loadGeniusSDKLibrary();
-  if (dylib == null) {
-    sendPort.send(
-      GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.index,
-    );
-    return;
-  }
-  final lib = NativeLibrary(dylib);
-
-  final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-  final result = lib.GeniusSDKSelectGeniusAccount(addressPtr);
-  malloc.free(addressPtr);
-
-  sendPort.send(result);
+/// Runs `GeniusSDKSelectGeniusAccount` on a worker isolate, which re-opens
+/// the native library itself. A worker that dies fails the future.
+Future<int> _selectGeniusAccountOffIsolate(String publicAddress) {
+  return Isolate.run(() {
+    final dylib = loadGeniusSDKLibrary();
+    if (dylib == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.index;
+    }
+    final lib = NativeLibrary(dylib);
+    final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
+    try {
+      return lib.GeniusSDKSelectGeniusAccount(addressPtr);
+    } finally {
+      malloc.free(addressPtr);
+    }
+  });
 }
 
 /// Runs `GeniusSDKGetCost` on a worker isolate. The closure captures only
@@ -1180,6 +1173,9 @@ class GeniusApi {
   /// account is process-wide native state.
   static final _accountGate = _SerialQueue();
 
+  /// How long a native account select may hold the account gate.
+  static const _selectAccountTimeout = Duration(seconds: 30);
+
   /// Runs Process only if the SDK runs as [expectedAccount], and returns null
   /// when it does not. The check and the run hold the account gate, so an
   /// account switch requested meanwhile waits until Process has finished.
@@ -1619,13 +1615,12 @@ class GeniusApi {
     if (getStartAccountAddress() == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
-    final receivePort = ReceivePort();
-    await Isolate.spawn(_selectGeniusAccountIsolate, [
-      receivePort.sendPort,
+    // ponytail: a timed-out select frees the gate while its native call may
+    // still land, so a later Process could start just before it. Upgrade:
+    // an SDK call that switches and processes under its own lock.
+    final result = await _selectGeniusAccountOffIsolate(
       publicAddress,
-    ]);
-    final result = await receivePort.first as int;
-    receivePort.close();
+    ).timeout(_selectAccountTimeout);
     return _mapNodeReturnValue(result);
   });
 
