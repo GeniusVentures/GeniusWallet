@@ -263,8 +263,11 @@ class GnusHarness {
     connections = GnusConnectionStore(connectionBox);
   }
 
-  static Future<GnusHarness> create({Box<String>? box}) async {
-    final api = FakeGnusApi();
+  static Future<GnusHarness> create({
+    Box<String>? box,
+    FakeGnusApi? api,
+  }) async {
+    api ??= FakeGnusApi();
     final walletDetails = PushableWalletDetails(
       initialState: const WalletDetailsState(
         selectedWallet: gnusTestWallet,
