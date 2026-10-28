@@ -24,8 +24,14 @@ find_package(Threads REQUIRED)
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 
 set(ARCH_BUILD_DIR /build/iOS/)
-set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE})
-set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_BUILD_DIR}Release)
+# Xcode exports SDKROOT, so a simulator build configures against the simulator
+# SDK; its dependencies are published as the iOS arm64-simulator ABI.
+if(CMAKE_OSX_SYSROOT MATCHES "iPhoneSimulator|iphonesimulator")
+    set(ARCH arm64-simulator)
+    set(IOS_ABI_SUBFOLDER /${ARCH})
+endif()
+set(ARCH_OUTPUT_DIR ${ARCH_BUILD_DIR}${CMAKE_BUILD_TYPE}${IOS_ABI_SUBFOLDER})
+set(ARCH_RELEASE_OUTPUT_DIR ${ARCH_BUILD_DIR}Release${IOS_ABI_SUBFOLDER})
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
