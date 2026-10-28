@@ -159,8 +159,10 @@ class WalletConnectHost {
       namespace.chains ??
       [for (final a in namespace.accounts) a.substring(0, a.lastIndexOf(':'))];
 
-  // Every session follows the selected wallet. One that cannot sign leaves the
-  // session's account alone and tells the page there is none.
+  // A gnus session follows the selected wallet: its site already holds a
+  // wallet-wide connection. An ordinary dApp sees only an account it was
+  // approved for, so any other wallet reads as none. A wallet that cannot sign
+  // is never shared.
   Future<void> _syncAccounts(Wallet? wallet) async {
     final signer = wallet != null && walletCanSign(wallet) ? wallet : null;
     for (final session in walletKit.getActiveSessions().values) {
@@ -168,7 +170,8 @@ class WalletConnectHost {
       if (eip155 == null) {
         continue;
       }
-      if (signer != null) {
+      final follows = eip155.methods.any(isGnusMethod);
+      if (signer != null && follows) {
         try {
           await walletKit.updateSession(
             topic: session.topic,
@@ -190,10 +193,13 @@ class WalletConnectHost {
           continue;
         }
       }
+      final shared = follows
+          ? signer != null
+          : canTransactFrom(signer?.address, signer, eip155.accounts);
       final chains = _chainsOf(eip155);
       if (chains.isNotEmpty) {
         await _emit(session, 'accountsChanged', [
-          ?signer?.address,
+          if (shared) signer!.address,
         ], chains.first);
       }
     }

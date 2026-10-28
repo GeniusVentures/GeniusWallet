@@ -182,23 +182,20 @@ void main() {
       await pumpEventQueue();
     }
 
-    test('a switch to a wallet that can sign updates each session on its own '
-        'chains, then says so', () async {
+    test('a switch updates the gnus session on its own chains, and tells an '
+        'ordinary dApp only that it has no account', () async {
       final other = gnusTestWallet.copyWith(address: _otherAddress);
 
       await push(other);
 
-      expect(kit.updates.map((u) => u.topic), ['t1', 't2']);
-      final first = kit.updates[0].namespaces['eip155']!;
+      expect(kit.updates.map((u) => u.topic), ['t1']);
+      final first = kit.updates.single.namespaces['eip155']!;
       expect(first.accounts, [
         'eip155:1:$_otherAddress',
         'eip155:80002:$_otherAddress',
       ]);
       expect(first.methods, ['eth_sendTransaction', 'gnus_getAccounts']);
       expect(first.events, ['chainChanged', 'accountsChanged']);
-      expect(kit.updates[1].namespaces['eip155']!.accounts, [
-        'eip155:8453:$_otherAddress',
-      ]);
       expect(
         [for (final e in kit.emits) (e.topic, e.chainId, e.event.name)],
         [
@@ -206,7 +203,28 @@ void main() {
           ('t2', 'eip155:8453', 'accountsChanged'),
         ],
       );
-      expect(kit.emits.first.event.data, [_otherAddress]);
+      expect(kit.emits.map((e) => e.event.data), [
+        [_otherAddress],
+        <String>[],
+      ]);
+    });
+
+    test('switching back to the wallet an ordinary dApp was given names it '
+        'again', () async {
+      await push(gnusTestWallet.copyWith(address: _otherAddress));
+      await push(gnusTestWallet);
+
+      expect(kit.updates.map((u) => u.topic), ['t1', 't1']);
+      expect(
+        [
+          for (final e in kit.emits)
+            if (e.topic == 't2') e.event.data,
+        ],
+        [
+          <String>[],
+          [oldAddress],
+        ],
+      );
     });
 
     test('a switch to a wallet that cannot sign leaves the account and sends '
@@ -253,7 +271,7 @@ void main() {
 
         await push(gnusTestWallet.copyWith(address: _otherAddress));
 
-        expect(kit.updates.map((u) => u.topic), ['t2']);
+        expect(kit.updates, isEmpty);
         expect(kit.emits.map((e) => e.topic), ['t2']);
       },
     );
