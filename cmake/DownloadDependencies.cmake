@@ -104,6 +104,15 @@ function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
 
         foreach(CHECK_PATH ${CHECK_PATHS})
             if(EXISTS ${CHECK_PATH})
+                # A simulator download also creates the device directory as its
+                # parent; holding only that subfolder is not a device install.
+                if(CMAKE_SYSTEM_NAME STREQUAL "iOS" AND NOT ARCH)
+                    file(GLOB _ENTRIES LIST_DIRECTORIES true "${CHECK_PATH}/*")
+                    list(FILTER _ENTRIES EXCLUDE REGEX "/arm64-simulator$")
+                    if(NOT _ENTRIES)
+                        continue()
+                    endif()
+                endif()
                 set(${EXISTS_VAR} TRUE PARENT_SCOPE)
                 if(IS_RELEASE_ONLY AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
                     message(STATUS "${DEP_NAME} found at: ${CHECK_PATH} (Release-only dependency)")
