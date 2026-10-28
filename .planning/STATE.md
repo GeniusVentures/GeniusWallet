@@ -2,20 +2,19 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Processing dashboard bridge (wallet side)
-current_phase: 44
-current_phase_name: "Dashboard consent and limits"
-status: ready_to_plan
-stopped_at: "2026-10-27: Phase 44 context gathered with Braian (44-CONTEXT.md, 8 decisions his, 4 marked (D)). Next: /gsd-plan-phase 44. v3.0 live walks still pending."
-last_updated: "2026-10-27T12:00:00.000Z"
-last_activity: 2026-10-26
-last_activity_desc: Milestone v4.0 started (dashboard bridge, wallet side)
+current_phase: 48
+current_phase_name: "Dashboard device walks"
+status: human_needed
+stopped_at: "2026-10-28: Phases 42-47 and 44.1 executed; 44, 45 and 47 reviewed with fixes; Linux walk passed (in-app and over WalletConnect from Chromium). Phase 48 is unplanned and needs devices: Android emulator, Tart VM, an iOS device, Windows, the hosted dashboard. v3.0 live walks still pending."
+last_updated: "2026-10-28T20:00:00.000Z"
+last_activity: 2026-10-28
+last_activity_desc: Phases 44-47 executed and reviewed; Linux walk passed; handoff written
 progress:
-  total_phases: 7
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
-  percent: 29
-resume_file: null
+  total_phases: 8
+  completed_phases: 7
+  total_plans: 32
+  completed_plans: 32
+  percent: 88
 ---
 
 # Project State
@@ -25,26 +24,34 @@ resume_file: null
 See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** v4.0 Phase 44 — dashboard consent and limits, waiting on Braian (v3.0 live walks still pending)
+**Current focus:** v4.0 Phase 48 — dashboard device walks, waiting on devices and on Braian's hosting steps (v3.0 live walks still pending)
 
 ## Current Position
 
 ### v4.0 Processing dashboard bridge (wallet side) — started 2026-10-26
 
-Phase: 42 (Shared job submission off the UI isolate), first of 7 v4.0 phases (42-48)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-26 — Roadmap created: 7 phases, 27/27 requirements mapped
+Phase: 48 (Dashboard device walks), last of 8 v4.0 phases (42-48 plus inserted 44.1)
+Plan: Not planned. Phases 42-47 and 44.1 have 32 of 32 plans executed.
+Status: Human needed. Everything left needs a device, a host or an account; see
+`handoffs/HANDOFF-v4-dashboard-bridge.md` for the list.
+Last activity: 2026-10-28 — Phases 44-47 executed and reviewed; Linux walk passed. Full suite 3200 passed,
+10 skipped, 0 failed at the last full run, plus a few small commits after it.
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 42 | Shared job submission off the UI isolate | ISO-01 | Ready to plan |
-| 43 | gnus RPC handler and job record | RPC-01..09 | Not started |
-| 44 | Dashboard consent and limits | CNS-01..04 | Not started |
-| 45 | Hardened bridge transports | DWV-02, DWV-03 | Not started |
-| 46 | In-wallet dashboard screen | DWV-01, DWV-04..07 | Not started |
-| 47 | Dashboard over WalletConnect | DWC-01..04 | Not started |
-| 48 | Dashboard device walks | WALK-01, WALK-02 | Not started |
+| 42 | Shared job submission off the UI isolate | ISO-01 | Verified in code; animation check in phase 48 |
+| 43 | gnus RPC handler and job record | RPC-01..09 | Verified in code; live SDK results pending |
+| 44 | Dashboard consent and limits | CNS-01..04 | Executed and reviewed; Linux walked |
+| 44.1 | Bridge burn per chain ABI | BRG-01 | Executed; real Sepolia burn pending |
+| 45 | Hardened bridge transports | DWV-02, DWV-03 | Executed; Linux walked; Apple Swift uncompiled |
+| 46 | In-wallet dashboard screen | DWV-01, DWV-04..07 | Executed; Linux walked; release origin is a placeholder |
+| 47 | Dashboard over WalletConnect | DWC-01..04 | Executed and reviewed; Linux walked from Chromium |
+| 48 | Dashboard device walks | WALK-01, WALK-02 | Not planned |
+
+Linux walk (slave box, 2026-10-28) passed in-app (connect, reject, approve, revoke, redirect lock, estimate
+shows price unavailable) and over WalletConnect from Chromium (pair, gnus connect, header, disconnect). Not
+walked: Android, iOS, macOS, Windows, a live spend (SDK-CA), a real Sepolia burn, the hosted origin.
+Open review items: 47 WR-05 (WKWebView commit signal, iOS and macOS), 47 IN-01, IN-02 (by choice), IN-03, IN-04, IN-06, IN-08.
 
 Order: 42, 43, then 44 and 45 (both need only 43), 46 (needs 44 and 45), 47 (needs 43 and 44; can run
 alongside 45-46), 48 last.

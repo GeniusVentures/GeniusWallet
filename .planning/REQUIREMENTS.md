@@ -500,7 +500,7 @@ lands. None is counted in this milestone's coverage.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BRG-01 | Phase 44.1 — Bridge burn per chain ABI | Pending |
+| BRG-01 | Phase 44.1 — Bridge burn per chain ABI | Complete (code; Sepolia accepts the 5-argument call over a read-only check; the real Sepolia burn and relayer pickup are pending) |
 | ISO-01 | Phase 42 — Shared job submission off the UI isolate | Complete (code; real-SDK animation walk in phase 48) |
 | RPC-01 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
 | RPC-02 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
@@ -511,21 +511,21 @@ lands. None is counted in this milestone's coverage.
 | RPC-07 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
 | RPC-08 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
 | RPC-09 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
-| CNS-01 | Phase 44 — Dashboard consent and limits | Pending |
-| CNS-02 | Phase 44 — Dashboard consent and limits | Pending |
-| CNS-03 | Phase 44 — Dashboard consent and limits | Pending |
-| CNS-04 | Phase 44 — Dashboard consent and limits | Pending |
-| DWV-02 | Phase 45 — Hardened bridge transports | Pending |
-| DWV-03 | Phase 45 — Hardened bridge transports | Pending |
-| DWV-01 | Phase 46 — In-wallet dashboard screen | Pending |
-| DWV-04 | Phase 46 — In-wallet dashboard screen | Pending |
-| DWV-05 | Phase 46 — In-wallet dashboard screen | Pending |
-| DWV-06 | Phase 46 — In-wallet dashboard screen | Pending |
-| DWV-07 | Phase 46 — In-wallet dashboard screen | Pending |
-| DWC-01 | Phase 47 — Dashboard over WalletConnect | Pending |
-| DWC-02 | Phase 47 — Dashboard over WalletConnect | Pending |
-| DWC-03 | Phase 47 — Dashboard over WalletConnect | Pending |
-| DWC-04 | Phase 47 — Dashboard over WalletConnect | Pending |
+| CNS-01 | Phase 44 — Dashboard consent and limits | Complete (code; Linux walked 2026-10-28; other platforms pending in phase 48) |
+| CNS-02 | Phase 44 — Dashboard consent and limits | Complete (code; Linux walked 2026-10-28 with a JOB fixture; a live spend confirm waits on SDK-CA) |
+| CNS-03 | Phase 44 — Dashboard consent and limits | Complete (code; Linux walked 2026-10-28; other platforms pending in phase 48) |
+| CNS-04 | Phase 44 — Dashboard consent and limits | Complete (code; leak test over every method; no live SDK result has been through it) |
+| DWV-02 | Phase 45 — Hardened bridge transports | Complete (code; Linux walked 2026-10-28; Windows and Android built only; iOS and macOS Swift not compiled; walks pending in phase 48) |
+| DWV-03 | Phase 45 — Hardened bridge transports | Complete (code; Linux walked 2026-10-28; iOS and macOS reply drop still bumps at provisional start (47 WR-05); other platforms pending) |
+| DWV-01 | Phase 46 — In-wallet dashboard screen | Complete (code; Linux walked 2026-10-28; Windows debug build only; Android, iOS and macOS pending; the hosted origin is a placeholder) |
+| DWV-04 | Phase 46 — In-wallet dashboard screen | Complete (code; Linux walked 2026-10-28; the release origin is a `.invalid` placeholder until the dashboard is hosted; Android POST lock not walked) |
+| DWV-05 | Phase 46 — In-wallet dashboard screen | Complete (code; Linux walked 2026-10-28; stacking over Android, iOS and macOS views unchecked; toasts still sit behind the Linux view) |
+| DWV-06 | Phase 46 — In-wallet dashboard screen | Complete (code; pure-rule tests only; no APK built, Android walk pending in phase 48) |
+| DWV-07 | Phase 46 — In-wallet dashboard screen | Complete (code; browser fallback covered by tests, not walked without WebKitGTK) |
+| DWC-01 | Phase 47 — Dashboard over WalletConnect | Complete (code; Linux wallet paired from Chromium 2026-10-28 with a test dApp; the real dashboard's WalletConnect client and a live submit are pending) |
+| DWC-02 | Phase 47 — Dashboard over WalletConnect | Complete (code; account and network events tested; Linux walk covered pair, header and disconnect, not a wallet switch) |
+| DWC-03 | Phase 47 — Dashboard over WalletConnect | Complete (code; refusals tested, re-checked after the approve drawer closes; not walked) |
+| DWC-04 | Phase 47 — Dashboard over WalletConnect | Complete (code; contract errors tested; live SDK errors pending) |
 | WALK-01 | Phase 48 — Dashboard device walks | Pending |
 | WALK-02 | Phase 48 — Dashboard device walks | Pending |
 

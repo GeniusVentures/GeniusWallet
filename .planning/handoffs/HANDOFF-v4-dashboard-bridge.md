@@ -1,43 +1,56 @@
-# Handoff: v4.0 processing dashboard bridge, overnight run 2026-10-26/27
+# Handoff: v4.0 processing dashboard bridge (wallet side), 2026-10-28
 
-Branch `claude/gsd-dashboard-bridge-milestone-b6a5e7` (worktree `.claude/worktrees/gsd-dashboard-bridge-milestone-b6a5e7`),
-reset onto `origin/develop` 7b0d7a1a at the start (it had been cut from stale `main`; the one `main`-only
-commit, 258184a8 "C++ engineering constraints in AGENTS.md", is not on this branch). Nothing pushed, no PR.
-All commits authored braianwegmann@gmail.com, no Claude attribution.
+Branch `claude/gsd-dashboard-bridge-milestone-b6a5e7`, draft PR #294, based on develop `7b0d7a1a`.
+Phases 42-47 and 44.1 are executed. Phase 48 (device walks) is unplanned and needs hardware and hosting.
+All commits are authored braianwegmann@gmail.com with no Claude attribution.
 
-Braian asked the session to run GSD overnight in both repos and answer questions itself. Every scoping
-choice is marked (D) in STATE.md Decisions, the phase CONTEXT files and the contract. None is reviewed yet.
+## What is built
 
-## What exists now
+- 42: one job-submission owner (`lib/submit_job/`), SDK cost and process calls run off the UI isolate.
+- 43: the `gnus_*` handler (`lib/gnus_bridge/`), Hive job record, idempotency, one-burn lock.
+- 44: per-origin connect, native spend confirm, one open prompt wallet-wide plus 3 per minute per origin,
+  connected sites in Settings, secret-leak test, GNUS BRIDGE section in the dev bubble. Reviewed, 2 critical fixed.
+- 44.1: `bridge_out_abi.dart` picks the 5-arg or 3-arg `bridgeOut` per chain; `-32013` where neither exists.
+- 45: hardened transports on five web views (top frame only, origin from the platform sender).
+- 46: in-wallet dashboard screen ("Jobs and earnings" on the Earning panel), origin pin, navigation lock,
+  Android Back and file picker, system-browser fallback without WebKitGTK.
+- 47: dashboard over WalletConnect through the same handler, unsignable wallets refused, account and
+  network events, `tx.from` check. Reviewed with 45-46: 12 of 18 findings fixed (`.planning/phases/47-*/47-REVIEW.md`).
+- Linux link break fixed in `df4b9793` (`webkit_policy_error_quark` resolved at runtime).
 
-- Milestone v4.0 in PROJECT.md, REQUIREMENTS.md (27 reqs: RPC, DWV, DWC, CNS, ISO, WALK; SDK-* as
-  dependencies), ROADMAP.md (phases 42-48), STATE.md. v3.0 stays open alongside (live walks only).
-- Contract: `research/v4.0-gnus-rpc-contract.md` (canonical), mirrored verbatim to the side-session notes
-  for the dashboard. Revised several times tonight from the dashboard research (units, version, UA marker,
-  idempotency lookup, -32005 reasons, -32015 for switch, WalletConnect expiry and event chain, gas as a
-  gwei price, data.reason table, timeouts and job limits).
-- Phase 42 (ISO-01) done: `JobSubmission` owner in `lib/submit_job/`, cost and process via `Isolate.run`,
-  sync SDK calls deleted. Reviewed (CR-01 + 3 warnings fixed). Verified human_needed: real-SDK
-  "keeps animating" check deferred to the phase 48 walk.
-- Phase 43 (RPC-01..09) done: `lib/gnus_bridge/` handler, Hive job record, idempotency, one-burn lock in
-  `JobSubmission`, accounts/earnings/events, exact unit conversions. Default confirm REJECTS (4001); no
-  page can reach the handler yet. Reviewed (CR-01 + 12 warnings fixed, WR-06/WR-08 partial). Verified
-  human_needed: live SDK results blocked on SDK-*, real relaunch not walked.
-- Tests: full suite 2878 pass / 6 skip / 0 fail (baseline at start 2663/6/0); analyze clean.
+## Numbers
 
-## Needs Braian
+Full suite 3200 passed, 10 skipped, 0 failed at the last full run, plus a few small commits after it.
+Analyze, format and the brace, raw-colour and key-logging checks were exit 0 at each phase gate.
 
-1. Review the (D) decisions, especially: v4.0 parallel to v3.0; atomic in-wallet submit; pinned https
-   origin instead of a bundled export; MetaMask-only users cannot submit.
-2. Phase 43 fix WR-01 changed the shared burn in `genius_api` (also used by the token bridge screen): exact
-   amount conversion, and it refuses a token whose decimals are not 18 (ponytail). Check that is right for
-   every chain GNUS lives on.
-3. Phase 44 (consent UI) not started on purpose: it is the first UI a user sees for spends.
-4. Contract open questions U1 (SDK cost unit), U5 (can Process be re-run after a burn), payer with no EVM
-   address over WalletConnect, deep-link scheme, contract fixtures for the dashboard.
-5. SDK asks for SuperGenius: SDK-CA (cost always 0), SDK-COSTERR, SDK-JOBID, SDK-STATUS, SDK-RESULT,
-   SDK-EARNINGS, SDK-PAYOUT.
+## Walks
+
+Linux on the slave box, 2026-10-28, passed.
+- In-app: connect, reject, approve, revoke, redirect lock; the estimate shows price unavailable (SDK-CA).
+- Over WalletConnect from Chromium: pair, gnus connect, header, disconnect.
+- Not walked: Windows (debug build only), Android (Kotlin compiled, no APK), iOS and macOS (Swift never
+  compiled, Tart VM was unreachable), a live spend, the no-WebKitGTK fallback, a wallet switch over WalletConnect.
+
+## Open items
+
+1. Cloudflare account and domain for the hosted dashboard. Until then the pinned origin is
+   `https://gnus-dashboard-staging.invalid` and the release entry stays hidden.
+2. Reown dashboard project id for the dashboard's WalletConnect client (gnus-dashboard handoff has the steps).
+3. SDK asks for SuperGenius, written up at https://claude.ai/artifact/MpV91q6AHVqZh2Nwuk5K3T:
+   SDK-CA (cost always 0), SDK-COSTERR, SDK-JOBID, SDK-STATUS, SDK-RESULT, SDK-EARNINGS, SDK-PAYOUT.
+   Until SDK-CA lands, every live estimate is `-32010` and no live spend can be walked.
+4. The chainstack RPC keys for Amoy and BNB Testnet are expired (HTTP 401); publicnode stands in for now.
+   Replace them in the wallet's chain config.
+5. iOS and macOS commit signal (47 WR-05): WKWebView reports at provisional start, so a download or 204
+   can drop a reply. Needs the Swift side, so it waits for a Mac build. Also 47 IN-01 (Apple scripts
+   injected on every origin) and IN-08 (Linux `window.open`), both in the review.
+6. One real Sepolia burn with the 5-argument form (44.1 criterion 5). Sepolia accepts the call read-only;
+   the receipt, selector `0xa5a5aa20` and relayer credit are unrecorded. Steps are in `44.1-02-SUMMARY.md`.
+7. SuperGenius cross-node mint dedup: `MintFunds` dedups on chainId+hash, and the wallet and the relayer pass
+   different chain ids, so a 3-arg burn minted by both is unconfirmed (`research/v4.0-bridge-abi.md`).
+   Needs an answer from SuperGenius; if the relayer starts handling 3-arg events the wallet's crediting rule changes.
 
 ## Next
 
-`/gsd-discuss-phase 44` (consent UI), or `/gsd-plan-phase 45` (transport hardening, no UI) in parallel.
+Plan phase 48 once a Tart VM, the GW_Test AVD and a hosted dashboard exist. Windows can be walked now.
+Do not dispatch `build.yml` to get an APK; merge, then take the develop build.

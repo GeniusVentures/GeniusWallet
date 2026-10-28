@@ -1730,11 +1730,11 @@ per git index, so a parallel phase needs its own worktree.
 
 - [x] **Phase 42: Shared job submission off the UI isolate** - The compute panel's job flow has one owner, and pricing or submitting a job no longer freezes the wallet
 - [x] **Phase 43: gnus RPC handler and job record** - One handler answers every `gnus_*` method in the contract; every bridge job is recorded and survives a restart
-- [ ] **Phase 44: Dashboard consent and limits** - Per-origin connect, a native confirm on every submit, prompt limits, and no secret in any bridge output
-- [ ] **Phase 44.1: Bridge burn per chain ABI** (INSERTED) - The GNUS burn uses whichever `bridgeOut` each chain has deployed, with the SDK account as destination where the new form needs it
-- [ ] **Phase 45: Hardened bridge transports** - On all five web views only the top frame reaches the bridge, and the caller's origin comes from the message itself
-- [ ] **Phase 46: In-wallet dashboard screen** - The user opens the dashboard inside the wallet on all five platforms, pinned to its origin, with wallet dialogs above the page
-- [ ] **Phase 47: Dashboard over WalletConnect** - The dashboard in a normal browser calls the same `gnus_*` methods over WalletConnect, with the session fixes that path needs
+- [x] **Phase 44: Dashboard consent and limits** - Per-origin connect, a native confirm on every submit, prompt limits, and no secret in any bridge output (walk: Linux passed 2026-10-28; other platforms pending)
+- [x] **Phase 44.1: Bridge burn per chain ABI** (INSERTED) - The GNUS burn uses whichever `bridgeOut` each chain has deployed, with the SDK account as destination where the new form needs it (code and read-only Sepolia check done; the one real Sepolia burn is pending)
+- [x] **Phase 45: Hardened bridge transports** - On all five web views only the top frame reaches the bridge, and the caller's origin comes from the message itself (walk: Linux passed 2026-10-28; other platforms pending; Apple Swift not yet compiled)
+- [x] **Phase 46: In-wallet dashboard screen** - The user opens the dashboard inside the wallet on all five platforms, pinned to its origin, with wallet dialogs above the page (walk: Linux passed 2026-10-28; other platforms pending; release origin still a placeholder)
+- [x] **Phase 47: Dashboard over WalletConnect** - The dashboard in a normal browser calls the same `gnus_*` methods over WalletConnect, with the session fixes that path needs (walk: Linux passed 2026-10-28 from Chromium; other platforms and the hosted dashboard pending)
 - [ ] **Phase 48: Dashboard device walks** - The bridge is walked end to end on Android, iOS, macOS, Windows and Linux, and over WalletConnect from a desktop browser
 
 ## Phase Details
@@ -1794,7 +1794,14 @@ per git index, so a parallel phase needs its own worktree.
   5. The prompts and the Settings list can be exercised from the dev tools bubble with dev mocks, without a dashboard page, and meet WCAG AA in light and dark mode.
 
 **SDK dependencies**: SDK-CA for a live cost in the confirm; until then the confirm is walked with dev-mock costs, and a live submit stops at `-32010` before any confirm shows.
-**Plans**: TBD
+**Plans**: 6 plans (waves 1-4). Reviewed: 2 critical and 6 warnings fixed, WR-06 partial (no native fee until the owner reports a gas limit). Linux walk passed 2026-10-28; other platforms pending.
+
+- [x] 44-01-PLAN.md — Tracer: per-origin connect prompt, Hive connection store, every method takes the check (CNS-01)
+- [x] 44-02-PLAN.md — Native spend confirm replaces the rejecting default; Reject spends nothing (CNS-02)
+- [x] 44-03-PLAN.md — One open prompt, 3 per minute per origin, `-32005`; revoke lands on calls in flight (CNS-03)
+- [x] 44-04-PLAN.md — Connected sites list and revoke in Settings (CNS-01)
+- [x] 44-05-PLAN.md — Secret-leak test over every method, log and Sentry path (CNS-04)
+- [x] 44-06-PLAN.md — GNUS BRIDGE section in the dev bubble, phase gate, Linux walk
 **UI hint**: yes
 
 ### Phase 44.1: Bridge burn per chain ABI (INSERTED)
@@ -1810,7 +1817,10 @@ per git index, so a parallel phase needs its own worktree.
   4. The ABI choice per chain has one owner in `genius_api`, and a test covers each of the three cases plus the destination derivation against a known key.
   5. One real 5-argument burn on Sepolia is walked and its receipt and relayer pickup recorded, or the gap is stated.
 
-**Plans**: TBD
+**Plans**: 2 plans (waves 1-2). Criterion 5 is an open human check: Sepolia accepts the 5-argument call over a read-only call, but no real burn has run.
+
+- [x] 44.1-01-PLAN.md — `bridge_out_abi.dart` owns the per-chain form (diamond loupe, 5-arg preferred), destination from the SDK account key, under every burn and gas estimate (criteria 1, 2, 4)
+- [x] 44.1-02-PLAN.md — `-32013` before any confirm, token bridge button says why, opt-in Sepolia check (criterion 3; criterion 5 partial)
 
 ### Phase 45: Hardened bridge transports
 
@@ -1826,7 +1836,15 @@ per git index, so a parallel phase needs its own worktree.
   4. Windows, Linux, Android, macOS and iOS builds compile with the hardened transports; a platform that cannot be run (iOS: the simulator is blocked by device-only SDK libraries) is recorded as a blocked gap with its reason.
 
 **SDK dependencies**: None. Transport checks use cheap reads (`gnus_getAccounts`) and dev mocks.
-**Plans**: TBD
+**Plans**: 7 plans (waves 1-7). Linux walked 2026-10-28. Windows built; Android Kotlin compiled; the iOS and macOS Swift is not compiled (Tart VM unreachable); Android, iOS and macOS walks are phase 48.
+
+- [x] 45-01-PLAN.md — Tracer: Linux injected bridge to session to handler to reply, shared session and allowlist, dev route
+- [x] 45-02-PLAN.md — Linux navigation lock, popups to the system browser, user-agent marker, test page
+- [x] 45-03-PLAN.md — Linux build and walk of the test page (skipped at first, folded into the combined Linux walk; passed 2026-10-28)
+- [x] 45-04-PLAN.md — Windows transport on a vendored, patched `webview_windows` (WebView2 source)
+- [x] 45-05-PLAN.md — Android web message listener and document-start script from app-side Kotlin
+- [x] 45-06-PLAN.md — iOS and macOS main-frame-only user script and handler reading `frameInfo` (Swift, not compiled)
+- [x] 45-07-PLAN.md — Phase gate and per-platform verification matrix
 
 ### Phase 46: In-wallet dashboard screen
 
@@ -1843,7 +1861,13 @@ per git index, so a parallel phase needs its own worktree.
   5. On Linux without WebKitGTK, the dashboard entry opens the dashboard in the system browser instead.
 
 **SDK dependencies**: SDK-CA for a live estimate and submit from the page; until then the page is walked with dev-mock costs and a live estimate shows `-32010`. The screen itself needs no SDK change.
-**Plans**: TBD
+**Plans**: 5 plans (waves 1-5). Linux walked 2026-10-28 (the estimate shows price unavailable until SDK-CA). Windows debug build compiled; Android resources and manifest merge only (no APK); iOS and macOS not built. The release entry stays hidden while the pinned origin is a `.invalid` placeholder.
+
+- [x] 46-01-PLAN.md — Tracer: "Jobs and earnings" entry opens a full-screen route hosting the Linux bridge view; origin and listing rules; no-WebKitGTK fallback
+- [x] 46-02-PLAN.md — Linux states, Close and Reload, dialogs above the page, labels, dev Hosted switch
+- [x] 46-03-PLAN.md — Linux build and walk of the real dashboard (skipped at first, folded into the combined Linux walk; passed 2026-10-28)
+- [x] 46-04-PLAN.md — Same screen on Windows, macOS and iOS with one view chooser; Windows builds
+- [x] 46-05-PLAN.md — Android Back and job-file picker, debug cleartext localhost, gate and matrix
 **UI hint**: yes
 
 ### Phase 47: Dashboard over WalletConnect
@@ -1860,7 +1884,13 @@ per git index, so a parallel phase needs its own worktree.
   4. A `gnus_*` request the wallet cannot serve (SDK down, switch in progress, rejected confirm) gets the contract's error code for that case back instead of hanging.
 
 **SDK dependencies**: SDK-CA for a live submit over WalletConnect; until then submit is checked with dev-mock costs. Cross-project: the real dashboard's WalletConnect `gnus_*` client is gnus-dashboard work; until it lands, a test dApp page drives the checks.
-**Plans**: TBD
+**Plans**: 5 plans (waves 1-4). Reviewed with phases 45-46: 12 of 18 findings fixed, no critical. Open: WKWebView commit signal (WR-05), toasts behind the Linux view, four info items. Linux wallet paired from Chromium and walked 2026-10-28; the Windows build and walk were not run.
+
+- [x] 47-01-PLAN.md — App-level WalletConnect host, `gnus_*` routing through the one handler, Verify rule (DWC-01)
+- [x] 47-02-PLAN.md — Parity proof for all six methods, wire differences written into the contract (DWC-01)
+- [x] 47-03-PLAN.md — Unsignable wallets refused, account and network events, `tx.from` check (DWC-02, DWC-03)
+- [x] 47-04-PLAN.md — Live-session behaviour: events, slow prompts answered, contract errors instead of hangs (DWC-01, DWC-02, DWC-04)
+- [x] 47-05-PLAN.md — Gate, then Linux wallet paired with a dashboard in a desktop browser (passed 2026-10-28 from Chromium)
 
 ### Phase 48: Dashboard device walks
 
@@ -1885,8 +1915,9 @@ per git index, so a parallel phase needs its own worktree.
 |-------|----------------|--------|-----------|
 | 42. Shared job submission off the UI isolate | 2/2 | Verified in code; real-SDK animation check deferred to the phase 48 walk | 2026-10-27 |
 | 43. gnus RPC handler and job record | 5/5 | Verified in code (human_needed: live SDK results and a real relaunch walk) | 2026-10-27 |
-| 44. Dashboard consent and limits | 0/TBD | Not started | - |
-| 45. Hardened bridge transports | 0/TBD | Not started | - |
-| 46. In-wallet dashboard screen | 0/TBD | Not started | - |
-| 47. Dashboard over WalletConnect | 0/TBD | Not started | - |
-| 48. Dashboard device walks | 0/TBD | Not started | - |
+| 44. Dashboard consent and limits | 6/6 | Executed and reviewed; Linux walk passed 2026-10-28; other platforms pending | 2026-10-28 |
+| 44.1 Bridge burn per chain ABI | 2/2 | Executed; real Sepolia burn pending | 2026-10-28 |
+| 45. Hardened bridge transports | 7/7 | Executed; Linux walk passed 2026-10-28; Apple Swift uncompiled; Android, iOS, macOS walks pending | 2026-10-28 |
+| 46. In-wallet dashboard screen | 5/5 | Executed; Linux walk passed 2026-10-28; other platforms and the release origin pending | 2026-10-28 |
+| 47. Dashboard over WalletConnect | 5/5 | Executed and reviewed; Linux walk over Chromium passed 2026-10-28; hosted dashboard pending | 2026-10-28 |
+| 48. Dashboard device walks | 0/TBD | Not started: needs the Android emulator, Tart VM, an iOS device, Windows and the hosted dashboard | - |
