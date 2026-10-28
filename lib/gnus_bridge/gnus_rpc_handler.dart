@@ -276,7 +276,7 @@ class GnusRpcHandler {
       // The SDK half never changes inside a session: the SDK net applies only
       // after a restart. Do not fake it.
       _emit(GnusRpcEventName.networkChanged, {
-        'sdk': (await _readSgnsNet()).name,
+        'sdk': (await readSgnsNet()).name,
         'evmChainId': chainId,
       });
     }
@@ -346,12 +346,13 @@ class GnusRpcHandler {
   /// handler's lifetime. A failed read is not kept, so the next call retries.
   Future<SgnsNet>? _sgnsNet;
 
-  Future<SgnsNet> _readSgnsNet() => _sgnsNet ??= _geniusApi
-      .sgnsNet()
-      .catchError((Object e, StackTrace stack) {
-        _sgnsNet = null;
-        Error.throwWithStackTrace(e, stack);
-      });
+  /// The SDK net, read once.
+  Future<SgnsNet> readSgnsNet() => _sgnsNet ??= _geniusApi.sgnsNet().catchError(
+    (Object e, StackTrace stack) {
+      _sgnsNet = null;
+      Error.throwWithStackTrace(e, stack);
+    },
+  );
 
   /// Answers one call. [origin] comes from [GnusOrigin.parse], so a transport
   /// cannot pass one that is not canonical.
@@ -808,7 +809,7 @@ class GnusRpcHandler {
       'gas': gas.gas,
       'balance': balance?.toString(),
       'network': {
-        'sdk': (await _readSgnsNet()).name,
+        'sdk': (await readSgnsNet()).name,
         'evmChainId': network?.chainId,
       },
     };
@@ -915,7 +916,7 @@ class GnusRpcHandler {
       },
       'switching': switchingTo != null,
       'network': {
-        'sdk': (await _readSgnsNet()).name,
+        'sdk': (await readSgnsNet()).name,
         'evmChainId': details.selectedNetwork?.chainId,
       },
       'version': kGnusRpcVersion,

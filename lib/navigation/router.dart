@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -20,6 +21,8 @@ import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/dev/design_gallery_screen.dart';
+import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
+import 'package:genius_wallet/dev/gnus_bridge_test_screen.dart';
 import 'package:genius_wallet/dev/token_probe_screen.dart';
 import 'package:genius_wallet/logs/submit_logs_screen.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
@@ -148,6 +151,11 @@ final geniusWalletRouter = GoRouter(
         return const TokenProbeScreen();
       },
     ),
+    if (kDebugMode && kShowDevTools)
+      GoRoute(
+        path: '/dev/gnus-bridge',
+        builder: (context, state) => const GnusBridgeTestScreen(),
+      ),
     GoRoute(
       path: '/design_gallery',
       builder: (context, state) {
