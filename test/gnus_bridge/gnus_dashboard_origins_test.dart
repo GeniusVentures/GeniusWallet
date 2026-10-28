@@ -119,4 +119,56 @@ void main() {
       }
     });
   });
+
+  group('gnusDashboardStart', () {
+    final pinned = Uri.parse('${gnusDashboardOrigin(SgnsNet.staging)}/');
+    final dev = Uri.parse('http://localhost:3000/');
+
+    for (final (isDev, hosted, expected) in [
+      (false, false, pinned),
+      (false, true, pinned),
+      (true, false, dev),
+      (true, true, pinned),
+    ]) {
+      test('dev: $isDev hosted: $hosted starts on $expected', () {
+        for (final net in SgnsNet.values) {
+          final start = gnusDashboardStart(net, dev: isDev, hosted: hosted);
+
+          expect(start, expected);
+          expect(start.path, '/');
+          expect(start.hasQuery, isFalse);
+          expect(start.hasFragment, isFalse);
+          expect(
+            gnusAllowedOrigins(net, dev: isDev),
+            contains(webOrigin('$start')),
+          );
+        }
+      });
+    }
+
+    test('a dev origin that is not localhost falls back to the pinned one', () {
+      expect(
+        gnusDashboardStart(
+          SgnsNet.staging,
+          dev: true,
+          devOrigin: 'http://evil.com',
+        ),
+        pinned,
+      );
+    });
+  });
+
+  group('gnusDashboardListed', () {
+    test('a release build waits for a real pinned origin', () {
+      final placeholder = SgnsNet.values.any(
+        (net) => Uri.parse(gnusDashboardOrigin(net)).host.endsWith('.invalid'),
+      );
+
+      expect(gnusDashboardListed(dev: false), !placeholder);
+    });
+
+    test('a dev build always lists it', () {
+      expect(gnusDashboardListed(dev: true), isTrue);
+    });
+  });
 }

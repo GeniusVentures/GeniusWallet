@@ -10,7 +10,9 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class _Home extends StatelessWidget {
-  const _Home();
+  const _Home({this.listed = true});
+
+  final bool listed;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class _Home extends StatelessWidget {
           onUnitChanged: (_) {},
           onLinkTap: (_) {},
           onNewJob: () {},
-          onOpenDashboard: () => openGnusDashboard(context),
+          onOpenDashboard: listed ? () => openGnusDashboard(context) : null,
         ),
       ),
     );
@@ -35,10 +37,14 @@ Widget _app({
   required bool dev,
   required List<Uri> hosted,
   GnusDashboardHostBuilder? host,
+  bool listed = true,
 }) {
   final router = GoRouter(
     routes: [
-      GoRoute(path: '/', builder: (_, _) => const _Home()),
+      GoRoute(
+        path: '/',
+        builder: (_, _) => _Home(listed: listed),
+      ),
       GoRoute(
         path: '/gnus-dashboard',
         builder: (_, _) => GnusDashboardScreen(
@@ -77,6 +83,13 @@ void main() {
         expect(hosted, [Uri.parse(expected)]);
       });
     }
+  });
+
+  testWidgets('an unlisted entry shows no button', (tester) async {
+    await tester.pumpWidget(_app(dev: false, hosted: [], listed: false));
+
+    expect(find.text('Earning'), findsWidgets);
+    expect(find.text('Jobs and earnings'), findsNothing);
   });
 
   group('the route', () {
