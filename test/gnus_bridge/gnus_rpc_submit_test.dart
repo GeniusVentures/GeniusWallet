@@ -440,13 +440,60 @@ void main() {
       expect(_error(reply)['data'], {
         'reason': GnusRpcReason.submissionOutcomeUnknown,
         'idempotencyKey': 'key-1',
-        'burnTxHash': null,
+        'burnTxHash': gnusTestBurnHash,
         'sdkAddress': gnusTestNode.toLowerCase(),
         'payer': gnusTestWalletAddress.toLowerCase(),
         'cost': '1234000000000000000000',
         'createdAt': h.clock.toIso8601String(),
       });
       expect(h.api.count('burn'), 1);
+    });
+
+    test('a send with no answer keeps the intent with its hash and never '
+        'burns again', () async {
+      final h = await harness();
+      h.api.burnResponse = ApiResponse.unconfirmed(
+        gnusTestBurnHash,
+        'connection reset',
+      );
+      final handler = h.build();
+
+      final reply = await viaJson(handler, _origin, _submit, _params());
+      final again = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.internal);
+      final data = _error(reply)['data']! as Map<String, Object?>;
+      expect(data['reason'], GnusRpcReason.submissionOutcomeUnknown);
+      expect(data['burnTxHash'], gnusTestBurnHash);
+      expect(again, equals(reply));
+      expect(h.store.intentFor(_origin, 'key-1')?.burnTxHash, gnusTestBurnHash);
+      expect(h.api.broadcasts, 1);
+      expect(h.api.count('process'), 0);
+    });
+
+    test('a send refused after signing still keeps the intent', () async {
+      final h = await harness();
+      h.api.burnResponse = ApiResponse.error('nonce too low');
+      h.api.signedHashOnError = gnusTestBurnHash;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      final data = _error(reply)['data']! as Map<String, Object?>;
+      expect(data['reason'], GnusRpcReason.submissionOutcomeUnknown);
+      expect(data['burnTxHash'], gnusTestBurnHash);
+      expect(h.store.intentFor(_origin, 'key-1'), isNotNull);
+    });
+
+    test('a hash that cannot be written cancels the send', () async {
+      final h = await harness();
+      h.store.failHashWrites = true;
+
+      final reply = await viaJson(h.build(), _origin, _submit, _params());
+
+      expect(_error(reply)['code'], GnusRpcCode.internal);
+      expect(_error(reply)['data'], isNull);
+      expect(h.api.broadcasts, 0);
+      expect(h.store.intentFor(_origin, 'key-1'), isNotNull);
     });
 
     test('a replay after a restart still answers the first result', () async {

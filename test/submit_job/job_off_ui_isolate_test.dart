@@ -84,6 +84,7 @@ class _AsyncOnlyGeniusApi implements GeniusApi {
     required int sourceChainId,
     required int destinationChainId,
     bool shouldMintTokens = false,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     served.add('bridgeOut');
     return ApiResponse.success('0xHASH');

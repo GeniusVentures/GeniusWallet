@@ -529,6 +529,7 @@ class Web3 {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     final client = Web3Client(rpcUrl, Client());
 
@@ -553,14 +554,13 @@ class Web3 {
 
       final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
 
-      // Execute Transaction
-      final txHash = await client.sendTransaction(
+      return await broadcastSigned(
+        client,
         credentials,
-        transactionResponse.data!, // handled above if null
+        transactionResponse.data!,
         chainId: sourceChainId,
+        beforeBroadcast: beforeBroadcast,
       );
-
-      return ApiResponse.success(txHash);
     } catch (e) {
       ApiResponse.error(e.toString());
     } finally {
@@ -568,6 +568,43 @@ class Web3 {
     }
 
     return ApiResponse.error('Failed to bridge: unknown');
+  }
+
+  /// Signs [transaction] locally and hands its hash to [beforeBroadcast]
+  /// before sending it; a throw there means it is never sent. A send with no
+  /// JSON-RPC answer may have reached the network: [ApiResponse.unconfirmed].
+  static Future<ApiResponse<String>> broadcastSigned(
+    Web3Client client,
+    Credentials credentials,
+    Transaction transaction, {
+    required int chainId,
+    Future<void> Function(String txHash)? beforeBroadcast,
+  }) async {
+    Uint8List signed;
+    final String txHash;
+    try {
+      signed = await client.signTransaction(
+        credentials,
+        transaction,
+        chainId: chainId,
+      );
+      // web3dart before 3.0.3 leaves the 0x02 type byte to sendTransaction.
+      if (transaction.isEIP1559 && signed.first >= 0xc0) {
+        signed = prependTransactionType(0x02, signed);
+      }
+      txHash = bytesToHex(keccak256(signed), include0x: true);
+      await beforeBroadcast?.call(txHash);
+    } catch (e) {
+      return ApiResponse.error(e.toString());
+    }
+    try {
+      return ApiResponse.success(await client.sendRawTransaction(signed));
+    } on RPCError catch (e) {
+      // Only a JSON-RPC error proves the node refused the transaction.
+      return ApiResponse.error(e.toString());
+    } catch (e) {
+      return ApiResponse.unconfirmed(txHash, e.toString());
+    }
   }
 
   /// Grants [spender] an allowance of exactly [amount] raw base units.

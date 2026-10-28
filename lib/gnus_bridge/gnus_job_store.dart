@@ -149,6 +149,32 @@ class GnusSubmitIntent {
     burnTxHash: burnTxHash,
   );
 
+  /// The contract `Job` shape, status `pending`: the outcome is not recorded.
+  Map<String, Object?> toContract() => {
+    'jobId': null,
+    'burnTxHash': burnTxHash,
+    'sdkAddress': sdkAddress,
+    'origin': origin,
+    'idempotencyKey': idempotencyKey,
+    'submittedAt': createdAt.toUtc().toIso8601String(),
+    'cost': cost,
+    'status': pendingStatus,
+  };
+
+  static const pendingStatus = 'pending';
+
+  /// [toContract] for an intent whose record cannot be read.
+  static Map<String, Object?> unreadableContract(String origin, String key) => {
+    'jobId': null,
+    'burnTxHash': null,
+    'sdkAddress': null,
+    'origin': origin,
+    'idempotencyKey': key,
+    'submittedAt': null,
+    'cost': null,
+    'status': pendingStatus,
+  };
+
   String encode() => jsonEncode({
     'v': 1,
     'origin': origin,
@@ -159,7 +185,7 @@ class GnusSubmitIntent {
     'cost': cost,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'burnTxHash': burnTxHash,
-    'status': 'pending',
+    'status': pendingStatus,
   });
 
   /// Null on any malformed value; never throws.
@@ -244,6 +270,10 @@ class GnusJobStore {
   static String _intentKey(String origin, String key) =>
       '$_intentPrefix${sha256.convert(utf8.encode('$origin|$key'))}';
 
+  // ponytail: an intent stays after its job record is written, about 400 bytes
+  // per submit, so the box grows by one entry per submit forever. Lookups skip
+  // intents by key and never decode them. Upgrade: drop intents past the 24 h
+  // idempotency window at startup.
   Future<void> putIntent(GnusSubmitIntent intent) => _box.put(
     _intentKey(intent.origin, intent.idempotencyKey),
     intent.encode(),

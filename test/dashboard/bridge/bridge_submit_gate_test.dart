@@ -74,6 +74,7 @@ class _RecordingApi implements GeniusApi {
     required int sourceChainId,
     required int destinationChainId,
     bool shouldMintTokens = false,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     burns++;
     signers.add(address);

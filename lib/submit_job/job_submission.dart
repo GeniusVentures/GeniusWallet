@@ -178,14 +178,15 @@ class JobSubmission {
     return GasEstimateOk(gas);
   }
 
-  /// Burns and processes one job, or answers [JobBusy] at once while another
-  /// submit from any instance is running. With [expectedNode], Process runs
-  /// only as that account, checked under the SDK's account gate.
+  /// Burns and processes one job, or answers [JobBusy] while another submit
+  /// runs. [beforeBroadcast] sees the burn's hash before it is sent; with
+  /// [expectedNode], Process runs only as that account.
   Future<JobSubmitResult> submit(
     JobFacts facts, {
     required int jobCost,
     required Map<String, dynamic> jobJson,
     Future<void> Function(String burnHash)? onBurned,
+    Future<void> Function(String txHash)? beforeBroadcast,
     String? expectedNode,
   }) async {
     if (_submitting) {
@@ -198,6 +199,7 @@ class JobSubmission {
         jobCost: jobCost,
         jobJson: jobJson,
         onBurned: onBurned,
+        beforeBroadcast: beforeBroadcast,
         expectedNode: expectedNode,
       );
     } finally {
@@ -210,6 +212,7 @@ class JobSubmission {
     required int jobCost,
     required Map<String, dynamic> jobJson,
     Future<void> Function(String burnHash)? onBurned,
+    Future<void> Function(String txHash)? beforeBroadcast,
     String? expectedNode,
   }) async {
     // Sits before the precondition guard: that guard protects the two calls
@@ -240,6 +243,7 @@ class JobSubmission {
       address: walletAddress,
       amountToBurn: jobCost.toString(),
       destinationChainId: _bridgeDestinationChainId,
+      beforeBroadcast: beforeBroadcast,
     );
 
     final txHash = resp.data;

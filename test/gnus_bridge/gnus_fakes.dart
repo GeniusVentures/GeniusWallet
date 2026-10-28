@@ -68,6 +68,13 @@ class FakeGnusApi implements GeniusApi {
   /// Runs when the burn lands, before it answers.
   void Function()? onBurn;
 
+  /// The hash a signed burn carries when [burnResponse] has none: a send the
+  /// node refused after signing. Null means the burn failed before signing.
+  String? signedHashOnError;
+
+  /// Burns that got past `beforeBroadcast` and were sent.
+  int broadcasts = 0;
+
   /// Ordered: `cost`, `gas`, `burn`, `process`.
   final List<String> calls = [];
 
@@ -126,8 +133,18 @@ class FakeGnusApi implements GeniusApi {
     required int sourceChainId,
     required int destinationChainId,
     bool shouldMintTokens = false,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     calls.add('burn');
+    final signed = burnResponse.data ?? signedHashOnError;
+    if (signed != null) {
+      try {
+        await beforeBroadcast?.call(signed);
+      } catch (e) {
+        return ApiResponse.error('$e');
+      }
+      broadcasts++;
+    }
     onBurn?.call();
     return burnResponse;
   }
@@ -212,6 +229,9 @@ class FlakyGnusJobStore extends GnusJobStore {
 
   bool failWrites = false;
 
+  /// Fails only the write that puts a signed burn's hash onto an intent.
+  bool failHashWrites = false;
+
   @override
   Future<void> put(GnusJob job) async {
     if (failWrites) {
@@ -222,7 +242,7 @@ class FlakyGnusJobStore extends GnusJobStore {
 
   @override
   Future<void> putIntent(GnusSubmitIntent intent) async {
-    if (failWrites) {
+    if (failWrites || (failHashWrites && intent.burnTxHash != null)) {
       throw const FileSystemException('disk full');
     }
     await super.putIntent(intent);

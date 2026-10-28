@@ -191,6 +191,53 @@ void main() {
       );
     });
 
+    test('an unfinished submit is found by its key as pending', () async {
+      final intent = GnusSubmitIntent(
+        origin: _origin,
+        idempotencyKey: 'open',
+        bodyHash: 'h',
+        payer: gnusTestWalletAddress.toLowerCase(),
+        sdkAddress: gnusTestNode.toLowerCase(),
+        cost: '1000000000000000000',
+        createdAt: DateTime.utc(2026, 10, 27, 12, 5),
+      );
+      await h.store.putIntent(intent);
+
+      final unsigned = await call(_get, {'idempotencyKey': 'open'});
+      expect(unsigned['result'], {
+        'jobId': null,
+        'burnTxHash': null,
+        'sdkAddress': gnusTestNode.toLowerCase(),
+        'origin': _origin,
+        'idempotencyKey': 'open',
+        'submittedAt': '2026-10-27T12:05:00.000Z',
+        'cost': '1000000000000000000',
+        'status': 'pending',
+        'result': null,
+      });
+
+      await h.store.putIntent(intent.withBurn('0xsigned'));
+      final signed = await call(_get, {'idempotencyKey': 'open'});
+      expect((signed['result']! as Map)['burnTxHash'], '0xsigned');
+    });
+
+    test('a recorded job wins over its intent', () async {
+      await h.store.putIntent(
+        GnusSubmitIntent(
+          origin: _origin,
+          idempotencyKey: 'key-1',
+          bodyHash: 'h',
+          payer: gnusTestWalletAddress.toLowerCase(),
+          sdkAddress: gnusTestNode.toLowerCase(),
+          cost: '1',
+          createdAt: DateTime.utc(2026, 10, 27, 12),
+        ),
+      );
+
+      final reply = await call(_get, {'idempotencyKey': 'key-1'});
+      expect((reply['result']! as Map)['status'], 'submitted');
+    });
+
     test('zero or two selectors, or a bad selector, is -32602', () async {
       for (final bad in <Object?>[
         null,

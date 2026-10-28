@@ -504,10 +504,31 @@ class GnusRpcHandler {
       'burnTxHash' => _store.byBurnHash(value),
       _ => _store.byIdempotencyKey(origin, value),
     };
+    if (job == null && name == 'idempotencyKey') {
+      return _pendingJob(origin, value, node);
+    }
     if (job == null || job.sdkAddress.toLowerCase() != node) {
       return null;
     }
     return {...job.toContract(), 'result': null};
+  }
+
+  /// A submit recorded before its burn and never finished, so a page that
+  /// lost the reply can still find it. An unreadable intent still answers.
+  Map<String, Object?>? _pendingJob(String origin, String key, String node) {
+    final GnusSubmitIntent? intent;
+    try {
+      intent = _store.intentFor(origin, key);
+    } on FormatException {
+      return {
+        ...GnusSubmitIntent.unreadableContract(origin, key),
+        'result': null,
+      };
+    }
+    if (intent == null || intent.sdkAddress.toLowerCase() != node) {
+      return null;
+    }
+    return {...intent.toContract(), 'result': null};
   }
 
   /// Prices [job] through the owner: the whole-GNUS SDK cost, its contract
@@ -1004,10 +1025,19 @@ class GnusRpcHandler {
     // Written the moment the burn lands, as bridgedNotProcessed: if the app is
     // killed before Process returns, the record says the spend happened and
     // the job is unconfirmed, never a false submitted.
+    // The signed burn's hash is on disk before it is sent. From then on the
+    // intent is never removed: a send with no answer may still have burned.
+    String? signedHash;
+    var hashWritten = false;
     final result = await _jobs.submit(
       facts,
       jobCost: minions,
       jobJson: job,
+      beforeBroadcast: (hash) async {
+        signedHash = hash;
+        await _store.putIntent(intent.withBurn(hash));
+        hashWritten = true;
+      },
       onBurned: (burnHash) => _record(
         slot,
         record(burnHash, GnusJobStatus.bridgedNotProcessed),
@@ -1031,8 +1061,15 @@ class GnusRpcHandler {
           GnusJobStatus.bridgedNotProcessed,
         );
       case JobBridgeFailed():
-        await _dropIntent(origin, idempotencyKey);
-        throw const GnusRpcError(GnusRpcCode.bridgeFailed, 'Bridge failed');
+        final signed = signedHash;
+        if (signed == null) {
+          await _dropIntent(origin, idempotencyKey);
+          throw const GnusRpcError(GnusRpcCode.bridgeFailed, 'Bridge failed');
+        }
+        if (!hashWritten) {
+          throw const GnusRpcError(GnusRpcCode.internal, 'Internal error');
+        }
+        throw _outcomeUnknown(idempotencyKey, intent.withBurn(signed));
       case JobBusy():
         await _dropIntent(origin, idempotencyKey);
         throw _submitInFlight();
