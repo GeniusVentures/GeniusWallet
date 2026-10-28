@@ -1,4 +1,17 @@
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_api/web3/api_response.dart';
+
+/// How a bridge response reads on the receipt. A failure that still carries a
+/// hash and did not revert may be on chain, so it is pending, not failed.
+TransactionStatus bridgeReceiptStatus(ApiResponse<String> response) {
+  if (response.isSuccess) {
+    return TransactionStatus.completed;
+  }
+  if (!response.reverted && response.data != null) {
+    return TransactionStatus.pending;
+  }
+  return TransactionStatus.failed;
+}
 
 /// Synthesizes a display-only `Transaction` for the shared 031-B receipt
 /// (`showTransactionDetails`), because `bridge_screen.dart` has never built
@@ -20,7 +33,7 @@ import 'package:genius_api/models/transaction.dart';
 /// storage call of its own. Bridge results are not persisted today either
 /// (T-08-27, accepted), so this factory does not change that.
 Transaction bridgeReceiptTransaction({
-  required bool isSuccess,
+  required TransactionStatus status,
   required String? txHash,
   required String walletAddress,
   required String amount,
@@ -39,9 +52,7 @@ Transaction bridgeReceiptTransaction({
     // Always blank — see the file-level doc comment above.
     fees: '',
     coinSymbol: coinSymbol,
-    transactionStatus: isSuccess
-        ? TransactionStatus.completed
-        : TransactionStatus.failed,
+    transactionStatus: status,
     type: TransactionType.transfer,
     // exchangeRate deliberately left unset (null): bridge is 1:1 and has no
     // rate, so leaving it unset is what correctly suppresses the Rate row.

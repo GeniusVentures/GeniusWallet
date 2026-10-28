@@ -54,6 +54,7 @@ AppState _appState({String linkedWallet = _walletAddress, String? switching}) =>
 class _RecordingApi implements GeniusApi {
   int burns = 0;
   final signers = <String>[];
+  ApiResponse<String> burnResponse = ApiResponse.error('rejected by the fake');
 
   @override
   Future<ApiResponse<String>> getBrigeOutGasCost({
@@ -78,7 +79,7 @@ class _RecordingApi implements GeniusApi {
   }) async {
     burns++;
     signers.add(address);
-    return ApiResponse.error('rejected by the fake');
+    return burnResponse;
   }
 
   @override
@@ -220,6 +221,22 @@ void main() {
 
     expect(host.api.burns, 1);
     expect(find.text("Can't bridge"), findsNothing);
+    await _drainToasts(tester);
+  });
+
+  testWidgets('an unconfirmed burn says so instead of failed, and clears the '
+      'amount', (tester) async {
+    final host = _Host(_appState());
+    host.api.burnResponse = ApiResponse.unconfirmed('0xmaybe', 'reset');
+    await _readyCta(tester, host);
+
+    await _tap(tester);
+    await tester.pump();
+
+    expect(find.text('Not confirmed yet'), findsOneWidget);
+    expect(find.text('Bridge failed'), findsNothing);
+    final amount = tester.widget<TextField>(find.byType(TextField).first);
+    expect(amount.controller?.text, isEmpty);
     await _drainToasts(tester);
   });
 

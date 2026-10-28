@@ -382,7 +382,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         return;
       }
 
-      final isSuccess = bridgeTokensResponse.isSuccess;
+      final status = bridgeReceiptStatus(bridgeTokensResponse);
       final errorMessage = bridgeTokensResponse.errorMessage;
       // FAILURE MESSAGE: the retired AlertDialog was the only place that
       // ever surfaced the response's real error text -- routing to 031-B
@@ -397,12 +397,25 @@ class BridgeScreenState extends State<BridgeScreen> {
 
       showToast(
         context,
-        isSuccess
-            ? 'Bridged ${fromAmountController.text} $symbol to '
-                  '${toNetwork?.name ?? 'the destination network'}.'
-            : failureMessage,
-        title: isSuccess ? 'Bridge complete' : 'Bridge failed',
-        type: isSuccess ? ToastType.success : ToastType.error,
+        switch (status) {
+          TransactionStatus.completed =>
+            'Bridged ${fromAmountController.text} $symbol to '
+                '${toNetwork?.name ?? 'the destination network'}.',
+          TransactionStatus.pending =>
+            'The network has not confirmed this bridge yet. It may still go '
+                'through, so check the transaction before you bridge again.',
+          _ => failureMessage,
+        },
+        title: switch (status) {
+          TransactionStatus.completed => 'Bridge complete',
+          TransactionStatus.pending => 'Not confirmed yet',
+          _ => 'Bridge failed',
+        },
+        type: switch (status) {
+          TransactionStatus.completed => ToastType.success,
+          TransactionStatus.pending => ToastType.warning,
+          _ => ToastType.error,
+        },
       );
 
       // D-04/D-19: the shared 031-B receipt replaces the retired inline
@@ -410,7 +423,7 @@ class BridgeScreenState extends State<BridgeScreen> {
       // Transaction is synthesized for display only (bridge_receipt.dart);
       // nothing here persists it.
       final tx = bridgeReceiptTransaction(
-        isSuccess: isSuccess,
+        status: status,
         txHash: bridgeTokensResponse.data,
         walletAddress: state.selectedWallet?.address ?? '',
         amount: fromAmountController.text,
@@ -428,9 +441,10 @@ class BridgeScreenState extends State<BridgeScreen> {
       // reproduced without awaiting a function that returns nothing. The
       // route pop is intentionally NOT reproduced; whether that read is
       // acceptable is put to the human at the 08-07 walk.
-      if (isSuccess) {
+      if (status != TransactionStatus.failed) {
         // Reset to a clean bridge screen on success, rather than one still
-        // showing a completed amount.
+        // showing a completed amount. Unconfirmed resets too: the burn may
+        // still land, so the screen must not invite sending it again.
         setState(() {
           fromAmountController.clear();
           toAmountController.clear();
