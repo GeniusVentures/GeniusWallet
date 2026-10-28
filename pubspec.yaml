@@ -40,7 +40,9 @@ dependencies:
   webview_flutter_android: ^4.12.0
   webview_flutter_wkwebview: ^3.25.1
   permission_handler: ^12.0.3
-  webview_windows: ^0.4.0
+  # Windows in-app web: vendored webview_windows 0.4.0, see its UPSTREAM note.
+  webview_windows:
+    path: third_party/webview_windows
   # Linux in-app web: vendored, patched webview_all (WebKitGTK loaded at runtime).
   webview_all:
     path: third_party/webview_all/webview_all
