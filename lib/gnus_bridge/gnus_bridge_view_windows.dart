@@ -35,7 +35,8 @@ class GnusBridgeViewWindows extends StatefulWidget {
   /// A load failed. A redirect that cancels the load it replaces is not one.
   final VoidCallback? onFailed;
 
-  /// WebView2 could not start. Without this the error is rethrown.
+  /// WebView2 could not start, or no allowlist could be read. Without this
+  /// the error is rethrown.
   final VoidCallback? onNoBridge;
 
   @override
@@ -78,8 +79,12 @@ class _GnusBridgeViewWindowsState extends State<GnusBridgeViewWindows> {
     try {
       _allowed = await _bridge.allowedOrigins();
     } catch (e) {
-      // With no allowlist every top-level load is refused.
       debugPrint('Bridge allowlist unavailable: ${e.runtimeType}');
+    }
+    // The native lock reads an empty list as no limit at all, so with no list
+    // there is no page.
+    if (_allowed.isEmpty) {
+      throw StateError('No bridge allowlist');
     }
     await _controller.setPopupWindowPolicy(win.WebviewPopupWindowPolicy.deny);
     await _controller.addScriptToExecuteOnDocumentCreated(_bridge.shimSource);
