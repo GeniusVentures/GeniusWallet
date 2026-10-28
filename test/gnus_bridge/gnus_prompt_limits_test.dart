@@ -289,6 +289,22 @@ void main() {
       expect(h.store.intentFor(_origin.value, 'k1'), isNull);
     });
 
+    test(
+      'a revoke after the confirm, before the send, burns nothing',
+      () async {
+        await h.connections.connect(_origin, h.clock);
+        h.api.onSigned = () => h.connections.revoke(_origin);
+        final handler = h.build(confirm: approveConfirm);
+
+        final reply = await viaJson(handler, _origin, _submit, _params('k1'));
+
+        expect(_error(reply)['code'], GnusRpcCode.unauthorized);
+        expect(h.api.broadcasts, 0);
+        expect(h.store.intentFor(_origin.value, 'k1'), isNull);
+        expect(h.store.byIdempotencyKey(_origin.value, 'k1'), isNull);
+      },
+    );
+
     test('a call that failed before the check keeps its own code', () async {
       final handler = h.build();
 

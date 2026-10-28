@@ -74,6 +74,9 @@ class FakeGnusApi implements GeniusApi {
   /// Runs when the burn lands, before it answers.
   void Function()? onBurn;
 
+  /// Runs once the burn is signed, before `beforeBroadcast`.
+  Future<void> Function()? onSigned;
+
   /// The hash a signed burn carries when [burnResponse] has none: a send the
   /// node refused after signing. Null means the burn failed before signing.
   String? signedHashOnError;
@@ -148,6 +151,7 @@ class FakeGnusApi implements GeniusApi {
     calls.add('burn');
     final signed = burnResponse.data ?? signedHashOnError;
     if (signed != null) {
+      await onSigned?.call();
       try {
         await beforeBroadcast?.call(signed);
       } catch (e) {

@@ -1221,7 +1221,12 @@ class GnusRpcHandler {
       facts,
       jobCost: minions,
       jobJson: job,
+      // The last moment a revoke can still stop the spend: the confirm can
+      // be minutes old, and signing takes a few RPC round trips.
       beforeBroadcast: (hash) async {
+        if (!_connections.isConnected(origin)) {
+          throw _unauthorized;
+        }
         signedHash = hash;
         await _store.putIntent(intent.withBurn(hash));
         hashWritten = true;
