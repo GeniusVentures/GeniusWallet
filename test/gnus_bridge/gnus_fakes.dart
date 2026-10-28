@@ -226,6 +226,7 @@ class RecordedConfirm {
     required this.gas,
     required this.payer,
     required this.nodeAccount,
+    required this.network,
   });
 
   final GnusOrigin origin;
@@ -233,6 +234,7 @@ class RecordedConfirm {
   final Map<String, String>? gas;
   final String payer;
   final String nodeAccount;
+  final String network;
 }
 
 int _boxCounter = 0;
@@ -367,6 +369,7 @@ class GnusHarness {
               required Map<String, String>? gas,
               required String payer,
               required String nodeAccount,
+              required String network,
             }) async {
               confirms.add(
                 RecordedConfirm(
@@ -375,6 +378,7 @@ class GnusHarness {
                   gas: gas,
                   payer: payer,
                   nodeAccount: nodeAccount,
+                  network: network,
                 ),
               );
               return true;

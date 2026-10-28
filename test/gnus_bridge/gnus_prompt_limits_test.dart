@@ -42,6 +42,7 @@ void main() {
     required Map<String, String>? gas,
     required String payer,
     required String nodeAccount,
+    required String network,
   }) async => true;
 
   group('one open prompt in the wallet', () {
@@ -89,6 +90,7 @@ void main() {
               required Map<String, String>? gas,
               required String payer,
               required String nodeAccount,
+              required String network,
             }) {
               shown.add('confirm ${origin.value}');
               return held.future;
@@ -123,6 +125,7 @@ void main() {
                 required Map<String, String>? gas,
                 required String payer,
                 required String nodeAccount,
+                required String network,
               }) {
                 asked++;
                 return asked == 1 ? Future.value(true) : held.future;
@@ -275,6 +278,7 @@ void main() {
               required Map<String, String>? gas,
               required String payer,
               required String nodeAccount,
+              required String network,
             }) => held.future,
       );
 

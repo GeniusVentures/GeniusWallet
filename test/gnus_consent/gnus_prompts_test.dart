@@ -41,6 +41,7 @@ Future<bool> _spend({Map<String, String>? gas = _gas}) => showGnusSpendConfirm(
   gas: gas,
   payer: _payer,
   nodeAccount: _node,
+  network: 'Polygon Amoy',
 );
 
 void main() {
@@ -74,6 +75,9 @@ void main() {
       expect(find.text('Pay for a processing job'), findsOneWidget);
       expect(find.text(_origin.value), findsWidgets);
       expect(find.text('1234 GNUS'), findsOneWidget);
+      expect(find.text('Network'), findsOneWidget);
+      expect(find.text('Polygon Amoy'), findsOneWidget);
+      expect(find.text('Gas price'), findsOneWidget);
       expect(find.text('1.00 Gwei (POL)'), findsOneWidget);
       expect(find.text('Paying wallet'), findsOneWidget);
       expect(find.text('Earning account'), findsOneWidget);
@@ -145,6 +149,7 @@ void main() {
           gas: _gas,
           payer: _payer,
           nodeAccount: _node,
+          network: 'Polygon Amoy',
         );
         expect(answer, isFalse, reason: bad);
         expect(find.text('Approve'), findsNothing);

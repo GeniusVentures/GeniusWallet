@@ -93,6 +93,7 @@ Future<bool> showGnusSpendConfirm({
   required Map<String, String>? gas,
   required String payer,
   required String nodeAccount,
+  required String network,
 }) async {
   final context = navigatorKey.currentContext;
   final amount = BigInt.tryParse(cost);
@@ -112,7 +113,8 @@ Future<bool> showGnusSpendConfirm({
         headline: '${formatTokenAmount(amount, kGnusDecimals)} GNUS',
         warning: _spendWarning,
         rows: [
-          DappCallRow(label: 'Bridge gas', value: gasPrice),
+          DappCallRow(label: 'Network', value: network),
+          DappCallRow(label: 'Gas price', value: gasPrice),
           DappCallRow(label: 'Through', value: origin.transport.label),
           DappCallRow(label: 'Paying wallet', value: payer, copyable: true),
           DappCallRow(

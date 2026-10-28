@@ -85,6 +85,7 @@ void main() {
       expect(shown.gas, {'gasPriceGwei': '1.00', 'symbol': 'POL'});
       expect(shown.payer, gnusTestWalletAddress.toLowerCase());
       expect(shown.nodeAccount, gnusTestNode.toLowerCase());
+      expect(shown.network, gnusTestAmoy.name);
     }
 
     expect(replies[0], equals(replies[1]));
@@ -105,6 +106,7 @@ void main() {
             required gas,
             required payer,
             required nodeAccount,
+            required network,
           }) => Completer<bool>().future,
     );
     Map<String, Object?>? reply;
@@ -147,6 +149,7 @@ void main() {
             required gas,
             required payer,
             required nodeAccount,
+            required network,
           }) async => throw StateError('prompt crashed'),
     );
 
@@ -604,6 +607,7 @@ void main() {
               required gas,
               required payer,
               required nodeAccount,
+              required network,
             }) async => false,
       );
       await viaDirect(rejecting, _origin, _submit, _params());
@@ -631,6 +635,7 @@ void main() {
               required gas,
               required payer,
               required nodeAccount,
+              required network,
             }) => held.future,
       );
     });
@@ -911,6 +916,7 @@ void main() {
               required gas,
               required payer,
               required nodeAccount,
+              required network,
             }) async {
               change();
               return true;

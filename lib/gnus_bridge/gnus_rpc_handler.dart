@@ -35,7 +35,8 @@ const Duration _promptWindow = Duration(minutes: 1);
 const Duration kGnusConfirmTimeout = Duration(minutes: 10);
 
 /// The seam that decides whether a submit may spend. [cost] and [gas] are the
-/// contract values, [payer] and [nodeAccount] lowercased addresses. After
+/// contract values, [payer] and [nodeAccount] lowercased addresses, [network]
+/// the name of the chain the burn is sent on. After
 /// [kGnusConfirmTimeout] the handler rejects and ignores a late answer.
 typedef GnusConfirm =
     Future<bool> Function({
@@ -44,6 +45,7 @@ typedef GnusConfirm =
       required Map<String, String>? gas,
       required String payer,
       required String nodeAccount,
+      required String network,
     });
 
 /// The seam that asks the user whether [origin] may use the bridge at all.
@@ -60,6 +62,7 @@ Future<bool> rejectGnusConfirm({
   required Map<String, String>? gas,
   required String payer,
   required String nodeAccount,
+  required String network,
 }) async => false;
 
 /// The node account's role from the child registrations: a child when another
@@ -1104,7 +1107,8 @@ class GnusRpcHandler {
       gnusAddress: token?.address,
     );
     final payer = facts.walletAddress?.toLowerCase();
-    if (payer == null ||
+    if (network == null ||
+        payer == null ||
         facts.gnusAddress == null ||
         facts.rpcUrl == null ||
         facts.chainId == null) {
@@ -1140,7 +1144,7 @@ class GnusRpcHandler {
     final gasPrice = await _gasPrice(
       facts,
       minions,
-      network?.nativeSymbol ?? network?.symbol,
+      network.nativeSymbol ?? network.symbol,
     );
     if (gasPrice.result is GasEstimateMissingData) {
       throw const GnusRpcError(
@@ -1173,6 +1177,7 @@ class GnusRpcHandler {
         gas: gas,
         payer: payer,
         nodeAccount: nodeAccount,
+        network: network.name ?? 'Chain ${network.chainId}',
       ),
     );
     if (!confirmed) {

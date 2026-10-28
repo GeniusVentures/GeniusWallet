@@ -63,5 +63,6 @@ Future<bool> devGnusPreview(WalletDetailsState details) {
     },
     payer: details.selectedWallet?.address ?? '0x${'1' * 40}',
     nodeAccount: kDevGnusEarningAccount,
+    network: network?.name ?? 'Unknown network',
   );
 }

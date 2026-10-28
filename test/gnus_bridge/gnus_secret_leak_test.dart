@@ -161,6 +161,7 @@ Future<void> _scenario(
           required Map<String, String>? gas,
           required String payer,
           required String nodeAccount,
+          required String network,
         }) async {
           collected.prompts.add({
             'origin': origin.value,
@@ -168,6 +169,7 @@ Future<void> _scenario(
             'gas': gas,
             'payer': payer,
             'nodeAccount': nodeAccount,
+            'network': network,
           });
           return approveConfirm;
         },
