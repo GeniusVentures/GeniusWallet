@@ -112,12 +112,13 @@ void main() {
       expect(offenders, isEmpty);
     });
 
-    test('nothing under lib/gnus_bridge is UI', () {
+    test('nothing under lib/gnus_bridge but the platform views is UI', () {
       final offenders = [
         for (final file in _bridgeFiles())
-          if (RegExp(
-            r"package:flutter/(material|widgets)\.dart",
-          ).hasMatch(_withoutComments(file.readAsStringSync())))
+          if (!file.uri.pathSegments.last.startsWith('gnus_bridge_view_') &&
+              RegExp(
+                r"package:flutter/(material|widgets)\.dart",
+              ).hasMatch(_withoutComments(file.readAsStringSync())))
             file.path,
       ];
 

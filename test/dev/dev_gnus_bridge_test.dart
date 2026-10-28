@@ -108,9 +108,7 @@ void main() {
     expect(kDevGnusEarningAccount, hasLength(130));
   });
 
-  testWidgets('the GNUS BRIDGE section lists its five triggers', (
-    tester,
-  ) async {
+  testWidgets('the GNUS BRIDGE section lists its six triggers', (tester) async {
     final panel = DevToolsBubblePanelState.instance;
     addTearDown(() {
       panel.position = null;
@@ -145,6 +143,7 @@ void main() {
       'Submit',
       'Preview',
       'Sites',
+      'Test page',
     ]) {
       await tester.ensureVisible(find.text(label));
       expect(find.text(label), findsOneWidget, reason: label);

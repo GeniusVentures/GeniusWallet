@@ -986,6 +986,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           tooltip:
                               'Settings, where connected sites are listed.',
                         ),
+                        _devButton(
+                          'Test page',
+                          () => widget.router.push('/dev/gnus-bridge'),
+                          tooltip:
+                              'A web view with window.gnus, loading the '
+                              'dev dashboard origin.',
+                        ),
                       ],
                     ),
                   ],

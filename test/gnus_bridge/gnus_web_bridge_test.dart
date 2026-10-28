@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show SgnsNet;
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_origin.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
@@ -272,6 +273,99 @@ void main() {
       );
 
       expect(rig.delivered, hasLength(1));
+    });
+  });
+
+  group('events', () {
+    final other = AppState(selectedSDKAccount: '0x${'d' * 128}');
+
+    /// Connects the dev origin and starts its page, as a real load does.
+    Future<void> connectedPage(_Rig r) async {
+      r.bridge.pageStarted('$_dev/');
+      await r.bridge.onMessage(
+        r.message(GnusRpcMethod.getAccounts),
+        source: _dev,
+      );
+      r.delivered.clear();
+    }
+
+    List<String> events(_Rig r) => [
+      for (final script in r.delivered)
+        if (script.contains('__gnusBridgeEvent(')) script,
+    ];
+
+    test(
+      'an accountsChanged reaches the page behind the origin guard',
+      () async {
+        await connectedPage(rig);
+
+        h.pushApp(other);
+        await pumpEventQueue();
+
+        final sent = events(rig);
+        expect(sent, hasLength(1));
+        expect(
+          sent.single,
+          startsWith(
+            'if (location.origin === "$_dev") window.__gnusBridgeEvent('
+            '"${GnusRpcEventName.accountsChanged}", {',
+          ),
+        );
+      },
+    );
+
+    test('a page that is not connected gets nothing', () async {
+      rig.bridge.pageStarted('$_dev/');
+      await pumpEventQueue();
+
+      h.pushApp(other);
+      await pumpEventQueue();
+
+      expect(rig.delivered, isEmpty);
+    });
+
+    test('a revoked origin gets nothing', () async {
+      await connectedPage(rig);
+
+      await h.connections.revoke(webOrigin(_dev));
+      h.pushApp(other);
+      await pumpEventQueue();
+
+      expect(events(rig), isEmpty);
+    });
+
+    test('the next page start ends the earlier subscription', () async {
+      await connectedPage(rig);
+
+      rig.bridge.pageStarted('https://evil.example/');
+      await pumpEventQueue();
+      h.pushApp(other);
+      await pumpEventQueue();
+
+      expect(rig.delivered, isEmpty);
+    });
+
+    test('a reload of the same page keeps exactly one subscription', () async {
+      await connectedPage(rig);
+
+      rig.bridge.pageStarted('$_dev/again');
+      await pumpEventQueue();
+      h.pushApp(other);
+      await pumpEventQueue();
+
+      expect(events(rig), hasLength(1));
+    });
+
+    test('dispose ends delivery, and later page starts stay quiet', () async {
+      await connectedPage(rig);
+
+      await rig.bridge.dispose();
+      rig.bridge.pageStarted('$_dev/');
+      await pumpEventQueue();
+      h.pushApp(other);
+      await pumpEventQueue();
+
+      expect(rig.delivered, isEmpty);
     });
   });
 }

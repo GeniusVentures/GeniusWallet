@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -56,12 +57,62 @@ class GnusWebBridge {
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 
-  /// A main-frame navigation began at [url].
+  StreamSubscription<GnusEvent>? _events;
+  bool _disposed = false;
+
+  /// The origins this session accepts a caller from.
+  Future<Set<GnusOrigin>> allowedOrigins() async =>
+      gnusAllowedOrigins(await _readNet(), dev: _dev);
+
+  /// A main-frame navigation began at [url]. Events for the previous page
+  /// stop, and an allowlisted page gets the events of its own origin.
   void pageStarted(String? url) {
+    if (_disposed) {
+      return;
+    }
     _generation++;
-    _topOrigin = url == null
+    unawaited(_events?.cancel());
+    _events = null;
+    final origin = url == null
         ? null
         : GnusOrigin.tryParse(GnusTransport.webview, url);
+    _topOrigin = origin;
+    if (origin != null) {
+      unawaited(_subscribe(origin, _generation));
+    }
+  }
+
+  Future<void> _subscribe(GnusOrigin origin, int generation) async {
+    try {
+      final allowed = await allowedOrigins();
+      if (generation != _generation || !allowed.contains(origin)) {
+        return;
+      }
+      _events = _handler
+          .eventsFor(origin)
+          .listen((event) => _forward(origin, generation, event));
+    } catch (e) {
+      debugPrint('gnus_web events unavailable ${e.runtimeType}');
+    }
+  }
+
+  void _forward(GnusOrigin origin, int generation, GnusEvent event) {
+    if (generation != _generation) {
+      debugPrint('gnus_web event dropped ${origin.value}');
+      return;
+    }
+    final call =
+        '__gnusBridgeEvent(${jsonEncode(event.name)}, '
+        '${jsonEncode(event.payload)})';
+    unawaited(_run(call, origin));
+  }
+
+  /// Stops all delivery. The view calls this when it goes away.
+  Future<void> dispose() async {
+    _disposed = true;
+    _generation++;
+    await _events?.cancel();
+    _events = null;
   }
 
   /// One message from the page. [source] is the origin the platform names as

@@ -85,6 +85,7 @@ class _GnusBridgeViewLinuxState extends State<GnusBridgeViewLinux> {
 
   @override
   void dispose() {
+    unawaited(_bridge.dispose());
     final platform = _controller.platform;
     if (platform is LinuxWebViewController) {
       unawaited(
