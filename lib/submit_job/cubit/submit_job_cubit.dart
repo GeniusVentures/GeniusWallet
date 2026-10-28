@@ -318,18 +318,21 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       );
     }
 
-    // Everything below is read before the first await, so a wallet or network
-    // switch during the burn cannot retarget it. `isDev` is captured once so a
-    // scenario cleared mid-flight cannot flip the balance-refetch decision.
+    // Everything below is read before the first await, so a wallet, network
+    // or Genius account switch during the burn cannot retarget it. `isDev` is
+    // captured once so a scenario cleared mid-flight cannot flip the
+    // balance-refetch decision.
     final isDev = jobSubmission.devScenario != null;
     final facts = _jobFacts();
     final jobCost = state.jobCost;
     final uploadedJson = state.uploadedJson;
+    final expectedNode = geniusApi.getSelectedAccountAddress();
 
     final result = await jobSubmission.submit(
       facts,
       jobCost: jobCost,
       jobJson: uploadedJson,
+      expectedNode: expectedNode,
     );
 
     switch (result) {

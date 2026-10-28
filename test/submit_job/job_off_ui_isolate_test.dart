@@ -35,8 +35,9 @@ import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-/// Overrides only the four members the job flow may reach: the two async SDK
-/// calls, the gas estimate and the burn. Anything else throws. [served] records
+/// Overrides only the members the job flow may reach: the two async SDK
+/// calls, the gas estimate, the burn and the account read. Anything else
+/// throws. [served] records
 /// the order used; a set gate keeps an SDK call pending.
 class _AsyncOnlyGeniusApi implements GeniusApi {
   final List<String> served = [];
@@ -86,6 +87,9 @@ class _AsyncOnlyGeniusApi implements GeniusApi {
     served.add('bridgeOut');
     return ApiResponse.success('0xHASH');
   }
+
+  @override
+  String? getSelectedAccountAddress() => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

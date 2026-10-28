@@ -69,6 +69,9 @@ class _FakeGeniusApi implements GeniusApi {
   }) async => processResponse;
 
   @override
+  String? getSelectedAccountAddress() => null;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
