@@ -50,6 +50,20 @@ bool _isLoopback(GnusOrigin origin) {
   return host == 'localhost' || host == '127.0.0.1';
 }
 
+/// The caller [url] names, or null where this build refuses it: https only,
+/// plus http on a loopback host in a dev build, as the web view allowlist.
+GnusOrigin? _walletConnectOrigin(String url, {required bool devBuild}) {
+  final origin = GnusOrigin.tryParse(GnusTransport.walletconnect, url);
+  if (origin == null) {
+    return null;
+  }
+  final https = origin.value.startsWith('https://');
+  if (_isLoopback(origin)) {
+    return devBuild && !https ? origin : null;
+  }
+  return https ? origin : null;
+}
+
 /// The caller a `gnus_*` proposal is, or why it is refused. Verify must say
 /// VALID. Unknown passes only in a dev build for a loopback host, and that
 /// host is refused in every other build.
@@ -64,11 +78,9 @@ bool _isLoopback(GnusOrigin origin) {
       verifyContext?.isScam == true) {
     return (origin: null, refusal: GnusRefusal.flagged);
   }
-  final origin = GnusOrigin.tryParse(GnusTransport.walletconnect, metadataUrl);
-  if (origin == null || (_isLoopback(origin) && !devBuild)) {
-    return (origin: null, refusal: GnusRefusal.unverified);
-  }
-  if (validation == Validation.VALID || _isLoopback(origin)) {
+  final origin = _walletConnectOrigin(metadataUrl, devBuild: devBuild);
+  if (origin != null &&
+      (validation == Validation.VALID || _isLoopback(origin))) {
     return (origin: origin, refusal: null);
   }
   return (origin: null, refusal: GnusRefusal.unverified);
@@ -77,16 +89,8 @@ bool _isLoopback(GnusOrigin origin) {
 /// The caller behind a session, or null when it no longer qualifies: the
 /// proposal was checked once, so a session restored into a build that would
 /// refuse it now gets `4100`.
-GnusOrigin? gnusSessionOrigin(SessionData session, {required bool devBuild}) {
-  final origin = GnusOrigin.tryParse(
-    GnusTransport.walletconnect,
-    session.peer.metadata.url,
-  );
-  if (origin == null || (_isLoopback(origin) && !devBuild)) {
-    return null;
-  }
-  return origin;
-}
+GnusOrigin? gnusSessionOrigin(SessionData session, {required bool devBuild}) =>
+    _walletConnectOrigin(session.peer.metadata.url, devBuild: devBuild);
 
 Set<String> _approvedGnusEvents(SessionData session) => {
   for (final event in session.namespaces['eip155']?.events ?? const <String>[])

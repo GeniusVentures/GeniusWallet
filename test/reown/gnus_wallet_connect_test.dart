@@ -197,6 +197,28 @@ void main() {
       );
     });
 
+    test('plain http is refused for any host but loopback, in every build', () {
+      for (final dev in [false, true]) {
+        expect(
+          gnusProposalOrigin(
+            context(Validation.VALID),
+            'http://dash.example',
+            devBuild: dev,
+          ).origin,
+          isNull,
+          reason: 'dev: $dev',
+        );
+      }
+      expect(
+        gnusProposalOrigin(
+          context(Validation.UNKNOWN),
+          'https://localhost:3000',
+          devBuild: true,
+        ).origin,
+        isNull,
+      );
+    });
+
     test('a peer URL that is not an origin is refused', () {
       for (final url in ['null', '', 'ftp://dash.example', 'dash.example']) {
         expect(
@@ -380,7 +402,11 @@ void main() {
   });
 
   group('a restored session', () {
-    for (final url in ['http://localhost:3000', 'not a url']) {
+    for (final url in [
+      'http://localhost:3000',
+      'http://dash.example',
+      'not a url',
+    ]) {
       test('from $url is answered 4100 in a release build', () async {
         final h = await GnusHarness.create();
         final kit = FakeWalletKit()
