@@ -272,7 +272,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
                               gnusDashboardListed(
                                 dev: kDebugMode && kShowDevTools,
                               )
-                              ? () => openGnusDashboard(context)
+                              ? () => unawaited(openGnusDashboard(context))
                               : null,
                         );
                       },

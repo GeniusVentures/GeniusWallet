@@ -149,12 +149,16 @@ class ComputePanel extends StatelessWidget {
           title: 'Earning',
           trailing: onOpenDashboard == null
               ? null
-              : GWButton(
-                  variant: GWButtonVariant.ghost,
-                  size: GWButtonSize.sm,
-                  label: 'Jobs and earnings',
-                  semanticLabel: 'Open jobs and earnings',
-                  onPressed: onOpenDashboard,
+              // Flexible so a narrow, scaled-up title row shortens the label
+              // instead of overflowing.
+              : Flexible(
+                  child: GWButton(
+                    variant: GWButtonVariant.ghost,
+                    size: GWButtonSize.sm,
+                    label: 'Jobs and earnings',
+                    semanticLabel: 'Open jobs and earnings',
+                    onPressed: onOpenDashboard,
+                  ),
                 ),
         ),
         _BalanceTile(

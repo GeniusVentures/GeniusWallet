@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart' show SgnsNet;
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_linux.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_bridge_view_mobile.dart';
@@ -18,6 +19,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Which web view hosts the dashboard on this device.
 enum GnusBridgeHostKind { linux, windows, webview, browser }
@@ -66,10 +68,35 @@ Widget defaultGnusDashboardHost(BuildContext context, Uri start) {
   };
 }
 
-/// Opens the dashboard screen. The route reads no URL, so the page cannot be
-/// chosen from outside.
-void openGnusDashboard(BuildContext context) {
-  unawaited(context.push('/gnus-dashboard'));
+typedef GnusBrowserLauncher = Future<bool> Function(Uri url, {LaunchMode mode});
+
+/// Opens the dashboard: the in-app screen, or the system browser where there is
+/// no in-app web view. The route reads no URL, so the page cannot be chosen from
+/// outside. The seams are for tests.
+Future<void> openGnusDashboard(
+  BuildContext context, {
+  bool? inApp,
+  GnusBrowserLauncher launcher = launchUrl,
+  Future<SgnsNet> Function()? readNet,
+}) async {
+  if (inApp ?? inAppWeb) {
+    unawaited(context.push('/gnus-dashboard'));
+    return;
+  }
+  var opened = false;
+  try {
+    const dev = kDebugMode && kShowDevTools;
+    final net = await (readNet ?? context.read<GnusRpcHandler>().readSgnsNet)();
+    opened = await launcher(
+      gnusDashboardStart(net, dev: dev),
+      mode: LaunchMode.externalApplication,
+    );
+  } catch (e) {
+    debugPrint('Dashboard browser open failed: ${e.runtimeType}');
+  }
+  if (!opened && context.mounted) {
+    showToast(context, "Couldn't open your browser.", type: ToastType.error);
+  }
 }
 
 /// Full-screen host for the dashboard web view, pinned to the start the
