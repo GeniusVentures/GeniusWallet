@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
 import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
 import 'package:genius_wallet/settings/connected_sites_section.dart';
+import 'package:genius_wallet/settings/developer_mode.dart';
+import 'package:genius_wallet/settings/developer_settings_cubit.dart';
+import 'package:genius_wallet/settings/settings_screen.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 
 import '../gnus_bridge/gnus_fakes.dart';
@@ -12,6 +16,12 @@ import '../theme/theme_contrast_test.dart' show themeFor;
 
 const _older = 'https://older.example';
 final _newer = 'https://${'n' * 90}.example';
+
+/// The config files the screen reads at start are not there.
+class _SettingsApi extends FakeGnusApi {
+  @override
+  Future<String> get jsonFilePath async => 'no-such-dir/';
+}
 
 Widget _host(GnusConnectionStore store, GWAppearanceMode mode) =>
     RepositoryProvider<GnusConnectionStore>.value(
@@ -131,6 +141,41 @@ void main() {
       () => viaJson(handler, _older, GnusRpcMethod.getAccounts, null),
     );
     expect(h.connects, [_older, _older]);
+    await shutdown(tester);
+  });
+
+  testWidgets('Settings lists connected sites with developer mode off', (
+    tester,
+  ) async {
+    await boot(tester);
+    await seed(tester);
+    expect(DeveloperMode.instance.value, isFalse);
+    final cubit = DeveloperSettingsCubit(
+      readNet: () async => SgnsNet.staging,
+      writeNet: (_) async => false,
+      leaveTestnets: () async {},
+    );
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<GeniusApi>.value(value: _SettingsApi()),
+          RepositoryProvider<GnusConnectionStore>.value(value: store),
+        ],
+        child: BlocProvider<DeveloperSettingsCubit>.value(
+          value: cubit,
+          child: MaterialApp(
+            theme: themeFor(GWAppearanceMode.dark),
+            home: const SettingsScreen(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Connected sites'), findsOneWidget);
+    expect(find.text(_older), findsOneWidget);
+    expect(find.text('SDK Network'), findsNothing);
     await shutdown(tester);
   });
 
