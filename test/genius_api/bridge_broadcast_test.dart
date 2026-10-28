@@ -11,13 +11,15 @@ import 'package:web3dart/web3dart.dart';
 
 final _key = EthPrivateKey.fromHex('0x${'11' * 32}');
 
-/// Answers like a node: nonce and gas price, then the raw transaction's hash computed
-/// from the bytes it received. [dropSend] closes the send unanswered and
-/// [refuseSend] answers it with a JSON-RPC error. [log] records each method.
+/// Answers like a node: nonce and gas price, then the raw transaction's hash
+/// computed from the bytes it received. [dropSend] closes the send unanswered,
+/// [refuseSend] answers it with a JSON-RPC error, and [receiptStatus] is the
+/// mined receipt's status, or no receipt when null. [log] records each method.
 Future<String> _node(
   List<String> log, {
   bool dropSend = false,
   bool refuseSend = false,
+  String? receiptStatus,
 }) async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   addTearDown(() => server.close(force: true));
@@ -40,6 +42,22 @@ Future<String> _node(
     final Map<String, Object?> answer = switch (method) {
       'eth_getTransactionCount' => {'result': '0x0'},
       'eth_gasPrice' => {'result': '0x3b9aca00'},
+      'eth_getTransactionReceipt' when receiptStatus == null => {
+        'result': null,
+      },
+      'eth_getTransactionReceipt' => {
+        'result': {
+          'transactionHash': (body['params'] as List).first,
+          'transactionIndex': '0x0',
+          'blockHash': '0x${'cd' * 32}',
+          'blockNumber': '0x10',
+          'cumulativeGasUsed': '0x5208',
+          'gasUsed': '0x5208',
+          'effectiveGasPrice': '0x3b9aca00',
+          'status': receiptStatus,
+          'logs': <dynamic>[],
+        },
+      },
       'eth_sendRawTransaction' when refuseSend => {
         'error': {'code': -32000, 'message': 'nonce too low'},
       },
@@ -83,6 +101,7 @@ void main() {
       _key,
       _burn(),
       chainId: 80002,
+      wait: (_) async {},
       beforeBroadcast: (hash) async {
         seen = hash;
         log.add('beforeBroadcast');
@@ -110,12 +129,38 @@ void main() {
     },
   );
 
-  test('a send with no answer is unconfirmed under the same hash', () async {
+  test('a send with no answer and no receipt is unconfirmed under the same '
+      'hash', () async {
     final log = <String>[];
     final (resp, seen) = await send(await _node(log, dropSend: true), log);
 
     expect(resp.isSuccess, isFalse);
+    expect(resp.reverted, isFalse);
     expect(seen, isNotNull);
+    expect(resp.data, seen);
+    expect(log.where((m) => m == 'eth_getTransactionReceipt'), hasLength(25));
+  });
+
+  test('a send with no answer whose receipt succeeded is a success', () async {
+    final log = <String>[];
+    final (resp, seen) = await send(
+      await _node(log, dropSend: true, receiptStatus: '0x1'),
+      log,
+    );
+
+    expect(resp.isSuccess, isTrue);
+    expect(resp.data, seen);
+  });
+
+  test('a send with no answer whose receipt reverted is final', () async {
+    final log = <String>[];
+    final (resp, seen) = await send(
+      await _node(log, dropSend: true, receiptStatus: '0x0'),
+      log,
+    );
+
+    expect(resp.isSuccess, isFalse);
+    expect(resp.reverted, isTrue);
     expect(resp.data, seen);
   });
 

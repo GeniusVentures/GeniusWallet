@@ -3,7 +3,15 @@ class ApiResponse<T> {
   final String? errorMessage;
   final bool isSuccess;
 
-  ApiResponse._({this.data, this.errorMessage, required this.isSuccess});
+  /// Set only by [ApiResponse.reverted]: the failure is settled on chain.
+  final bool reverted;
+
+  ApiResponse._({
+    this.data,
+    this.errorMessage,
+    required this.isSuccess,
+    this.reverted = false,
+  });
 
   /// Factory for a successful response
   factory ApiResponse.success(T data) {
@@ -22,6 +30,17 @@ class ApiResponse<T> {
       data: data,
       errorMessage: errorMessage,
       isSuccess: false,
+    );
+  }
+
+  /// A transaction that was mined and reverted, under [data]'s hash. Unlike
+  /// [ApiResponse.unconfirmed] it is final: it can never land.
+  factory ApiResponse.reverted(T data, String errorMessage) {
+    return ApiResponse._(
+      data: data,
+      errorMessage: errorMessage,
+      isSuccess: false,
+      reverted: true,
     );
   }
 }

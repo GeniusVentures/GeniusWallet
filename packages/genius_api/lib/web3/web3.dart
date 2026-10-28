@@ -8,6 +8,7 @@ import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/send_service.dart' show pollReceipt;
 import 'package:genius_api/web3/utilities.dart';
 import 'package:http/http.dart';
 import 'package:wallet/wallet.dart' hide PrivateKey;
@@ -570,15 +571,16 @@ class Web3 {
     return ApiResponse.error('Failed to bridge: unknown');
   }
 
-  /// Signs [transaction] locally and hands its hash to [beforeBroadcast]
-  /// before sending it; a throw there means it is never sent. A send with no
-  /// JSON-RPC answer may have reached the network: [ApiResponse.unconfirmed].
+  /// Signs [transaction], hands its hash to [beforeBroadcast] (a throw there
+  /// cancels the send), then sends it. A send with no answer is settled by
+  /// its receipt, or stays [ApiResponse.unconfirmed] when none arrives.
   static Future<ApiResponse<String>> broadcastSigned(
     Web3Client client,
     Credentials credentials,
     Transaction transaction, {
     required int chainId,
     Future<void> Function(String txHash)? beforeBroadcast,
+    Future<void> Function(Duration delay) wait = Future<void>.delayed,
   }) async {
     Uint8List signed;
     final String txHash;
@@ -603,7 +605,22 @@ class Web3 {
       // Only a JSON-RPC error proves the node refused the transaction.
       return ApiResponse.error(e.toString());
     } catch (e) {
-      return ApiResponse.unconfirmed(txHash, e.toString());
+      // ponytail: 25 reads 3 s apart, about 75 s. A burn that lands later
+      // stays unconfirmed until the user checks it. Upgrade: re-read the
+      // receipts of unconfirmed burns at startup.
+      final receipt = await pollReceipt(
+        hash: txHash,
+        read: (h) => client.getTransactionReceipt(h).timeout(rpcReadTimeout),
+        wait: wait,
+        attempts: 25,
+      );
+      if (receipt == null) {
+        return ApiResponse.unconfirmed(txHash, e.toString());
+      }
+      if (receipt.status == false) {
+        return ApiResponse.reverted(txHash, 'Transaction reverted');
+      }
+      return ApiResponse.success(txHash);
     }
   }
 
