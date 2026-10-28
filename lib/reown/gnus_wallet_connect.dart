@@ -88,6 +88,11 @@ GnusOrigin? gnusSessionOrigin(SessionData session, {required bool devBuild}) {
   return origin;
 }
 
+Set<String> _approvedGnusEvents(SessionData session) => {
+  for (final event in session.namespaces['eip155']?.events ?? const <String>[])
+    if (_gnusEvents.contains(event)) event,
+};
+
 const GnusRpcError _unauthorized = GnusRpcError(
   GnusRpcCode.unauthorized,
   'Unauthorized',
@@ -115,6 +120,7 @@ void Function() handleGnusRequests({
 }) {
   final inFlight = <String>{};
   final tails = <String, Future<void>>{};
+  final forwarding = <String, StreamSubscription<GnusEvent>>{};
 
   // One chain per topic, so replies and events leave in the order they were
   // queued.
@@ -144,6 +150,61 @@ void Function() handleGnusRequests({
       }
     },
   );
+
+  // A failed emit is dropped: every reply reads the current state, so a page
+  // that missed an event is not left with a stale answer.
+  void forward(SessionData session) {
+    final topic = session.topic;
+    final approved = _approvedGnusEvents(session);
+    final origin = gnusSessionOrigin(session, devBuild: devBuild);
+    if (forwarding.containsKey(topic) || approved.isEmpty || origin == null) {
+      return;
+    }
+    forwarding[topic] = handler.eventsFor(origin).listen((event) {
+      if (!approved.contains(event.name)) {
+        return;
+      }
+      unawaited(
+        enqueue(topic, () async {
+          if (!active(topic)) {
+            return;
+          }
+          try {
+            await walletKit.emitSessionEvent(
+              topic: topic,
+              chainId: kGnusWalletConnectChain,
+              event: SessionEventParams(name: event.name, data: event.payload),
+            );
+          } catch (e) {
+            debugPrint('gnus_wc ${event.name} not sent ${e.runtimeType}');
+          }
+        }),
+      );
+    });
+  }
+
+  void stopForwarding(String topic) {
+    unawaited(forwarding.remove(topic)?.cancel());
+    tails.remove(topic);
+  }
+
+  void onConnect(SessionConnect? event) {
+    if (event != null) {
+      forward(event.session);
+    }
+  }
+
+  void onDelete(SessionDelete? event) {
+    if (event != null) {
+      stopForwarding(event.topic);
+    }
+  }
+
+  void onExpire(SessionExpire? event) {
+    if (event != null) {
+      stopForwarding(event.topic);
+    }
+  }
 
   Future<JsonRpcResponse<Object>> answer(
     SessionRequestEvent event,
@@ -204,8 +265,20 @@ void Function() handleGnusRequests({
   }
 
   walletKit.onSessionRequest.subscribe(onRequest);
+  walletKit.onSessionConnect.subscribe(onConnect);
+  walletKit.onSessionDelete.subscribe(onDelete);
+  walletKit.onSessionExpire.subscribe(onExpire);
+  walletKit.getActiveSessions().values.forEach(forward);
 
   return () {
     walletKit.onSessionRequest.unsubscribe(onRequest);
+    walletKit.onSessionConnect.unsubscribe(onConnect);
+    walletKit.onSessionDelete.unsubscribe(onDelete);
+    walletKit.onSessionExpire.unsubscribe(onExpire);
+    for (final subscription in forwarding.values) {
+      unawaited(subscription.cancel());
+    }
+    forwarding.clear();
+    tails.clear();
   };
 }
