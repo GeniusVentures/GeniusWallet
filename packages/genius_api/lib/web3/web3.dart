@@ -8,6 +8,8 @@ import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart';
+import 'package:genius_api/web3/send_service.dart' show pollReceipt;
 import 'package:genius_api/web3/utilities.dart';
 import 'package:http/http.dart';
 import 'package:wallet/wallet.dart' hide PrivateKey;
@@ -34,22 +36,6 @@ class Web3 {
   final multiCallContractAddress = EthereumAddress.fromHex(
     "0xca11bde05977b3631167028862be2a173976ca11",
   );
-
-  static final bridgeOutAbi = ContractAbi.fromJson('''
-    [
-      {
-        "inputs": [
-          { "internalType": "uint256", "name": "amount", "type": "uint256" },
-          { "internalType": "uint256", "name": "id", "type": "uint256" },
-          { "internalType": "uint256", "name": "destChainID", "type": "uint256" }
-        ],
-        "name": "bridgeOut",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      }
-    ]
-  ''', '');
 
   static final abi = ContractAbi.fromJson('''[
           { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "type": "function" },
@@ -439,51 +425,61 @@ class Web3 {
     }
   }
 
-  Future<ApiResponse<Transaction>> createBridgeOutTransaction({
+  /// Builds the burn for the `bridgeOut` form [contractAddress] has on
+  /// [sourceChainId]. Refuses before the key is read where it has none.
+  Future<ApiResponse<({Transaction tx, BridgeOutForm form})>>
+  createBridgeOutTransaction({
     required String contractAddress,
     required String rpcUrl,
     required StoredKeyWallet wallet,
     required String amountToBurn,
+    required int sourceChainId,
     required int destinationChainId,
+    String? sgnsAccount,
   }) async {
     final client = Web3Client(rpcUrl, Client());
-    final hardCodedTokenIdForNow = 0;
-
-    final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
-    final ownAddress = credentials.address;
 
     EthereumAddress contractAddr = EthereumAddress.fromHex(contractAddress);
 
     try {
-      // Contract Setup
-      final bridgeContract = DeployedContract(bridgeOutAbi, contractAddr);
-      final contract = DeployedContract(abi, contractAddr);
-      final bridgeOutFunction = bridgeContract.function('bridgeOut');
-      final decimalsFunction = contract.function('decimals');
-
       // Get Token Decimals
+      final contract = DeployedContract(abi, contractAddr);
       final tokenDecimals = await client.call(
-        contract: bridgeContract,
-        function: decimalsFunction,
+        contract: contract,
+        function: contract.function('decimals'),
         params: [],
       );
 
-      // Convert Amount to BigInt
-      final double amount = double.parse(amountToBurn);
-      final burnAmountConverted = BigInt.from(
-        amount * pow(10, int.parse(tokenDecimals.first.toString())),
+      final burnAmountConverted = gnusBurnBaseUnits(
+        amountToBurn,
+        int.parse(tokenDecimals.first.toString()),
       );
+      if (burnAmountConverted == null) {
+        return ApiResponse.error("Invalid amount or token decimals");
+      }
+
+      final callResponse = await resolveBridgeOutCall(
+        client: client,
+        chainId: sourceChainId,
+        contract: contractAddr,
+        amount: burnAmountConverted,
+        destinationChainId: destinationChainId,
+        sgnsAccount: sgnsAccount,
+      );
+      final call = callResponse.data;
+      if (!callResponse.isSuccess || call == null) {
+        return ApiResponse.error(callResponse.errorMessage ?? "Error bridging");
+      }
+
+      final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
+      final ownAddress = credentials.address;
 
       // Estimate Gas Price and Gas Limit
       final gasPrice = await client.getGasPrice();
       final gasLimit = await client.estimateGas(
         sender: ownAddress,
         to: contractAddr,
-        data: bridgeOutFunction.encodeCall([
-          burnAmountConverted,
-          BigInt.from(hardCodedTokenIdForNow),
-          BigInt.from(destinationChainId),
-        ]),
+        data: call.function.encodeCall(call.params),
       );
 
       final hasFundsResponse = await hasEnoughFundsForGas(
@@ -500,19 +496,15 @@ class Web3 {
 
       // Create Transaction
       final transaction = Transaction.callContract(
-        contract: bridgeContract,
-        function: bridgeOutFunction,
-        parameters: [
-          burnAmountConverted,
-          BigInt.from(hardCodedTokenIdForNow),
-          BigInt.from(destinationChainId),
-        ],
+        contract: call.contract,
+        function: call.function,
+        parameters: call.params,
         from: ownAddress,
         gasPrice: gasPrice,
         maxGas: gasLimit.toInt(),
       );
 
-      return ApiResponse.success(transaction);
+      return ApiResponse.success((tx: transaction, form: call.form));
     } catch (e) {
       return ApiResponse.error(e.toString());
     } finally {
@@ -520,13 +512,18 @@ class Web3 {
     }
   }
 
-  Future<ApiResponse<String>> executeBridgeOutTransaction({
+  /// Signs and sends the burn. [form] is set once the chain's form is known,
+  /// so the caller can apply the crediting rule.
+  Future<({ApiResponse<String> burn, BridgeOutForm? form})>
+  executeBridgeOutTransaction({
     required String contractAddress,
     required String rpcUrl,
     required StoredKeyWallet wallet,
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
+    String? sgnsAccount,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     final client = Web3Client(rpcUrl, Client());
 
@@ -537,35 +534,97 @@ class Web3 {
         rpcUrl: rpcUrl,
         wallet: wallet,
         amountToBurn: amountToBurn,
+        sourceChainId: sourceChainId,
         destinationChainId: destinationChainId,
+        sgnsAccount: sgnsAccount,
       );
 
-      if (!transactionResponse.isSuccess || transactionResponse.data == null) {
-        return ApiResponse.error(
-          transactionResponse.errorMessage ??
-              'Not enough balance to pay for gas fees',
+      final built = transactionResponse.data;
+      if (!transactionResponse.isSuccess || built == null) {
+        return (
+          burn: ApiResponse<String>.error(
+            transactionResponse.errorMessage ??
+                'Not enough balance to pay for gas fees',
+          ),
+          form: null,
         );
       }
 
-      // Get Private Key
-
       final credentials = EthPrivateKey.fromHex(getPrivateKeyStr(wallet));
 
-      // Execute Transaction
-      final txHash = await client.sendTransaction(
-        credentials,
-        transactionResponse.data!, // handled above if null
-        chainId: sourceChainId,
+      return (
+        burn: await broadcastSigned(
+          client,
+          credentials,
+          built.tx,
+          chainId: sourceChainId,
+          beforeBroadcast: beforeBroadcast,
+        ),
+        form: built.form,
       );
-
-      return ApiResponse.success(txHash);
     } catch (e) {
       ApiResponse.error(e.toString());
     } finally {
       client.dispose();
     }
 
-    return ApiResponse.error('Failed to bridge: unknown');
+    return (
+      burn: ApiResponse<String>.error('Failed to bridge: unknown'),
+      form: null,
+    );
+  }
+
+  /// Signs [transaction], hands its hash to [beforeBroadcast] (a throw there
+  /// cancels the send), then sends it. A send with no answer is settled by
+  /// its receipt, or stays [ApiResponse.unconfirmed] when none arrives.
+  static Future<ApiResponse<String>> broadcastSigned(
+    Web3Client client,
+    Credentials credentials,
+    Transaction transaction, {
+    required int chainId,
+    Future<void> Function(String txHash)? beforeBroadcast,
+    Future<void> Function(Duration delay) wait = Future<void>.delayed,
+  }) async {
+    Uint8List signed;
+    final String txHash;
+    try {
+      signed = await client.signTransaction(
+        credentials,
+        transaction,
+        chainId: chainId,
+      );
+      // web3dart before 3.0.3 leaves the 0x02 type byte to sendTransaction.
+      if (transaction.isEIP1559 && signed.first >= 0xc0) {
+        signed = prependTransactionType(0x02, signed);
+      }
+      txHash = bytesToHex(keccak256(signed), include0x: true);
+      await beforeBroadcast?.call(txHash);
+    } catch (e) {
+      return ApiResponse.error(e.toString());
+    }
+    try {
+      return ApiResponse.success(await client.sendRawTransaction(signed));
+    } on RPCError catch (e) {
+      // Only a JSON-RPC error proves the node refused the transaction.
+      return ApiResponse.error(e.toString());
+    } catch (e) {
+      // ponytail: 25 reads 3 s apart, about 75 s. A burn that lands later
+      // stays unconfirmed until the user checks it. Upgrade: re-read the
+      // receipts of unconfirmed burns at startup.
+      final receipt = await pollReceipt(
+        hash: txHash,
+        read: (h) => client.getTransactionReceipt(h).timeout(rpcReadTimeout),
+        wait: wait,
+        attempts: 25,
+      );
+      if (receipt == null) {
+        return ApiResponse.unconfirmed(txHash, e.toString());
+      }
+      if (receipt.status == false) {
+        return ApiResponse.reverted(txHash, 'Transaction reverted');
+      }
+      return ApiResponse.success(txHash);
+    }
   }
 
   /// Grants [spender] an allowance of exactly [amount] raw base units.
@@ -627,14 +686,18 @@ class Web3 {
     required String rpcUrl,
     required StoredKeyWallet wallet,
     required String amountToBurn,
+    required int sourceChainId,
     required int destinationChainId,
+    String? sgnsAccount,
   }) async {
     final transactionResponse = await createBridgeOutTransaction(
       contractAddress: contractAddress,
       rpcUrl: rpcUrl,
       wallet: wallet,
       amountToBurn: amountToBurn,
+      sourceChainId: sourceChainId,
       destinationChainId: destinationChainId,
+      sgnsAccount: sgnsAccount,
     );
 
     if (!transactionResponse.isSuccess) {
@@ -643,7 +706,7 @@ class Web3 {
       );
     }
 
-    return ApiResponse.success(transactionResponse.data?.gasPrice);
+    return ApiResponse.success(transactionResponse.data?.tx.gasPrice);
   }
 
   double? getGasPriceInGwei(EtherAmount? gas) {

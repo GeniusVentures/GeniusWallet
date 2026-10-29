@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart'
+    show bridgeUnavailableMessage;
 import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
@@ -46,6 +48,7 @@ class BridgeScreenState extends State<BridgeScreen> {
   Timer? _debounce;
   bool _isApiCallInProgress = false; // Track ongoing API calls
   bool isError = false;
+  bool isBridgeUnavailable = false;
   // Task 3: added state for the CTA ladder only -- true while the debounce
   // body's getBrigeOutGasCost call is in flight / while bridgeOut's submit
   // closure is awaiting. Neither call nor its arguments are touched by
@@ -375,14 +378,13 @@ class BridgeScreenState extends State<BridgeScreen> {
         address: state.selectedWallet?.address ?? "",
         amountToBurn: fromAmountController.text,
         destinationChainId: toNetwork?.chainId ?? 0,
-        shouldMintTokens: true,
       );
 
       if (!context.mounted) {
         return;
       }
 
-      final isSuccess = bridgeTokensResponse.isSuccess;
+      final status = bridgeReceiptStatus(bridgeTokensResponse);
       final errorMessage = bridgeTokensResponse.errorMessage;
       // FAILURE MESSAGE: the retired AlertDialog was the only place that
       // ever surfaced the response's real error text -- routing to 031-B
@@ -397,12 +399,25 @@ class BridgeScreenState extends State<BridgeScreen> {
 
       showToast(
         context,
-        isSuccess
-            ? 'Bridged ${fromAmountController.text} $symbol to '
-                  '${toNetwork?.name ?? 'the destination network'}.'
-            : failureMessage,
-        title: isSuccess ? 'Bridge complete' : 'Bridge failed',
-        type: isSuccess ? ToastType.success : ToastType.error,
+        switch (status) {
+          TransactionStatus.completed =>
+            'Bridged ${fromAmountController.text} $symbol to '
+                '${toNetwork?.name ?? 'the destination network'}.',
+          TransactionStatus.pending =>
+            'The network has not confirmed this bridge yet. It may still go '
+                'through, so check the transaction before you bridge again.',
+          _ => failureMessage,
+        },
+        title: switch (status) {
+          TransactionStatus.completed => 'Bridge complete',
+          TransactionStatus.pending => 'Not confirmed yet',
+          _ => 'Bridge failed',
+        },
+        type: switch (status) {
+          TransactionStatus.completed => ToastType.success,
+          TransactionStatus.pending => ToastType.warning,
+          _ => ToastType.error,
+        },
       );
 
       // D-04/D-19: the shared 031-B receipt replaces the retired inline
@@ -410,7 +425,7 @@ class BridgeScreenState extends State<BridgeScreen> {
       // Transaction is synthesized for display only (bridge_receipt.dart);
       // nothing here persists it.
       final tx = bridgeReceiptTransaction(
-        isSuccess: isSuccess,
+        status: status,
         txHash: bridgeTokensResponse.data,
         walletAddress: state.selectedWallet?.address ?? '',
         amount: fromAmountController.text,
@@ -428,14 +443,16 @@ class BridgeScreenState extends State<BridgeScreen> {
       // reproduced without awaiting a function that returns nothing. The
       // route pop is intentionally NOT reproduced; whether that read is
       // acceptable is put to the human at the 08-07 walk.
-      if (isSuccess) {
+      if (status != TransactionStatus.failed) {
         // Reset to a clean bridge screen on success, rather than one still
-        // showing a completed amount.
+        // showing a completed amount. Unconfirmed resets too: the burn may
+        // still land, so the screen must not invite sending it again.
         setState(() {
           fromAmountController.clear();
           toAmountController.clear();
           transactionCost = null;
           isError = false;
+          isBridgeUnavailable = false;
         });
       }
       // On FAILURE the entered amount is left in place so the user can
@@ -528,6 +545,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                   transactionCost = null;
                                   toAmountController.text = '';
                                   isError = true;
+                                  isBridgeUnavailable = false;
                                 });
                                 return;
                               }
@@ -537,6 +555,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 transactionCost = null;
                                 toAmountController.text = '';
                                 isError = true;
+                                isBridgeUnavailable = false;
                               });
                               return;
                             }
@@ -567,6 +586,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 toAmountController.text = value;
                                 transactionCost = gasCostResponse.data;
                                 isError = false;
+                                isBridgeUnavailable = false;
                                 isEstimating = false;
                               });
                             } else {
@@ -574,6 +594,9 @@ class BridgeScreenState extends State<BridgeScreen> {
                                 transactionCost = null;
                                 toAmountController.text = '';
                                 isError = true;
+                                isBridgeUnavailable =
+                                    gasCostResponse.errorMessage ==
+                                    bridgeUnavailableMessage;
                                 isEstimating = false;
                               });
                             }
@@ -793,6 +816,7 @@ class BridgeScreenState extends State<BridgeScreen> {
       isEstimating: isEstimating,
       hasEstimate: transactionCost != null,
       isError: isError,
+      bridgeUnavailable: isBridgeUnavailable,
       isSubmitting: isSubmitting,
     );
     final label = bridgeCtaLabel(ctaState, symbol: fromToken?.symbol);
@@ -813,7 +837,8 @@ class BridgeScreenState extends State<BridgeScreen> {
 
     final isErrorTone =
         ctaState == BridgeCtaState.insufficientBalance ||
-        ctaState == BridgeCtaState.gasError;
+        ctaState == BridgeCtaState.gasError ||
+        ctaState == BridgeCtaState.bridgeUnavailable;
     final background = isErrorTone
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;

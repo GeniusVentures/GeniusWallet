@@ -1,0 +1,10 @@
+webview_windows 0.4.0 from pub.dev, sha256 47fcad5875a45db29dbb5c9e6709bf5c88dcc429049872701343f91ed7255730
+The lib and windows folders are copied unchanged. Patched files are listed below.
+
+Patched, all additive and off unless the app asks:
+- windows/webview.h, windows/webview.cc: the sender WebView2 names for each web
+  message (get_Source), a top-level navigation allowlist enforced in
+  NavigationStarting, the URI of a suppressed popup, and a user agent getter.
+- windows/webview_bridge.cc: the events and methods that carry them.
+- lib/src/webview.dart: webMessageWithSource, navigationBlocked,
+  newWindowRequested, setTopLevelAllowlist and getUserAgent.

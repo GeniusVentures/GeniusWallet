@@ -3,14 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
-import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
+import 'package:genius_wallet/submit_job/job_submission.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SubmitJobCubit extends Cubit<SubmitJobState> {
@@ -18,24 +17,14 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   final GnusCubit gnusCubit;
   final GeniusApi geniusApi;
 
-  // flutter_bloc does not re-export kDebugMode, hence the explicit
-  // foundation.dart import above (same idiom as app_bloc.dart:10).
-  //
-  // Task 2 (2026-07-31): resolves the armed DevMockJob scenario, or null
-  // when nothing is armed or dev tools are unavailable. Gated here, in ONE
-  // place, so `kDebugMode && kShowDevTools` cannot be forgotten at an
-  // individual interception site (T-elz-01) - fetchGnusBalance,
-  // openFilePicker and bridgeTokens all read this same getter rather than
-  // repeating the gate.
-  DevJobScenario? get _devJobScenario =>
-      (kDebugMode && kShowDevTools) ? DevMockJob.instance.scenario.value : null;
+  late final JobSubmission jobSubmission = JobSubmission(geniusApi: geniusApi);
 
   // ponytail: a synchronous JSON parse on the UI isolate, gated only by the
   // length check below. A file just under the cap can still block the UI
   // thread while it parses. Upgrade path: parse off-isolate (compute() /
   // Isolate.run) once a job file large enough to matter shows up in
   // practice.
-  static const int _maxJobFileBytes = 5 * 1024 * 1024; // 5 MB
+  static const int _maxJobFileBytes = JobSubmission.maxJobBytes;
 
   SubmitJobCubit({
     required this.walletDetailsCubit,
@@ -43,7 +32,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     required this.geniusApi,
   }) : super(const SubmitJobState()) {
     _initialize();
-    if (kDebugMode && kShowDevTools) {
+    if (JobSubmission.devToolsEnabled) {
       // Task 1 (2026-07-31): this cubit is constructed per-subtree in two
       // places (`wallet_overview.dart:60`, `router.dart:369`) and both
       // instances can be alive at once. The listener is removed in close()
@@ -101,15 +90,15 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
   // Fetches and updates balance from gnusCubit
   Future<double?> fetchGnusBalance() async {
-    if (_devJobScenario != null) {
+    final fixtureBalance = jobSubmission.fixtureBalance;
+    if (fixtureBalance != null) {
       // DEV-ONLY (Task 2, 2026-07-31): answers from the fixture instead of
       // gnusCubit, so `_initialize()` never parks a stale "Unable to fetch
       // GNUS balance" error on the state before the walk even starts.
-      final balance = DevMockJob.instance.balance;
       if (!isClosed) {
-        emit(state.copyWith(gnusBalance: balance));
+        emit(state.copyWith(gnusBalance: fixtureBalance));
       }
-      return balance;
+      return fixtureBalance;
     }
 
     final resp = await gnusCubit.fetchGnusBalance();
@@ -227,129 +216,83 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   // not `Map<String, dynamic>`: the real branch's `isGasFetchable` includes
   // a `jsonData != null` check whose current meaning depends on that.
   Future<int> _resolveJobCost(dynamic jsonData) async {
-    final int jobCost;
-    final devScenario = _devJobScenario;
+    final costResult = await jobSubmission.cost(jsonEncode(jsonData));
+    final int jobCost = switch (costResult) {
+      JobCostOk(:final minions) => minions,
+      JobCostFailed() => 0,
+    };
 
-    if (devScenario != null) {
-      // DEV-ONLY (Task 2, 2026-07-31): a DevJobScenario is armed. Skip
-      // both requestGeniusSDKCost and getBridgeOutGasCost entirely and
-      // answer from the fixture instead, so the whole flow runs with no
-      // native SDK.
-      final fixture = DevMockJob.instance;
-      if (fixture.costShouldFail) {
-        // Pricing-failure scenario: lands the walk on exactly the state
-        // Task 1 made visible - a kept file, jobCost 0, costError set.
-        // If Task 1 regresses, this button reproduces a blank step 1
-        // again, which is why the two tasks verify each other.
-        jobCost = 0;
+    switch (costResult) {
+      case JobCostFailed(:final reason):
+        // A pricing failure keeps the picked file and sets costError instead
+        // of returning early: the auto-advance listener and the step 0 footer
+        // gate on uploadedJson being non-empty, and costError only renders in
+        // step 2, so a discarded file would make step 2 unreachable. The dev
+        // fixture's pricing-failure scenario lands here and carries its own
+        // balance.
         if (!isClosed) {
           emit(
             state.copyWith(
-              costError: DevMockJob.costErrorMessage,
-              gnusBalance: fixture.balance,
+              costError: reason ?? 'Unable to retrieve job cost',
+              gnusBalance: costResult.fixtureBalance,
             ),
           );
         }
-      } else {
-        jobCost = DevMockJob.jobCost;
-        // Balance is emitted in the SAME emit as the gas string, not a
-        // separate call - this is still the one detail that makes the panel
-        // usable mid-walk. What changed here (Task 1, 2026-07-31): arming a
-        // scenario AFTER a file is already chosen used to do nothing,
-        // because this whole branch only ran once, at pick time. It now
-        // also runs from `_repriceForDevScenario`, reached through the
-        // listener registered in the constructor above - a scenario armed
-        // (or cleared) after a pick pushes a re-price through that listener,
-        // which is the half that was missing and the half that stuck a real
-        // walk.
-        if (!isClosed) {
-          emit(
-            state.copyWith(
-              jobGasCost: DevMockJob.jobGasCost,
-              gnusBalance: fixture.balance,
-            ),
+      case JobCostOk(:final fixtureBalance):
+        if (fixtureBalance != null) {
+          // DEV-ONLY: the owner answered from the fixture; skip the
+          // isGasFetchable gate so the whole flow runs with no native SDK.
+          // Balance is emitted in the same emit as the gas string. This also
+          // runs from `_repriceForDevScenario`, so a scenario armed or cleared
+          // after a pick re-prices through the constructor's listener.
+          final gasResult = await jobSubmission.estimateGas(
+            _jobFacts(),
+            jobCost,
           );
+          if (gasResult case GasEstimateOk(:final gas)) {
+            if (!isClosed) {
+              emit(
+                state.copyWith(jobGasCost: gas, gnusBalance: fixtureBalance),
+              );
+            }
+          }
+        } else if (jsonData != null &&
+            state.gnusTokenDetails.address != null &&
+            jobCost != 0) {
+          // Get gas cost associated with uploaded job
+          await getBridgeOutGasCost(jobCost);
+        } else {
+          // Do not call getBridgeOutGasCost with a zero cost - a pointless
+          // RPC round trip against an amount of nothing.
+          setCostError('Unable to retrieve job cost');
         }
-      }
-    } else {
-      jobCost = geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
-
-      final isGasFetchable =
-          jsonData != null &&
-          state.gnusTokenDetails.address != null &&
-          jobCost != 0;
-
-      // 1a (2026-07-31): a gas-estimate failure one line below already
-      // sets costError and falls through to the emit rather than
-      // returning early - that is the precedent this now matches. Before
-      // this change, a pricing failure returned here instead, discarding
-      // the picked file: uploadedFileName/uploadedJson/jobCost are only
-      // written by the emit below, so returning early meant the file
-      // vanished with no visible trace. That silence mattered beyond this
-      // method - job_steps.dart's auto-advance listener and its step 0
-      // footer both gate on uploadedJson being non-empty, and costError
-      // only renders in step 2, so a discarded file also made step 2
-      // unreachable. isGasFetchable is now used only to decide whether to
-      // ATTEMPT the gas estimate, never to abandon the method.
-      if (isGasFetchable) {
-        // Get gas cost associated with uploaded job
-        await getBridgeOutGasCost(jobCost);
-      } else {
-        // Do not call getBridgeOutGasCost with a zero cost - a pointless
-        // RPC round trip against an amount of nothing.
-        setCostError('Unable to retrieve job cost');
-      }
     }
 
     return jobCost;
   }
 
   Future<void> getBridgeOutGasCost(int jobCost) async {
-    final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
-    final chainId = selectedNetwork?.chainId;
-    final rpcUrl = selectedNetwork?.rpcUrl;
-    final selectedWallet = walletDetailsCubit.state.selectedWallet;
-    final walletAddress = selectedWallet?.address;
-    final gnusAddress = gnusCubit.state.tokenInfo?.address;
+    final result = await jobSubmission.estimateGas(_jobFacts(), jobCost);
 
-    if (selectedNetwork == null ||
-        chainId == null ||
-        gnusAddress == null ||
-        walletAddress == null ||
-        rpcUrl == null) {
-      setCostError(
-        'Missing required data for bridge gas estimation. Please select a wallet and network.',
-      );
-      return;
-    }
-
-    final resp = await geniusApi.getBrigeOutGasCost(
-      sourceChainId: chainId,
-      contractAddress: gnusAddress,
-      rpcUrl: rpcUrl,
-      address: walletAddress,
-      amountToBurn: "$jobCost",
-      destinationChainId: 15305752297694, // TODO: unhardcode bridge address
-    );
-
-    final jobGasCost = resp.data;
-
-    if (!resp.isSuccess || jobGasCost == null) {
-      // Pass through the underlying reason (e.g. "Not enough funds for gas
-      // to bridge tokens" from web3.dart's hasEnoughFundsForGas check)
-      // instead of replacing it with a generic line - that check already
-      // runs, the only thing missing was its message reaching the user.
-      final underlyingReason = resp.errorMessage;
-      setCostError(
-        underlyingReason != null && underlyingReason.isNotEmpty
-            ? underlyingReason
-            : 'Failed to estimate bridge gas cost.',
-      );
-      return;
-    }
-
-    if (!isClosed) {
-      emit(state.copyWith(jobGasCost: jobGasCost));
+    switch (result) {
+      case GasEstimateMissingData():
+        setCostError(
+          'Missing required data for bridge gas estimation. Please select a wallet and network.',
+        );
+      case GasEstimateFailed(:final reason):
+        // Pass through the underlying reason (e.g. "Not enough funds for gas
+        // to bridge tokens" from web3.dart's hasEnoughFundsForGas check)
+        // instead of replacing it with a generic line - that check already
+        // runs, the only thing missing was its message reaching the user.
+        setCostError(
+          reason != null && reason.isNotEmpty
+              ? reason
+              : 'Failed to estimate bridge gas cost.',
+        );
+      case GasEstimateOk(:final gas):
+        if (!isClosed) {
+          emit(state.copyWith(jobGasCost: gas));
+        }
     }
   }
 
@@ -375,140 +318,48 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       );
     }
 
-    // DEV-ONLY, release-safe: `_devJobScenario` is null unless both
-    // `kDebugMode` and `kShowDevTools` are true, so this call and the method
-    // behind it are unreachable in a release build. It sits at the very top,
-    // BEFORE the precondition guard below: that guard exists only to protect
-    // the two SDK calls the fixture replaces (bridgeOut,
-    // requestGeniusSDKProcess), and in a dev environment with no token info
-    // it would otherwise reject every submission before step 4 could render.
-    // Everything from here down is the real bridge.
-    if (_devJobScenario != null) {
-      await _bridgeTokensFromDevFixture();
-      return;
-    }
-
-    final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
-    final chainId = selectedNetwork?.chainId;
-    final rpcUrl = selectedNetwork?.rpcUrl;
-    final selectedWallet = walletDetailsCubit.state.selectedWallet;
-    final walletAddress = selectedWallet?.address;
-    final gnusAddress = gnusCubit.state.tokenInfo?.address;
+    // Everything below is read before the first await, so a wallet, network
+    // or Genius account switch during the burn cannot retarget it. `isDev` is
+    // captured once so a scenario cleared mid-flight cannot flip the
+    // balance-refetch decision.
+    final isDev = jobSubmission.devScenario != null;
+    final facts = _jobFacts();
+    final jobCost = state.jobCost;
     final uploadedJson = state.uploadedJson;
+    final expectedNode = geniusApi.getSelectedAccountAddress();
 
-    if (selectedNetwork == null ||
-        chainId == null ||
-        gnusAddress == null ||
-        walletAddress == null ||
-        rpcUrl == null ||
-        state.jobCost == 0 ||
-        uploadedJson.isEmpty) {
-      if (!isClosed) {
-        emit(
-          state.copyWith(
-            isBridgingTokens: false,
-            submitError:
-                'Missing required data. Please select a wallet and network.',
-          ),
-        );
-      }
-      return;
-    }
-
-    final resp = await geniusApi.bridgeOut(
-      sourceChainId: chainId,
-      contractAddress: gnusAddress,
-      rpcUrl: rpcUrl,
-      address: walletAddress,
-      amountToBurn: state.jobCost.toString(),
-      destinationChainId: 15305752297694, // TODO: unhardcode bridge address
+    final result = await jobSubmission.submit(
+      facts,
+      jobCost: jobCost,
+      jobJson: uploadedJson,
+      expectedNode: expectedNode,
     );
 
-    final txHash = resp.data;
-
-    if (!resp.isSuccess || txHash == null) {
-      // Nothing was spent - both hash fields stay untouched (still empty on
-      // a fresh state).
-      if (!isClosed) {
-        emit(
-          state.copyWith(
-            isBridgingTokens: false,
-            outcome: SubmitOutcome.bridgeFailed,
-            submitError: 'Bridge transaction failed. Please try again.',
-          ),
-        );
-      }
-
-      return;
-    }
-
-    // process the job
-    final processResult = geniusApi.requestGeniusSDKProcess(
-      jobJson: jsonEncode(uploadedJson),
-    );
-    if (processResult != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      // The bridge succeeded - tokens are already burned - but the job
-      // never started. Preserve the bridge hash as proof (deliberately NOT
-      // txHash, so nothing downstream reading a non-empty txHash as "job
-      // started" is fooled), and refresh the balance since a burn happened
-      // here too even though no job was requested.
-      unawaited(fetchGnusBalanceWithDelay());
-
-      if (!isClosed) {
-        emit(
-          state.copyWith(
-            isBridgingTokens: false,
-            outcome: SubmitOutcome.bridgedNotProcessed,
-            bridgeHash: txHash,
-            submitError: _processErrorMessage(processResult),
-          ),
-        );
-      }
-      return;
-    }
-
-    unawaited(fetchGnusBalanceWithDelay());
-
-    if (!isClosed) {
-      emit(
-        state.copyWith(
-          txHash: txHash,
-          outcome: SubmitOutcome.done,
-          isBridgingTokens: false,
-        ),
-      );
-    }
-  }
-
-  /// DEV-ONLY (Task 2, 2026-07-31): the fixture half of [bridgeTokens],
-  /// extracted out of it so that method reads as the real bridge with one
-  /// guarded call at the top rather than 60 lines of mock ahead of the SDK.
-  ///
-  /// Only ever reached through the `_devJobScenario != null` gate in
-  /// [bridgeTokens], which is itself `kDebugMode && kShowDevTools` - do not
-  /// call this from anywhere else, because that gate is the only thing
-  /// keeping the fixture out of a real submission.
-  ///
-  /// Replaces both SDK calls (`bridgeOut`, `requestGeniusSDKProcess`) so the
-  /// whole flow runs with no native node.
-  Future<void> _bridgeTokensFromDevFixture() async {
-    final fixture = DevMockJob.instance;
-    await Future.delayed(DevMockJob.inFlightDelay);
-
-    switch (fixture.outcome) {
-      case SubmitOutcome.done:
+    switch (result) {
+      case JobMissingData():
         if (!isClosed) {
           emit(
             state.copyWith(
-              txHash: DevMockJob.txHash,
-              outcome: SubmitOutcome.done,
               isBridgingTokens: false,
+              submitError:
+                  'Missing required data. Please select a wallet and network.',
             ),
           );
         }
-      case SubmitOutcome.bridgeFailed:
-        // Nothing was spent - both hash fields stay untouched, byte
-        // identical to the production bridge-failure message.
+      case JobBusy():
+        // A dashboard submit holds the wallet's one burn slot.
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              isBridgingTokens: false,
+              submitError:
+                  'Another job is being submitted. Try again when it finishes.',
+            ),
+          );
+        }
+      case JobBridgeFailed():
+        // Nothing was spent - both hash fields stay untouched (still empty on
+        // a fresh state).
         if (!isClosed) {
           emit(
             state.copyWith(
@@ -518,31 +369,66 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
             ),
           );
         }
-      case SubmitOutcome.bridgedNotProcessed:
-        // The fixture bridge hash on bridgeHash and NOT on txHash -
-        // deliberately, so nothing downstream reading a non-empty txHash
-        // as "job started" is fooled. The submit error is produced by
-        // passing the fixture's process-failure value through the
-        // cubit's own private message mapper, so this terminal shows
-        // exactly what a genuine failure shows rather than dev prose.
+      case JobBurnUnconfirmed(:final bridgeHash):
+        // Not a failure: the burn may have landed, so no retry is offered.
+        if (!isDev) {
+          unawaited(fetchGnusBalanceWithDelay());
+        }
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              isBridgingTokens: false,
+              outcome: SubmitOutcome.burnUnconfirmed,
+              bridgeHash: bridgeHash,
+            ),
+          );
+        }
+      case JobBridgedNotProcessed(:final bridgeHash, :final processResult):
+        // The bridge succeeded - tokens are already burned - but the job
+        // never started. Preserve the bridge hash as proof (deliberately NOT
+        // txHash, so nothing downstream reading a non-empty txHash as "job
+        // started" is fooled), and refresh the balance since a burn happened
+        // here too even though no job was requested. The dev fixture never
+        // refetches: its balance is fixture-driven and intercepted in
+        // fetchGnusBalance, so a refetch would sleep 5s and re-emit the
+        // identical number.
+        if (!isDev) {
+          unawaited(fetchGnusBalanceWithDelay());
+        }
         if (!isClosed) {
           emit(
             state.copyWith(
               isBridgingTokens: false,
               outcome: SubmitOutcome.bridgedNotProcessed,
-              bridgeHash: DevMockJob.bridgeHash,
-              submitError: _processErrorMessage(DevMockJob.processFailure),
+              bridgeHash: bridgeHash,
+              submitError: _processErrorMessage(processResult),
             ),
           );
         }
-      case SubmitOutcome.notSubmitted:
-        // Unreachable - DevMockJob.outcome never returns notSubmitted.
-        break;
+      case JobDone(:final txHash):
+        if (!isDev) {
+          unawaited(fetchGnusBalanceWithDelay());
+        }
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              txHash: txHash,
+              outcome: SubmitOutcome.done,
+              isBridgingTokens: false,
+            ),
+          );
+        }
     }
+  }
 
-    // No delayed balance refetch here, unlike the production path: the
-    // balance is fixture-driven and intercepted in fetchGnusBalance, so the
-    // refetch would sleep 5s and re-emit the identical number.
+  JobFacts _jobFacts() {
+    final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
+    return JobFacts(
+      chainId: selectedNetwork?.chainId,
+      rpcUrl: selectedNetwork?.rpcUrl,
+      walletAddress: walletDetailsCubit.state.selectedWallet?.address,
+      gnusAddress: gnusCubit.state.tokenInfo?.address,
+    );
   }
 
   // used to fetch the gnus balance of the wallet with some delay
@@ -622,7 +508,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
   @override
   Future<void> close() {
-    if (kDebugMode && kShowDevTools) {
+    if (JobSubmission.devToolsEnabled) {
       // Dart canonicalises instance method tear-offs from the same object,
       // so this removes the exact closure the constructor's addListener
       // added - the gate here must stay identical to the one guarding that

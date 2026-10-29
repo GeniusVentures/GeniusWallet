@@ -14,6 +14,7 @@ class LinuxNavigationDelegate extends PlatformNavigationDelegate {
 
   PageEventCallback? _onPageFinished;
   PageEventCallback? _onPageStarted;
+  PageEventCallback? _onPageCommitted;
   ProgressCallback? _onProgress;
   WebResourceErrorCallback? _onWebResourceError;
   NavigationRequestCallback? _onNavigationRequest;
@@ -34,6 +35,10 @@ class LinuxNavigationDelegate extends PlatformNavigationDelegate {
 
   void handlePageStarted(String url) {
     _onPageStarted?.call(url);
+  }
+
+  void handlePageCommitted(String url) {
+    _onPageCommitted?.call(url);
   }
 
   void handlePageFinished(String url) {
@@ -77,6 +82,12 @@ class LinuxNavigationDelegate extends PlatformNavigationDelegate {
   @override
   Future<void> setOnPageStarted(PageEventCallback onPageStarted) async {
     _onPageStarted = onPageStarted;
+  }
+
+  /// Called when a main-frame navigation commits: the new document has
+  /// replaced the old one. Linux only; [setOnPageStarted] fires earlier.
+  Future<void> setOnPageCommitted(PageEventCallback onPageCommitted) async {
+    _onPageCommitted = onPageCommitted;
   }
 
   @override

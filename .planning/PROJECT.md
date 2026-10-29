@@ -12,7 +12,28 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 
 **v2.0 Squid Router integration shipped 2026-09-24** (phases 26, 29, 30, 31; PRs #233-#235, #244): real Squid swaps on the `/swap` tab, every route fee named before confirming, dApp calldata decoded instead of blind-signed, and Send for native coins and ERC-20 tokens. DAP-02 ships the input side only; FEE-01 waits on Squid (business). Archive: `milestones/v2.0-ROADMAP.md`. v1.0 (redesign port) is still executing: phase 11 closeout and phase 14's last plan are open.
 
-## Current Milestone: v3.0 Child wallets & account linking
+## Current Milestone: v4.0 Processing dashboard bridge (wallet side)
+
+**Goal:** The GNUS processing dashboard (`GeniusVentures/gnus-dashboard`, a static Next.js SPA) can submit compute jobs, show their status and results, and show what the user's node processed and earned, by asking GeniusWallet through one `gnus_*` contract. Inside the wallet it runs in a WebView with an injected `window.gnus` bridge; in a normal browser the same calls go over WalletConnect.
+
+**Target features:**
+- One transport-independent `gnus_*` handler (accounts, estimate, submit, jobs, earnings) that reuses the compute panel's job-submission flow rather than copying it. Contract: `research/v4.0-gnus-rpc-contract.md`
+- An in-wallet dashboard screen with the bridge hardened per platform: top frame only, origin from the message source, navigation locked to a pinned https origin, dialogs above the page
+- WalletConnect `gnus_*` request handlers and session events for the dashboard in a normal browser, plus the session fixes that path needs (account events, `tx.from` check, no unsignable session accounts)
+- Native consent: per-origin connect permission, a confirm on every submit showing origin and cost, rate limiting
+- SDK cost and process calls off the UI isolate, for the bridge and the compute panel alike
+- Device walks on Android, iOS and macOS (the spike ran Windows and Linux only)
+
+**Constraints:** Most live results depend on SuperGenius SDK changes that are not wallet work (cost is always 0 until the CA bundle path is fixed; Process returns no job id; no per-job status, result or earnings query). Each is tracked as a dependency in REQUIREMENTS.md; the wallet ships the contract with those fields null and fills them when the SDK lands. v3.0 stays open alongside (only its live walks remain); v1.0 residue too. No milestone is archived to make room.
+
+**Cross-project design boundary (reviewed 2026-10-27):** The dashboard uses the injected `window.gnus` provider inside GeniusWallet and Reown WalletConnect Sign Client in an external browser. GeniusWallet already provides ordinary EVM signing and owns all `gnus_*` requests and native signing; neither the dashboard nor the future GCS public API should add a separate signing stack or custodial wallet. A `gnus_submitJob` call orchestrates user approval, EVM `bridgeOut`, and native `GeniusSDKProcess`, with `bridgedNotProcessed` and idempotent recovery; the burn and Process steps are not one atomic cross-chain transaction.
+
+**Provenance:** spike 2026-10-26 (`research/v4.0-webview-bridge-spike.md`, Windows WebView2 and Linux WebKitGTK against the real SDK) and the identity research (`research/v4.0-wallet-identity.md`). Scoping decisions were taken by the planning session overnight on Braian's instruction to answer GSD questions itself; each is marked (D) in the contract and listed in STATE.md.
+
+<details>
+<summary>v3.0 milestone brief (in progress alongside, live walks pending)</summary>
+
+### Milestone: v3.0 Child wallets & account linking
 
 **Goal:** One account switcher shows which wallet the SDK node runs as and which wallet the user manages, every SDK account is tied to the ETH wallet it came from, and the user can register their own sub-accounts as children of a main account and move GNUS between them.
 
@@ -23,6 +44,8 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 - Child-wallet UI for the user's own sub-accounts: register, list with balances, fund, recover, revoke, detach, replace main
 
 **Constraints:** fund/recover/revoke return "submitted", not "confirmed" — the UI shows a pending state. `RegisterChild` runs on the child's node. Needs SuperGenius `c575a16` with `upnp_enabled: false`. v1.0 stays open alongside (no phase archival, as with v2.0).
+
+</details>
 
 <details>
 <summary>v2.0 milestone brief (archived)</summary>
@@ -45,6 +68,16 @@ what shipped as the swap execution path; the Squid client was finished 2025-05 b
 Symbiosis named once, never built) and the go-forward decision.
 
 </details>
+
+## Later Integration: GCS Decentralized API Funding (post-v4.0)
+
+The separately specified GCS OpenAI-compatible API (`api.gnus.ai/v1`) uses Cloudflare Workers and sharded Durable Objects to route HTTPS requests over outbound WebSockets to authorized high-reputation GCS nodes. Membership of the `PrivilegedAPIHandlerRegistry` is quorum-authorized through SuperGenius-style signed SecureCRDT policy; no GCS validator privileges are conferred by API handling. Public API connectivity and load balancing belong to the GCS/Cloudflare workstream, not to GeniusWallet or the dashboard.
+
+GeniusWallet will eventually be the **user's signing and authorization interface** for restricted, reusable native `APIFundingEscrow` pools. A later, explicitly versioned wallet RPC contract must support wallet-authorized EVM deposits, bridge/mint confirmation, native funding pool creation/top-up, bounded API credential authorization and revocation, refund signatures, and verified balance/usage queries. Existing Reown/WalletConnect EVM signing and the `window.gnus` path are reused; no new dashboard back end or web-held native signing key is allowed.
+
+**Dependencies and release gates:** The native UTXO-restricted spending rules and GCS authorization interface must be specified and implemented before any feature is represented as live. The wallet's current `bridgeOut` ABI encodes three arguments; the current `gnus-ai-contracts/GNUSBridge.sol` source uses five arguments including `sgnsDestination` and `destinationYOdd`. Confirm deployed bridge versions and update the ABI, native-destination selection, gas estimation and transaction encoding as a coordinated contract change. The current v4.0 manual job path remains distinct from the future reusable API funding path. Do not treat wallet-level idempotency as native atomic escrow protection.
+
+This future integration is **not part of PR #294** and should be planned as a separate GSD milestone with SuperGenius, GCS, GeniusWallet and dashboard dependencies. Current v4.0 scope and schedule remain unchanged.
 
 ## Requirements
 
@@ -86,6 +119,14 @@ Symbiosis named once, never built) and the go-forward decision.
 - [ ] Every SDK account linked to and labelled with its source ETH wallet
 - [ ] Child wallets: register, list, fund, recover, revoke, detach, replace main
 
+<!-- v4.0 scope — started 2026-10-26, see REQUIREMENTS.md ## v4.0. -->
+
+- [ ] One `gnus_*` handler serving the processing dashboard over two transports
+- [ ] In-wallet dashboard WebView with a hardened `window.gnus` bridge on all five platforms
+- [ ] WalletConnect `gnus_*` handlers for the dashboard in a normal browser
+- [ ] Native consent, per-origin permission and rate limiting for dashboard calls
+- [ ] SDK cost/process calls off the UI isolate
+
 ### Out of Scope
 
 - ~~Broad new-feature milestones (staking, new chains, etc.) — deferred until the redesign port lands~~ — superseded 2026-09-16: v2.0 (Squid Router integration) was authorized to proceed alongside the redesign tail; staking and other new chains remain deferred
@@ -115,6 +156,8 @@ Symbiosis named once, never built) and the go-forward decision.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Reuse GeniusWallet's existing Reown/WalletConnect signing capabilities; browser dashboard uses Sign Client only (2026-10-27) | Ordinary EVM signing is already in the wallet. The web dashboard needs a transport for `gnus_*` methods, not an additional signing implementation or AppKit dependency | Approved product direction |
+| Keep manual job submission, prepaid API authorization, and native escrow separate (2026-10-27) | Manual `bridgeOut` then `GeniusSDKProcess` is a wallet-orchestrated sequence with a recoverable partial-success state; the future `APIFundingEscrow` must enforce atomic restricted UTXO spending at native consensus | Approved architecture; future funding pending native work |
 | **Take Alex's visual, never his behavior or his new features** (2026-07-16) | Alex's own `WIRING.md` documents 11 `WIRE-N` stubs — surfaces that look finished but are demos. Send shows "submitted (demo)" and never broadcasts; Swap quotes are mocked; recipient validation is `length >= 6`; `"1,000"` parses to `1.0` (1000× under-send); the dashboard's 24h delta is `balance * 0.024`. Six touch money. develop has the real implementations. His branch is a design prototype, so porting a screen wholesale would downgrade working money-handling code into a demo. Rule: re-skin develop's screens in place; develop's logic always wins; Alex-only features (`lib/ai/`, `lib/preferences/`, address book, convert section, NFTs tab) are new capability needing product decisions and are out of scope | — Pending |
 | **Re-skin, never restructure** (2026-07-16) | Applying an adopted design system to existing widgets is a translation with a right answer; moving items, changing IA or adding capability is a product judgement with no owner in this milestone. Surfaces keep their exact structure, order and behavior — they just wear the new tokens. Structural questions get recorded for product rather than decided here | — Pending |
 | **Port the design incrementally, layer by layer** (2026-07-16) | The designer forked 2026-04-30; develop has +127 commits since, and **128 of the design's 172 files are files develop also changed** (74% overlap). Landing it in one step means reconciling all 128 at once with nothing verifiable in between. Layer by layer — tokens → primitives → shell → one screen area per phase — makes each step small enough to check by running the app, and each lands on develop on its own | — Pending |
@@ -143,4 +186,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-28 after milestone v3.0 (Child wallets & account linking) started*
+*Last updated: 2026-10-27 after sister-PR architecture alignment review*

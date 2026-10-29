@@ -26,6 +26,9 @@ enum BridgeCtaState {
   /// The last gas estimate call failed.
   gasError,
 
+  /// The chain has no GNUS bridge, so no amount can be sent from it.
+  bridgeUnavailable,
+
   /// A valid, affordable amount and a settled gas estimate — the happy path.
   ready,
 
@@ -46,6 +49,7 @@ BridgeCtaState resolveBridgeCtaState({
   required bool hasEstimate,
   required bool isError,
   required bool isSubmitting,
+  bool bridgeUnavailable = false,
 }) {
   // Submitting outranks everything — the closure is mid-flight.
   if (isSubmitting) {
@@ -68,7 +72,9 @@ BridgeCtaState resolveBridgeCtaState({
   }
 
   if (isError) {
-    return BridgeCtaState.gasError;
+    return bridgeUnavailable
+        ? BridgeCtaState.bridgeUnavailable
+        : BridgeCtaState.gasError;
   }
 
   if (hasEstimate) {
@@ -101,6 +107,8 @@ String bridgeCtaLabel(BridgeCtaState state, {String? symbol}) {
       return 'Estimating gas';
     case BridgeCtaState.gasError:
       return "Couldn't estimate gas";
+    case BridgeCtaState.bridgeUnavailable:
+      return 'Not available on this network';
     case BridgeCtaState.ready:
       return 'Bridge';
     case BridgeCtaState.submitting:

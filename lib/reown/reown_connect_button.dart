@@ -1,17 +1,13 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/overlay/mobile_header.dart'
+    show kHeaderControlSize;
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
-import 'package:genius_wallet/navigation/router.dart';
-import 'package:genius_wallet/providers/network_provider.dart';
-import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
-import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/pair_dapp_drawer.dart';
-import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
-import 'package:genius_wallet/reown/utilities.dart';
+import 'package:genius_wallet/reown/wallet_connect_host.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -19,59 +15,30 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:provider/provider.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
-final List<String> supportedMethods = [
-  'eth_sendTransaction', // For sending, approvals, swaps
-  'personal_sign', // For signing messages (login, etc.)
-  'eth_signTypedData', // For EIP-712 signatures (used in advanced DApps)
-];
-
 class ReownConnectButton extends StatefulWidget {
-  final String walletAddress;
-  final GeniusApi geniusApi;
-  final WalletDetailsCubit walletDetailsCubit;
-  final TransactionsCubit transactionsCubit;
-  const ReownConnectButton({
-    super.key,
-    required this.walletAddress,
-    required this.geniusApi,
-    required this.walletDetailsCubit,
-    required this.transactionsCubit,
-  });
+  const ReownConnectButton({super.key});
 
   @override
   State<ReownConnectButton> createState() => _ReownConnectButtonState();
 }
 
 class _ReownConnectButtonState extends State<ReownConnectButton> {
-  ReownWalletKit get walletKit => WalletKitInstance().walletKit;
+  ReownWalletKit get walletKit => _host.walletKit;
   SessionData? _session;
   bool _isConnecting = false;
   bool _isDisconnecting = false;
-  bool _didManualPair = false;
   bool _hasError = false;
-  bool _timedOut = false;
-  bool _isInitialized = false;
-  Completer<void>? _initCompleter;
+  late final WalletConnectHost _host;
   bool _listenersAttached = false;
-  void Function()? _sessionRequestDisposer;
   late final void Function(SessionConnect?) _sessionConnectHandler;
-  late final void Function(SessionProposalEvent?) _sessionProposalHandler;
-
-  bool get _isDesktopOrIot {
-    try {
-      return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-    } catch (_) {
-      return false;
-    }
-  }
 
   @override
   void initState() {
     super.initState();
+    _host = context.read<WalletConnectHost>();
     _initializeWalletKit();
   }
 
@@ -79,15 +46,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   void dispose() {
     if (_listenersAttached) {
       walletKit.onSessionConnect.unsubscribe(_sessionConnectHandler);
-      walletKit.onSessionProposal.unsubscribe(_sessionProposalHandler);
-      _sessionRequestDisposer?.call();
       _listenersAttached = false;
     }
     super.dispose();
   }
 
   Future<void> _initializeWalletKit() async {
-    await maybeInitWalletKit();
+    if (!await _host.start()) {
+      return;
+    }
 
     try {
       final sessions = walletKit.getActiveSessions();
@@ -112,13 +79,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       return;
     }
 
-    _sessionRequestDisposer = handleDappRequests(
-      walletKit: walletKit,
-      geniusApi: widget.geniusApi,
-      walletDetailsCubit: widget.walletDetailsCubit,
-      transactionsCubit: widget.transactionsCubit,
-    );
-
     _sessionConnectHandler = (event) {
       if (!mounted || event == null) {
         return;
@@ -128,104 +88,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         _session = event.session;
         _isConnecting = false;
         _hasError = false;
-        _timedOut = false;
       });
       debugPrint("✅ Connected to ${event.session.peer.metadata.name}");
     };
     walletKit.onSessionConnect.subscribe(_sessionConnectHandler);
-
-    _sessionProposalHandler = (event) async {
-      if (event == null) {
-        return;
-      }
-
-      final metadata = event.params.proposer.metadata;
-      final dappName = metadata.name;
-      final dappDescription = metadata.description;
-      final dappUrl = metadata.url;
-      final dappIcon = metadata.icons.isNotEmpty ? metadata.icons.first : null;
-
-      if (!mounted) {
-        return;
-      }
-      // Read before the drawer awaits: every chain the wallet can sign on,
-      // not just mainnet, because a session approved for one chain can never
-      // carry a request for another. A catalogue entry with no RPC is one
-      // the wallet cannot act on, so it is not claimed.
-      final chainIds = Provider.of<NetworkProvider>(
-        context,
-        listen: false,
-      ).networks.where(canSignOn).map((network) => network.chainId!).toList();
-
-      setState(() {});
-
-      debugPrint("🔵 Connection requested from $dappName ($dappUrl $dappIcon)");
-
-      try {
-        final bool? approved = await ApproveDappConnectionDrawer.show(
-          context: navigatorKey.currentContext!,
-          dappName: dappName,
-          dappUrl: dappUrl,
-          dappDescription: dappDescription,
-          iconUrl: dappIcon,
-        );
-
-        if (approved == null || !approved) {
-          debugPrint("❌ Connection request rejected by user");
-          if (mounted) {
-            showToast(
-              context,
-              "DApp connection was rejected.",
-              type: ToastType.error,
-            );
-          }
-
-          await walletKit.rejectSession(
-            id: event.id,
-            reason: Errors.getSdkError(Errors.USER_REJECTED).toSignError(),
-          );
-          return;
-        }
-
-        await walletKit.approveSession(
-          id: event.id,
-          namespaces: {
-            'eip155': eip155Namespace(
-              chainIds: chainIds.isEmpty ? const [1] : chainIds,
-              address: widget.walletAddress,
-              methods: supportedMethods,
-            ),
-          },
-        );
-      } catch (e) {
-        debugPrint('❌ Session proposal handling failed: $e');
-      }
-    };
-    walletKit.onSessionProposal.subscribe(_sessionProposalHandler);
     _listenersAttached = true;
-  }
-
-  Future<void> maybeInitWalletKit() async {
-    if (_isInitialized) {
-      return;
-    }
-    if (_initCompleter != null) {
-      await _initCompleter!.future;
-      return;
-    }
-    final completer = Completer<void>();
-    _initCompleter = completer;
-    try {
-      await WalletKitInstance().initOnce();
-      _isInitialized = true;
-      debugPrint("✅ WalletKit initialized");
-    } catch (e) {
-      debugPrint("❌ WalletKit initialization failed: $e");
-      // Forget this attempt so the next Connect press retries init.
-      _initCompleter = null;
-    } finally {
-      completer.complete();
-    }
   }
 
   Future<void> _connect() async {
@@ -236,13 +103,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     setState(() {
       _isConnecting = true;
       _hasError = false;
-      _timedOut = false;
-      _didManualPair = false;
     });
 
-    await maybeInitWalletKit();
+    final started = await _host.start();
 
-    if (!_isInitialized) {
+    if (!started) {
       if (!mounted) {
         return;
       }
@@ -267,10 +132,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     _attachWalletKitListeners();
 
     try {
-      final CreateResponse pairingInfo = await walletKit.core.pairing.create();
-      // The pairing URI carries a symKey — it goes to the QR and the manual
-      // copy field, never to the console.
-      final wcUri = pairingInfo.uri.toString();
+      // Started, not awaited: the sheet opens at once and the QR view waits
+      // for it. The URI carries a symKey, so it never reaches the console.
+      final wcUri = _createPairingUri();
 
       if (!mounted) {
         return;
@@ -279,14 +143,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       await PairDappDrawer.show(
         context: context,
         wcUri: wcUri,
-        startWithPaste: _isDesktopOrIot,
-        onPair: (uri) async {
-          final paired = await _tryPair(uri);
-          if (paired) {
-            _didManualPair = true;
-          }
-          return paired;
-        },
+        startWithPaste: true,
+        onPair: _tryPair,
       );
 
       if (!mounted) {
@@ -298,29 +156,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           _isConnecting = false;
         });
       }
-
-      Future.delayed(const Duration(seconds: 15), () {
-        if (_isConnecting && _session == null && mounted) {
-          setState(() {
-            _isConnecting = false;
-            _hasError = true;
-            _timedOut = true;
-          });
-          debugPrint('⏱ Timeout hit – no session received.');
-          if (context.mounted) {
-            showToast(
-              context,
-              "Wallet connection failed. Please try again.",
-              type: ToastType.error,
-            );
-          }
-        }
-      });
-
-      // Call pairing to start the process
-      if (!_didManualPair) {
-        await _tryPair(Uri.parse(wcUri));
-      }
     } catch (e) {
       setState(() {
         _isConnecting = false;
@@ -329,6 +164,17 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       // walletKit.pair and Uri.parse can quote the link in their exception,
       // and the link carries a symKey -- log the type only.
       debugPrint('❌ Connection failed: ${e.runtimeType}');
+    }
+  }
+
+  /// Null when the relay round trip fails; the failure is logged by type only.
+  Future<String?> _createPairingUri() async {
+    try {
+      final CreateResponse pairingInfo = await walletKit.core.pairing.create();
+      return pairingInfo.uri.toString();
+    } catch (e) {
+      debugPrint('❌ Pairing create failed: ${e.runtimeType}');
+      return null;
     }
   }
 
@@ -373,6 +219,35 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     }
   }
 
+  Future<void> _confirmDisconnect() async {
+    final name = _peerName;
+    final confirmed = await GWDialog.show<bool>(
+      context: context,
+      title: name == null ? 'Disconnect?' : 'Disconnect $name?',
+      message: 'It will need to be connected again to use this wallet.',
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
+        ),
+        GWDialogAction(
+          label: 'Disconnect',
+          variant: GWButtonVariant.destructive,
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+        ),
+      ],
+    );
+    if (confirmed == true) {
+      await _disconnect();
+    }
+  }
+
+  String? get _peerName {
+    final name = _session?.peer.metadata.name.trim();
+    return name == null || name.isEmpty ? null : name;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Appearance-aware read IS needed here: light's surfaceElevated is pure
@@ -395,12 +270,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
-      stateColor = context.gw.statusWarning;
+      stateColor = context.gw.statusWarningText;
       text = 'Connecting';
-    } else if (_timedOut) {
-      icon = Icons.timer_off;
-      stateColor = context.gw.statusWarning;
-      text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
       stateColor = context.gw.statusErrorText;
@@ -426,28 +297,54 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     // a status a brand gradient cannot express. That keeps the brand accent in
     // the bar without adding a surface to a side we just cleared of its CTA.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final bool isIdle =
-        !isConnected && !_isConnecting && !_timedOut && !_hasError;
-    final iconColor = stateColor;
+    final bool isIdle = !isConnected && !_isConnecting && !_hasError;
     final textColor = stateColor;
 
-    final btn = TextButton(
+    void onPressed() {
+      if (_isConnecting || _isDisconnecting) {
+        return;
+      }
+
+      if (isConnected) {
+        if (isMobile) {
+          _confirmDisconnect();
+        } else {
+          _disconnect();
+        }
+      } else {
+        _connect();
+      }
+    }
+
+    // Phones: the state's own glyph in a header-sized box; connected is a
+    // success-coloured link, not the desktop's red disconnect action. The
+    // tooltip is also the control's semantic label.
+    if (isMobile) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(
+          width: kHeaderControlSize,
+          height: kHeaderControlSize,
+        ),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        icon: Icon(isConnected ? Icons.link : icon, size: 24),
+        color: isConnected ? context.gw.statusSuccessText : stateColor,
+        tooltip: isConnected
+            ? (_peerName == null ? 'Connected' : 'Connected to $_peerName')
+            : text,
+        onPressed: onPressed,
+      );
+    }
+
+    return TextButton(
       style: navContextChipStyle(context).copyWith(
         overlayColor: WidgetStatePropertyAll(
           stateColor.withValues(alpha: 0.16),
         ),
       ),
-      onPressed: () {
-        if (_isConnecting || _isDisconnecting) {
-          return;
-        }
-
-        if (isConnected) {
-          _disconnect();
-        } else {
-          _connect();
-        }
-      },
+      onPressed: onPressed,
       child: Row(
         spacing: GeniusWalletConsts.space4,
         children: [
@@ -458,46 +355,43 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             AnimatedRotation(
               duration: const Duration(milliseconds: 600),
               turns: 1,
-              child: Icon(icon, color: iconColor, size: 16),
+              child: Icon(icon, color: stateColor, size: 16),
             )
           else
             _StateDot(color: isIdle ? null : stateColor, gw: gw),
-          if (!isMobile)
-            // Idle gets the gradient; the status branches get their flat
-            // colour. ShaderMask paints the child's alpha with the shader, so
-            // the Text colour below only has to be non-transparent.
-            if (isIdle)
-              ShaderMask(
-                shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
-                  gw.surfaceMenu,
-                ).createShader(bounds),
-                blendMode: BlendMode.srcIn,
-                // Fixed white regardless of appearance: BlendMode.srcIn
-                // recolors every opaque pixel with the shader above, using
-                // only this text's alpha channel -- the RGB value never
-                // reaches the screen (same pattern as GWButton's
-                // gradientOutline pre-mask placeholder).
-                child: Text(
-                  'Connect',
-                  style: GeniusWalletTypography.labelMd.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              )
-            else
-              Text(
-                text,
+          // Idle gets the gradient; the status branches get their flat
+          // colour. ShaderMask paints the child's alpha with the shader, so
+          // the Text colour below only has to be non-transparent.
+          if (isIdle)
+            ShaderMask(
+              shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
+                gw.surfaceMenu,
+              ).createShader(bounds),
+              blendMode: BlendMode.srcIn,
+              // Fixed white regardless of appearance: BlendMode.srcIn
+              // recolors every opaque pixel with the shader above, using
+              // only this text's alpha channel -- the RGB value never
+              // reaches the screen (same pattern as GWButton's
+              // gradientOutline pre-mask placeholder).
+              child: Text(
+                'Connect',
                 style: GeniusWalletTypography.labelMd.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
+            )
+          else
+            Text(
+              text,
+              style: GeniusWalletTypography.labelMd.copyWith(
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
         ],
       ),
     );
-
-    return isMobile ? Tooltip(message: text, child: btn) : btn;
   }
 }
 

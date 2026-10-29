@@ -345,6 +345,14 @@ jobs:
           choco install ccache -A
           git config --system core.longpaths true
 
+      # The jni plugin's CMake needs a JDK, and the self-hosted Windows runner has none.
+      - name: Setup JDK (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Configure macOS host
         if: ${{ runner.os == 'macOS' }}
         run: |

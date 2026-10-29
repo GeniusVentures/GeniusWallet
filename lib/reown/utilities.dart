@@ -25,12 +25,41 @@ bool walletCanSign(Wallet wallet) =>
     wallet.walletType != WalletType.tracking &&
     wallet.walletType != WalletType.sgnus;
 
+/// Whether a transaction naming [from] may be signed: [from] is the selected
+/// wallet, that wallet holds a key, and [sessionAccounts] (CAIP-10) list it.
+bool canTransactFrom(
+  Object? from,
+  Wallet? selected,
+  Iterable<String> sessionAccounts,
+) {
+  if (from is! String || selected == null || !walletCanSign(selected)) {
+    return false;
+  }
+  final address = from.toLowerCase();
+  return selected.address.toLowerCase() == address &&
+      sessionAccounts.any(
+        (account) =>
+            account.substring(account.lastIndexOf(':') + 1).toLowerCase() ==
+            address,
+      );
+}
+
 /// Whether [wallet] can sign a send on [network].
 bool canSendFrom(Wallet? wallet, Network? network) =>
     wallet != null &&
     walletCanSign(wallet) &&
     network != null &&
     canSignOn(network);
+
+/// The methods an ordinary dApp session is approved for.
+const List<String> supportedMethods = [
+  'eth_sendTransaction', // For sending, approvals, swaps
+  'personal_sign', // For signing messages (login, etc.)
+  'eth_signTypedData', // For EIP-712 signatures (used in advanced DApps)
+];
+
+/// The events an ordinary dApp session is approved for.
+const List<String> eip155Events = ['chainChanged', 'accountsChanged'];
 
 /// The `eip155` namespace to approve a session with: every chain this wallet
 /// carries, and the same account on each. A session approved for one chain
@@ -39,12 +68,13 @@ Namespace eip155Namespace({
   required Iterable<int> chainIds,
   required String address,
   required List<String> methods,
+  List<String> events = eip155Events,
 }) {
   final chains = [for (final id in chainIds) 'eip155:$id'];
   return Namespace(
     chains: chains,
     methods: methods,
-    events: const ['chainChanged', 'accountsChanged'],
+    events: events,
     accounts: [for (final chain in chains) '$chain:$address'],
   );
 }

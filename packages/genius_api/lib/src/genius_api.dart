@@ -27,6 +27,7 @@ import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/bridge_out_abi.dart';
 import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -61,29 +62,58 @@ final _sdkAddressPattern = RegExp(r'^0x[0-9a-fA-F]{128}$');
 String? sdkAddressOrNull(String raw) =>
     _sdkAddressPattern.hasMatch(raw) ? raw : null;
 
-/// Isolate entry point for [GeniusApi.selectGeniusAccountAsync].
-///
-/// Opens the native library independently (the OS shares code pages across
-/// isolates) and calls [GeniusSDKSelectGeniusAccount] off the main isolate
-/// so the UI thread stays responsive during account switching.
-void _selectGeniusAccountIsolate(List<Object> args) {
-  final sendPort = args[0] as SendPort;
-  final publicAddress = args[1] as String;
+/// Runs `GeniusSDKSelectGeniusAccount` on a worker isolate, which re-opens
+/// the native library itself. A worker that dies fails the future.
+Future<int> _selectGeniusAccountOffIsolate(String publicAddress) {
+  return Isolate.run(() {
+    final dylib = loadGeniusSDKLibrary();
+    if (dylib == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.index;
+    }
+    final lib = NativeLibrary(dylib);
+    final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
+    try {
+      return lib.GeniusSDKSelectGeniusAccount(addressPtr);
+    } finally {
+      malloc.free(addressPtr);
+    }
+  });
+}
 
-  final dylib = loadGeniusSDKLibrary();
-  if (dylib == null) {
-    sendPort.send(
-      GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.index,
-    );
-    return;
-  }
-  final lib = NativeLibrary(dylib);
+/// Runs `GeniusSDKGetCost` on a worker isolate. The closure captures only
+/// [jobJson]; the worker re-opens the native library itself.
+Future<int> _geniusSdkCostOffIsolate(String jobJson) {
+  return Isolate.run(() {
+    final dylib = loadGeniusSDKLibrary();
+    if (dylib == null) {
+      return 0;
+    }
+    final lib = NativeLibrary(dylib);
+    final jsonPointer = jobJson.toNativeUtf8().cast<Char>();
+    try {
+      return lib.GeniusSDKGetCost(jsonPointer);
+    } finally {
+      malloc.free(jsonPointer);
+    }
+  });
+}
 
-  final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-  final result = lib.GeniusSDKSelectGeniusAccount(addressPtr);
-  malloc.free(addressPtr);
-
-  sendPort.send(result);
+/// Runs `GeniusSDKProcess` on a worker isolate. Returns the raw native code;
+/// the caller maps it.
+Future<int> _geniusSdkProcessOffIsolate(String jobJson) {
+  return Isolate.run(() {
+    final dylib = loadGeniusSDKLibrary();
+    if (dylib == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED.value;
+    }
+    final lib = NativeLibrary(dylib);
+    final jsonPointer = jobJson.toNativeUtf8().cast<Char>();
+    try {
+      return lib.GeniusSDKProcess(jsonPointer);
+    } finally {
+      malloc.free(jsonPointer);
+    }
+  });
 }
 
 /// Deserialized result of [GeniusApi.getInitializationStatus].
@@ -421,6 +451,18 @@ GeniusNodeReturnValue _mapNodeReturnValue(int value) {
   }
 }
 
+/// Runs one operation at a time, in call order. A failed operation does not
+/// block the next one.
+class _SerialQueue {
+  Future<void> _tail = Future.value();
+
+  Future<T> run<T>(Future<T> Function() op) {
+    final result = _tail.then((_) => op());
+    _tail = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+}
+
 class GeniusApi {
   static const MethodChannel _platformChannel = MethodChannel(
     'ai.gnus.genius_wallet/platform',
@@ -734,6 +776,9 @@ class GeniusApi {
     }
   }
 
+  // ponytail: read from the SDK source, not tested live: AddAccountWith* only
+  // derives and stores the account and never selects it, so this skips the
+  // account gate. If the SDK starts selecting on add, run it inside the gate.
   /// Adds [key]'s account to the running SDK, the same re-add step
   /// `_registerWallet` and the backfill pass both need, but returning the
   /// result so a caller can react to more than a clean single new address.
@@ -1048,9 +1093,13 @@ class GeniusApi {
     final tokenIdData = calloc<GeniusTokenID>();
 
     // Parse hex string token_id and fill the data array
-    String cleanTokenId = tokenId.startsWith('0x')
-        ? tokenId.substring(2)
-        : tokenId;
+    // Padded to the full 32 bytes: a short id such as '0' would otherwise
+    // read past its end.
+    String cleanTokenId =
+        (tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId).padLeft(
+          64,
+          '0',
+        );
 
     for (int i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
       String hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
@@ -1078,6 +1127,7 @@ class GeniusApi {
   }
 
   GeniusNodeReturnValue shutdownSDK() {
+    _isSdkInitialized = false;
     final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKShutdown();
     final mappedResult = _mapNodeReturnValue(result);
     debugPrint("Shutting Down SDK: $mappedResult");
@@ -1085,7 +1135,27 @@ class GeniusApi {
     return mappedResult;
   }
 
-  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) {
+  // ponytail: the SDK holds one global mutex for the whole cost call (it makes
+  // a live price request) and the whole process call. Main-isolate SDK polls
+  // such as the processing-status tick and balance reads wait behind it and can
+  // still hitch the UI. Upgrade path: an SDK that does not hold the mutex.
+  Future<int> requestGeniusSDKCostAsync({required String jobJson}) async {
+    if (jobJson.isEmpty || !_isSdkInitialized) {
+      return 0;
+    }
+
+    try {
+      return await _geniusSdkCostOffIsolate(jobJson);
+    } catch (e, stackTrace) {
+      debugPrint("Error in GeniusSDKGetCost: $e");
+      debugPrint('$stackTrace');
+      return 0;
+    }
+  }
+
+  Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
+    required String jobJson,
+  }) async {
     if (!_isSdkInitialized) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
@@ -1094,42 +1164,66 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
     }
 
-    // Allocate memory for the jobJson string
-    final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
-
+    final call = _geniusSdkProcessOffIsolate(jobJson);
+    _processInFlight = call;
     try {
-      // Call the native function
-      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKProcess(jsonPointer);
-      return _mapNodeReturnValue(result);
+      return _mapNodeReturnValue(await call);
     } finally {
-      // Free the allocated memory to prevent memory leaks
-      calloc.free(jsonPointer);
+      if (identical(_processInFlight, call)) {
+        _processInFlight = null;
+      }
     }
   }
 
-  int requestGeniusSDKCost({required String jobJson}) {
-    if (jobJson.isEmpty || !_isSdkInitialized) {
-      return 0;
+  Future<void>? _processInFlight;
+
+  /// Process credits whichever account the SDK runs as. Static because that
+  /// account is process-wide native state.
+  static final _accountGate = _SerialQueue();
+
+  /// How long a native account select may hold the account gate.
+  static const _selectAccountTimeout = Duration(seconds: 30);
+
+  /// Runs Process only if the SDK runs as [expectedAccount], and returns null
+  /// when it does not. The check and the run hold the account gate, so an
+  /// account switch requested meanwhile waits until Process has finished.
+  Future<GeniusNodeReturnValue?> requestGeniusSDKProcessAsAccount({
+    required String jobJson,
+    required String expectedAccount,
+  }) => _asAccount(
+    expectedAccount,
+    () => requestGeniusSDKProcessAsync(jobJson: jobJson),
+  );
+
+  /// Runs [op] under the account gate only if the SDK runs as
+  /// [expectedAccount]; null when it does not.
+  Future<T?> _asAccount<T>(String expectedAccount, Future<T> Function() op) =>
+      _accountGate.run(() async {
+        if (getSelectedAccountAddress()?.toLowerCase() !=
+            expectedAccount.toLowerCase()) {
+          return null;
+        }
+        return op();
+      });
+
+  /// Resolves once an in-flight process call has finished, or after [timeout],
+  /// so a burned job does not meet a shut-down node. The window-close path
+  /// awaits it before [shutdownSDK].
+  // ponytail: only window close waits; the `detached` shutdown is synchronous
+  // and a close mid-burn is uncovered. Upgrade: one job-call queue that
+  // shutdown drains.
+  Future<void> waitForJobCall({
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    final pending = _processInFlight;
+    if (pending == null) {
+      return;
     }
-
-    // Allocate memory for the jobJson string
-    final Pointer<Char> jsonPointer = jobJson.toNativeUtf8().cast<Char>();
-
-    int cost = 0; // Default value if something goes wrong
-
     try {
-      // Call the native function
-      cost = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetCost(jsonPointer);
-    } catch (e, stackTrace) {
-      // Handle the exception gracefully, e.g., log it
-      debugPrint("Error in GeniusSDKGetCost: $e");
-      debugPrint('$stackTrace');
-    } finally {
-      // Free the allocated memory to prevent memory leaks
-      calloc.free(jsonPointer);
+      await pending.timeout(timeout);
+    } catch (_) {
+      // Timed out or the call failed; either way shutdown goes ahead.
     }
-
-    return cost;
   }
 
   // Take in a created wallet and return the mnemonic
@@ -1528,41 +1622,23 @@ class GeniusApi {
         .toList();
   }
 
-  /// Selects the active Genius account for subsequent SDK operations.
-  /// This is a synchronous FFI call — no isolate is used because FFI objects
-  /// (DynamicLibrary, NativeLibrary, and Pointer) are not sendable across
-  /// isolate boundaries.
-  GeniusNodeReturnValue selectGeniusAccount(String publicAddress) {
-    if (getStartAccountAddress() == null) {
-      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
-    }
-    final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKSelectGeniusAccount(
-      addressPtr,
-    );
-    malloc.free(addressPtr);
-    return _mapNodeReturnValue(result);
-  }
-
-  /// Async version of [selectGeniusAccount] that runs the FFI call in a
-  /// short-lived isolate so the UI thread stays responsive.
-  ///
-  /// Prefer this over the synchronous version in UI-driven code paths.
+  /// Selects the active Genius account on a short-lived isolate. It is the
+  /// only native account switch, and it waits behind the account gate so it
+  /// never lands inside [requestGeniusSDKProcessAsAccount].
   Future<GeniusNodeReturnValue> selectGeniusAccountAsync(
     String publicAddress,
-  ) async {
+  ) => _accountGate.run(() async {
     if (getStartAccountAddress() == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
-    final receivePort = ReceivePort();
-    await Isolate.spawn(_selectGeniusAccountIsolate, [
-      receivePort.sendPort,
+    // ponytail: a timed-out select frees the gate while its native call may
+    // still land, so a later Process could start just before it. Upgrade:
+    // an SDK call that switches and processes under its own lock.
+    final result = await _selectGeniusAccountOffIsolate(
       publicAddress,
-    ]);
-    final result = await receivePort.first as int;
-    receivePort.close();
+    ).timeout(_selectAccountTimeout);
     return _mapNodeReturnValue(result);
-  }
+  });
 
   /// Whether [mnemonic] is a valid BIP-39 phrase, by Trust Wallet core's rule.
   bool isValidMnemonic(String mnemonic) => MnemonicImpl.isValid(mnemonic);
@@ -1985,6 +2061,9 @@ class GeniusApi {
     }
   }
 
+  /// Burns [amountToBurn] and credits [sgnsAccount] (default: the account
+  /// selected at the call). [beforeBroadcast] gets the signed hash before the
+  /// send and a throw cancels it. A failure that carries data may be on chain.
   Future<ApiResponse<String>> bridgeOut({
     required String contractAddress,
     required String rpcUrl,
@@ -1992,11 +2071,16 @@ class GeniusApi {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
-    bool shouldMintTokens = false,
+    String? sgnsAccount,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
-    final mintMinions = gnusToMinions(amountToBurn);
-    if (shouldMintTokens && mintMinions == null) {
+    final account = sgnsAccount ?? getSelectedAccountAddress();
+    final minions = gnusToMinions(amountToBurn);
+    if (minions == null) {
       return ApiResponse.error("Error: Invalid amount");
+    }
+    if (account == null) {
+      return ApiResponse.error(bridgeAccountNotReadyMessage);
     }
 
     final wallet = await _secureStorage.getWallet(address);
@@ -2005,27 +2089,58 @@ class GeniusApi {
       return ApiResponse.error("Error: Could not find Wallet");
     }
 
-    final resp = await Web3(geniusApi: this).executeBridgeOutTransaction(
-      contractAddress: contractAddress,
-      rpcUrl: rpcUrl,
-      amountToBurn: amountToBurn,
-      sourceChainId: sourceChainId,
-      destinationChainId: destinationChainId,
-      wallet: wallet,
+    final (:burn, :form) = await Web3(geniusApi: this)
+        .executeBridgeOutTransaction(
+          contractAddress: contractAddress,
+          rpcUrl: rpcUrl,
+          amountToBurn: amountToBurn,
+          sourceChainId: sourceChainId,
+          destinationChainId: destinationChainId,
+          sgnsAccount: account,
+          wallet: wallet,
+          beforeBroadcast: beforeBroadcast,
+        );
+
+    return creditBurn(
+      burn,
+      form: form,
+      minions: minions,
+      account: account,
+      chainId: destinationChainId,
     );
+  }
 
-    if (shouldMintTokens && resp.isSuccess && resp.data != null) {
-      final hardCodedTokenIdForNow = 0;
-
-      mintTokens(
-        mintMinions!,
-        resp.data!,
-        destinationChainId.toString(),
-        '$hardCodedTokenIdForNow',
-      );
+  /// Mints a confirmed [burn] as [account] where [walletCreditsBurn] says the
+  /// wallet must. A mint that fails or finds another account selected keeps
+  /// the hash as a recoverable [bridgeCreditFailedMessage], never a success.
+  @visibleForTesting
+  Future<ApiResponse<String>> creditBurn(
+    ApiResponse<String> burn, {
+    required BridgeOutForm? form,
+    required int minions,
+    required String account,
+    required int chainId,
+  }) async {
+    final hash = burn.data;
+    if (!burn.isSuccess || hash == null || form == null) {
+      return burn;
     }
-
-    return resp;
+    if (!walletCreditsBurn(form)) {
+      return burn;
+    }
+    GeniusNodeReturnValue? minted;
+    try {
+      minted = await _asAccount(
+        account,
+        () async => mintTokens(minions, hash, '$chainId', '0'),
+      );
+    } catch (e) {
+      debugPrint('GeniusSDKMint failed after burn: ${e.runtimeType}');
+    }
+    if (minted != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+      return ApiResponse.unconfirmed(hash, bridgeCreditFailedMessage);
+    }
+    return burn;
   }
 
   Future<ApiResponse<String>> getBrigeOutGasCost({
@@ -2047,7 +2162,9 @@ class GeniusApi {
       contractAddress: contractAddress,
       rpcUrl: rpcUrl,
       amountToBurn: amountToBurn,
+      sourceChainId: sourceChainId,
       destinationChainId: destinationChainId,
+      sgnsAccount: getSelectedAccountAddress(),
       wallet: wallet,
     );
 

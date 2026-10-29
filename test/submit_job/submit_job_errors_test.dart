@@ -40,7 +40,7 @@ class _FakeGeniusApi implements GeniusApi {
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
 
   @override
-  int requestGeniusSDKCost({required String jobJson}) =>
+  Future<int> requestGeniusSDKCostAsync({required String jobJson}) async =>
       requestGeniusSDKCostResponse;
 
   @override
@@ -63,14 +63,19 @@ class _FakeGeniusApi implements GeniusApi {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
-    bool shouldMintTokens = false,
+    String? sgnsAccount,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
     return bridgeOutResponse;
   }
 
   @override
-  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) =>
-      processResponse;
+  Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
+    required String jobJson,
+  }) async => processResponse;
+
+  @override
+  String? getSelectedAccountAddress() => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

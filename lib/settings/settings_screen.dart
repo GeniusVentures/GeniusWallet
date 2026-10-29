@@ -14,6 +14,7 @@ import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
+import 'package:genius_wallet/settings/connected_sites_section.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/settings/developer_settings_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -304,6 +305,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     .read<DeveloperSettingsCubit>()
                                     .setDeveloperMode,
                         ),
+                      ),
+                      const _SettingsSectionCard(
+                        title: 'Connected sites',
+                        icon: Icons.link,
+                        status: null,
+                        loading: false,
+                        action: null,
+                        child: ConnectedSitesSection(),
                       ),
                       if (developerMode) ...[
                         const GWKicker('Developer'),

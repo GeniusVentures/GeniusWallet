@@ -2,12 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_switcher.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/components/overlay/nav_destinations.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -17,11 +15,9 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
 List<Widget> _buildActionRowWidgets(BuildContext context) {
-  final walletDetailsCubit = context.read<WalletDetailsCubit>();
   final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
   return [
     // Control track (sketch 039-B "jeden tor", extended by 042 variant 2):
@@ -56,13 +52,7 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
             // so a narrow window or large text never overflows it.
             const Flexible(child: AccountSwitcher()),
             _trackDivider(gw),
-            ReownConnectButton(
-              walletAddress:
-                  walletDetailsCubit.state.selectedWallet?.address ?? '',
-              geniusApi: context.read<GeniusApi>(),
-              walletDetailsCubit: walletDetailsCubit,
-              transactionsCubit: context.read<TransactionsCubit>(),
-            ),
+            const ReownConnectButton(),
           ],
         ),
       ),

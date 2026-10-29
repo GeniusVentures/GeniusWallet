@@ -1,6 +1,6 @@
 import 'package:genius_api/models/token.dart';
 
-/// Which of `SubmitJobCubit.bridgeTokens()`'s three terminal branches the
+/// Which of `SubmitJobCubit.bridgeTokens()`'s terminal branches the
 /// last attempt landed on.
 ///
 /// The bridge call and the process call are two independent operations -
@@ -30,6 +30,10 @@ enum SubmitOutcome {
   /// The bridge itself failed. Nothing was spent - both hash fields stay
   /// empty.
   bridgeFailed,
+
+  /// The burn was sent but never confirmed: the GNUS may be spent and the job
+  /// did not start. [SubmitJobState.bridgeHash] carries the hash to check.
+  burnUnconfirmed,
 }
 
 class SubmitJobState {
@@ -37,8 +41,8 @@ class SubmitJobState {
   /// started.
   final String txHash;
 
-  /// Set only when [outcome] is [SubmitOutcome.bridgedNotProcessed] - proof
-  /// the tokens were burned even though the job never started.
+  /// Set only when [outcome] is [SubmitOutcome.bridgedNotProcessed] or
+  /// [SubmitOutcome.burnUnconfirmed]: the burn the job never started after.
   final String bridgeHash;
 
   final SubmitOutcome outcome;

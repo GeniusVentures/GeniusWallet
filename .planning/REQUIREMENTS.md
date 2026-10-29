@@ -243,6 +243,88 @@ Added 2026-10-11 with the Phase 41 plans. Scope (41-CONTEXT): Linux behaves like
 - [ ] **LWV-08**: After a page had keyboard focus, clicking a Flutter control gives the keyboard back to Flutter
 - [ ] **LWV-09**: CI installs `webkit2gtk3-devel` on both Linux rows and fails a build that links WebKit; INSTALL.md says WebKitGTK is recommended, not required
 
+## v4.0 Requirements — Processing dashboard bridge (wallet side)
+
+Started 2026-10-26. Inputs: `research/v4.0-webview-bridge-spike.md`, `research/v4.0-wallet-identity.md`.
+Contract (methods, params, results, error codes, events): `research/v4.0-gnus-rpc-contract.md`, shared
+with the gnus-dashboard GSD project. "The dashboard" below means that SPA, in the wallet's WebView or in
+a normal browser.
+
+### gnus_* handler (RPC)
+
+- [ ] **RPC-01**: One transport-independent handler answers every `gnus_*` method; the WebView bridge and the WalletConnect handlers only translate to and from it, and both return identical results and error codes for the same call
+- [ ] **RPC-02**: The dashboard can read the node account (SDK address, linked EVM wallet, main/child role), the paying wallet (EVM address, whether it can sign), whether an account switch is in progress, and the network, through `gnus_getAccounts`
+- [ ] **RPC-03**: The dashboard is told when the node account, the paying wallet, the switch state or the network changes (`gnus_accountsChanged`, `gnus_networkChanged`)
+- [ ] **RPC-04**: The dashboard can price a job with `gnus_estimate` (cost, bridge gas, payer balance); a zero or failed SDK cost comes back as error `-32010`, never as a cost of 0
+- [ ] **RPC-05**: The dashboard can submit a job with `gnus_submitJob`; the wallet estimates, confirms, burns and processes in one call through the same job-submission code the compute panel uses (one owner, not a copy), and returns the burn hash, the SDK account, the job id when the SDK gives one, and `submitted` or `bridgedNotProcessed`
+- [ ] **RPC-06**: Repeating `gnus_submitJob` with the same idempotency key returns the first result instead of burning again, and a second submit from the same origin while one is in flight is refused (`-32005`)
+- [ ] **RPC-07**: Every job submitted through the bridge is recorded in the wallet (origin, burn hash, SDK account, cost, time, status), survives an app restart, and is readable with `gnus_listJobs` and `gnus_getJob`; status and results come from the SDK once it can answer per job
+- [ ] **RPC-08**: The dashboard can read the node account's balance and whether it is processing with `gnus_getEarnings`; processed-job counts and earnings come back as null (not 0) until the SDK exposes them
+- [ ] **RPC-09**: Calls made while the SDK is not initialized fail with `4900`, and calls made during an account switch fail with `-32015`, so no estimate or submit ever runs as the wrong account
+
+### In-wallet dashboard WebView (DWV)
+
+- [ ] **DWV-01**: User can open the processing dashboard from the wallet in an in-app screen on Windows, Linux, Android, iOS and macOS, with `window.gnus` available to the page (immediately on Windows and Linux, after the `gnus#initialized` event elsewhere) and a user agent that ends with the contract's GeniusWallet marker
+- [ ] **DWV-02**: Only the top frame can reach the bridge on every platform; a cross-origin iframe inside the dashboard gets no `window.gnus` and its messages never reach Dart
+- [ ] **DWV-03**: The bridge takes the caller's origin from the message source where the platform provides it (WebView2 source, Android web message listener, iOS frame info) and drops any reply whose origin changed between request and reply
+- [ ] **DWV-04**: Release builds load the dashboard only from one pinned https origin per network, and dev builds additionally allow a configured `http://localhost` origin; top-level navigation off the allowlist is blocked and popups or `target=_blank` links open in the system browser
+- [ ] **DWV-05**: Wallet dialogs, sheets and the confirm prompt always render above the dashboard page on every platform
+- [ ] **DWV-06**: On Android the dashboard's job-file picker works, and the back button goes back in the page's history before leaving the screen
+- [ ] **DWV-07**: When the platform has no usable web view (Linux without WebKitGTK), the dashboard entry opens the dashboard in the system browser instead, where the WalletConnect path applies
+
+### Dashboard over WalletConnect (DWC)
+
+- [ ] **DWC-01**: The dashboard in a normal browser can pair with GeniusWallet over WalletConnect and call every `gnus_*` method, answered by the same handler as the WebView
+- [ ] **DWC-02**: The wallet sends account and network change events to connected dApp sessions when the user switches wallet, node account or network, so a dApp never acts on a stale account
+- [ ] **DWC-03**: The wallet refuses a session proposal while the selected wallet cannot sign (watch-only or an SDK-only row), and refuses an `eth_sendTransaction` whose `from` is not the session's account
+- [ ] **DWC-04**: A `gnus_*` request the wallet cannot serve (SDK down, switch in progress, rejected confirm) answers the dApp with the contract's error code instead of hanging
+
+### Consent and limits (CNS)
+
+- [ ] **CNS-01**: The first `gnus_*` call from an origin asks the user to connect that origin; reads after that need no prompt, and the user can see and revoke connected origins in Settings
+- [ ] **CNS-02**: Every `gnus_submitJob` shows a native confirm naming the origin, the cost, the bridge gas, the paying wallet and the node account; rejecting it returns `4001` and spends nothing
+- [ ] **CNS-03**: An origin can have at most one confirm open, and prompts from one origin are rate-limited; excess calls get `-32005` instead of stacking dialogs
+- [ ] **CNS-04**: No `gnus_*` method returns, logs or reports to Sentry a key, mnemonic or anything derived from them, and a test fails if a bridge response or log line carries one
+
+### SDK calls off the UI isolate (ISO)
+
+- [ ] **ISO-01**: Pricing or submitting a job, from the bridge or the compute panel, never freezes the wallet UI: the SDK cost and process calls run off the UI isolate and the screen keeps animating during them
+
+### Bridge burn (BRG)
+
+- [ ] **BRG-01**: The GNUS burn uses the `bridgeOut` form each chain has deployed (5-argument with the SDK account as destination, or the older 3-argument form) and refuses before signing on a chain with neither
+
+### Device walks (WALK)
+
+- [ ] **WALK-01**: The dashboard bridge is walked end to end (open, connect origin, estimate, confirm and reject a submit, read jobs and earnings) on an Android device or emulator, on macOS, and on iOS; any platform that cannot be walked is recorded as a blocked gap with its reason, never silently skipped
+- [ ] **WALK-02**: The same walk passes on Windows and Linux against the real SDK, plus the dashboard over WalletConnect from a desktop browser
+
+### SDK dependencies (not wallet work)
+
+Tracked so phases can say what they wait on. Ids match the contract's section 7. Each is a SuperGenius
+change; the wallet ships its side with the dependent fields null or stubbed and fills them when the SDK
+lands. None is counted in this milestone's coverage.
+
+| Id | Need | Unblocks |
+|----|------|----------|
+| SDK-CA | Fix the CI-runner CA bundle path baked into the binary (price request fails, cost is always 0) | live cost in RPC-04/RPC-05 and in the compute panel |
+| SDK-COSTERR | Error codes from `GeniusSDKGetCost` instead of a bare 0 | `-32010` reasons in RPC-04 |
+| SDK-JOBID | A job id from `GeniusSDKProcess` | `jobId` in RPC-05/RPC-07 |
+| SDK-STATUS | Per-job status query | live job status in RPC-07 |
+| SDK-RESULT | Result query by job id | job results in RPC-07 |
+| SDK-EARNINGS | Per-account processed-job and earnings history | counts and earnings in RPC-08 |
+| SDK-PAYOUT | Payout address getter | a future `payoutAddress` field |
+| SDK-ASYNC | Async or thread-safe cost/process calls (the wallet moves them off the UI isolate either way) | lighter ISO-01 |
+
+### v4.0 deferred and out of scope
+
+- Network explorer in the dashboard (out of the dashboard's v1)
+- Bundling the dashboard's static export behind a custom scheme instead of a pinned https origin (deferred; revisit if CSP on the hosted origin proves insufficient)
+- Submitting from a browser that has no GeniusWallet (MetaMask only): not through this contract; the dashboard shows read-only views
+- Aggregating children's processing and earnings into a main's view (`includeChildren` accepted, ignored) — waits on SDK-EARNINGS
+- Two devices as one identity (phone pays, desktop earns): needs an account-link step signed on both sides
+- An app lock or auto-lock for the wallet: the per-submit confirm is the protection in v4.0
+
 ## Beyond v2.0 (deferred)
 
 - **FEE-01** *(deferred 2026-09-18 — business, not engineering)*: Squid enables an integrator fee on
@@ -413,5 +495,46 @@ Added 2026-10-11 with the Phase 41 plans. Scope (41-CONTEXT): Linux behaves like
 - Phases: 34-37 (4 phases), continuing numbering from v1.0/v2.0 (last phase: 33)
 - Note: VER-02 ("each v3.0 phase closes only after a walk on the live testnet") is cross-cutting by design — it appears as a standing success criterion in Phases 34-37's ROADMAP entries, but is mapped/counted at Phase 37 only, where the milestone's last write operation closes it
 - Precondition flag: live testnet is currently stuck in `INITIALIZING_BLOCKCHAIN` (unrelated to the required SuperGenius `c575a16` SDK); VER-02 walks are recorded as blocked gaps, not silently skipped, until this clears
+
+### Milestone v4.0 — processing dashboard bridge
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BRG-01 | Phase 44.1 — Bridge burn per chain ABI | Complete (code; Sepolia accepts the 5-argument call over a read-only check; the real Sepolia burn and relayer pickup are pending) |
+| ISO-01 | Phase 42 — Shared job submission off the UI isolate | Complete (code; real-SDK animation walk in phase 48) |
+| RPC-01 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-02 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-03 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-04 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-05 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-06 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-07 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-08 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| RPC-09 | Phase 43 — gnus RPC handler and job record | Complete (code; live SDK results pending) |
+| CNS-01 | Phase 44 — Dashboard consent and limits | Complete (code; Linux walked 2026-10-28; other platforms pending in phase 48) |
+| CNS-02 | Phase 44 — Dashboard consent and limits | Complete (code; Linux walked 2026-10-28 with a JOB fixture; a live spend confirm waits on SDK-CA) |
+| CNS-03 | Phase 44 — Dashboard consent and limits | Complete (code; Linux walked 2026-10-28; other platforms pending in phase 48) |
+| CNS-04 | Phase 44 — Dashboard consent and limits | Complete (code; leak test over every method; no live SDK result has been through it) |
+| DWV-02 | Phase 45 — Hardened bridge transports | Complete (code; Linux walked 2026-10-28; Windows and Android built only; iOS and macOS Swift not compiled; walks pending in phase 48) |
+| DWV-03 | Phase 45 — Hardened bridge transports | Complete (code; Linux walked 2026-10-28; iOS and macOS reply drop still bumps at provisional start (47 WR-05); other platforms pending) |
+| DWV-01 | Phase 46 — In-wallet dashboard screen | Complete (code; Linux walked 2026-10-28; Windows debug build only; Android, iOS and macOS pending; the hosted origin is a placeholder) |
+| DWV-04 | Phase 46 — In-wallet dashboard screen | Complete (code; Linux walked 2026-10-28; the release origin is a `.invalid` placeholder until the dashboard is hosted; Android POST lock not walked) |
+| DWV-05 | Phase 46 — In-wallet dashboard screen | Complete (code; Linux walked 2026-10-28; stacking over Android, iOS and macOS views unchecked; toasts still sit behind the Linux view) |
+| DWV-06 | Phase 46 — In-wallet dashboard screen | Complete (code; pure-rule tests only; no APK built, Android walk pending in phase 48) |
+| DWV-07 | Phase 46 — In-wallet dashboard screen | Complete (code; browser fallback covered by tests, not walked without WebKitGTK) |
+| DWC-01 | Phase 47 — Dashboard over WalletConnect | Complete (code; Linux wallet paired from Chromium 2026-10-28 with a test dApp; the real dashboard's WalletConnect client and a live submit are pending) |
+| DWC-02 | Phase 47 — Dashboard over WalletConnect | Complete (code; account and network events tested; Linux walk covered pair, header and disconnect, not a wallet switch) |
+| DWC-03 | Phase 47 — Dashboard over WalletConnect | Complete (code; refusals tested, re-checked after the approve drawer closes; not walked) |
+| DWC-04 | Phase 47 — Dashboard over WalletConnect | Complete (code; contract errors tested; live SDK errors pending) |
+| WALK-01 | Phase 48 — Dashboard device walks | Pending |
+| WALK-02 | Phase 48 — Dashboard device walks | Pending |
+
+**Coverage (v4.0):**
+
+- v4.0 requirements: **27 total** (9 RPC + 7 DWV + 4 DWC + 4 CNS + 1 ISO + 2 WALK)
+- Mapped to phases: **27/27** - every v4.0 requirement maps to exactly one phase; no orphans, no duplicates
+- Phases: 42-48 (7 phases), continuing numbering from Phase 41
+- The SDK-* rows are dependencies, not requirements, and are not counted; each phase's ROADMAP entry names the ones it waits on
+- The DWV requirements are cut by concern, not by desktop and mobile: each maps to the phase where it holds on all five platforms, so no phase closes one only partly
 
 *Last updated: 2026-09-16 — merged into `phase-26-swap-wiring`. The drafted SWP-01..08 were retired into SWAP-01, the id the branch's plans and commits already cite; v2.0 is now SWAP-01, FEE-01..02, DAP-01..03 mapped to phases 26-30 (6/6, no orphans). Previous v1.0 traceability stands unchanged below*

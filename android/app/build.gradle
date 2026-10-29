@@ -163,6 +163,8 @@ dependencies {
     // (AAR consumed via runtimeOnly files() does not pull transitive impl deps)
     implementation "androidx.work:work-runtime-ktx:2.9.1"
     implementation "androidx.core:core-ktx:1.13.1"
+    // Same version webview_flutter_android already resolves.
+    implementation "androidx.webkit:webkit:1.15.0"
     androidTestImplementation secureStorageAarDependency
     androidTestImplementation "androidx.work:work-testing:2.9.1"
     androidTestImplementation "androidx.test.ext:junit:1.1.5"

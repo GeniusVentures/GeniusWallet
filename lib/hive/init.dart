@@ -51,6 +51,8 @@ Future<void> initHive() async {
     Hive.openBox<String>(coinTelegraphTimestampBox),
     Hive.openBox(walletBoxName),
     Hive.openBox(networkBoxName),
+    Hive.openBox<String>(gnusJobsBoxName),
+    Hive.openBox<String>(gnusConnectionsBoxName),
   ]);
 }
 

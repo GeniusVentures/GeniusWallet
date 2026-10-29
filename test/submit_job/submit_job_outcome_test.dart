@@ -15,7 +15,7 @@ import 'package:genius_wallet/submit_job/view/widgets/job_steps.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Hand-written fake for [GeniusApi] - the only two calls `bridgeTokens()`
-/// makes are `bridgeOut` and `requestGeniusSDKProcess`, so those are the
+/// makes are `bridgeOut` and `requestGeniusSDKProcessAsync`, so those are the
 /// only two overridden here. `implements` + a `noSuchMethod` forward (the
 /// same mechanism the language uses for hand-rolled test doubles, no
 /// package required) is used instead of extending the real `GeniusApi` -
@@ -31,6 +31,13 @@ class _FakeGeniusApi implements GeniusApi {
     required this.processResponse,
   });
 
+  String? selectedAccount;
+  String? burnedFor;
+  String? processedAs;
+
+  /// Runs inside the burn, before it answers.
+  void Function()? onBurn;
+
   @override
   Future<ApiResponse<String>> bridgeOut({
     required String contractAddress,
@@ -39,15 +46,32 @@ class _FakeGeniusApi implements GeniusApi {
     required String amountToBurn,
     required int sourceChainId,
     required int destinationChainId,
-    bool shouldMintTokens = false,
+    String? sgnsAccount,
+    Future<void> Function(String txHash)? beforeBroadcast,
   }) async {
+    burnedFor = sgnsAccount;
+    onBurn?.call();
     return bridgeOutResponse;
   }
 
   @override
-  GeniusNodeReturnValue requestGeniusSDKProcess({required String jobJson}) {
+  Future<GeniusNodeReturnValue?> requestGeniusSDKProcessAsAccount({
+    required String jobJson,
+    required String expectedAccount,
+  }) async {
+    processedAs = expectedAccount;
+    return selectedAccount == expectedAccount ? processResponse : null;
+  }
+
+  @override
+  Future<GeniusNodeReturnValue> requestGeniusSDKProcessAsync({
+    required String jobJson,
+  }) async {
     return processResponse;
   }
+
+  @override
+  String? getSelectedAccountAddress() => selectedAccount;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -101,8 +125,9 @@ class _Harness {
   final SubmitJobCubit cubit;
   final WalletDetailsCubit walletDetailsCubit;
   final GnusCubit gnusCubit;
+  final _FakeGeniusApi geniusApi;
 
-  _Harness(this.cubit, this.walletDetailsCubit, this.gnusCubit);
+  _Harness(this.cubit, this.walletDetailsCubit, this.gnusCubit, this.geniusApi);
 
   Future<void> dispose() async {
     await cubit.close();
@@ -134,7 +159,7 @@ _Harness _build({
     geniusApi: geniusApi,
   );
 
-  return _Harness(cubit, walletDetailsCubit, gnusCubit);
+  return _Harness(cubit, walletDetailsCubit, gnusCubit, geniusApi);
 }
 
 /// One test per `<behavior>` bullet in 14-05-PLAN.md's Task 1, covering
@@ -189,6 +214,40 @@ void main() {
     // The success hash must stay empty so nothing downstream reading a
     // non-empty txHash as "job started" is fooled.
     expect(harness.cubit.state.txHash, isEmpty);
+  });
+
+  test('an unconfirmed burn -> burnUnconfirmed with its hash, never a '
+      'retryable failure', () async {
+    final harness = _build(
+      bridgeOutResponse: ApiResponse.unconfirmed('0xMAYBE', 'connection reset'),
+      processResponse: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    );
+    addTearDown(harness.dispose);
+
+    await harness.cubit.bridgeTokens();
+
+    expect(harness.cubit.state.outcome, SubmitOutcome.burnUnconfirmed);
+    expect(harness.cubit.state.bridgeHash, '0xMAYBE');
+    expect(harness.cubit.state.txHash, isEmpty);
+  });
+
+  test('an account switch during the burn neither retargets the burn nor '
+      'runs the job as the new account', () async {
+    final harness = _build(
+      bridgeOutResponse: ApiResponse.success('0xBURN'),
+      processResponse: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    );
+    addTearDown(harness.dispose);
+    final api = harness.geniusApi
+      ..selectedAccount = '0xACCOUNT_A'
+      ..onBurn = () => harness.geniusApi.selectedAccount = '0xACCOUNT_B';
+
+    await harness.cubit.bridgeTokens();
+
+    expect(api.burnedFor, '0xACCOUNT_A');
+    expect(api.processedAs, '0xACCOUNT_A');
+    expect(harness.cubit.state.outcome, SubmitOutcome.bridgedNotProcessed);
+    expect(harness.cubit.state.bridgeHash, '0xBURN');
   });
 
   test('bridge and job both succeed -> outcome done, tx hash set', () async {

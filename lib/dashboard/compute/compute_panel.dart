@@ -45,6 +45,7 @@ class ComputePanel extends StatelessWidget {
     required this.onUnitChanged,
     required this.onLinkTap,
     required this.onNewJob,
+    this.onOpenDashboard,
   });
 
   /// The resolved state's rendering contract - label, sub-line, dot role,
@@ -106,6 +107,9 @@ class ComputePanel extends StatelessWidget {
   /// discards them instead.
   final VoidCallback onNewJob;
 
+  /// Opens the jobs and earnings dashboard. Null hides the entry.
+  final VoidCallback? onOpenDashboard;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -141,7 +145,22 @@ class ComputePanel extends StatelessWidget {
         // own height and has no budget to blow. The 306 and the 314 above are
         // unchanged and still measured; only the surface they describe
         // narrowed.
-        const GWSectionTitle(title: 'Earning'),
+        GWSectionTitle(
+          title: 'Earning',
+          trailing: onOpenDashboard == null
+              ? null
+              // Flexible so a narrow, scaled-up title row shortens the label
+              // instead of overflowing.
+              : Flexible(
+                  child: GWButton(
+                    variant: GWButtonVariant.ghost,
+                    size: GWButtonSize.sm,
+                    label: 'Jobs and earnings',
+                    semanticLabel: 'Open jobs and earnings',
+                    onPressed: onOpenDashboard,
+                  ),
+                ),
+        ),
         _BalanceTile(
           view: view,
           balance: balance,

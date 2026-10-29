@@ -21,6 +21,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/reown/wallet_connect_host.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -31,6 +32,15 @@ import 'package:provider/provider.dart';
 /// The real `GeniusApi` constructor dlopens the native SDK; nothing the bar
 /// renders calls into it.
 class _FakeGeniusApi implements GeniusApi {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// The Connect button asks its host to start the SDK; nothing here needs it.
+class _NoWalletConnect implements WalletConnectHost {
+  @override
+  Future<bool> start() async => false;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -128,6 +138,9 @@ Future<List<String>> _pumpBar(
           BlocProvider<TransactionsCubit>.value(value: transactionsCubit),
           BlocProvider<AppBloc>.value(value: appBloc),
           ChangeNotifierProvider<NetworkProvider>.value(value: networkProvider),
+          RepositoryProvider<WalletConnectHost>.value(
+            value: _NoWalletConnect(),
+          ),
         ],
         child: MaterialApp.router(
           theme: getThemeData(),

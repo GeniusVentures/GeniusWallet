@@ -10,6 +10,7 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/calldata_decoder.dart';
 import 'package:genius_wallet/reown/dapp_call_details.dart';
+import 'package:genius_wallet/reown/gnus_wallet_connect.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/reown/utilities.dart';
@@ -25,7 +26,7 @@ void Function() handleDappRequests({
   final Set<int> pendingRequestIds = {};
 
   Future<void> onSessionRequest(SessionRequestEvent? event) async {
-    if (event == null) {
+    if (event == null || isGnusMethod(event.method)) {
       return;
     }
 
@@ -115,6 +116,43 @@ void Function() handleDappRequests({
       if (kind == DappRequestKind.transaction) {
         final tx = transactionParam(event.params)!;
         final from = tx['from'] ?? 'Unknown';
+
+        // The dApp names `from` and the signer uses the selected key: the two
+        // must be the same account, and the session must have been given it.
+        final selected = walletDetailsCubit.state.selectedWallet;
+        final sessionAccounts = walletKit
+            .getActiveSessions()[topic]
+            ?.namespaces['eip155']
+            ?.accounts;
+        if (!canTransactFrom(
+          tx['from'],
+          selected,
+          sessionAccounts ?? const [],
+        )) {
+          await ApproveTransactionDrawer.show(
+            context: navigatorKey.currentContext!,
+            content: DappCallDetails(
+              headline: 'Request for another account',
+              warning: kWrongAccountWarning,
+              rows: [
+                DappCallRow(label: 'Requested account', value: '$from'),
+                if (selected != null)
+                  DappCallRow(
+                    label: 'Selected wallet',
+                    value: selected.address,
+                  ),
+              ],
+            ),
+            dappName: dappName,
+            dappUrl: dappUrl,
+            iconUrl: iconUrl,
+          );
+          await respond(
+            error: const JsonRpcError(code: 4100, message: 'Unauthorized'),
+          );
+          debugPrint('Declined, request is for another account');
+          return;
+        }
         final to = tx['to'] ?? 'Unknown';
         final amountWei = parseHexToBigInt(tx['value']);
 
@@ -197,9 +235,26 @@ void Function() handleDappRequests({
           return;
         }
 
+        // The drawer waited on a person, so the wallet, the network and the
+        // session's accounts are read again before anything is signed.
+        final signer = walletDetailsCubit.state.selectedWallet;
+        final accountsNow = walletKit
+            .getActiveSessions()[topic]
+            ?.namespaces['eip155']
+            ?.accounts;
+        if (!canTransactFrom(tx['from'], signer, accountsNow ?? const []) ||
+            walletDetailsCubit.state.selectedNetwork?.chainId !=
+                selectedChain) {
+          await respond(
+            error: const JsonRpcError(code: 4100, message: 'Unauthorized'),
+          );
+          debugPrint('Declined, the wallet or network changed during approval');
+          return;
+        }
+
         final chainId = network?.chainId;
         final rpcUrl = network?.rpcUrl;
-        final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
+        final walletAddress = signer?.address;
 
         if (chainId == null ||
             rpcUrl == null ||

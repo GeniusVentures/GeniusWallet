@@ -14,4 +14,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
+    <!-- Debug only: lets a dev APK load the dashboard on http://localhost through
+         adb reverse. Release allows no cleartext. -->
+    <application android:networkSecurityConfig="@xml/network_security_config"/>
 </manifest>

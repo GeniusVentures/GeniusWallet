@@ -6,16 +6,20 @@ import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
 import 'package:genius_wallet/dev/dev_fault_injector.dart';
+import 'package:genius_wallet/dev/dev_gnus_bridge.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/dev/dev_mock_sgnus.dart';
 import 'package:genius_wallet/dev/dev_mock_transactions.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_rpc_contract.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
@@ -127,6 +131,7 @@ class DevToolsBubblePanelState {
   bool mockExpanded = true;
   bool testFlowsExpanded = false;
   bool jobExpanded = false;
+  bool gnusBridgeExpanded = false;
   bool navigateExpanded = false;
   bool banxaExpanded = false;
   bool childWalletsExpanded = false;
@@ -165,6 +170,11 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   bool get _jobExpanded => DevToolsBubblePanelState.instance.jobExpanded;
   set _jobExpanded(bool value) =>
       DevToolsBubblePanelState.instance.jobExpanded = value;
+
+  bool get _gnusBridgeExpanded =>
+      DevToolsBubblePanelState.instance.gnusBridgeExpanded;
+  set _gnusBridgeExpanded(bool value) =>
+      DevToolsBubblePanelState.instance.gnusBridgeExpanded = value;
 
   bool get _navigateExpanded =>
       DevToolsBubblePanelState.instance.navigateExpanded;
@@ -901,6 +911,106 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                   ],
                 ),
                 const SizedBox(height: GeniusWalletConsts.space4),
+                // DEV-ONLY: drives the gnus consent prompts with no dashboard
+                // page. Submit refuses unless a JOB fixture is armed, so
+                // nothing here can burn real GNUS.
+                _Section(
+                  label: 'GNUS BRIDGE',
+                  expanded: _gnusBridgeExpanded,
+                  onToggle: () => setState(
+                    () => _gnusBridgeExpanded = !_gnusBridgeExpanded,
+                  ),
+                  gw: gw,
+                  children: [
+                    Tooltip(
+                      message:
+                          'Open the pinned origin instead of the dev origin.',
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: kDevGnusHosted,
+                        builder: (context, hosted, _) => GWSwitch(
+                          label: 'Hosted',
+                          value: hosted,
+                          onChanged: (value) => kDevGnusHosted.value = value,
+                        ),
+                      ),
+                    ),
+                    Wrap(
+                      spacing: GeniusWalletConsts.space2,
+                      runSpacing: GeniusWalletConsts.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _devButton(
+                          'Connect',
+                          () => _toastBridge(
+                            context,
+                            devGnusOutcome(
+                              context.read<GnusRpcHandler>().handle(
+                                kDevGnusOrigin,
+                                GnusRpcMethod.getAccounts,
+                                null,
+                              ),
+                            ),
+                          ),
+                          tooltip:
+                              'gnus_getAccounts from the dev origin. The '
+                              'first press asks to connect.',
+                        ),
+                        _devButton(
+                          'Other site',
+                          () => _toastBridge(
+                            context,
+                            devGnusOutcome(
+                              context.read<GnusRpcHandler>().handle(
+                                kDevGnusOtherOrigin,
+                                GnusRpcMethod.getAccounts,
+                                null,
+                              ),
+                            ),
+                          ),
+                          tooltip:
+                              'gnus_getAccounts from a second origin, over '
+                              'WalletConnect. Press '
+                              'again while its drawer is open for '
+                              'confirm_open; decline it three times in a '
+                              'minute for rate_limited.',
+                        ),
+                        _devButton(
+                          'Submit',
+                          () => _toastBridge(
+                            context,
+                            devGnusSubmit(context.read<GnusRpcHandler>()),
+                          ),
+                          tooltip:
+                              'gnus_submitJob from the dev origin. Runs '
+                              'only while a JOB fixture is armed.',
+                        ),
+                        _devButton(
+                          'Preview',
+                          () => devGnusPreview(
+                            context.read<WalletDetailsCubit>().state,
+                          ),
+                          tooltip:
+                              'The spend drawer with fixture values. No '
+                              'handler runs and nothing spends.',
+                        ),
+                        _devButton(
+                          'Sites',
+                          () => widget.router.push('/settings'),
+                          tooltip:
+                              'Settings, where connected sites are listed.',
+                        ),
+                        _devButton(
+                          'Test page',
+                          () => widget.router.push('/dev/gnus-bridge'),
+                          tooltip:
+                              'A web view with window.gnus, loading the '
+                              'dev dashboard origin.',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
                 _Section(
                   label: 'TEST FLOWS',
                   expanded: _testFlowsExpanded,
@@ -1355,13 +1465,16 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     );
   }
 
-  /// Compact panel-section action button. Wraps the app's branded [GWButton]
-  /// (tertiary variant: `surfaceElevated` fill + `borderSubtle` border +
-  /// `gw.textPrimary` label) instead of a hand-rolled `TextButton`, so every
-  /// action button is appearance-aware and reads correctly in both light and
-  /// dark — this is what the light-mode walk feedback asked for. [tooltip],
-  /// when given, carries the full description for labels shortened to avoid
-  /// GWButtonSize.sm's one-line ellipsis truncation in the ~260px panel.
+  Future<void> _toastBridge(BuildContext context, Future<String> text) async {
+    final message = await text;
+    if (!context.mounted) {
+      return;
+    }
+    showToast(context, message, title: 'GNUS bridge');
+  }
+
+  /// A [GWButton], so it reads in both appearance modes. [tooltip] carries
+  /// the full text of a label shortened to fit the narrow panel.
   Widget _devButton(String label, VoidCallback onTap, {String? tooltip}) {
     return GWButton(
       label: label,

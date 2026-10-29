@@ -34,6 +34,9 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 // web3dart comes through reown wholesale and brings its own Wallet with it.
 import 'package:reown_walletkit/reown_walletkit.dart' hide Wallet;
 
+import '../gnus_bridge/gnus_fakes.dart' show PushableWalletDetails;
+import 'fake_wallet_kit.dart' show sessionData;
+
 const _signMethods = [
   'personal_sign',
   'eth_signTypedData',
@@ -89,7 +92,7 @@ const _wallet = Wallet(
   currencySymbol: 'ETH',
   walletType: WalletType.privateKey,
   balance: 0,
-  address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  address: '0x0000000000000000000000000000000000000001',
 );
 
 /// transfer(address,uint256) of 1500000 base units -- 1.5 at six decimals.
@@ -110,16 +113,19 @@ const _unreadableCalldata =
     '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
     '000000000000000000000000000000000000000000000000000000000016e360';
 
-Map<String, dynamic> _tx({String? data, String value = '0x2386f26fc10000'}) =>
-    <String, dynamic>{
-      'from': '0x0000000000000000000000000000000000000001',
-      'to': _tokenContract,
-      'value': value,
-      'gas': '0x5208',
-      'maxFeePerGas': '0x3b9aca00',
-      'maxPriorityFeePerGas': '0x3b9aca00',
-      'data': ?data,
-    };
+Map<String, dynamic> _tx({
+  String? data,
+  String value = '0x2386f26fc10000',
+  String from = '0x0000000000000000000000000000000000000001',
+}) => <String, dynamic>{
+  'from': from,
+  'to': _tokenContract,
+  'value': value,
+  'gas': '0x5208',
+  'maxFeePerGas': '0x3b9aca00',
+  'maxPriorityFeePerGas': '0x3b9aca00',
+  'data': ?data,
+};
 
 // The recorded Squid route, trimmed. Its byte-level facts are asserted where
 // the decoder itself is; what this file asks is whether the selected network
@@ -186,6 +192,25 @@ class _SigningGeniusApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Counts the transactions it was asked to sign.
+class _CountingGeniusApi implements GeniusApi {
+  int signs = 0;
+
+  @override
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String address,
+    required int sourceChainId,
+  }) async {
+    signs++;
+    return ApiResponse.success('0xabc123');
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// Signs and broadcasts, and the node never answers: a hash with no success.
 class _UnansweredGeniusApi implements GeniusApi {
   @override
@@ -200,9 +225,11 @@ class _UnansweredGeniusApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Records what the wallet answered. Sessions are deliberately empty so no
-/// `SessionData` graph has to be built to ask a question about responses.
+/// Records what the wallet answered. The one session is the account the
+/// request signs for: a transaction is refused unless the session was given it.
 class _FakeWalletKit implements ReownWalletKit {
+  SessionData? session;
+
   final List<JsonRpcResponse> responses = <JsonRpcResponse>[];
 
   /// How many answers the relay drops before it starts taking them.
@@ -214,7 +241,7 @@ class _FakeWalletKit implements ReownWalletKit {
   Event<SessionRequestEvent> get onSessionRequest => _sessionRequest;
 
   @override
-  Map<String, SessionData> getActiveSessions() => <String, SessionData>{};
+  Map<String, SessionData> getActiveSessions() => {'topic-1': ?session};
 
   @override
   Future<void> respondSessionRequest({
@@ -238,7 +265,7 @@ class _Harness {
   _Harness(this.walletKit, this.cubit, this.transactions, this.dispose);
 
   final _FakeWalletKit walletKit;
-  final WalletDetailsCubit cubit;
+  final PushableWalletDetails cubit;
   final TransactionsCubit transactions;
   final void Function() dispose;
 
@@ -252,7 +279,8 @@ Future<_Harness> _start(
   Network? network,
   List<Coin> coins = const [],
   Network? coinsNetwork,
-  Wallet? wallet,
+  Wallet? wallet = _wallet,
+  SessionData? session,
   GeniusApi? api,
 }) async {
   await tester.pumpWidget(
@@ -262,7 +290,7 @@ Future<_Harness> _start(
       home: const Scaffold(body: SizedBox.shrink()),
     ),
   );
-  final cubit = WalletDetailsCubit(
+  final cubit = PushableWalletDetails(
     initialState: WalletDetailsState(
       selectedNetwork: network,
       coins: coins,
@@ -272,7 +300,10 @@ Future<_Harness> _start(
     geniusApi: _FakeGeniusApi(),
     networkTokensProvider: NetworkTokensProvider(),
   );
-  final walletKit = _FakeWalletKit();
+  final walletKit = _FakeWalletKit()
+    ..session =
+        session ??
+        (wallet == null ? null : sessionData(address: wallet.address));
   final transactions = TransactionsCubit();
   final dispose = handleDappRequests(
     walletKit: walletKit,
@@ -897,6 +928,145 @@ void main() {
           coins: const [_usdc],
         ).nativeAmount,
       );
+      await _finish(tester, harness);
+    });
+  });
+
+  group('a transaction is for the account the session was given', () {
+    const other = '0x00000000000000000000000000000000000000ff';
+
+    Future<_Harness> start(
+      WidgetTester tester, {
+      Wallet? wallet = _wallet,
+      SessionData? session,
+      required _CountingGeniusApi api,
+    }) => _start(
+      tester,
+      network: _base,
+      wallet: wallet,
+      session: session,
+      api: api,
+    );
+
+    Future<void> expectRefused(
+      WidgetTester tester,
+      _Harness harness,
+      _CountingGeniusApi api,
+    ) async {
+      expect(_onScreen(tester, 'Request for another account'), isTrue);
+      expect(_onScreen(tester, 'Requested account'), isTrue);
+      expect(_onScreen(tester, 'declined either way'), isTrue);
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.error?.code, 4100);
+      expect(api.signs, 0);
+      expect(harness.transactions.state, isEmpty);
+      await _finish(tester, harness);
+    }
+
+    testWidgets('a from other than the selected wallet is refused', (
+      tester,
+    ) async {
+      final api = _CountingGeniusApi();
+      final harness = await start(tester, api: api);
+
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [_tx(from: other)]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, 'Selected wallet'), isTrue);
+      await expectRefused(tester, harness, api);
+    });
+
+    for (final type in [WalletType.tracking, WalletType.sgnus]) {
+      testWidgets('a ${type.name} wallet is refused', (tester) async {
+        final api = _CountingGeniusApi();
+        final harness = await start(
+          tester,
+          wallet: _wallet.copyWith(walletType: type),
+          api: api,
+        );
+
+        harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+        await tester.pumpAndSettle();
+
+        await expectRefused(tester, harness, api);
+      });
+    }
+
+    testWidgets('no selected wallet is refused', (tester) async {
+      final api = _CountingGeniusApi();
+      final harness = await start(tester, wallet: null, api: api);
+
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+
+      await expectRefused(tester, harness, api);
+    });
+
+    testWidgets('a session that was not given the wallet is refused', (
+      tester,
+    ) async {
+      final api = _CountingGeniusApi();
+      final harness = await start(
+        tester,
+        session: sessionData(address: other),
+        api: api,
+      );
+
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+
+      await expectRefused(tester, harness, api);
+    });
+
+    testWidgets('a wallet switched while the drawer is open is refused and '
+        'nothing is signed', (tester) async {
+      final api = _CountingGeniusApi();
+      final harness = await start(tester, api: api);
+
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+      harness.cubit.push(
+        WalletDetailsState(
+          selectedNetwork: _base,
+          selectedWallet: _wallet.copyWith(address: other),
+        ),
+      );
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.error?.code, 4100);
+      expect(api.signs, 0);
+      await _finish(tester, harness);
+    });
+
+    testWidgets('the same account in another letter case signs', (
+      tester,
+    ) async {
+      const lower = '0xabcdef0123456789abcdef0123456789abcdef01';
+      final api = _CountingGeniusApi();
+      final harness = await start(
+        tester,
+        wallet: _wallet.copyWith(address: lower),
+        session: sessionData(address: lower),
+        api: api,
+      );
+
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [
+          _tx(from: '0xABCDEF0123456789ABCDEF0123456789ABCDEF01'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.result, '0xabc123');
+      expect(api.signs, 1);
       await _finish(tester, harness);
     });
   });

@@ -23,12 +23,20 @@ import 'package:genius_wallet/components/toast/secure_storage_failure_toasts.dar
 import 'package:genius_wallet/dashboard/bridge/bridge_gate_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
 import 'package:genius_wallet/dev/dev_tools_host.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_connection_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_job_store.dart';
+import 'package:genius_wallet/gnus_bridge/gnus_rpc_handler.dart';
+import 'package:genius_wallet/gnus_consent/gnus_prompts.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/network/connectivity_fallback.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/reown/utilities.dart' show canSignOn;
+import 'package:genius_wallet/reown/wallet_connect_host.dart';
+import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/settings/developer_mode.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -37,6 +45,7 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/theme.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/secret_clipboard.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/web/web_utils.dart';
@@ -327,6 +336,7 @@ class MyWindowListener extends WindowListener {
       }
     }
 
+    await geniusApi.waitForJobCall();
     final result = geniusApi.shutdownSDK();
     debugPrint("Window closed. GeniusApi shutdown: $result");
 
@@ -528,6 +538,52 @@ class MyApp extends StatelessWidget {
               walletDetails: context.read<WalletDetailsCubit>(),
               childOperations: context.read<ChildOperationsCubit>(),
             ),
+          ),
+          RepositoryProvider<GnusConnectionStore>(
+            create: (context) => GnusConnectionStore.app(),
+          ),
+          // Nothing reads this until the dashboard transports land.
+          RepositoryProvider<GnusRpcHandler>(
+            create: (context) => GnusRpcHandler(
+              geniusApi: context.read<GeniusApi>(),
+              readAppState: () => context.read<AppBloc>().state,
+              appStates: context.read<AppBloc>().stream,
+              walletDetails: context.read<WalletDetailsCubit>(),
+              coinService: CoinService(),
+              resolveGate: context.read<BridgeGateCubit>().resolveNow,
+              store: GnusJobStore.app(),
+              connections: context.read<GnusConnectionStore>(),
+              connect: showGnusConnectPrompt,
+              confirm: showGnusSpendConfirm,
+              readRegistrations: context
+                  .read<ChildOperationsCubit>()
+                  .ownRegistrations,
+              registrationChanges: context.read<ChildOperationsCubit>().stream,
+            ),
+            dispose: (handler) => handler.dispose(),
+          ),
+          // Declared AFTER the handler it answers through. Mobile has no
+          // Connect button, so it starts nothing there.
+          RepositoryProvider<WalletConnectHost>(
+            lazy: false,
+            create: (context) {
+              final networks = context.read<NetworkProvider>();
+              final host = WalletConnectHost(
+                geniusApi: context.read<GeniusApi>(),
+                walletDetails: context.read<WalletDetailsCubit>(),
+                transactions: context.read<TransactionsCubit>(),
+                handler: context.read<GnusRpcHandler>(),
+                signableChainIds: () => networks.networks
+                    .where(canSignOn)
+                    .map((network) => network.chainId!),
+                devBuild: kDebugMode && kShowDevTools,
+              );
+              if (!GeniusBreakpoints.isMobileApp()) {
+                unawaited(host.start());
+              }
+              return host;
+            },
+            dispose: (host) => host.dispose(),
           ),
         ],
         child: ValueListenableBuilder<GWAppearanceMode>(

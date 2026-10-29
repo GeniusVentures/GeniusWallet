@@ -39,10 +39,15 @@ import 'package:genius_wallet/components/overlay/more_sheet.dart';
 import 'package:genius_wallet/components/overlay/nav_destinations.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/reown/reown_connect_button.dart';
+import 'package:genius_wallet/reown/wallet_connect_host.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+
+import '../reown/fake_wallet_kit.dart' show UnstartedWalletConnectHost;
+import '../theme/theme_contrast_test.dart' show contrastRatio;
 
 /// See `account_drawer_show_test.dart` for why this is `implements` plus a
 /// `noSuchMethod` forward: the real `GeniusApi`'s constructor dlopens the
@@ -51,6 +56,11 @@ class _FakeGeniusApi implements GeniusApi {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+/// Wallet chip + Connect + hamburger, each [kHeaderControlSize], with a
+/// space6 between neighbours.
+const double _clusterWidthExpected =
+    3 * kHeaderControlSize + 2 * GeniusWalletConsts.space6;
 
 const _network = Network(
   name: 'Testchain',
@@ -69,15 +79,17 @@ Wallet _wallet(String name) => Wallet(
   address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
 );
 
-/// Mounts [MobileHeader] in the appBar slot of a real `Scaffold` at a 390x844
-/// phone surface - the geometry every width assertion below is about.
+/// Mounts [MobileHeader] in the appBar slot of a real `Scaffold` at a phone
+/// surface ([width] x 844, 390 unless a case says otherwise).
 Future<WalletDetailsCubit> _pumpHeader(
   WidgetTester tester, {
   Wallet? wallet,
   Network? network = _network,
   double textScale = 1.0,
+  double width = 390,
+  bool dark = true,
 }) async {
-  tester.view.physicalSize = const Size(390, 844);
+  tester.view.physicalSize = Size(width, 844);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -93,17 +105,22 @@ Future<WalletDetailsCubit> _pumpHeader(
   addTearDown(cubit.close);
 
   await tester.pumpWidget(
-    BlocProvider<WalletDetailsCubit>.value(
-      value: cubit,
-      child: MaterialApp(
-        theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(textScale)),
-          child: child!,
+    RepositoryProvider<WalletConnectHost>.value(
+      value: UnstartedWalletConnectHost(),
+      child: BlocProvider<WalletDetailsCubit>.value(
+        value: cubit,
+        child: MaterialApp(
+          theme: dark
+              ? ThemeData.dark().copyWith(extensions: [GWColors.dark()])
+              : ThemeData.light().copyWith(extensions: [GWColors.light()]),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
+          home: const Scaffold(appBar: MobileHeader()),
         ),
-        home: const Scaffold(appBar: MobileHeader()),
       ),
     ),
   );
@@ -126,7 +143,7 @@ Future<WalletDetailsCubit> _pumpHeader(
   return cubit;
 }
 
-/// The whole right-hand cluster's width: wallet + `space6` + hamburger.
+/// The whole right-hand cluster's width: wallet to hamburger, Connect between.
 ///
 /// Derived from the two controls' painted boxes rather than from a literal, so
 /// it stays true if either control moves.
@@ -214,7 +231,11 @@ void main() {
         reason:
             'Material 3 gives IconButton a 48px minimum AND '
             'MaterialTapTargetSize.padded. A 48 here is one of those defaults '
-            'coming back, and it breaks the cluster at 112 instead of 100',
+            'coming back, and it widens the cluster',
+      );
+      expect(
+        tester.getSize(find.byType(ReownConnectButton)),
+        const Size.square(kHeaderControlSize),
       );
     },
   );
@@ -244,8 +265,11 @@ void main() {
     // name because a name can no longer take any width.
     expect(shortPill, kHeaderControlSize);
     expect(longPill, kHeaderControlSize);
-    expect(shortCluster, moreOrLessEquals(100.0, epsilon: 0.01));
-    expect(longCluster, moreOrLessEquals(100.0, epsilon: 0.01));
+    expect(
+      shortCluster,
+      moreOrLessEquals(_clusterWidthExpected, epsilon: 0.01),
+    );
+    expect(longCluster, moreOrLessEquals(_clusterWidthExpected, epsilon: 0.01));
   });
 
   testWidgets(
@@ -396,8 +420,8 @@ void main() {
   });
 
   testWidgets(
-    'REAL INTER, 390pt: the lockup measures 106.06 and the F cluster measures '
-    'exactly 100.00, leaving 135.94 free where the pill left 12.00',
+    'REAL INTER, 390pt: the lockup measures 106.06 and the cluster (wallet, '
+    'Connect, hamburger) measures exactly 156.00, leaving 79.94 free',
     (tester) async {
       // The one place this file departs from its no-absolute-widths rule, and
       // it earns the exception: the whole question the 2026-08-07 growth raises
@@ -416,7 +440,7 @@ void main() {
       final double menu = tester.getSize(find.byType(HeaderMenuButton)).width;
       final double cluster = _clusterWidth(tester);
       final double gap =
-          tester.getRect(find.byType(HeaderMenuButton)).left -
+          tester.getRect(find.byType(ReownConnectButton)).left -
           tester.getRect(find.byType(WalletPill)).right;
 
       // `AppBar` charges `titleSpacing` on BOTH sides of the title:
@@ -444,27 +468,20 @@ void main() {
             'is the mark crept to 32',
       );
 
-      // THE BUDGET UNDER SCHEME F, as equalities where the pill era had
-      // inequalities. The right side is a fixed 100.00 and the free space in
-      // the title Row grew from 12.00 to 135.94.
+      // THE BUDGET, as equalities. The right side is a fixed 156.00 (the
+      // Connect control joined the 100.00 wallet + hamburger pair) and the free
+      // space in the title Row is 342 - 106.06 - 156 = 79.94.
       expect(pill, kHeaderControlSize);
       expect(menu, kHeaderControlSize);
       expect(gap, moreOrLessEquals(GeniusWalletConsts.space6, epsilon: 0.01));
       expect(
         cluster,
-        moreOrLessEquals(100.0, epsilon: 0.01),
+        moreOrLessEquals(_clusterWidthExpected, epsilon: 0.01),
         reason:
-            '44 + space6 + 44. A 112 here is a second space6 added after the '
-            'hamburger, which sketch 183 does NOT have - its held-constant '
-            'table pins the cluster at 100.00 and the free space at 135.94',
+            '44 + space6 + 44 + space6 + 44. A trailing space6 after the '
+            'hamburger would make it 168',
       );
-      expect(
-        free,
-        moreOrLessEquals(135.94, epsilon: 0.05),
-        reason:
-            'was 12.00 under the pill, which was 12.00 of separator and zero '
-            'slack. 135.94 is 12.00 of separator plus 123.94 of genuine slack',
-      );
+      expect(free, moreOrLessEquals(79.94, epsilon: 0.05));
 
       // WHERE `expect(pill, greaterThan(180))` STOOD, and why it is not here.
       //
@@ -623,17 +640,19 @@ void main() {
     'DYNAMIC TYPE: the header raises no overflow at textScaler 1.0, 2.0, 2.5 '
     'or 3.0',
     (tester) async {
-      // The cluster is a FIXED 100 and non-flex, so on paper the Expanded
-      // holding it starves once the lockup passes 230 - wordmark > 200.63, or
-      // textScaler above 2.616x, which iOS AX5 reaches. Before scheme F that
+      // The cluster is a FIXED size and non-flex, so on paper the Expanded
+      // holding it starves once the lockup passes 230 (at the original 100px
+      // cluster) - wordmark > 200.63, or textScaler above 2.616x, which iOS
+      // AX5 reaches. Before scheme F that
       // could not happen: the pill WAS the Expanded and absorbed shrink down
       // to its own chrome, producing an ellipsis rather than an overflow.
       //
       // MEASURED, AND THE PREDICTION DID NOT HOLD. `AppBar` clamps its title's
       // text scaling at 1.34x (`app_bar.dart:1098`, `_kMaxTitleTextScaleFactor
       // = 1.34`), so the wordmark tops out at 76.69 * 1.34 = 102.77 and the
-      // lockup at 132.14. The Expanded therefore receives 197.86 against the
-      // 100 the cluster needs, at every ambient scale. Probed at 1.0 / 1.34 /
+      // lockup at 132.14. At 390pt the Expanded therefore receives 197.86
+      // against the 100 the cluster needed then (156 now), at every ambient
+      // scale. Probed at 1.0 / 1.34 /
       // 2.0 / 2.5 / 3.0 / 3.5 with the cap at BOTH 216 and 196: no overflow at
       // any step under either, and the effective scaler inside the title reads
       // 1.34x from 1.34 upward. The cap stayed at 216 on that evidence.
@@ -673,6 +692,46 @@ void main() {
       }
     },
   );
+
+  for (final dark in [true, false]) {
+    testWidgets(
+      'the Connect control fits at 360pt and textScaler 1.3 with no overflow, '
+      'is labelled, and its glyph clears 3:1 on the bar -- ${dark ? 'dark' : 'light'}',
+      (tester) async {
+        await _loadInter();
+        await _pumpHeader(
+          tester,
+          wallet: _wallet('N' * 60),
+          textScale: 1.3,
+          width: 360,
+          dark: dark,
+        );
+
+        expect(tester.takeException(), isNull);
+        final connect = tester.getRect(find.byType(ReownConnectButton));
+        final menu = tester.getRect(find.byType(HeaderMenuButton));
+        final wallet = tester.getRect(find.byType(WalletPill));
+        expect(connect.size, const Size.square(kHeaderControlSize));
+        expect(
+          wallet.right + GeniusWalletConsts.space6,
+          moreOrLessEquals(connect.left, epsilon: 0.01),
+        );
+        expect(menu.right, lessThanOrEqualTo(360));
+        expect(find.byTooltip('Connect'), findsOneWidget);
+
+        final gw = dark ? GWColors.dark() : GWColors.light();
+        final glyph = find.descendant(
+          of: find.byType(ReownConnectButton),
+          matching: find.byType(Icon),
+        );
+        final color = IconTheme.of(tester.element(glyph)).color!;
+        expect(
+          contrastRatio(color, gw.surfaceElevated),
+          greaterThanOrEqualTo(3.0),
+        );
+      },
+    );
+  }
 }
 
 /// Why the hamburger has no container, quoted at every assertion that pins it

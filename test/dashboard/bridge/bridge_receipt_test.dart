@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
 
 /// One expectation per `<behavior>` bullet in 08-06-PLAN.md's Task 1, for both
@@ -10,10 +11,37 @@ import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
 void main() {
   final fixedTimestamp = DateTime(2026, 7, 27, 12, 0, 0);
 
+  group('bridgeReceiptStatus', () {
+    test('a send with no answer and a hash is pending, not failed', () {
+      expect(
+        bridgeReceiptStatus(ApiResponse.unconfirmed('0x1', 'reset')),
+        TransactionStatus.pending,
+      );
+    });
+
+    test('a reverted burn and a plain error are failed', () {
+      expect(
+        bridgeReceiptStatus(ApiResponse.reverted('0x1', 'reverted')),
+        TransactionStatus.failed,
+      );
+      expect(
+        bridgeReceiptStatus(ApiResponse.error('no')),
+        TransactionStatus.failed,
+      );
+    });
+
+    test('a success is completed', () {
+      expect(
+        bridgeReceiptStatus(ApiResponse.success('0x1')),
+        TransactionStatus.completed,
+      );
+    });
+  });
+
   group('bridgeReceiptTransaction — success', () {
     test('maps every field per the success behavior bullet', () {
       final tx = bridgeReceiptTransaction(
-        isSuccess: true,
+        status: TransactionStatus.completed,
         txHash: '0xabc123',
         walletAddress: '0xWallet',
         amount: '42.5',
@@ -37,7 +65,7 @@ void main() {
 
     test('a null response hash becomes the empty string, never "null"', () {
       final tx = bridgeReceiptTransaction(
-        isSuccess: true,
+        status: TransactionStatus.completed,
         txHash: null,
         walletAddress: '0xWallet',
         amount: '1',
@@ -51,7 +79,7 @@ void main() {
 
     test('a blank response hash becomes the empty string', () {
       final tx = bridgeReceiptTransaction(
-        isSuccess: true,
+        status: TransactionStatus.completed,
         txHash: '   ',
         walletAddress: '0xWallet',
         amount: '1',
@@ -66,7 +94,7 @@ void main() {
   group('bridgeReceiptTransaction — failure', () {
     test('identical shape but status is failed', () {
       final tx = bridgeReceiptTransaction(
-        isSuccess: false,
+        status: TransactionStatus.failed,
         txHash: '0xdef456',
         walletAddress: '0xWallet',
         amount: '10',
@@ -89,7 +117,7 @@ void main() {
 
     test('hash is the empty string when the response carries no data', () {
       final tx = bridgeReceiptTransaction(
-        isSuccess: false,
+        status: TransactionStatus.failed,
         txHash: null,
         walletAddress: '0xWallet',
         amount: '10',
@@ -105,7 +133,7 @@ void main() {
   group('bridgeReceiptTransaction — fees always blank', () {
     test('fees is the empty string regardless of outcome', () {
       final successTx = bridgeReceiptTransaction(
-        isSuccess: true,
+        status: TransactionStatus.completed,
         txHash: '0x1',
         walletAddress: '0xWallet',
         amount: '1',
@@ -113,7 +141,7 @@ void main() {
         timestamp: fixedTimestamp,
       );
       final failureTx = bridgeReceiptTransaction(
-        isSuccess: false,
+        status: TransactionStatus.failed,
         txHash: '0x2',
         walletAddress: '0xWallet',
         amount: '1',
@@ -130,7 +158,7 @@ void main() {
     test('defaults to roughly now when no timestamp is injected', () {
       final before = DateTime.now();
       final tx = bridgeReceiptTransaction(
-        isSuccess: true,
+        status: TransactionStatus.completed,
         txHash: '0x1',
         walletAddress: '0xWallet',
         amount: '1',

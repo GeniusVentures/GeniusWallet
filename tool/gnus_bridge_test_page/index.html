@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>window.gnus test page</title>
+<style>
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 16px; background: #fff; color: #111; }
+  .row { margin: 4px 0; padding: 4px 8px; border-left: 4px solid #888; }
+  .pass { border-color: #1a7f37; } .fail { border-color: #b3261e; } .wait { border-color: #9a6700; }
+  .tag { font-weight: 700; margin-right: 8px; }
+  iframe { width: 100%; height: 150px; border: 1px solid #888; margin: 4px 0; }
+  code { background: #eee; padding: 0 3px; }
+</style>
+</head>
+<body>
+<p>Run: <code>python3 -m http.server 3000</code> and <code>python3 -m http.server 3001</code> from this folder, then open <code>http://localhost:3000/</code> in the wallet's <code>/dev/gnus-bridge</code> page.</p>
+<div id="rows"></div>
+<p><button id="inflight">In-flight, then reload (C6)</button>
+  Revoke this site under Sites first so the connect prompt stays open while the page reloads.</p>
+<p>C7 links to <span id="other"></span>:
+  <a id="plain" href="#">no target</a> |
+  <a id="blank" href="#" target="_blank">target=_blank</a> |
+  <button id="open">window.open</button>.
+  Expected: a new browser tab for the last two on every platform; the first loads nowhere on Linux and opens the browser elsewhere. Never inside the wallet view.</p>
+<h4>C4: cross-origin frame (prints its own rows)</h4>
+<div id="frame4"></div>
+<h4>C5: sandboxed srcdoc frame (prints its own rows)</h4>
+<div id="frame5"></div>
+<script>
+(function () {
+  var rows = document.getElementById('rows');
+  var otherPort = Number(location.port || 80) + 1;
+  var otherOrigin = 'http://127.0.0.1:' + otherPort;
+
+  function row(id, label) {
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = id;
+      rows.appendChild(el);
+    }
+    el.className = 'row wait';
+    el.innerHTML = '<span class="tag">' + id + '</span><span></span>';
+    el.lastChild.textContent = label;
+    return el;
+  }
+  function done(id, ok, text) {
+    var el = row(id, text);
+    el.className = 'row ' + (ok ? 'pass' : 'fail');
+    el.firstChild.textContent = id + ' ' + (ok ? 'PASS' : 'FAIL');
+  }
+  function note(id, text) {
+    row(id, text);
+    document.getElementById(id).firstChild.textContent = id + ' CHECK';
+  }
+
+  // This function is also pasted into frame.html, which cannot share a file with
+  // a sandboxed srcdoc frame. Keep the two copies equal.
+  function frameCheck(id) {
+    var out = document.createElement('pre');
+    document.body.appendChild(out);
+    function say(ok, text) { out.textContent += id + ' ' + (ok ? 'PASS' : 'FAIL') + ' ' + text + '\n'; }
+    say(typeof window.gnus === 'undefined', 'window.gnus is undefined in this frame');
+    var topReadable = true;
+    try { void window.top.gnus; } catch (e) { topReadable = false; }
+    say(!topReadable, 'the frame cannot read window.top.gnus');
+    var replied = false;
+    window.__gnusBridgeReply = function () { replied = true; };
+    var forged = JSON.stringify({ id: 'frame-1', method: 'gnus_getAccounts', params: null });
+    var posted = 0;
+    [
+      function () { return window.webkit.messageHandlers.gnusBridge; },
+      function () { return window.gnusBridge; },
+      function () { return window.chrome.webview; }
+    ].forEach(function (find) {
+      try { find().postMessage(forged); posted++; } catch (e) { /* no such transport here */ }
+    });
+    setTimeout(function () {
+      say(!replied, 'a forged request via ' + posted + ' transport(s) got no reply');
+    }, 2500);
+  }
+
+  // C1, C2
+  function checkShim() {
+    var g = window.gnus;
+    done('C1', !!g && g.isGeniusWallet === true && g.version === '1', 'window.gnus present, isGeniusWallet, version 1');
+    done('C2', / GeniusWallet\/\S+ gnus\/1$/.test(navigator.userAgent), 'user agent: ' + navigator.userAgent);
+    if (g) {
+      run(g);
+    }
+  }
+  row('C1', 'waiting for window.gnus');
+  row('C2', 'user agent');
+  if (window.gnus) {
+    checkShim();
+  } else {
+    var timer = setTimeout(checkShim, 3000);
+    window.addEventListener('gnus#initialized', function () { clearTimeout(timer); checkShim(); });
+  }
+
+  function run(g) {
+    row('C3', 'gnus_getAccounts (the first call shows the connect prompt)');
+    g.request({ method: 'gnus_getAccounts' }).then(
+      function (r) { done('C3', !!r && r.version === '1', 'resolved, version ' + (r && r.version)); },
+      function (e) { done('C3', false, 'rejected ' + e.code + ' ' + e.message); }
+    );
+    row('C8', 'listening for gnus_accountsChanged');
+    g.on('gnus_accountsChanged', function (p) {
+      note('C8', 'event: ' + JSON.stringify(p).slice(0, 120));
+    });
+    document.getElementById('inflight').onclick = function () {
+      g.request({ method: 'gnus_getAccounts' }).catch(function () {});
+      setTimeout(function () { location.href = 'index.html?after=1'; }, 500);
+    };
+  }
+
+  if (/[?&]after=1/.test(location.search)) {
+    note('C6', 'reloaded with a request in flight. The wallet log must show "gnus_web reply dropped"; this page must not show the old reply.');
+  }
+
+  // C4, C5
+  var f4 = document.createElement('iframe');
+  f4.src = otherOrigin + '/frame.html?id=C4';
+  document.getElementById('frame4').appendChild(f4);
+  var f5 = document.createElement('iframe');
+  f5.setAttribute('sandbox', 'allow-scripts');
+  f5.srcdoc = '<!doctype html><body><script>(' + frameCheck.toString() + ')("C5")<\/script>';
+  document.getElementById('frame5').appendChild(f5);
+
+  // C7
+  document.getElementById('other').textContent = otherOrigin + '/';
+  document.getElementById('plain').href = otherOrigin + '/';
+  document.getElementById('blank').href = otherOrigin + '/';
+  document.getElementById('open').onclick = function () { window.open(otherOrigin + '/'); };
+  note('C7', 'click the three links below and see where they open');
+})();
+</script>
+</body>
+</html>
