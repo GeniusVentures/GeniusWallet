@@ -1584,6 +1584,9 @@ jobs:
       - name: Security gate -- onboarding seed safety (06-UI-SPEC.md Section 3, six checks)
         run: bash tool/check_onboarding_seed_safety.sh
 
+      - name: Test the native dependency download check (tool/test_download_dependencies.sh)
+        run: bash tool/test_download_dependencies.sh
+
       # NON-BLOCKING BY DELIBERATE CHOICE, not an oversight -- see
       # .planning/phases/22-codebase-organization-standards-config-dead-code-deletion-th/deferred-items.md
       # and 22-08-SUMMARY.md for the full record. This gate has 2 KNOWN
