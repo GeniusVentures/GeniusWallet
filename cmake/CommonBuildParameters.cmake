@@ -134,6 +134,13 @@ if(NOT TARGET Vulkan::Vulkan)
     find_package(Vulkan REQUIRED)
 endif()
 
+if(APPLE)
+    # libMoltenVK.a embeds ObjC categories (MTLSamplerDescriptor+MoltenVK etc.) whose
+    # category symbols are LOCAL — static-archive linking never pulls them, so without
+    # -ObjC vkCreateSampler dies in doesNotRecognizeSelector: setBorderColorMVK:.
+    set_property(TARGET Vulkan::Vulkan APPEND PROPERTY INTERFACE_LINK_OPTIONS "-Wl,-ObjC")
+endif()
+
 # vk-bootstrap and shaderc -- SGProcessingManager's exported SGProcessors and
 # SGShaderCompiler targets interface-link both, so they must exist before
 # find_package(SGProcessingManager) further down. Mirrors SuperGenius's
