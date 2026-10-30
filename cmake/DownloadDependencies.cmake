@@ -92,13 +92,27 @@ function(check_dependency_exists DEP_NAME DEP_DIR EXISTS_VAR)
         set(${EXISTS_VAR} ${ALL_EXIST} PARENT_SCOPE)
     else()
         # Non-Android logic
+        # Device and simulator iOS builds share build/iOS/<type>, so the
+        # simulator ABI must be checked by its own subfolder.
+        if(CMAKE_SYSTEM_NAME STREQUAL "iOS" AND ARCH)
+            set(_ABI_SUBFOLDER "/${ARCH}")
+        endif()
         set(CHECK_PATHS
-            "${DEP_DIR}/build/${PLATFORM_NAME}/${CHECK_BUILD_TYPE}"
+            "${DEP_DIR}/build/${PLATFORM_NAME}/${CHECK_BUILD_TYPE}${_ABI_SUBFOLDER}"
             "${DEP_DIR}/${ARCH_OUTPUT_DIR}"  # Legacy path format
         )
 
         foreach(CHECK_PATH ${CHECK_PATHS})
             if(EXISTS ${CHECK_PATH})
+                # A simulator download also creates the device directory as its
+                # parent; holding only that subfolder is not a device install.
+                if(CMAKE_SYSTEM_NAME STREQUAL "iOS" AND NOT ARCH)
+                    file(GLOB _ENTRIES LIST_DIRECTORIES true "${CHECK_PATH}/*")
+                    list(FILTER _ENTRIES EXCLUDE REGEX "/arm64-simulator$")
+                    if(NOT _ENTRIES)
+                        continue()
+                    endif()
+                endif()
                 set(${EXISTS_VAR} TRUE PARENT_SCOPE)
                 if(IS_RELEASE_ONLY AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
                     message(STATUS "${DEP_NAME} found at: ${CHECK_PATH} (Release-only dependency)")
@@ -245,15 +259,15 @@ function(download_dependency DEP_NAME)
         if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
             # For tags, use the tag name directly
             set(RELEASE_TAG "${ARG_BRANCH}")
-        elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
-            # For Linux with ARCH, include ARCH in the release tag
+        elseif(CMAKE_SYSTEM_NAME MATCHES "^(Linux|iOS)$" AND ARCH)
+            # Linux and the iOS simulator carry ARCH in the release tag
             set(RELEASE_TAG "${PLATFORM_NAME}-${ARCH}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
         else()
             # For other platforms, use the platform-branch-buildtype format
             set(RELEASE_TAG "${PLATFORM_NAME}-${ARG_BRANCH}-${ARG_BUILD_TYPE}")
         endif()
         
-        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
+        if(CMAKE_SYSTEM_NAME MATCHES "^(Linux|iOS)$" AND ARCH)
             set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARCH}-${ARG_BUILD_TYPE}.tar.gz")
         else()
             set(ARCHIVE_NAME "${PLATFORM_NAME}-${ARG_BUILD_TYPE}.tar.gz")
@@ -265,7 +279,7 @@ function(download_dependency DEP_NAME)
         message(STATUS "----------------------------------------")
         message(STATUS "Downloading ${DEP_NAME}")
         message(STATUS "  Platform: ${PLATFORM_NAME}")
-        if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND ARCH)
+        if(CMAKE_SYSTEM_NAME MATCHES "^(Linux|iOS)$" AND ARCH)
             message(STATUS "  Architecture: ${ARCH}")
         endif()
         if(DEFINED BRANCH_IS_TAG AND BRANCH_IS_TAG)
