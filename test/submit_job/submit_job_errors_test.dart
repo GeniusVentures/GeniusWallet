@@ -19,6 +19,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/utilities.dart' show toBaseUnits;
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coins_service.dart';
@@ -38,6 +39,8 @@ class _FakeGeniusApi implements GeniusApi {
   ApiResponse<String> bridgeOutResponse = ApiResponse.success('0xHASH');
   GeniusNodeReturnValue processResponse =
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  String? gasEstimateAmount;
+  String? burnAmount;
 
   @override
   int requestGeniusSDKCost({required String jobJson}) =>
@@ -52,6 +55,7 @@ class _FakeGeniusApi implements GeniusApi {
     required int sourceChainId,
     required int destinationChainId,
   }) async {
+    gasEstimateAmount = amountToBurn;
     return getBrigeOutGasCostResponse;
   }
 
@@ -65,6 +69,7 @@ class _FakeGeniusApi implements GeniusApi {
     required int destinationChainId,
     bool shouldMintTokens = false,
   }) async {
+    burnAmount = amountToBurn;
     return bridgeOutResponse;
   }
 
@@ -134,17 +139,22 @@ class _SeededGnusCubit extends GnusCubit {
   Future<Coin?> fetchGnusBalance() async => coinToReturn;
 }
 
-/// Seeds `jobCost`/`uploadedJson` so `bridgeTokens()`'s precondition guard
+/// Seeds `jobCostMinions`/`uploadedJson` so `bridgeTokens()`'s precondition guard
 /// passes without going through `openFilePicker()`.
 class _SeededSubmitJobCubit extends SubmitJobCubit {
   _SeededSubmitJobCubit({
     required super.walletDetailsCubit,
     required super.gnusCubit,
     required super.geniusApi,
-    int jobCost = 0,
+    int jobCostMinions = 0,
     Map<String, dynamic> uploadedJson = const {},
   }) {
-    emit(state.copyWith(jobCost: jobCost, uploadedJson: uploadedJson));
+    emit(
+      state.copyWith(
+        jobCostMinions: jobCostMinions,
+        uploadedJson: uploadedJson,
+      ),
+    );
   }
 }
 
@@ -212,7 +222,7 @@ _Harness _build({
     walletDetailsCubit: walletDetailsCubit,
     gnusCubit: gnusCubit,
     geniusApi: geniusApi,
-    jobCost: seedJobCost,
+    jobCostMinions: seedJobCost,
     uploadedJson: seedUploadedJson,
   );
 
@@ -316,8 +326,8 @@ void main() {
 
       expect(harness.cubit.state.fileError, contains('too large'));
       expect(harness.cubit.state.fileError, contains('5'));
-      // Never parsed - jobCost/uploadedJson stay at their defaults.
-      expect(harness.cubit.state.jobCost, 0);
+      // Never parsed - jobCostMinions/uploadedJson stay at their defaults.
+      expect(harness.cubit.state.jobCostMinions, 0);
       expect(harness.cubit.state.uploadedJson, isEmpty);
       expect(harness.cubit.state.costError, isEmpty);
       expect(harness.cubit.state.submitError, isEmpty);
@@ -358,7 +368,7 @@ void main() {
       addTearDown(harness.dispose);
       // A valid, priceable-looking token detail must already be on the
       // cubit's own state (not just gnusCubit's) for isGasFetchable's
-      // other two conditions to hold, isolating the jobCost == 0 cause.
+      // other two conditions to hold, isolating the jobCostMinions == 0 cause.
       await harness.cubit.fetchGnusTokenInfo();
       harness.geniusApi.requestGeniusSDKCostResponse = 0;
       final file = File('${tempDir.path}/job.json')
@@ -375,7 +385,7 @@ void main() {
       // The fix: the file survives a pricing failure.
       expect(harness.cubit.state.uploadedFileName, 'job.json');
       expect(harness.cubit.state.uploadedJson, isNotEmpty);
-      expect(harness.cubit.state.jobCost, 0);
+      expect(harness.cubit.state.jobCostMinions, 0);
     });
 
     test('missing preconditions for gas estimation -> costError set, file KEPT '
@@ -457,13 +467,14 @@ void main() {
       await harness.cubit.openFilePicker();
 
       expect(harness.cubit.state.costError, isEmpty);
-      expect(harness.cubit.state.jobCost, 10);
+      expect(harness.cubit.state.jobCostMinions, 10);
     });
   });
 
   group('submit channel', () {
     test('bridgeTokens missing required data -> submitError only', () async {
-      final harness = _build(); // jobCost stays 0 - the guard's own trigger.
+      final harness =
+          _build(); // jobCostMinions stays 0 - the guard's own trigger.
       addTearDown(harness.dispose);
 
       await harness.cubit.bridgeTokens();
@@ -515,6 +526,60 @@ void main() {
         expect(harness.cubit.state.costError, isEmpty);
       },
     );
+  });
+
+  group('job cost units', () {
+    // GeniusSDKGetCost answers in Minions. Passing that number on as GNUS
+    // burned 1,000,000x the price: a 78-Minion job burned 78 GNUS.
+    final burnOf78Minions = BigInt.from(78) * BigInt.from(10).pow(12);
+
+    test(
+      'the gas estimate is priced on the GNUS amount, not Minions',
+      () async {
+        final harness = _build();
+        addTearDown(harness.dispose);
+        await harness.cubit.fetchGnusTokenInfo();
+        harness.geniusApi.requestGeniusSDKCostResponse = 78;
+        final file = File('${tempDir.path}/job.json')
+          ..writeAsStringSync('{"job":"spec"}');
+        fakeFilePicker.resultBuilder = () => FilePickerResult([
+          PlatformFile(path: file.path, name: 'job.json', size: 14),
+        ]);
+
+        await harness.cubit.openFilePicker();
+
+        expect(harness.cubit.state.jobCostMinions, 78);
+        expect(harness.cubit.state.jobCostGnus, '0.000078');
+        expect(harness.geniusApi.gasEstimateAmount, '0.000078');
+      },
+    );
+
+    test(
+      '78 Minions burn exactly 78e12 base units of an 18-decimal token',
+      () async {
+        final harness = _build(
+          seedJobCost: 78,
+          seedUploadedJson: const {'job': 'spec'},
+        );
+        addTearDown(harness.dispose);
+
+        await harness.cubit.bridgeTokens();
+
+        final burned = harness.geniusApi.burnAmount;
+        expect(burned, '0.000078');
+        expect(toBaseUnits(burned!, 18), burnOf78Minions);
+      },
+    );
+
+    test('whole and fractional costs convert without float drift', () {
+      expect(minionsToGnus(BigInt.from(1234000000)), '1234.000000');
+      expect(minionsToGnus(BigInt.one), '0.000001');
+      // The old double path burned 123456788999999995904 for this one.
+      expect(
+        toBaseUnits(minionsToGnus(BigInt.from(123456789)), 18),
+        BigInt.parse('123456789000000000000'),
+      );
+    });
   });
 
   group('emit-after-close safety', () {

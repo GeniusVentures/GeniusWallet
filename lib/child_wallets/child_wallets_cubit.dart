@@ -7,15 +7,6 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 
-/// [minions] (1 Minion = 1e-6 GNUS) as an exact GNUS string. Integer division
-/// only -- a float divide would lose precision a wallet balance cannot.
-String minionsToGnus(BigInt minions) {
-  final million = BigInt.from(1000000);
-  final whole = minions ~/ million;
-  final remainder = (minions % million).toString().padLeft(6, '0');
-  return '$whole.$remainder';
-}
-
 /// One child, ready to render: its own address, its linked wallet (or none)
 /// and its exact GNUS balance string. Never a key or a mnemonic.
 class ChildWallet {

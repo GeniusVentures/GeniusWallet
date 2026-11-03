@@ -11,7 +11,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
-    show ChildWallet, minionsToGnus;
+    show ChildWallet;
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 

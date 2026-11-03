@@ -1,3 +1,4 @@
+import 'package:genius_api/genius_api.dart' show minionsToGnus;
 import 'package:genius_api/models/token.dart';
 
 /// Which of `SubmitJobCubit.bridgeTokens()`'s three terminal branches the
@@ -44,7 +45,9 @@ class SubmitJobState {
   final SubmitOutcome outcome;
   final String uploadedFileName;
   final Map<String, dynamic> uploadedJson;
-  final int jobCost;
+
+  /// What `GeniusSDKGetCost` returned: Minions (1 GNUS = 1e6), not GNUS.
+  final int jobCostMinions;
   final String jobGasCost;
   final Token gnusTokenDetails;
   final double gnusBalance;
@@ -74,7 +77,7 @@ class SubmitJobState {
     this.outcome = SubmitOutcome.notSubmitted,
     this.uploadedFileName = '',
     this.uploadedJson = const {},
-    this.jobCost = 0,
+    this.jobCostMinions = 0,
     this.jobGasCost = '0.00 Gwei',
     this.gnusTokenDetails = const Token(),
     this.gnusBalance = 0,
@@ -85,13 +88,17 @@ class SubmitJobState {
     this.isBridgingTokens = false,
   });
 
+  /// [jobCostMinions] as an exact GNUS string, the only form to show, compare
+  /// or burn.
+  String get jobCostGnus => minionsToGnus(BigInt.from(jobCostMinions));
+
   SubmitJobState copyWith({
     String? txHash,
     String? bridgeHash,
     SubmitOutcome? outcome,
     String? uploadedFileName,
     Map<String, dynamic>? uploadedJson,
-    int? jobCost,
+    int? jobCostMinions,
     String? jobGasCost,
     Token? gnusTokenDetails,
     double? gnusBalance,
@@ -107,7 +114,7 @@ class SubmitJobState {
       outcome: outcome ?? this.outcome,
       uploadedFileName: uploadedFileName ?? this.uploadedFileName,
       uploadedJson: uploadedJson ?? this.uploadedJson,
-      jobCost: jobCost ?? this.jobCost,
+      jobCostMinions: jobCostMinions ?? this.jobCostMinions,
       jobGasCost: jobGasCost ?? this.jobGasCost,
       gnusTokenDetails: gnusTokenDetails ?? this.gnusTokenDetails,
       gnusBalance: gnusBalance ?? this.gnusBalance,

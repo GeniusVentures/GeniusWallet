@@ -14,7 +14,7 @@ void main() {
         final state = resolveSubmitJobCtaState(
           isSubmitting: false,
           hasFileChosen: false,
-          jobCost: 0,
+          jobCostMinions: 0,
           gnusBalance: 0,
           costError: '',
         );
@@ -27,7 +27,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: false,
-        jobCost: 5,
+        jobCostMinions: 5000000,
         gnusBalance: 0,
         costError: 'some failure',
       );
@@ -45,7 +45,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 0,
+        jobCostMinions: 0,
         gnusBalance: 0,
         costError: '',
       );
@@ -58,7 +58,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 0,
+        jobCostMinions: 0,
         gnusBalance: 1000,
         costError: '',
       );
@@ -71,7 +71,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 10,
+        jobCostMinions: 10000000,
         gnusBalance: 5,
         costError: 'Unable to fetch GNUS balance',
       );
@@ -82,8 +82,8 @@ void main() {
 
     // Precedence reversed deliberately on 2026-07-31: after the cubit
     // stopped discarding the picked file on a pricing failure
-    // (submit_job_cubit.dart 1a), that failure leaves jobCost at 0 too, so
-    // costError must now be checked BEFORE the jobCost == 0 rung. The old
+    // (submit_job_cubit.dart 1a), that failure leaves jobCostMinions at 0 too, so
+    // costError must now be checked BEFORE the jobCostMinions == 0 rung. The old
     // order rendered a permanent "Pricing job…" spinner over a job whose
     // pricing had already definitively failed.
     test('zero cost WITH a cost error -> costError, not costUnknown '
@@ -91,7 +91,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 0,
+        jobCostMinions: 0,
         gnusBalance: 0,
         costError: 'Unable to retrieve job cost',
       );
@@ -105,7 +105,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 10,
+        jobCostMinions: 10000000,
         gnusBalance: 5,
         costError: '',
       );
@@ -114,12 +114,18 @@ void main() {
     });
 
     test('the shortfall is carried as a number', () {
-      final shortfall = submitJobShortfall(jobCost: 10, gnusBalance: 5);
+      final shortfall = submitJobShortfall(
+        jobCostMinions: 10000000,
+        gnusBalance: 5,
+      );
       expect(shortfall, 5);
     });
 
     test('shortfall is 0 for an affordable cost', () {
-      final shortfall = submitJobShortfall(jobCost: 5, gnusBalance: 10);
+      final shortfall = submitJobShortfall(
+        jobCostMinions: 5000000,
+        gnusBalance: 10,
+      );
       expect(shortfall, 0);
     });
   });
@@ -131,7 +137,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 10,
+        jobCostMinions: 10000000,
         gnusBalance: 10,
         costError: '',
       );
@@ -145,7 +151,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 5,
+        jobCostMinions: 5000000,
         gnusBalance: 10,
         costError: '',
       );
@@ -158,7 +164,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
         hasFileChosen: true,
-        jobCost: 10,
+        jobCostMinions: 10000000,
         gnusBalance: 9.999999999,
         costError: '',
       );
@@ -173,7 +179,7 @@ void main() {
         final state = resolveSubmitJobCtaState(
           isSubmitting: true,
           hasFileChosen: false,
-          jobCost: 0,
+          jobCostMinions: 0,
           gnusBalance: 0,
           costError: 'irrelevant',
         );
@@ -186,7 +192,7 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: true,
         hasFileChosen: true,
-        jobCost: 100,
+        jobCostMinions: 100000000,
         gnusBalance: 1,
         costError: '',
       );
@@ -197,11 +203,46 @@ void main() {
       final state = resolveSubmitJobCtaState(
         isSubmitting: true,
         hasFileChosen: true,
-        jobCost: 1,
+        jobCostMinions: 1000000,
         gnusBalance: 100,
         costError: '',
       );
       expect(state, SubmitJobCtaState.submitting);
+    });
+  });
+
+  group('resolveSubmitJobCtaState — the cost is in Minions', () {
+    test('a 78-Minion job (0.000078 GNUS) is affordable on 0.0001 GNUS', () {
+      final state = resolveSubmitJobCtaState(
+        isSubmitting: false,
+        hasFileChosen: true,
+        jobCostMinions: 78,
+        gnusBalance: 0.0001,
+        costError: '',
+      );
+      expect(state, SubmitJobCtaState.ready);
+    });
+
+    test('a sub-0.0001 GNUS job is never free on an empty balance', () {
+      final state = resolveSubmitJobCtaState(
+        isSubmitting: false,
+        hasFileChosen: true,
+        jobCostMinions: 40,
+        gnusBalance: 0,
+        costError: '',
+      );
+      expect(state, SubmitJobCtaState.insufficientFunds);
+    });
+
+    test('a sub-cent shortfall is printed, not rounded to 0.00', () {
+      final shortfall = submitJobShortfall(jobCostMinions: 78, gnusBalance: 0);
+      expect(
+        submitJobCtaLabel(
+          SubmitJobCtaState.insufficientFunds,
+          shortfall: shortfall,
+        ),
+        'Insufficient GNUS - need 0.000078 more',
+      );
     });
   });
 

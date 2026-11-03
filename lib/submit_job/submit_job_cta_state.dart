@@ -1,5 +1,7 @@
 import 'dart:math' show pow;
 
+import 'package:genius_api/genius_api.dart' show minionsToGnus;
+
 /// The Submit Job CTA's purchase ladder - pure Dart, no Flutter, no widget
 /// context.
 ///
@@ -28,7 +30,7 @@ enum SubmitJobCtaState {
   /// No job file has been chosen yet.
   noFileChosen,
 
-  /// A file is chosen, but its cost has not been priced yet (`jobCost` is
+  /// A file is chosen, but its cost has not been priced yet (`jobCostMinions` is
   /// still `0`) and nothing on the cost channel has failed. Never reads as
   /// insufficient funds - a job that hasn't been priced is not an
   /// accusation.
@@ -47,14 +49,17 @@ enum SubmitJobCtaState {
   ready,
 }
 
+double _minionsAsGnus(int minions) =>
+    double.parse(minionsToGnus(BigInt.from(minions)));
+
 /// Rounds [value] to [decimals] decimal places.
 ///
-/// ponytail: a fixed-precision compare on a value the SDK produces, not a
+/// ponytail: a fixed-precision compare against a double balance, not a
 /// comparison in the token's smallest unit. A balance arriving as, say,
 /// `9.999999999` a hair below a whole number because of a wei-to-GNUS
-/// conversion would otherwise refuse a user who has exactly enough.
-/// Upgrade path: compare in the token's smallest unit (the SDK's integer
-/// wei/minion amount) once that value is threaded through to this module.
+/// conversion would otherwise refuse a user who has exactly enough. Six
+/// decimals is one Minion, so the smallest job cost never rounds to zero.
+/// Upgrade path: carry the balance as an integer amount too.
 double _roundToPrecision(num value, int decimals) {
   final factor = pow(10, decimals);
   return (value * factor).round() / factor;
@@ -68,9 +73,9 @@ double _roundToPrecision(num value, int decimals) {
 /// **Reversed 2026-07-31, deliberately - do not "fix" this back.**
 /// `costError` now outranks `costUnknown`. Before this date,
 /// `SubmitJobCubit.openFilePicker` discarded the picked file on a pricing
-/// failure, so a zero `jobCost` paired with a set `costError` could not
+/// failure, so a zero `jobCostMinions` paired with a set `costError` could not
 /// happen in practice and the order didn't matter. Once that discard was
-/// removed (submit_job_cubit.dart, 1a), a pricing failure leaves `jobCost`
+/// removed (submit_job_cubit.dart, 1a), a pricing failure leaves `jobCostMinions`
 /// at `0` AND sets `costError` in the same emit - the old order would read
 /// that state as `costUnknown` forever, showing a permanent "Working out
 /// what this job costs" spinner over a job whose pricing has already
@@ -78,7 +83,7 @@ double _roundToPrecision(num value, int decimals) {
 SubmitJobCtaState resolveSubmitJobCtaState({
   required bool isSubmitting,
   required bool hasFileChosen,
-  required int jobCost,
+  required int jobCostMinions,
   required double gnusBalance,
   required String costError,
 }) {
@@ -95,7 +100,7 @@ SubmitJobCtaState resolveSubmitJobCtaState({
   // see the doc comment above resolveSubmitJobCtaState for the full
   // reasoning). A zero cost means "not priced yet" ONLY while nothing on
   // the cost channel has failed - after the cubit stopped discarding files
-  // on a pricing failure, a failed pricing attempt leaves jobCost at zero
+  // on a pricing failure, a failed pricing attempt leaves jobCostMinions at zero
   // too, and the failure is the more specific, more useful fact to report.
   if (costError.isNotEmpty) {
     return SubmitJobCtaState.costError;
@@ -103,12 +108,12 @@ SubmitJobCtaState resolveSubmitJobCtaState({
 
   // A cost of zero (with no cost-channel failure) means "not priced yet",
   // never "free" and never "unaffordable".
-  if (jobCost == 0) {
+  if (jobCostMinions == 0) {
     return SubmitJobCtaState.costUnknown;
   }
 
-  final roundedCost = _roundToPrecision(jobCost, 4);
-  final roundedBalance = _roundToPrecision(gnusBalance, 4);
+  final roundedCost = _roundToPrecision(_minionsAsGnus(jobCostMinions), 6);
+  final roundedBalance = _roundToPrecision(gnusBalance, 6);
 
   if (roundedCost > roundedBalance) {
     return SubmitJobCtaState.insufficientFunds;
@@ -120,8 +125,11 @@ SubmitJobCtaState resolveSubmitJobCtaState({
 /// GNUS-denominated shortfall for [SubmitJobCtaState.insufficientFunds] -
 /// the amount still needed, as a plain number the UI prints rather than the
 /// word "insufficient". Meaningless (and `0`) for every other rung.
-double submitJobShortfall({required int jobCost, required double gnusBalance}) {
-  final shortfall = jobCost - gnusBalance;
+double submitJobShortfall({
+  required int jobCostMinions,
+  required double gnusBalance,
+}) {
+  final shortfall = _minionsAsGnus(jobCostMinions) - gnusBalance;
   return shortfall > 0 ? shortfall : 0;
 }
 
@@ -138,7 +146,7 @@ String submitJobCtaLabel(SubmitJobCtaState state, {double shortfall = 0}) {
     case SubmitJobCtaState.costError:
       return "Couldn't price job";
     case SubmitJobCtaState.insufficientFunds:
-      return 'Insufficient GNUS - need ${shortfall.toStringAsFixed(2)} more';
+      return 'Insufficient GNUS - need ${shortfall.toStringAsFixed(6)} more';
     case SubmitJobCtaState.ready:
       return 'Purchase';
   }

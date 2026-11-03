@@ -178,13 +178,16 @@ void main() {
 
   group('fixture constants are internally consistent', () {
     test(
-      'affordableBalance covers jobCost, shortBalance falls short of it',
+      'affordableBalance covers jobCostMinions, shortBalance falls short of it',
       () {
         expect(
-          DevMockJob.affordableBalance,
-          greaterThanOrEqualTo(DevMockJob.jobCost),
+          DevMockJob.affordableBalance * 1000000,
+          greaterThanOrEqualTo(DevMockJob.jobCostMinions),
         );
-        expect(DevMockJob.shortBalance, lessThan(DevMockJob.jobCost));
+        expect(
+          DevMockJob.shortBalance * 1000000,
+          lessThan(DevMockJob.jobCostMinions),
+        );
       },
     );
 

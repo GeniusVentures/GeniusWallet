@@ -61,12 +61,12 @@ enum DevJobScenario {
 class DevMockJob {
   DevMockJob._() {
     assert(
-      affordableBalance >= jobCost,
-      'affordableBalance must cover jobCost or the priced-OK walk breaks',
+      affordableBalance * 1000000 >= jobCostMinions,
+      'affordableBalance must cover jobCostMinions or the priced-OK walk breaks',
     );
     assert(
-      shortBalance < jobCost,
-      'shortBalance must fall short of jobCost or the insufficient-funds '
+      shortBalance * 1000000 < jobCostMinions,
+      'shortBalance must fall short of jobCostMinions or the insufficient-funds '
       'walk breaks',
     );
   }
@@ -92,13 +92,13 @@ class DevMockJob {
 
   /// A counting run - reads as fake at a glance, unlike any real job's
   /// cost.
-  static const int jobCost = 1234;
+  static const int jobCostMinions = 1234000000;
 
-  /// Nobody holds this much GNUS. Comfortably covers [jobCost] (pinned by
+  /// Nobody holds this much GNUS. Comfortably covers [jobCostMinions] (pinned by
   /// the constructor's assertion above).
   static const double affordableBalance = 99999.99;
 
-  /// Produces a clean 1221.66 shortfall against [jobCost] - the exact
+  /// Produces a clean 1221.66 shortfall against [jobCostMinions] - the exact
   /// number step 2's shortfall note prints.
   static const double shortBalance = 12.34;
 

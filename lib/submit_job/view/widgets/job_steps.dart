@@ -100,9 +100,9 @@ class JobFlowBody extends StatelessWidget {
     ),
     JobStep(
       title: 'Cost',
-      summary: state.jobCost == 0
+      summary: state.jobCostMinions == 0
           ? null
-          : '${state.jobCost} GNUS · ${state.jobGasCost}',
+          : '${state.jobCostGnus} GNUS · ${state.jobGasCost}',
       body: JobCostBody(state: state),
     ),
     JobStep(
@@ -271,7 +271,7 @@ class JobCostBody extends StatelessWidget {
     final ctaState = resolveSubmitJobCtaState(
       isSubmitting: state.isBridgingTokens,
       hasFileChosen: state.uploadedJson.isNotEmpty,
-      jobCost: state.jobCost,
+      jobCostMinions: state.jobCostMinions,
       gnusBalance: state.gnusBalance,
       costError: state.costError,
     );
@@ -284,7 +284,7 @@ class JobCostBody extends StatelessWidget {
           rows: [
             _DetailRow(
               label: 'Job cost',
-              value: '${state.jobCost} GNUS',
+              value: '${state.jobCostGnus} GNUS',
               gw: gw,
             ),
             _DetailRow(label: 'Bridge gas', value: state.jobGasCost, gw: gw),
@@ -316,7 +316,7 @@ class JobCostBody extends StatelessWidget {
         ] else if (ctaState == SubmitJobCtaState.insufficientFunds) ...[
           const SizedBox(height: GeniusWalletConsts.space6),
           GWWarningNote(
-            'You need ${submitJobShortfall(jobCost: state.jobCost, gnusBalance: state.gnusBalance).toStringAsFixed(2)} '
+            'You need ${submitJobShortfall(jobCostMinions: state.jobCostMinions, gnusBalance: state.gnusBalance).toStringAsFixed(6)} '
             'more GNUS to start this job.',
           ),
         ],
@@ -380,7 +380,7 @@ class JobConfirmBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Text(
-      'This spends ${state.jobCost} GNUS. Bridging cannot be undone.',
+      'This spends ${state.jobCostGnus} GNUS. Bridging cannot be undone.',
       style: GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary),
     );
   }
@@ -677,7 +677,7 @@ class JobFlowFooter extends StatelessWidget {
                 final ctaState = resolveSubmitJobCtaState(
                   isSubmitting: state.isBridgingTokens,
                   hasFileChosen: state.uploadedJson.isNotEmpty,
-                  jobCost: state.jobCost,
+                  jobCostMinions: state.jobCostMinions,
                   gnusBalance: state.gnusBalance,
                   costError: state.costError,
                 );
