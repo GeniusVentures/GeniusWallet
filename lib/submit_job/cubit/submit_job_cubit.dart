@@ -85,7 +85,13 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     // native node running) would leave the fixture's 42.42 Gwei on screen
     // under a real error - this is what makes Clear honest.
     if (!isClosed) {
-      emit(state.copyWith(jobCost: 0, jobGasCost: '0.00 Gwei', costError: ''));
+      emit(
+        state.copyWith(
+          jobCostMinions: 0,
+          jobGasCost: '0.00 Gwei',
+          costError: '',
+        ),
+      );
     }
 
     // Re-runs the real balance (or the fixture's, if a different scenario is
@@ -93,9 +99,9 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     // Clear.
     await fetchGnusBalance();
 
-    final jobCost = await _resolveJobCost(state.uploadedJson);
+    final jobCostMinions = await _resolveJobCost(state.uploadedJson);
     if (!isClosed) {
-      emit(state.copyWith(jobCost: jobCost));
+      emit(state.copyWith(jobCostMinions: jobCostMinions));
     }
   }
 
@@ -180,14 +186,14 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         final content = await file.readAsString();
         final jsonData = jsonDecode(content);
 
-        final jobCost = await _resolveJobCost(jsonData);
+        final jobCostMinions = await _resolveJobCost(jsonData);
 
         if (!isClosed) {
           emit(
             state.copyWith(
               uploadedFileName: result.files.single.name,
               uploadedJson: jsonData,
-              jobCost: jobCost,
+              jobCostMinions: jobCostMinions,
             ),
           );
         }
@@ -227,7 +233,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   // not `Map<String, dynamic>`: the real branch's `isGasFetchable` includes
   // a `jsonData != null` check whose current meaning depends on that.
   Future<int> _resolveJobCost(dynamic jsonData) async {
-    final int jobCost;
+    final int jobCostMinions;
     final devScenario = _devJobScenario;
 
     if (devScenario != null) {
@@ -238,10 +244,10 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       final fixture = DevMockJob.instance;
       if (fixture.costShouldFail) {
         // Pricing-failure scenario: lands the walk on exactly the state
-        // Task 1 made visible - a kept file, jobCost 0, costError set.
+        // Task 1 made visible - a kept file, jobCostMinions 0, costError set.
         // If Task 1 regresses, this button reproduces a blank step 1
         // again, which is why the two tasks verify each other.
-        jobCost = 0;
+        jobCostMinions = 0;
         if (!isClosed) {
           emit(
             state.copyWith(
@@ -251,7 +257,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
           );
         }
       } else {
-        jobCost = DevMockJob.jobCost;
+        jobCostMinions = DevMockJob.jobCostMinions;
         // Balance is emitted in the SAME emit as the gas string, not a
         // separate call - this is still the one detail that makes the panel
         // usable mid-walk. What changed here (Task 1, 2026-07-31): arming a
@@ -272,18 +278,20 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         }
       }
     } else {
-      jobCost = geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
+      jobCostMinions = geniusApi.requestGeniusSDKCost(
+        jobJson: jsonEncode(jsonData),
+      );
 
       final isGasFetchable =
           jsonData != null &&
           state.gnusTokenDetails.address != null &&
-          jobCost != 0;
+          jobCostMinions != 0;
 
       // 1a (2026-07-31): a gas-estimate failure one line below already
       // sets costError and falls through to the emit rather than
       // returning early - that is the precedent this now matches. Before
       // this change, a pricing failure returned here instead, discarding
-      // the picked file: uploadedFileName/uploadedJson/jobCost are only
+      // the picked file: uploadedFileName/uploadedJson/jobCostMinions are only
       // written by the emit below, so returning early meant the file
       // vanished with no visible trace. That silence mattered beyond this
       // method - job_steps.dart's auto-advance listener and its step 0
@@ -293,7 +301,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       // ATTEMPT the gas estimate, never to abandon the method.
       if (isGasFetchable) {
         // Get gas cost associated with uploaded job
-        await getBridgeOutGasCost(jobCost);
+        await getBridgeOutGasCost(jobCostMinions);
       } else {
         // Do not call getBridgeOutGasCost with a zero cost - a pointless
         // RPC round trip against an amount of nothing.
@@ -301,10 +309,10 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       }
     }
 
-    return jobCost;
+    return jobCostMinions;
   }
 
-  Future<void> getBridgeOutGasCost(int jobCost) async {
+  Future<void> getBridgeOutGasCost(int jobCostMinions) async {
     final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
     final chainId = selectedNetwork?.chainId;
     final rpcUrl = selectedNetwork?.rpcUrl;
@@ -328,7 +336,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       contractAddress: gnusAddress,
       rpcUrl: rpcUrl,
       address: walletAddress,
-      amountToBurn: "$jobCost",
+      amountToBurn: minionsToGnus(BigInt.from(jobCostMinions)),
       destinationChainId: 15305752297694, // TODO: unhardcode bridge address
     );
 
@@ -401,7 +409,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         gnusAddress == null ||
         walletAddress == null ||
         rpcUrl == null ||
-        state.jobCost == 0 ||
+        state.jobCostMinions == 0 ||
         uploadedJson.isEmpty) {
       if (!isClosed) {
         emit(
@@ -420,7 +428,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       contractAddress: gnusAddress,
       rpcUrl: rpcUrl,
       address: walletAddress,
-      amountToBurn: state.jobCost.toString(),
+      amountToBurn: state.jobCostGnus,
       destinationChainId: 15305752297694, // TODO: unhardcode bridge address
     );
 
@@ -556,7 +564,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     if (!isClosed) {
       emit(
         state.copyWith(
-          jobCost: 0,
+          jobCostMinions: 0,
           uploadedJson: {},
           uploadedFileName: '',
           jobGasCost: '',

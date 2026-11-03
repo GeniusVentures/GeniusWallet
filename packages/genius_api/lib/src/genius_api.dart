@@ -2247,3 +2247,12 @@ int? gnusToMinions(String amount) {
   }
   return minions;
 }
+
+/// [minions] (1 Minion = 1e-6 GNUS) as an exact GNUS string. Integer division
+/// only -- a float divide would lose precision a wallet balance cannot.
+String minionsToGnus(BigInt minions) {
+  final million = BigInt.from(1000000);
+  final whole = minions ~/ million;
+  final remainder = (minions % million).toString().padLeft(6, '0');
+  return '$whole.$remainder';
+}

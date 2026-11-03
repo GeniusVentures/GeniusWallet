@@ -468,11 +468,13 @@ class Web3 {
         params: [],
       );
 
-      // Convert Amount to BigInt
-      final double amount = double.parse(amountToBurn);
-      final burnAmountConverted = BigInt.from(
-        amount * pow(10, int.parse(tokenDecimals.first.toString())),
+      final burnAmountConverted = toBaseUnits(
+        amountToBurn,
+        int.parse(tokenDecimals.first.toString()),
       );
+      if (burnAmountConverted == null || burnAmountConverted == BigInt.zero) {
+        return ApiResponse.error('Invalid amount to bridge: $amountToBurn');
+      }
 
       // Estimate Gas Price and Gas Limit
       final gasPrice = await client.getGasPrice();

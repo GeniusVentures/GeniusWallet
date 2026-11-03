@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart' show GeniusNodeReturnValue;
+import 'package:genius_api/genius_api.dart' show minionsToGnus;
 import 'package:genius_wallet/child_wallets/child_main_picker_dialog.dart';
 import 'package:genius_wallet/child_wallets/child_operation_switch_dialog.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
-    show ChildWallet, minionsToGnus;
+    show ChildWallet;
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';

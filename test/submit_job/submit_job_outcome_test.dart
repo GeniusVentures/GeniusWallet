@@ -66,7 +66,7 @@ class _SeededGnusCubit extends GnusCubit {
   }
 }
 
-/// Seeds `jobCost`/`uploadedJson` so `bridgeTokens()`'s precondition guard
+/// Seeds `jobCostMinions`/`uploadedJson` so `bridgeTokens()`'s precondition guard
 /// passes, bypassing `openFilePicker()` (which calls the real, unmocked
 /// `FilePicker` plugin).
 class _SeededSubmitJobCubit extends SubmitJobCubit {
@@ -75,7 +75,9 @@ class _SeededSubmitJobCubit extends SubmitJobCubit {
     required super.gnusCubit,
     required super.geniusApi,
   }) {
-    emit(state.copyWith(jobCost: 10, uploadedJson: const {'job': 'spec'}));
+    emit(
+      state.copyWith(jobCostMinions: 10, uploadedJson: const {'job': 'spec'}),
+    );
   }
 }
 

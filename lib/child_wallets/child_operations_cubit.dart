@@ -6,7 +6,7 @@ import 'package:genius_api/ffi/genius_api_ffi.dart' show GeniusNodeReturnValue;
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
-    show ChildWallet, minionsToGnus;
+    show ChildWallet;
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart' show toBaseUnits;

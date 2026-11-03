@@ -124,20 +124,20 @@ class _SeededGnusCubit extends GnusCubit {
   Future<Coin?> fetchGnusBalance() async => Coin(balance: _balance);
 }
 
-/// Seeds `jobCost`/`gnusBalance`/`uploadedJson` directly, bypassing
+/// Seeds `jobCostMinions`/`gnusBalance`/`uploadedJson` directly, bypassing
 /// `openFilePicker()` for tests that only care about downstream rendering.
 class _SeededSubmitJobCubit extends SubmitJobCubit {
   _SeededSubmitJobCubit({
     required super.walletDetailsCubit,
     required super.gnusCubit,
     required super.geniusApi,
-    int jobCost = 0,
+    int jobCostMinions = 0,
     double gnusBalance = 0,
     Map<String, dynamic> uploadedJson = const {},
   }) {
     emit(
       state.copyWith(
-        jobCost: jobCost,
+        jobCostMinions: jobCostMinions,
         gnusBalance: gnusBalance,
         uploadedJson: uploadedJson,
       ),
@@ -207,7 +207,7 @@ _Harness _build({
     walletDetailsCubit: walletDetailsCubit,
     gnusCubit: gnusCubit,
     geniusApi: geniusApi,
-    jobCost: seedJobCost,
+    jobCostMinions: seedJobCost,
     gnusBalance: seedGnusBalance,
     uploadedJson: seedUploadedJson,
   );
@@ -458,7 +458,10 @@ void main() {
         await tester.pumpWidget(
           _host(
             const JobCostBody(
-              state: SubmitJobState(jobCost: 0, uploadedJson: {'job': 'spec'}),
+              state: SubmitJobState(
+                jobCostMinions: 0,
+                uploadedJson: {'job': 'spec'},
+              ),
             ),
           ),
         );
@@ -477,7 +480,7 @@ void main() {
           _host(
             const JobCostBody(
               state: SubmitJobState(
-                jobCost: 10,
+                jobCostMinions: 10000000,
                 gnusBalance: 4,
                 uploadedJson: {'job': 'spec'},
               ),
@@ -487,7 +490,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('You need 6.00 more GNUS to start this job.'),
+          find.text('You need 6.000000 more GNUS to start this job.'),
           findsOneWidget,
         );
       },
@@ -500,7 +503,7 @@ void main() {
           _host(
             const JobCostBody(
               state: SubmitJobState(
-                jobCost: 10,
+                jobCostMinions: 10000000,
                 gnusBalance: 10,
                 uploadedJson: {'job': 'spec'},
               ),
