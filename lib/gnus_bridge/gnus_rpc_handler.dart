@@ -971,12 +971,23 @@ class GnusRpcHandler {
         data: {'reason': GnusRpcReason.balanceUnavailable},
       );
     }
+    // SDK-JOBID: the task ids the account holds give a real processed count.
+    // null keeps the contract null when the bundled SDK predates the call.
+    int? jobsProcessed;
+    try {
+      // Test fakes and older SDK builds surface a missing member as a
+      // NoSuchMethodError (an Error, not an Exception) — both mean
+      // "unavailable", and the contract stays null rather than inventing data.
+      jobsProcessed = _geniusApi.getMyTaskIds(limit: 200)?.length;
+    } on Object {
+      jobsProcessed = null;
+    }
     return {
       'sdkAddress': node,
       'balance': balance,
       'processing': {
         'isProcessing': _readAppState().isProcessing,
-        'jobsProcessed': null,
+        'jobsProcessed': jobsProcessed,
       },
       'earned': {'total': null, 'history': null},
     };
