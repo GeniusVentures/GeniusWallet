@@ -3,6 +3,7 @@ import 'dart:ffi' as ffi;
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -1441,6 +1442,52 @@ class GeniusApi {
     GeniusTokenValue tokenValue = _ffiBridgePrebuilt.sgnsLib
         .GeniusSDKGetBalanceGNUS();
     return tokenValue.value.toDartString(22);
+  }
+
+  /// Task ids this account submitted or processed (up to [limit], newest
+  /// first). Returns null when the SDK is not initialized or the bundled SDK
+  /// build does not export GeniusSDKGetMyTaskIds — callers keep their
+  /// null/empty contract values instead of inventing data.
+  List<String>? getMyTaskIds({int limit = 50, int offset = 0}) {
+    if (!_isSdkInitialized) {
+      return null;
+    }
+    try {
+      final ptr = _ffiBridgePrebuilt.sgnsLib
+          .GeniusSDKGetMyTaskIds(limit, offset);
+      // Newline-separated ids in an SDK-malloc'd buffer; free after reading.
+      final raw = ptr.cast<Utf8>().toDartString();
+      _ffiBridgePrebuilt.sgnsLib.GeniusSDKFree(ptr.cast<ffi.Void>());
+      return raw
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
+    } on ArgumentError {
+      return null;
+    }
+  }
+
+  /// Raw serialized SGProcessing.TaskResult bytes for a task, or null when the
+  /// task is unknown/unfinished or the bundled SDK build predates the call.
+  /// Decoding needs a Dart SGProcessing proto — the bytes are the payload.
+  Uint8List? getTaskResultBytes(String taskId) {
+    if (!_isSdkInitialized || taskId.isEmpty) {
+      return null;
+    }
+    try {
+      final taskPtr = taskId.toNativeUtf8().cast<Char>();
+      final array = _ffiBridgePrebuilt.sgnsLib
+          .GeniusSDKGetTaskResult(taskPtr);
+      if (array.size == 0) {
+        return null;
+      }
+      return Uint8List.fromList(
+        array.ptr.asTypedList(array.size),
+      );
+    } on ArgumentError {
+      return null;
+    }
   }
 
   DateTime parseTimestamp(int timestamp) {
