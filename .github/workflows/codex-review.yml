@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   request-review:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, sg-ubuntu-linux]
     steps:
       - name: Comment @codex review
         env:
