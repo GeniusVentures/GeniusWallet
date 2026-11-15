@@ -648,12 +648,12 @@ class _SerialStorage {
     Future<void> Function() op,
   ) async {
     final before = await _storage.readAll();
-    // From here a failure may come after the native write landed (even a
-    // failed reply), so anything short of a clean check leaves the store's
-    // state unknown and is treated the same as a detected drop.
     try {
       await op();
       final after = await _storage.readAll();
+      print('[SECURE-DEBUG] op completed: key=$key');
+      print('[SECURE-DEBUG] before.keys=${before.keys.toList()}');
+      print('[SECURE-DEBUG] after.keys=${after.keys.toList()}');
       // WalletConnect keeps its own FlutterSecureStorage, outside this
       // queue, in the same backing store, so its keys can legitimately change
       // between the two reads and are left out. ponytail: a dropped or
@@ -671,10 +671,13 @@ class _SerialStorage {
       if (survived && landed) {
         return;
       }
-    } catch (_) {
-      // Falls through to block the store.
+    } catch (e) {
+      print('[SECURE-DEBUG] CAUGHT: $e');
+      _broken.value = true;
+      throw const SecureStorageWriteError();
     }
     _broken.value = true;
+    print('[SECURE-DEBUG] fell-through: survived/landed check failed');
     throw const SecureStorageWriteError();
   }
 }
