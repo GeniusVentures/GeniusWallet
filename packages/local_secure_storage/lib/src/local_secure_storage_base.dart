@@ -651,9 +651,9 @@ class _SerialStorage {
     try {
       await op();
       final after = await _storage.readAll();
-      print('[SECURE-DEBUG] op completed: key=$key');
-      print('[SECURE-DEBUG] before.keys=${before.keys.toList()}');
-      print('[SECURE-DEBUG] after.keys=${after.keys.toList()}');
+      print('[SS-DEBUG] op completed: key=$key');
+      print('[SS-DEBUG] before (${before.length} keys): $before');
+      print('[SS-DEBUG] after (${after.length} keys): $after');
       // WalletConnect keeps its own FlutterSecureStorage, outside this
       // queue, in the same backing store, so its keys can legitimately change
       // between the two reads and are left out. ponytail: a dropped or
@@ -668,16 +668,19 @@ class _SerialStorage {
       final landed = value == null
           ? !after.containsKey(key)
           : after[key] == value;
+      print('[SS-DEBUG] survived=$survived landed=$landed');
       if (survived && landed) {
         return;
       }
-    } catch (e) {
-      print('[SECURE-DEBUG] CAUGHT: $e');
+      print('[SS-DEBUG] survived/landed FAILED, falling to throw');
+    } catch (e, st) {
+      print('[SS-DEBUG] CAUGHT in _verified: $e');
+      print('[SS-DEBUG] stack (first 5): ${st.toString().split("\n").take(5).join(" | ")}');
       _broken.value = true;
       throw const SecureStorageWriteError();
     }
     _broken.value = true;
-    print('[SECURE-DEBUG] fell-through: survived/landed check failed');
+    print('[SS-DEBUG] fell-through: survived/landed check failed, throwing');
     throw const SecureStorageWriteError();
   }
 }
