@@ -17,5 +17,6 @@
   "result_retention_max_mb": 0,
   "force_bootstrap_walk": true,
   "trusted_peer_quorum_threshold": 2,
-  "burn_config_quorum_threshold": 2
+  "burn_config_quorum_threshold": 2,
+  "is_processor": false
 }
