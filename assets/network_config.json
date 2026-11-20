@@ -1,14 +1,14 @@
 {
     "port_seed": 43501,
-    "auto_dht": true,
+    "auto_dht": false,
     "private_network_id": "",
     "network_bootstrap_peers": [],
     "bootstrap_addresses": [
-        "/dns4/sg-fullnode-1s.gnus.ai/tcp/41273/ipfs/12D3KooWMvXKGwt2mDcgusWrjALbLMwfYCgTvWJxMSmwLi633txx"
+        "/ip4/172.18.0.1/tcp/41177/ipfs/12D3KooWKHDd8uZfKvPtzvCwE9kW3TZHy5A78aLc56fhTBTzPvTr"
     ],
     "pubsub_port": "",
     "pubsub_bind_address": "",
-    "upnp_enabled": true,
-    "high_water": 300,
-    "low_water": 150
+    "upnp_enabled": false,
+    "high_water": 10,
+    "low_water": 5
 }
