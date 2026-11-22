@@ -264,27 +264,41 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       }
     }
 
-    final newName = await GWDialog.show<String>(
+    // The dialog rebuilds on every keystroke so the Rename action can
+    // disable itself: an unchanged submit was dropped by the guard below and
+    // read as the app ignoring the user.
+    final newName = await showDialog<String>(
       context: navigator.context,
-      title: 'Rename Wallet',
-      content: Form(
-        key: formKey,
-        child: GWTextField(
-          controller: controller,
-          label: 'Wallet name',
-          autofocus: true,
-          validator: walletNameError,
-          onFieldSubmitted: (_) => submit(),
-        ),
+      barrierColor: navigator.context.gw.surfaceOverlay,
+      builder: (_) => ValueListenableBuilder<TextEditingValue>(
+        valueListenable: controller,
+        builder: (context, value, _) {
+          final candidate = value.text.trim();
+          final changed =
+              candidate.isNotEmpty && candidate != wallet.walletName;
+          return GWDialog(
+            title: 'Rename Wallet',
+            content: Form(
+              key: formKey,
+              child: GWTextField(
+                controller: controller,
+                label: 'Wallet name',
+                autofocus: true,
+                validator: walletNameError,
+                onFieldSubmitted: (_) => submit(),
+              ),
+            ),
+            actions: [
+              GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
+              GWDialogAction(
+                label: 'Rename',
+                variant: GWButtonVariant.primary,
+                onPressed: changed ? submit : null,
+              ),
+            ],
+          );
+        },
       ),
-      actions: [
-        GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
-        GWDialogAction(
-          label: 'Rename',
-          variant: GWButtonVariant.primary,
-          onPressed: submit,
-        ),
-      ],
     );
 
     // Not gated on `mounted`: the drawer was popped above, so by the time the
