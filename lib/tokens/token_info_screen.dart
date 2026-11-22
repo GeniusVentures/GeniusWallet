@@ -805,11 +805,16 @@ class _CoinActionRow extends StatelessWidget {
             // Same symbol-then-fallback and push-not-go reasoning as Swap,
             // just above. The contract comes from this page's own coin, never
             // `selectedCoin`: two tokens can share a ticker, and null seats
-            // only a native coin.
+            // only a native coin. So does the ticker: a native coin has no
+            // contract, and its page may have no market data to name it by -
+            // the seat must still say GNUS.
             onPressed: () => GoRouter.of(context).push(
               '/send',
               extra: <String, dynamic>{
-                'symbol': marketData?.symbol ?? selectedCoin?.symbol,
+                'symbol':
+                    walletCoin?.symbol ??
+                    marketData?.symbol ??
+                    selectedCoin?.symbol,
                 'chainId': selectedNetwork?.chainId,
                 'address': walletCoin?.address,
               },
