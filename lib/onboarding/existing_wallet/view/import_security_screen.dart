@@ -178,8 +178,12 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                                 ],
                               ),
                             ),
+                            // 280, not 260: the keystore tab stacks a
+                            // 4-line JSON field, the password field and a
+                            // two-line subtitle and overflowed the old
+                            // height by 2px in debug builds.
                             SizedBox(
-                              height: 260,
+                              height: 280,
                               child: TabBarView(
                                 children: [
                                   PasteField(
@@ -189,6 +193,7 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                                         'Typically 12 (sometimes 24) words separated by single spaces.',
                                     controller:
                                         tabControllers['phrase']!['pasteField']!,
+                                    obscure: true,
                                   ),
                                   PasteField(
                                     hintText: 'Private key',
@@ -196,6 +201,7 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                                         tabControllers['privatekey']!['pasteField']!,
                                     subtitle:
                                         'Typically 64 alphanumeric characters.',
+                                    obscure: true,
                                   ),
                                   KeystoreTabView(
                                     passwordController:
