@@ -186,6 +186,12 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         final content = await file.readAsString();
         final jsonData = jsonDecode(content);
 
+        // A JSON array or literal parses cleanly but is not a job spec;
+        // reading it as a job would throw a raw type error on the user.
+        if (jsonData is! Map<String, dynamic>) {
+          return setFileError('The Selected File is not valid json');
+        }
+
         final jobCostMinions = await _resolveJobCost(jsonData);
 
         if (!isClosed) {
