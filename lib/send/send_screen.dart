@@ -8,6 +8,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -23,6 +24,7 @@ import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:go_router/go_router.dart';
 
 /// The `/send` route target: a keyboard form, not a drawer -- typing
 /// an address and an amount in a bottom sheet is cramped on a phone.
@@ -197,6 +199,15 @@ class _SendBodyState extends State<_SendBody> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Reached from a token page or the dashboard; on desktop the
+              // top nav is the only other way out, so name no destination.
+              if (GoRouter.maybeOf(context)?.canPop() ?? false)
+                Semantics(
+                  label: 'Back',
+                  onTap: context.pop,
+                  excludeSemantics: true,
+                  child: GWBackLink(label: 'BACK', onTap: context.pop),
+                ),
               const GWPageHeader(title: 'Send'),
               const SizedBox(height: GeniusWalletConsts.space6),
               RecipientField(

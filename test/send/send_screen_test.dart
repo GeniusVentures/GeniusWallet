@@ -19,6 +19,7 @@ import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
@@ -358,6 +359,25 @@ Future<void> _openReview(WidgetTester tester) async {
 
 void main() {
   group('inside the app shell', () {
+    testWidgets('a pushed /send offers the same BACK control as a token page, '
+        'and it pops back', (tester) async {
+      final api = _FakeApi();
+      final router = await _mountInShell(
+        tester,
+        api,
+        _RecordingStorage(),
+        TransactionsCubit(),
+      );
+
+      expect(find.byType(GWBackLink), findsOneWidget);
+      await tester.tap(find.text('BACK'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SendScreen), findsNothing);
+      expect(find.text('dashboard'), findsOneWidget);
+      expect(router.routeInformationProvider.value.location, '/dashboard');
+    });
+
     testWidgets('Send in the review drawer signs and keeps the page', (
       tester,
     ) async {
