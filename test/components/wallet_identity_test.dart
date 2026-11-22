@@ -281,6 +281,9 @@ void main() {
       await tester.tap(find.text('Rename'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'Savings');
+      // The dialog rebuilds on the keystroke to enable the Rename action
+      // once the name differs; the frame must land before the tap.
+      await tester.pump();
       await tester.tap(find.text('Rename'));
       await tester.pumpAndSettle();
 
