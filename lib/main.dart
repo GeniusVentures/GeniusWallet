@@ -130,6 +130,21 @@ Future<void> main() async {
     appRunner: () async {
       await assumeOnlineWithoutNetworkManager();
 
+      // One copy per profile, decided before any Hive box opens: the lock is
+      // held for the process lifetime and the OS frees it even on kill -9,
+      // so a crash never leaves a lock the next start must clean up.
+      if (!await acquireSingleInstanceLock()) {
+        debugPrint('Single-instance lock held by another copy');
+        runApp(
+          const StartupBlockedApp(
+            title: 'Genius Wallet is already running',
+            message:
+                'Switch to the open window, or quit it before starting another.',
+          ),
+        );
+        return;
+      }
+
       try {
         await initHive();
       } on FileSystemException catch (e) {

@@ -8,6 +8,33 @@ import 'package:genius_wallet/hive/models/historical_price_cache_entry.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
+RandomAccessFile? _instanceLock;
+
+/// The fd holding the app lock. Retained for the process lifetime: a dropped
+/// reference could be finalized, closing the fd and silently freeing the
+/// lock while the app still runs.
+RandomAccessFile? get heldInstanceLock => _instanceLock;
+
+/// Takes the process-lifetime lock that keeps a second copy of the app out of
+/// Hive: a double launch races the per-box `.lock` checks and can truncate a
+/// box under the winner. Returns false when another running copy holds it.
+/// The OS frees the lock when the process dies, even on kill -9.
+Future<bool> acquireSingleInstanceLock({Directory? dir}) async {
+  final directory = dir ?? await appDataDirectory();
+  final lockFile = File(
+    '${directory.path}${Platform.pathSeparator}genius_wallet.instance.lock',
+  );
+  final handle = lockFile.openSync(mode: FileMode.append);
+  try {
+    await handle.lock(FileLock.exclusive);
+  } on FileSystemException {
+    await handle.close();
+    return false;
+  }
+  _instanceLock = handle;
+  return true;
+}
+
 /// Hive is used to cache api responses / online and offline
 ///
 /// This runs BEFORE `runApp()`, so every millisecond here is a millisecond the
