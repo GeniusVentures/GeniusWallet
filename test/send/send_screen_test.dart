@@ -375,7 +375,7 @@ void main() {
 
       expect(find.byType(SendScreen), findsNothing);
       expect(find.text('dashboard'), findsOneWidget);
-      expect(router.routeInformationProvider.value.location, '/dashboard');
+      expect(router.routeInformationProvider.value.uri.path, '/dashboard');
     });
 
     testWidgets('Send in the review drawer signs and keeps the page', (

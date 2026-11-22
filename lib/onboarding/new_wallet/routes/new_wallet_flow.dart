@@ -26,6 +26,15 @@ class NewWalletFlow extends StatelessWidget {
           curr.walletSaveStatus == NewWalletStatus.loaded,
       listener: (context, state) {
         context.read<AppBloc>().add(LoadWallets());
+        // This flow runs on top-level routes pushed above the dashboard's
+        // shell. Popping them first leaves the shell page mounted; go() alone
+        // tears the shell down and rebuilds it mid-transition while the old
+        // copy still animates out -- both copies carry the shell's navigator
+        // key, and that collision froze the app on this screen.
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).popUntil((route) => route.isFirst);
         context.go('/dashboard');
       },
       child: BlocListener<NewWalletBloc, NewWalletState>(
