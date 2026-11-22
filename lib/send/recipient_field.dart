@@ -78,31 +78,44 @@ class RecipientField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        GWTextField(
-          controller: controller,
-          label: 'To',
-          hint: 'Paste a 0x address',
-          errorText: fieldError,
-          onChanged: cubit.setRecipient,
-          suffix: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GWButton(
-                label: 'Paste',
-                variant: GWButtonVariant.ghost,
-                size: GWButtonSize.sm,
-                onPressed: () => _paste(cubit),
-              ),
-              if (canScan) ...[
-                const SizedBox(width: GeniusWalletConsts.space4),
-                GWButton(
-                  label: 'Scan',
-                  variant: GWButtonVariant.ghost,
-                  size: GWButtonSize.sm,
-                  onPressed: () => _scan(context, cubit),
+        // The form's traversal order is defined in the /send screen's group;
+        // the paste and scan helpers sit behind the main cycle (To, amount,
+        // MAX, Review) so a Tab never drops the user onto an unlabeled ghost
+        // button before the next field.
+        FocusTraversalOrder(
+          order: const NumericFocusOrder(0),
+          child: GWTextField(
+            controller: controller,
+            label: 'To',
+            hint: 'Paste a 0x address',
+            errorText: fieldError,
+            onChanged: cubit.setRecipient,
+            suffix: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FocusTraversalOrder(
+                  order: const NumericFocusOrder(10),
+                  child: GWButton(
+                    label: 'Paste',
+                    variant: GWButtonVariant.ghost,
+                    size: GWButtonSize.sm,
+                    onPressed: () => _paste(cubit),
+                  ),
                 ),
+                if (canScan) ...[
+                  const SizedBox(width: GeniusWalletConsts.space4),
+                  FocusTraversalOrder(
+                    order: const NumericFocusOrder(11),
+                    child: GWButton(
+                      label: 'Scan',
+                      variant: GWButtonVariant.ghost,
+                      size: GWButtonSize.sm,
+                      onPressed: () => _scan(context, cubit),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
         if (state.selfSend) ...[

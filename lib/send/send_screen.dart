@@ -195,70 +195,92 @@ class _SendBodyState extends State<_SendBody> {
         // every warning; scrolling keeps each input and Review reachable.
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Reached from a token page or the dashboard; on desktop the
-              // top nav is the only other way out, so name no destination.
-              if (GoRouter.maybeOf(context)?.canPop() ?? false)
-                Semantics(
-                  label: 'Back',
-                  onTap: context.pop,
-                  excludeSemantics: true,
-                  child: GWBackLink(label: 'BACK', onTap: context.pop),
-                ),
-              const GWPageHeader(title: 'Send'),
-              const SizedBox(height: GeniusWalletConsts.space6),
-              RecipientField(
-                controller: _recipientController,
-                errorText: state.recipientError,
-              ),
-              const SizedBox(height: GeniusWalletConsts.space6),
-              GWKeyboardDoneBar(
-                child: GWTextField(
-                  controller: _amountController,
-                  label: 'Amount',
-                  hint: '0.0',
-                  errorText: state.amountError,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+          // One traversal group with a numbered cycle: default reading order
+          // drops the first Tab from To onto the ghost Paste button in the
+          // field's suffix, which reads as lost focus on a keyboard.
+          child: FocusTraversalGroup(
+            policy: OrderedTraversalPolicy(
+              secondary: WidgetOrderTraversalPolicy(),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Reached from a token page or the dashboard; on desktop the
+                // top nav is the only other way out, so name no destination.
+                if (GoRouter.maybeOf(context)?.canPop() ?? false)
+                  Semantics(
+                    label: 'Back',
+                    onTap: context.pop,
+                    excludeSemantics: true,
+                    child: GWBackLink(label: 'BACK', onTap: context.pop),
                   ),
-                  suffix: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(coinSymbol),
-                      const SizedBox(width: GeniusWalletConsts.space4),
-                      GWButton(
-                        label: 'MAX',
-                        variant: GWButtonVariant.ghost,
-                        size: GWButtonSize.sm,
-                        onPressed: state.busy ? null : cubit.useMax,
-                      ),
-                    ],
-                  ),
-                  onChanged: cubit.setAmount,
-                ),
-              ),
-              if (state.error != null) ...[
+                const GWPageHeader(title: 'Send'),
                 const SizedBox(height: GeniusWalletConsts.space6),
-                Semantics(liveRegion: true, child: GWWarningNote(state.error!)),
-              ],
-              const SizedBox(height: GeniusWalletConsts.space8),
-              if (state.busy)
-                Semantics(
-                  liveRegion: true,
-                  label: 'Estimating network fee',
-                  child: const SizedBox(height: 1),
+                RecipientField(
+                  controller: _recipientController,
+                  errorText: state.recipientError,
                 ),
-              GWButton(
-                label: 'Review',
-                variant: GWButtonVariant.gradient,
-                expand: true,
-                isLoading: state.busy,
-                onPressed: state.busy ? null : () => _review(context, cubit),
-              ),
-            ],
+                const SizedBox(height: GeniusWalletConsts.space6),
+                GWKeyboardDoneBar(
+                  child: FocusTraversalOrder(
+                    order: const NumericFocusOrder(1),
+                    child: GWTextField(
+                      controller: _amountController,
+                      label: 'Amount',
+                      hint: '0.0',
+                      errorText: state.amountError,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      suffix: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(coinSymbol),
+                          const SizedBox(width: GeniusWalletConsts.space4),
+                          FocusTraversalOrder(
+                            order: const NumericFocusOrder(2),
+                            child: GWButton(
+                              label: 'MAX',
+                              variant: GWButtonVariant.ghost,
+                              size: GWButtonSize.sm,
+                              onPressed: state.busy ? null : cubit.useMax,
+                            ),
+                          ),
+                        ],
+                      ),
+                      onChanged: cubit.setAmount,
+                    ),
+                  ),
+                ),
+                if (state.error != null) ...[
+                  const SizedBox(height: GeniusWalletConsts.space6),
+                  Semantics(
+                    liveRegion: true,
+                    child: GWWarningNote(state.error!),
+                  ),
+                ],
+                const SizedBox(height: GeniusWalletConsts.space8),
+                if (state.busy)
+                  Semantics(
+                    liveRegion: true,
+                    label: 'Estimating network fee',
+                    child: const SizedBox(height: 1),
+                  ),
+                FocusTraversalOrder(
+                  order: const NumericFocusOrder(3),
+                  child: GWButton(
+                    label: 'Review',
+                    variant: GWButtonVariant.gradient,
+                    expand: true,
+                    isLoading: state.busy,
+                    onPressed: state.busy
+                        ? null
+                        : () => _review(context, cubit),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

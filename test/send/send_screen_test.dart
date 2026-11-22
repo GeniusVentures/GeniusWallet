@@ -2,9 +2,9 @@
 // stubbed GeniusApi so no RPC, key or real Hive box is involved (real Hive
 // I/O inside testWidgets hangs here, same reasoning as swap_submit_test.dart).
 import 'dart:async';
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
@@ -1079,6 +1079,69 @@ void main() {
       );
       expect(find.byType(CoinsScreen), findsNothing);
       expect(find.text('MATIC'), findsWidgets);
+    });
+  });
+
+  group('the send form walks with the keyboard', () {
+    // Which labelled control holds the primary focus right now.
+    String? focusLabel() {
+      final ctx = FocusManager.instance.primaryFocus?.context;
+      if (ctx == null) {
+        return null;
+      }
+      final gw = ctx.findAncestorWidgetOfExactType<GWButton>();
+      if (gw != null) {
+        return gw.label;
+      }
+      final field = ctx.findAncestorWidgetOfExactType<GWTextField>();
+      return field?.label;
+    }
+
+    Future<void> mountForm(WidgetTester tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      await _mountOver(
+        tester,
+        _SeededCubit(
+          geniusApi: _FakeApi(),
+          networkTokensProvider: NetworkTokensProvider(),
+        ),
+        symbol: 'matic',
+      );
+      // A valid recipient and amount, so Review's own checks pass and the
+      // keyboard test reaches the drawer rather than a validation error.
+      await tester.enterText(find.byType(GWTextField).first, _recipient);
+      await tester.enterText(find.byType(GWTextField).at(1), '1');
+      await tester.tap(find.byType(GWTextField).first);
+      await tester.pump();
+      expect(focusLabel(), 'To');
+    }
+
+    testWidgets('Tab walks To -> Amount -> MAX -> Review', (tester) async {
+      await mountForm(tester);
+
+      for (final label in const ['Amount', 'MAX', 'Review']) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        expect(focusLabel(), label);
+      }
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('Enter on the focused Review opens the review drawer', (
+      tester,
+    ) async {
+      await mountForm(tester);
+
+      for (final label in const ['Amount', 'MAX', 'Review']) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        expect(focusLabel(), label);
+      }
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Review send'), findsOneWidget);
+      debugDefaultTargetPlatformOverride = null;
     });
   });
 }
