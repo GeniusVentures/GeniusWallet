@@ -25,6 +25,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/sgnus_transactions_cu
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_tools_host.dart';
 import 'package:genius_wallet/hive/init.dart';
+import 'package:genius_wallet/navigation/escape_to_pop.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/network/connectivity_fallback.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -571,7 +572,9 @@ class MyApp extends StatelessWidget {
                           navigatorKey: navigatorKey,
                           child: GlobalSwapFabHost(
                             router: geniusWalletRouter,
-                            child: child ?? const SizedBox.shrink(),
+                            child: EscapeToPop(
+                              child: child ?? const SizedBox.shrink(),
+                            ),
                           ),
                         ),
                       ),
