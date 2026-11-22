@@ -292,6 +292,28 @@ void main() {
       expect(harness.cubit.state.submitError, isEmpty);
     });
 
+    test('valid JSON that is not an object -> readable rejection', () async {
+      final harness = _build();
+      addTearDown(harness.dispose);
+      // A well-formed JSON array parses fine but is not a job. The cubit
+      // must reject it with a human-readable message, never leak an
+      // internal type error into the UI.
+      final file = File('${tempDir.path}/array.json')
+        ..writeAsStringSync('[1,2,3]');
+      fakeFilePicker.resultBuilder = () => FilePickerResult([
+        PlatformFile(path: file.path, name: 'array.json', size: 7),
+      ]);
+
+      await harness.cubit.openFilePicker();
+
+      expect(harness.cubit.state.fileError, isNotEmpty);
+      expect(harness.cubit.state.fileError, isNot(contains('_TypeError')));
+      expect(
+        harness.cubit.state.fileError,
+        isNot(startsWith('Failed to pick file:')),
+      );
+    });
+
     test('any other picker throw -> fileError only', () async {
       final harness = _build();
       addTearDown(harness.dispose);
