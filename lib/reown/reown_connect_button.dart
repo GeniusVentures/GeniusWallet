@@ -293,7 +293,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         return;
       }
 
-      if (_session == null) {
+      // A manual pair leaves the proposal still in flight; dropping
+      // _isConnecting here would also disarm the timeout below, and a URI
+      // that pairs but never proposes a session would fail with no error
+      // shown at all.
+      if (_session == null && !_didManualPair) {
         setState(() {
           _isConnecting = false;
         });
