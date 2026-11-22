@@ -11,12 +11,17 @@ class ExistingWalletState {
 
   final ExistingWalletStatus importWalletStatus;
 
+  /// The address the successful import added; the flow's completion reload
+  /// passes it to the app bloc so the dashboard lands on this wallet.
+  final String? importedAddress;
+
   const ExistingWalletState({
     this.acceptedLegal = false,
     this.currentStep = ImportWalletStep.legal,
     this.selectedWallet = '',
     this.selectedCoinType = TWCoinType.TWCoinTypeEthereum,
     this.importWalletStatus = ExistingWalletStatus.initial,
+    this.importedAddress,
   });
 
   ExistingWalletState copyWith({
@@ -25,6 +30,7 @@ class ExistingWalletState {
     String? selectedWallet,
     TWCoinType? selectedCoinType,
     ExistingWalletStatus? importWalletStatus,
+    String? importedAddress,
   }) {
     return ExistingWalletState(
       acceptedLegal: acceptedLegal ?? this.acceptedLegal,
@@ -32,6 +38,7 @@ class ExistingWalletState {
       selectedWallet: selectedWallet ?? this.selectedWallet,
       selectedCoinType: selectedCoinType ?? this.selectedCoinType,
       importWalletStatus: importWalletStatus ?? this.importWalletStatus,
+      importedAddress: importedAddress ?? this.importedAddress,
     );
   }
 }

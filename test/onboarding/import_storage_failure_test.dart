@@ -21,7 +21,7 @@ class _BlockedStoreApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.memberName == #validateWalletImport) {
       failed.value = true;
-      return Future<bool>.error(const SecureStorageWriteError());
+      return Future<String?>.error(const SecureStorageWriteError());
     }
     return super.noSuchMethod(invocation);
   }

@@ -1161,7 +1161,9 @@ class GeniusApi {
     await _registerWallet(storedKey);
   }
 
-  Future<bool> validateWalletImport({
+  /// Imports a wallet and returns its address, null on failure — the caller
+  /// needs the address to select the wallet it just imported.
+  Future<String?> validateWalletImport({
     required TWCoinType coinType,
     required String walletName,
     required String walletType,
@@ -1198,10 +1200,10 @@ class GeniusApi {
       );
     }
 
-    return false;
+    return null;
   }
 
-  Future<bool> importWalletFromKeyStore(
+  Future<String?> importWalletFromKeyStore(
     String json,
     String? password,
     String walletName,
@@ -1210,7 +1212,7 @@ class GeniusApi {
     StoredKey? storedKey = StoredKey.importJson(json);
 
     if (storedKey == null) {
-      return false;
+      return null;
     }
 
     final mnemonic = storedKey.decryptMnemonic(
@@ -1225,22 +1227,22 @@ class GeniusApi {
     );
 
     if (mnemonic == null || pk == "") {
-      return false;
+      return null;
     }
 
     await _registerWallet(storedKey);
 
-    return true;
+    return storedKey.account(0).address();
   }
 
-  Future<bool> importWalletFromAddress(
+  Future<String?> importWalletFromAddress(
     String address,
     String walletName,
     TWCoinType coinType,
   ) async {
     if (!AnyAddress.isValid(address, coinType)) {
       debugPrint('Invalid Address');
-      return false;
+      return null;
     }
 
     await _secureStorage.saveWatchedWallet(
@@ -1256,10 +1258,10 @@ class GeniusApi {
 
     await loadStoredWallets();
 
-    return true;
+    return address;
   }
 
-  Future<bool> importWalletFromMnemonic(
+  Future<String?> importWalletFromMnemonic(
     String mnemonic,
     String walletName,
     TWCoinType coinType,
@@ -1272,15 +1274,15 @@ class GeniusApi {
     );
 
     if (storedKey == null) {
-      return false;
+      return null;
     }
 
     await _registerWallet(storedKey);
 
-    return true;
+    return storedKey.account(0).address();
   }
 
-  Future<bool> importWalletFromPrivateKey(
+  Future<String?> importWalletFromPrivateKey(
     String privateKey,
     String walletName,
     TWCoinType coinType,
@@ -1294,12 +1296,12 @@ class GeniusApi {
     );
 
     if (storedKey == null) {
-      return false;
+      return null;
     }
 
     await _registerWallet(storedKey);
 
-    return true;
+    return storedKey.account(0).address();
   }
 
   Future<void> renameWallet(String address, String newName) async {

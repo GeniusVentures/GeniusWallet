@@ -24,7 +24,7 @@ class _RecordingApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.memberName == #validateWalletImport) {
       importedNames.add(invocation.namedArguments[#walletName] as String);
-      return Future<bool>.value(false);
+      return Future<String?>.value(null);
     }
     return super.noSuchMethod(invocation);
   }

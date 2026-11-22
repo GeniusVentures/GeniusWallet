@@ -23,7 +23,12 @@ class ExistingWalletFlow extends StatelessWidget {
           prev.importWalletStatus != ExistingWalletStatus.success &&
           curr.importWalletStatus == ExistingWalletStatus.success,
       listener: (context, state) {
-        context.read<AppBloc>().add(LoadWallets());
+        // Name the wallet the import added: a plain reload would restore the
+        // previously selected wallet and the dashboard would show the old
+        // one after the import.
+        context.read<AppBloc>().add(
+          LoadWallets(selectAddress: state.importedAddress),
+        );
         // This flow runs on top-level routes pushed above the dashboard's
         // shell. Popping them first leaves the shell page mounted; go() alone
         // tears the shell down and rebuilds it mid-transition while the old

@@ -197,9 +197,18 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       allowTestnets: DeveloperMode.isOn,
     );
 
-    final selectedWallet = WalletDetailsCubit.restoreSelectedWallet(
-      mergedWallets,
-    );
+    // The reload's caller decides: an import names the wallet it just added.
+    // A stored watch-only wallet may carry a type no local key matches, so a
+    // miss falls back to the persisted choice rather than selecting nothing.
+    final requested = event.selectAddress;
+    final selectedWallet = requested == null
+        ? WalletDetailsCubit.restoreSelectedWallet(mergedWallets)
+        : mergedWallets
+                  .where(
+                    (w) => w.address.toLowerCase() == requested.toLowerCase(),
+                  )
+                  .firstOrNull ??
+              WalletDetailsCubit.restoreSelectedWallet(mergedWallets);
 
     await transactionsCubit.loadInitial(selectedWallet.address);
     unawaited(

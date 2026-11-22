@@ -8,7 +8,14 @@ sealed class WalletRemoval extends AppEvent {}
 
 class InitializeSDK extends AppEvent {}
 
-class LoadWallets extends AppEvent {}
+class LoadWallets extends AppEvent {
+  LoadWallets({this.selectAddress});
+
+  /// When set, the reload selects this wallet instead of the persisted
+  /// choice — an import passes the address it just added, so the dashboard
+  /// lands on the new wallet rather than the previously selected one.
+  final String? selectAddress;
+}
 
 class CheckIfUserExists extends AppEvent {}
 
