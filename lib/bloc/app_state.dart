@@ -61,21 +61,18 @@ class AppState extends Equatable {
   /// The node's own human-readable initialization message
   /// (`packages/genius_api/lib/src/genius_api.dart:84-85`). `null` before
   /// the first poll lands.
-  ///
-  /// ponytail: this field is emitted (`app_bloc.dart:350`) and read by
-  /// nothing - `compute_state.dart`'s `viewForComputeState` dropped its
-  /// `initStatusMessage` parameter in `14-09-PLAN.md` Task 1b in favour of
-  /// the fixed `Feed live` / `Feed stopped` copy, and no other call site
-  /// ever read this field (`lib/network/network_page.dart` keeps its own
-  /// independent `_initStatusMessage` from its own
-  /// `getInitializationStatus()` read). The ceiling: it is dead weight
-  /// until something reads it. The upgrade path: the network page, or an
-  /// un-parked stall detector for `ComputeState.stalled`
-  /// (`.planning/todos/pending/2026-07-29-stall-detector-needs-a-traced-processing-feed.md`),
-  /// is its natural consumer. Left in place rather than deleted - the SDK
-  /// genuinely populates it, and a field the SDK writes is not the same
-  /// as a field nothing needs.
   final String? initMessage;
+
+  /// When the init feed's reading (percentage or message) last changed.
+  /// `null` before the first poll lands. The compute panel derives the
+  /// [ComputeState.stalled] refinement from this - the same
+  /// timestamp-in-state, duration-at-the-call-site split as
+  /// [processingCompletedAt] and [sinceJobFinished]. This field is
+  /// genuinely nullable (unlike the non-nullable-with-default rule above)
+  /// because "no reading yet" is a real value - it is only ever written by
+  /// the bloc, never cleared through [copyWith], so the no-op trap does not
+  /// apply to it.
+  final DateTime? initReadingChangedAt;
 
   /// The currently selected SDK account address (for processing/minting).
   final String? selectedSDKAccount;
@@ -118,6 +115,7 @@ class AppState extends Equatable {
     this.processingCompletedAt,
     this.initPercentage,
     this.initMessage,
+    this.initReadingChangedAt,
     this.selectedSDKAccount,
     this.switchingSDKAccount,
     this.sdkAccounts = const [],
@@ -142,6 +140,7 @@ class AppState extends Equatable {
     DateTime? processingCompletedAt,
     double? initPercentage,
     String? initMessage,
+    DateTime? initReadingChangedAt,
     String? selectedSDKAccount,
     bool clearSelectedSDKAccount = false,
     String? switchingSDKAccount,
@@ -169,6 +168,7 @@ class AppState extends Equatable {
           processingCompletedAt ?? this.processingCompletedAt,
       initPercentage: initPercentage ?? this.initPercentage,
       initMessage: initMessage ?? this.initMessage,
+      initReadingChangedAt: initReadingChangedAt ?? this.initReadingChangedAt,
       selectedSDKAccount: clearSelectedSDKAccount
           ? null
           : selectedSDKAccount ?? this.selectedSDKAccount,
@@ -200,6 +200,7 @@ class AppState extends Equatable {
     processingCompletedAt,
     initPercentage,
     initMessage,
+    initReadingChangedAt,
     selectedSDKAccount,
     switchingSDKAccount,
     sdkAccounts,

@@ -190,6 +190,7 @@ void main() {
         selectedWalletAddress: DevMockSgnus.address,
         isProcessingUnavailable: false,
         initPercentage: 0.37,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -256,6 +257,7 @@ void main() {
           selectedWalletAddress: DevMockSgnus.address,
           isProcessingUnavailable: false,
           initPercentage: 1.0,
+          sinceInitReadingChanged: null,
           isProcessing: false,
           sinceJobFinished: jobCompleteWindow * 2,
         );
@@ -272,6 +274,7 @@ void main() {
         selectedWalletAddress: DevMockSgnus.address,
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );

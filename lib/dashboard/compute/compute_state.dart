@@ -10,18 +10,14 @@
 /// an enum and never a `Color`: a `Color` import would pull Flutter into a
 /// file whose entire point is being testable without a widget pump.
 ///
-/// **Eight states, not nine.** State 04 (Stalled - "Still starting up") is
-/// parked as a backlog item
-/// (`.planning/todos/pending/2026-07-29-stall-detector-needs-a-traced-processing-feed.md`)
-/// because its threshold cannot be chosen honestly until the processing feed
-/// is traced. `ComputeState` therefore has no ninth member for it: an enum
-/// value nothing can return would silently weaken the exhaustive
-/// distinctness guard in `test/dashboard/compute_state_distinct_test.dart`
-/// and would mislead the next reader into thinking the detector shipped.
-/// ponytail: the ceiling is "no stalled state" until that todo lands a real
-/// N against a traced feed; the upgrade path is un-parking that file, adding
-/// the ninth `ComputeState` member and letting the iterate-`values`
-/// distinctness test catch any missing differentiation automatically.
+/// **Nine states.** State 04 (Stalled - "Still starting up") shipped with a
+/// real threshold once the init feed itself was traced: the SDK's
+/// initialization read is what parks below 1.0 forever when the node's READY
+/// transition never fires, so the stall detector watches THAT feed (see
+/// [initStallDeadline]) rather than the processing feed the original
+/// parking note expected. The iterate-`values` distinctness test in
+/// `test/dashboard/compute_state_distinct_test.dart` still guards that the
+/// new member renders differently from its neighbours.
 library;
 
 /// One of the eight states the compute node can be in, in the precedence
@@ -53,6 +49,12 @@ enum ComputeState {
   /// feed never reads as a healthy one.
   unavailable,
 
+  /// The initialization feed has sat below 1.0, unchanged, for at least
+  /// [initStallDeadline] - the parked-at-the-ceiling case, not a moving
+  /// startup. Outranks [startingUp], which it refines, and never leaks
+  /// above 1.0 (see the < 1.0 branch in [resolveComputeState]).
+  stalled,
+
   /// The initialization feed reports a percentage below 1.0.
   startingUp,
 
@@ -79,7 +81,8 @@ enum ComputeLink {
   chooseWallet,
   switchWallet,
   seeNodeStatus,
-  reconnect;
+  reconnect,
+  retry;
 
   /// Affordance copy from the copy contract (`14-UI-SPEC.md:775-783`).
   /// `null` for [ComputeLink.none] - there is nothing to render.
@@ -89,6 +92,7 @@ enum ComputeLink {
     ComputeLink.switchWallet => 'Switch wallet ›',
     ComputeLink.seeNodeStatus => 'Earning status ›',
     ComputeLink.reconnect => 'Reconnect ›',
+    ComputeLink.retry => 'Retry ›',
   };
 }
 
@@ -98,11 +102,42 @@ enum ComputeLink {
 /// is fine that a restart loses it.
 const Duration jobCompleteWindow = Duration(seconds: 60);
 
+/// How long the initialization read may sit below 1.0, unchanged, before
+/// [ComputeState.stalled] replaces "Starting up".
+///
+/// 60s, from the sweep logs, not picked for symmetry with
+/// [jobCompleteWindow]: a healthy start reaches 100% within seconds (the
+/// node logs READY in the same second its init completes on a pre-existing
+/// profile, and a fresh-profile first start lands shortly after wallet
+/// creation), the node's own blockchain retry loop fires every 5s, and the
+/// feed's poll every 3s - so a reading that is going anywhere moves within
+/// a minute. The one observed stall sat frozen at 60% well past a minute
+/// after the network came back (the SDK's init feed parks at a 0.525-0.60
+/// ceiling when the node's READY transition never fires), which is exactly
+/// the window this deadline catches.
+const Duration initStallDeadline = Duration(seconds: 60);
+
+/// Whether the initialization feed counts as stalled: the reading has been
+/// frozen below 1.0 for at least [initStallDeadline]. The elapsed time is
+/// computed at the call site from `AppState.initReadingChangedAt` (the same
+/// split as [sinceJobFinished]'s `processingCompletedAt`), kept here so the
+/// rule is testable without a bloc harness.
+bool initFeedIsStalled({
+  required Duration? sinceReadingChanged,
+  required double percentage,
+}) {
+  if (percentage >= 1.0) {
+    return false;
+  }
+  return sinceReadingChanged != null &&
+      sinceReadingChanged >= initStallDeadline;
+}
+
 /// Resolves the compute node's state from the screen's raw inputs.
 ///
 /// Precedence, top to bottom (14-01-PLAN.md Task 2 `<action>`): [noWallet] →
-/// [disconnected] → [notDefaultAccount] → [unavailable] → [startingUp] →
-/// [processing] → [jobComplete] → [ready].
+/// [disconnected] → [notDefaultAccount] → [unavailable] → [stalled] /
+/// [startingUp] → [processing] → [jobComplete] → [ready].
 ///
 /// - [hasSelectedWallet]: whether any wallet is selected at all.
 /// - [isNodeConnected]: whether the SGNUS node reports itself connected.
@@ -115,6 +150,10 @@ const Duration jobCompleteWindow = Duration(seconds: 60);
 /// - [initPercentage]: the initialization feed, 0.0-1.0
 ///   (`packages/genius_api/lib/src/genius_api.dart:81`). `null` before the
 ///   first poll ever lands.
+/// - [sinceInitReadingChanged]: elapsed time since the init feed's reading
+///   (percentage or message) last changed, `null` before the first poll.
+///   Computed at the call site from `AppState.initReadingChangedAt`, the
+///   same split as [sinceJobFinished].
 /// - [isProcessing]: whether the node is actively processing a job right
 ///   now.
 /// - [sinceJobFinished]: elapsed time since the last job finished, `null` if
@@ -126,6 +165,7 @@ ComputeState resolveComputeState({
   required String selectedWalletAddress,
   required bool isProcessingUnavailable,
   required double? initPercentage,
+  required Duration? sinceInitReadingChanged,
   required bool isProcessing,
   required Duration? sinceJobFinished,
 }) {
@@ -153,7 +193,14 @@ ComputeState resolveComputeState({
   }
 
   if (initPercentage != null && initPercentage < 1.0) {
-    return ComputeState.startingUp;
+    // Stalled is a refinement of startingUp, checked inside the branch so
+    // it can never leak above 1.0.
+    return initFeedIsStalled(
+          sinceReadingChanged: sinceInitReadingChanged,
+          percentage: initPercentage,
+        )
+        ? ComputeState.stalled
+        : ComputeState.startingUp;
   }
 
   if (isProcessing) {
@@ -265,7 +312,7 @@ ComputeStatusView viewForComputeState(
 
   double? barValue;
   String? percentageTrailing;
-  if (state == ComputeState.startingUp) {
+  if (state == ComputeState.startingUp || state == ComputeState.stalled) {
     // No bar for this state (see [ComputeStatusView.showBar]'s doc
     // comment), but the percentage survives as [trailing] - a number that
     // stops moving is self-evidently stuck in a way a bar parked at 52%
@@ -305,6 +352,11 @@ ComputeStatusView viewForComputeState(
       subline = 'Feed stopped';
       dotRole = ComputeDotRole.error;
       link = ComputeLink.reconnect;
+    case ComputeState.stalled:
+      label = 'Still starting up';
+      subline = 'No progress for over a minute';
+      dotRole = ComputeDotRole.warning;
+      link = ComputeLink.retry;
     case ComputeState.startingUp:
       label = 'Starting up';
       subline = 'Jobs unlock once earning starts';

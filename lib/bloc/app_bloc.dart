@@ -74,6 +74,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
     on<RetryProcessingStatus>(_onRetryProcessingStatus);
     on<InitializationStatusTicked>(_onInitializationStatusTicked);
+    on<RetryInitializationStatus>(_onRetryInitializationStatus);
     // One queue for both deletes: run side by side, each would pass the
     // last-wallet guard and together remove every key wallet.
     on<WalletRemoval>(
@@ -524,6 +525,25 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     );
   }
 
+  /// The stalled init feed's Retry: re-arms the poll (idempotent by
+  /// construction, see [_startInitPolling]), restarts the stall window so
+  /// the panel falls back to "Starting up" until the next tick, and
+  /// re-reads the SDK accounts - the same nudge the >= 1.0 path fires, for
+  /// reads made while the node was starting. `initSDK()` itself stays
+  /// memoized by design; this re-runs everything around the start the app
+  /// owns.
+  FutureOr<void> _onRetryInitializationStatus(
+    RetryInitializationStatus event,
+    Emitter<AppState> emit,
+  ) {
+    _startInitPolling();
+    // Restarting the stall window drops the panel back to "Starting up"
+    // until the next tick, so a tap visibly does something even when the
+    // feed stays frozen.
+    emit(state.copyWith(initReadingChangedAt: DateTime.now()));
+    add(RefreshSDKAccounts());
+  }
+
   /// Starts the 3s initialization poll. 3s matches
   /// `sgnus_connection_widget.dart:42`, the only shipped consumer of this
   /// feed and therefore the only measured cadence for it - deliberately
@@ -571,10 +591,18 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     try {
       final status = api.getInitializationStatus();
+      // The compute panel derives the stalled refinement from this
+      // timestamp: a changed reading restarts the stall window, an
+      // unchanged one keeps the old timestamp (copyWith null = keep), which
+      // is what lets the window grow across ticks.
+      final readingChanged =
+          status.percentage != state.initPercentage ||
+          status.message != state.initMessage;
       emit(
         state.copyWith(
           initPercentage: status.percentage,
           initMessage: status.message,
+          initReadingChangedAt: readingChanged ? DateTime.now() : null,
         ),
       );
       if (status.percentage >= 1.0) {

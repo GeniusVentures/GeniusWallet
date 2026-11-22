@@ -19,6 +19,7 @@ void main() {
       selectedWalletAddress: '0xother',
       isProcessingUnavailable: false,
       initPercentage: 1.0,
+      sinceInitReadingChanged: null,
       isProcessing: false,
       sinceJobFinished: null,
     );

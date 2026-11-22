@@ -21,6 +21,7 @@ void main() {
         selectedWalletAddress: '0xWallet',
         isProcessingUnavailable: true,
         initPercentage: 0.2,
+        sinceInitReadingChanged: null,
         isProcessing: true,
         sinceJobFinished: const Duration(seconds: 5),
       );
@@ -37,6 +38,7 @@ void main() {
         selectedWalletAddress: '0xWallet',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -54,6 +56,7 @@ void main() {
         selectedWalletAddress: '0xOther',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -69,6 +72,7 @@ void main() {
         selectedWalletAddress: '0xWallet',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -88,6 +92,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: true,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -104,6 +109,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: false,
         initPercentage: 0.4,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -120,6 +126,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: true,
         sinceJobFinished: null,
       );
@@ -136,6 +143,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: const Duration(seconds: 10),
       );
@@ -152,6 +160,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -172,6 +181,7 @@ void main() {
         selectedWalletAddress: '0xWallet',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -187,6 +197,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: true,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -201,6 +212,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: true,
         initPercentage: 0.3,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: null,
       );
@@ -216,6 +228,7 @@ void main() {
         selectedWalletAddress: '0xNode',
         isProcessingUnavailable: false,
         initPercentage: 1.0,
+        sinceInitReadingChanged: null,
         isProcessing: false,
         sinceJobFinished: jobCompleteWindow,
       );
@@ -233,6 +246,7 @@ void main() {
           selectedWalletAddress: '0xNode',
           isProcessingUnavailable: false,
           initPercentage: 1.0,
+          sinceInitReadingChanged: null,
           isProcessing: false,
           sinceJobFinished: jobCompleteWindow + const Duration(seconds: 1),
         );
@@ -255,6 +269,7 @@ void main() {
           selectedWalletAddress: '0xNode',
           isProcessingUnavailable: false,
           initPercentage: 1.0,
+          sinceInitReadingChanged: null,
           isProcessing: false,
           sinceJobFinished: null,
         );

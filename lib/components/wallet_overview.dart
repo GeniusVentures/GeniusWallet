@@ -108,6 +108,12 @@ class WalletsOverviewState extends State<WalletsOverview> {
         // cancelled timer genuinely is a retry regardless of what the
         // link is called.
         context.read<AppBloc>().add(RetryProcessingStatus());
+      case ComputeLink.retry:
+        // The stalled init feed's affordance: re-arms the init poll,
+        // restarts the stall window and re-reads the SDK accounts. Mirrors
+        // the reconnect case above - the link the user reads says Retry,
+        // the bloc decides what retrying means.
+        context.read<AppBloc>().add(RetryInitializationStatus());
     }
   }
 
@@ -208,6 +214,13 @@ class WalletsOverviewState extends State<WalletsOverview> {
                                 appState.processingCompletedAt!,
                               );
 
+                        final sinceInitReadingChanged =
+                            appState.initReadingChangedAt == null
+                            ? null
+                            : DateTime.now().difference(
+                                appState.initReadingChangedAt!,
+                              );
+
                         final computeState = resolveComputeState(
                           hasSelectedWallet: selectedWallet != null,
                           isNodeConnected: connection?.isConnected ?? false,
@@ -220,6 +233,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
                               appState.processingFeedStatus ==
                               ProcessingFeedStatus.unavailable,
                           initPercentage: appState.initPercentage,
+                          sinceInitReadingChanged: sinceInitReadingChanged,
                           isProcessing: appState.isProcessing,
                           sinceJobFinished: sinceJobFinished,
                         );

@@ -38,6 +38,13 @@ class RetryProcessingStatus extends AppEvent {}
 /// existing shape.
 class InitializationStatusTicked extends AppEvent {}
 
+/// The user tapped the compute panel's Retry on a stalled init feed. Re-arms
+/// the init poll, restarts the stall window and re-reads the SDK accounts -
+/// `initSDK()` itself is memoized and never re-run by design, so this
+/// re-runs everything around the start that the app owns. See
+/// `AppBloc._onRetryInitializationStatus`.
+class RetryInitializationStatus extends AppEvent {}
+
 class DeleteWallet extends WalletRemoval {
   final String address;
 
